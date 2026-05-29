@@ -75,7 +75,7 @@ function computeScores(answers) {
     return { id: d.id, name: d.name, weight: d.weight, pct, answered, total,
              rag: DN.rag(pct), blurb: d.blurb, rxCategory: d.rxCategory, dnTool: d.dnTool, fuelLink: d.fuelLink,
              benchmark: d.benchmark, benchmarkSrc: d.benchmarkSrc, standard: d.standard,
-             caskLink: d.caskLink };
+             caskLink: d.caskLink, canvasLink: d.canvasLink };
   });
   return { domains, index: wsum ? Math.round(weighted / wsum) : 0, answeredAll };
 }

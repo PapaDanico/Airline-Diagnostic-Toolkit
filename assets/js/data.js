@@ -192,6 +192,7 @@ const DN = {
       blurb: "Profitability, liquidity, business planning, board governance and strategic execution.",
       rxCategory: "Financial-planning & analysis (FP&A) and board-reporting / KPI-governance tooling.",
       dnTool: "DN C1 — 90-Day Sprint; C3 — Board Presentation; C4 — KPI Governance; A4 — Operating Model Canvas",
+      canvasLink: true,
       benchmark: "African airlines posted a net margin of only ~1% in 2024 — roughly $1.20 profit per passenger — the thinnest of any region.",
       benchmarkSrc: "IATA, 2024",
       standard: "IATA Airline Performance Review (APR)",

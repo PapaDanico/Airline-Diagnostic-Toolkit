@@ -16,6 +16,7 @@ deployable on **Netlify or Vercel** (config for both is in the repo).
 | `index.html` | Landing — "First Step" narrative, trust strip, 5-phase engagement model, 14-tool spotlight, 3× ROI guarantee. |
 | `diagnostic.html` | **Airline Health Scorecard** — 40 questions × 8 weighted domains. Privacy panel, progress tracking, partner-aware, iframe-embeddable. |
 | `results.html` | **Strategic gap report** — weighted health index ring, weakest-first findings table with sourced industry benchmarks, radar profile, *"Next Steps: From Diagnosis to Solution"* prescriber, sources block, and DN-Engagement-Key-gated Toolboxes B/C/D. **"Print / save as PDF"** produces a board-ready one-page report. |
+| `tools/operating-model-canvas.html` | **Operating Model Canvas (Tool A4)** — 9-panel one-page airline operating model; auto-saves to `localStorage`, print / save-to-PDF, facilitated workshop gated behind a Contact CTA. |
 | `tools/cask-calculator.html` | **CASK Benchmarking Calculator (Tool A2)** — client-side unit-cost calculator; bands your CASK against DN's competitive target and African cost context, full benchmarking pack gated behind a Contact CTA. |
 | `tools/fuel-optimizer.html` | **Fuel Contract Optimizer Lite** — client-side savings estimator; full tool gated behind a Contact CTA. |
 | `embed.html` | Generic white-label embed sample (DN-only; the partner registry ships empty). |

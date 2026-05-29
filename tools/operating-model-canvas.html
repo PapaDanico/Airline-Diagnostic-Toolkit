@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Operating Model Canvas — map your whole airline operating model on one page across 9 panels. Auto-saves on your device, print or save to PDF. Free, client-side.">
+<link rel="canonical" href="https://dnconsultancydiagnostictoolkit.netlify.app/tools/operating-model-canvas.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DN Consultancy">
+<meta property="og:title" content="Operating Model Canvas — DN Consultancy">
+<meta property="og:description" content="Map your whole airline operating model on one page across 9 panels. Auto-saves on your device, print or save to PDF. Free, client-side.">
+<meta property="og:url" content="https://dnconsultancydiagnostictoolkit.netlify.app/tools/operating-model-canvas.html">
+<meta property="og:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Operating Model Canvas — DN Consultancy">
+<meta name="twitter:description" content="Map your whole airline operating model on one page across 9 panels.">
+<meta name="twitter:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
+<title>Operating Model Canvas | DN Consultancy</title>
+<link rel="icon" type="image/png" href="../assets/img/dn-badge.png">
+<link rel="apple-touch-icon" href="../assets/img/dn-badge.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/dn.css">
+<style>
+  .omc-meta { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 22px; }
+  .omc-meta .field { margin: 0; flex: 1 1 280px; }
+  .omc-meta .saved { font-size: .82rem; color: var(--dn-muted); margin-left: auto; align-self: center; }
+  .omc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .omc-panel { border: 1px solid rgba(28,28,28,.14); border-radius: var(--radius-sm); padding: 14px 16px; background: var(--dn-white); display: flex; flex-direction: column; }
+  .omc-panel h4 { font-family: var(--sans); font-size: .98rem; margin: 0; color: var(--dn-dark); }
+  .omc-panel .num { color: var(--accent); font-weight: 700; }
+  .omc-panel .prompt { font-size: .78rem; color: var(--dn-muted); margin: .3rem 0 .55rem; line-height: 1.4; }
+  .omc-panel textarea { width: 100%; flex: 1; min-height: 96px; resize: vertical; border: 1px solid rgba(28,28,28,.16);
+    border-radius: 6px; padding: 9px 10px; font: inherit; font-size: .9rem; color: var(--dn-dark); background: var(--dn-fog); }
+  .omc-panel textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; background: #fff; }
+  .omc-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+  @media (max-width: 900px){ .omc-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px){ .omc-grid { grid-template-columns: 1fr; } }
+  @media print {
+    .omc-print-head { display: block !important; }
+    .omc-actions, .omc-meta .saved { display: none !important; }
+    .omc-grid { gap: 8px; }
+    .omc-panel { break-inside: avoid; page-break-inside: avoid; border-color: #888; }
+    .omc-panel textarea { background: #fff !important; border-color: #bbb; min-height: 0; height: auto; overflow: visible; }
+    .diag-head { display: none !important; }
+  }
+  .omc-print-head { display: none; padding-bottom: 12px; border-bottom: 2px solid var(--dn-dark); margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner><span data-logo></span><span>DN Consultancy<small>Operating Model Canvas</small></span></a>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+    <div class="nav-links">
+      <a href="../index.html" data-keep-partner>Home</a>
+      <a href="../diagnostic.html" data-keep-partner>Scorecard</a>
+    </div>
+  </div>
+</nav>
+
+<header class="diag-head">
+  <div class="wrap">
+    <p class="eyebrow">Free point solution · Tool A4</p>
+    <h1 style="margin:0">Operating Model Canvas</h1>
+    <p class="muted" style="max-width:720px">Your whole airline on one page. Fill in the nine panels to set out how the business actually works — markets, fleet, value, money, operations and risk. Everything saves on your device; nothing is sent anywhere. Print it or save it as a PDF for the board pack.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="omc-print-head">
+      <strong style="font-size:1.1rem" id="ph-name">Operating Model Canvas</strong>
+      <span class="muted" id="ph-date" style="float:right"></span>
+    </div>
+
+    <div class="omc-meta">
+      <div class="field">
+        <label for="airline">Airline / operator</label>
+        <input id="airline" type="text" placeholder="e.g. Example Airways" autocomplete="off">
+      </div>
+      <span class="saved" id="saved">Saved on your device</span>
+    </div>
+
+    <div class="omc-actions">
+      <button class="btn btn-dark" id="print">Print / save as PDF</button>
+      <button class="btn btn-ghost" id="clear">Clear canvas</button>
+    </div>
+
+    <div class="omc-grid" id="grid"></div>
+
+    <div class="guarantee" style="margin-top:1.8rem">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <div>
+        <strong>Turn the canvas into a strategy.</strong>
+        <p style="margin:.4rem 0 .8rem;font-size:.9rem">DN facilitates the Operating Model Canvas as a half-day leadership workshop, then maps each panel to the 90-day sprint, KPI governance framework and board pack.</p>
+        <a class="btn btn-gold" id="contact-cta">Book a canvas workshop with DN &rarr;</a>
+      </div>
+    </div>
+    <p class="disclaimer" style="margin-top:1rem">A working template for orientation, not a substitute for a full operating-model review. Your entries stay in this browser only.</p>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> DN Consultancy · <a data-email></a></span>
+    <span data-version></span>
+  </div></div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/common.js"></script>
+<script>
+  applyPartner(); mountChrome();
+
+  const PANELS = [
+    { id: "network",    t: "Network & Markets",        p: "Which markets and routes do you serve, and who are your target customer segments?" },
+    { id: "fleet",      t: "Fleet & Assets",           p: "Aircraft types, ownership (owned / leased), and your utilisation strategy." },
+    { id: "value",      t: "Value Proposition",        p: "What do you sell, and how are you positioned — LCC, full-service, hybrid, regional feeder?" },
+    { id: "revenue",    t: "Revenue Model",            p: "Revenue mix: passenger fares, ancillaries, cargo, charter, codeshare." },
+    { id: "cost",       t: "Cost Structure",           p: "Your biggest cost drivers and your unit-cost (CASK) strategy." },
+    { id: "operations", t: "Operations & Safety",      p: "OCC, MRO, SMS, dispatch and turnaround — how operations are run and assured." },
+    { id: "people",     t: "People & Organisation",    p: "Structure, leadership, key capabilities, and what is outsourced." },
+    { id: "partners",   t: "Partnerships & Distribution", p: "Codeshares, interline, GSAs, and channels (direct, GDS, NDC, OTA)." },
+    { id: "priorities", t: "Key Risks & Priorities",   p: "Top risks to manage, and your 3–5 strategic priorities for the next 12–24 months." }
+  ];
+
+  const KEY = "dn_operating_model_canvas_v1";
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
+  const save = (state) => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
+  let state = load();
+
+  // build the 9 panels
+  const grid = document.getElementById("grid");
+  PANELS.forEach((panel, i) => {
+    const cell = document.createElement("div");
+    cell.className = "omc-panel";
+    cell.innerHTML = `<h4><span class="num">${i + 1}.</span> ${panel.t}</h4>
+      <p class="prompt">${panel.p}</p>
+      <textarea id="omc-${panel.id}" aria-label="${panel.t}"></textarea>`;
+    grid.appendChild(cell);
+    const ta = cell.querySelector("textarea");
+    ta.value = state[panel.id] || "";
+    ta.addEventListener("input", () => { state[panel.id] = ta.value; save(state); flashSaved(); });
+  });
+
+  // airline name field
+  const airline = document.getElementById("airline");
+  airline.value = state.__airline || "";
+  airline.addEventListener("input", () => { state.__airline = airline.value; save(state); flashSaved(); syncPrintHead(); });
+
+  // "Saved" feedback
+  const savedEl = document.getElementById("saved");
+  let savedTimer;
+  function flashSaved() {
+    savedEl.textContent = "Saved ✓";
+    clearTimeout(savedTimer);
+    savedTimer = setTimeout(() => { savedEl.textContent = "Saved on your device"; }, 1200);
+  }
+
+  // print header (airline + date), shown only when printing
+  function syncPrintHead() {
+    document.getElementById("ph-name").textContent =
+      (airline.value ? airline.value + " — " : "") + "Operating Model Canvas";
+  }
+  document.getElementById("ph-date").textContent =
+    new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  syncPrintHead();
+
+  // actions
+  document.getElementById("print").addEventListener("click", () => window.print());
+  document.getElementById("clear").addEventListener("click", () => {
+    if (!confirm("Clear every panel on this canvas? This cannot be undone.")) return;
+    state = {};
+    save(state);
+    PANELS.forEach(p => { document.getElementById("omc-" + p.id).value = ""; });
+    airline.value = "";
+    syncPrintHead();
+    flashSaved();
+  });
+
+  // contact CTA (mailto, reflects the airline name)
+  document.getElementById("contact-cta").href =
+    `mailto:${DN.brand.email}?subject=${encodeURIComponent("Operating Model Canvas workshop")}` +
+    `&body=${encodeURIComponent("We'd like to run the Operating Model Canvas workshop with DN.\n\nAirline: " + (airline.value || "") + "\n\nPlease get in touch.")}`;
+  airline.addEventListener("input", () => {
+    document.getElementById("contact-cta").href =
+      `mailto:${DN.brand.email}?subject=${encodeURIComponent("Operating Model Canvas workshop")}` +
+      `&body=${encodeURIComponent("We'd like to run the Operating Model Canvas workshop with DN.\n\nAirline: " + (airline.value || "") + "\n\nPlease get in touch.")}`;
+  });
+</script>
+</body>
+</html>

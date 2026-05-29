@@ -56,6 +56,7 @@
     div.className = "rx";
     const fuel = d.fuelLink ? `<div class="dn-tool"><a href="tools/fuel-optimizer.html${partnerQS}">→ Get a quick estimate with our free Fuel Contract Optimizer Lite</a></div>` : "";
     const cask = d.caskLink ? `<div class="dn-tool"><a href="tools/cask-calculator.html${partnerQS}">→ Check your unit cost with our free CASK Benchmarking Calculator</a></div>` : "";
+    const canvas = d.canvasLink ? `<div class="dn-tool"><a href="tools/operating-model-canvas.html${partnerQS}">→ Map the whole business with our free Operating Model Canvas</a></div>` : "";
     const std = d.standard ? `<div class="std">Aligns to recognised standard: <strong>${d.standard}</strong></div>` : "";
     div.innerHTML = `
       <h4>${d.name} — ${d.pct}% <span class="rag rag-${d.rag}" style="font-size:.8rem"><span class="dot"></span>${DN.ragLabel(d.pct)}</span></h4>
@@ -63,6 +64,7 @@
       ${std}
       <div class="dn-tool">DN diagnostic that goes deeper: ${d.dnTool}</div>
       ${cask}
+      ${canvas}
       ${fuel}`;
     rxHost.appendChild(div);
   });
