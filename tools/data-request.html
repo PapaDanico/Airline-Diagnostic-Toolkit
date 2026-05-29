@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="48-Hour Data Request — the 28-item priority data pack DN needs to baseline an airline. Tick off what you have, track readiness, print or save to PDF. Free, client-side.">
+<link rel="canonical" href="https://dnconsultancydiagnostictoolkit.netlify.app/tools/data-request.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DN Consultancy">
+<meta property="og:title" content="48-Hour Data Request — DN Consultancy">
+<meta property="og:description" content="The 28-item priority data pack DN needs to baseline an airline. Tick off what you have, track readiness, print or save to PDF. Free, client-side.">
+<meta property="og:url" content="https://dnconsultancydiagnostictoolkit.netlify.app/tools/data-request.html">
+<meta property="og:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="48-Hour Data Request — DN Consultancy">
+<meta name="twitter:description" content="The 28-item priority data pack DN needs to baseline an airline.">
+<meta name="twitter:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
+<title>48-Hour Data Request | DN Consultancy</title>
+<link rel="icon" type="image/png" href="../assets/img/dn-badge.png">
+<link rel="apple-touch-icon" href="../assets/img/dn-badge.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/dn.css">
+<style>
+  .dr-bar-wrap { position: sticky; top: 64px; z-index: 5; background: var(--dn-white); border: 1px solid rgba(28,28,28,.12);
+    border-radius: var(--radius-sm); padding: 14px 18px; margin-bottom: 22px; box-shadow: var(--shadow); }
+  .dr-bar-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .dr-bar-top strong { font-size: 1.05rem; }
+  .dr-track { height: 9px; background: var(--dn-fog); border-radius: 99px; overflow: hidden; margin-top: 9px; }
+  .dr-track > i { display: block; height: 100%; width: 0; background: var(--dn-green); transition: width .25s ease; }
+  .dr-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; }
+  .dr-cat { margin-bottom: 20px; }
+  .dr-cat h3 { font-family: var(--sans); font-size: .82rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 .5rem; border-bottom: 1px solid rgba(28,28,28,.1); padding-bottom: .4rem; }
+  .dr-item { display: flex; gap: 11px; align-items: flex-start; padding: 8px 6px; border-radius: 6px; cursor: pointer; }
+  .dr-item:hover { background: var(--dn-fog); }
+  .dr-item input { width: 18px; height: 18px; margin-top: 2px; flex: 0 0 auto; accent-color: var(--accent);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .dr-item span { font-size: .94rem; line-height: 1.4; }
+  .dr-item input:checked + span { color: var(--dn-muted); text-decoration: line-through; }
+  @media print {
+    .dr-actions, .dr-bar-wrap .dr-track { display: none !important; }
+    .dr-bar-wrap { position: static; box-shadow: none; border-color: #999; }
+    .dr-print-head { display: block !important; }
+    .diag-head { display: none !important; }
+    .dr-item { break-inside: avoid; page-break-inside: avoid; }
+    .dr-item:hover { background: transparent; }
+  }
+  .dr-print-head { display: none; padding-bottom: 12px; border-bottom: 2px solid var(--dn-dark); margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner><span data-logo></span><span>DN Consultancy<small>48-Hour Data Request</small></span></a>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+    <div class="nav-links">
+      <a href="../index.html" data-keep-partner>Home</a>
+      <a href="../diagnostic.html" data-keep-partner>Scorecard</a>
+    </div>
+  </div>
+</nav>
+
+<header class="diag-head">
+  <div class="wrap">
+    <p class="eyebrow">Free point solution · Tool A3</p>
+    <h1 style="margin:0">48-Hour Data Request</h1>
+    <p class="muted" style="max-width:720px">The 28 priority items DN needs to baseline an airline in the first 48 hours. Tick off what you can already lay your hands on to see how diagnostic-ready you are — and where to start gathering. Saves on your device; print it as a prep checklist for your team.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="dr-print-head">
+      <strong style="font-size:1.1rem">DN 48-Hour Data Request — readiness checklist</strong>
+      <span class="muted" id="ph-date" style="float:right"></span>
+    </div>
+
+    <div class="dr-bar-wrap">
+      <div class="dr-bar-top">
+        <strong id="dr-count">0 of 28 items ready</strong>
+        <span class="muted" id="dr-pct">0% — let's get started</span>
+      </div>
+      <div class="dr-track"><i id="dr-fill"></i></div>
+    </div>
+
+    <div class="dr-actions">
+      <button class="btn btn-dark" id="print">Print / save as PDF</button>
+      <button class="btn btn-ghost" id="clear">Reset checklist</button>
+    </div>
+
+    <div id="list"></div>
+
+    <div class="guarantee" style="margin-top:1.8rem">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <div>
+        <strong>Ready to start? DN turns this pack into a baseline in days.</strong>
+        <p style="margin:.4rem 0 .8rem;font-size:.9rem">Share the pack through a secure data room and DN returns a Health Scorecard, CASK benchmark and quick-win shortlist inside the first sprint.</p>
+        <a class="btn btn-gold" id="contact-cta">Start your diagnostic with DN &rarr;</a>
+      </div>
+    </div>
+    <p class="disclaimer" style="margin-top:1rem">A preparation aid, not a data submission — your ticks stay in this browser only. Nothing is uploaded.</p>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> DN Consultancy · <a data-email></a></span>
+    <span data-version></span>
+  </div></div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/common.js"></script>
+<script>
+  applyPartner(); mountChrome();
+
+  const CATEGORIES = [
+    { cat: "Safety & Compliance", items: [
+      "Current AOC and operations specifications",
+      "Safety reports & SMS dashboard (SPIs), last 12 months",
+      "Open regulatory (KCAA) findings register",
+      "FDM/FOQA summary or latest safety review" ] },
+    { cat: "Operational Reliability", items: [
+      "On-time performance (OTP) by month, last 12 months",
+      "Technical dispatch reliability & AOG log",
+      "Aircraft utilisation (block hours/day) by tail",
+      "Turnaround times by station and aircraft type" ] },
+    { cat: "Fleet & Network", items: [
+      "Fleet list: type, age, ownership, lease terms",
+      "Current schedule / timetable (all routes)",
+      "Route-level traffic: pax, load factor, frequency",
+      "Network map and slot / airport constraints" ] },
+    { cat: "Cost & Fuel", items: [
+      "Audited financial statements, last 2 years",
+      "Operating cost breakdown by cost line",
+      "Fuel: volumes, spend, contract terms & premiums",
+      "Major contracts: MRO, ground handling, leases" ] },
+    { cat: "Revenue & Commercial", items: [
+      "Revenue by route and by class, last 12 months",
+      "Yield / RASK trends",
+      "Ancillary revenue breakdown",
+      "Distribution mix and channel costs (GDS/OTA/direct)" ] },
+    { cat: "People & Organisation", items: [
+      "Org chart and headcount by function",
+      "Staff cost by group and FTE per aircraft",
+      "Staff turnover and training-currency status",
+      "Leadership structure / key management CVs" ] },
+    { cat: "Finance & Strategy", items: [
+      "Current business plan / strategy document",
+      "Cash flow and liquidity position (latest)",
+      "Board pack / management reporting sample",
+      "KPI dashboard / current KPIs tracked" ] }
+  ];
+  const TOTAL = CATEGORIES.reduce((n, c) => n + c.items.length, 0); // 28
+
+  const KEY = "dn_data_request_v1";
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
+  const save = (s) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {} };
+  let state = load();
+
+  const list = document.getElementById("list");
+  let idx = 0;
+  CATEGORIES.forEach(group => {
+    const sec = document.createElement("div");
+    sec.className = "dr-cat";
+    const h = document.createElement("h3");
+    h.textContent = group.cat;
+    sec.appendChild(h);
+    group.items.forEach(label => {
+      const id = "dr-" + idx++;
+      const row = document.createElement("label");
+      row.className = "dr-item";
+      row.innerHTML = `<input type="checkbox" id="${id}"><span>${label}</span>`;
+      const box = row.querySelector("input");
+      box.checked = !!state[id];
+      box.addEventListener("change", () => { state[id] = box.checked; save(state); refresh(); });
+      sec.appendChild(row);
+    });
+    list.appendChild(sec);
+  });
+
+  const countEl = document.getElementById("dr-count");
+  const pctEl = document.getElementById("dr-pct");
+  const fillEl = document.getElementById("dr-fill");
+  function refresh() {
+    const done = Object.values(state).filter(Boolean).length;
+    const pct = Math.round((done / TOTAL) * 100);
+    countEl.textContent = `${done} of ${TOTAL} items ready`;
+    fillEl.style.width = pct + "%";
+    pctEl.textContent = pct === 0 ? "0% — let's get started"
+      : pct < 50 ? pct + "% — early days"
+      : pct < 80 ? pct + "% — getting there"
+      : pct < 100 ? pct + "% — nearly diagnostic-ready"
+      : "100% — fully diagnostic-ready";
+    fillEl.style.background = pct < 50 ? "var(--dn-red)" : pct < 80 ? "var(--dn-amber)" : "var(--dn-green)";
+  }
+  refresh();
+
+  document.getElementById("ph-date").textContent =
+    new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  document.getElementById("print").addEventListener("click", () => window.print());
+  document.getElementById("clear").addEventListener("click", () => {
+    if (!confirm("Reset the whole checklist?")) return;
+    state = {}; save(state);
+    document.querySelectorAll(".dr-item input").forEach(b => { b.checked = false; });
+    refresh();
+  });
+  document.getElementById("contact-cta").href =
+    `mailto:${DN.brand.email}?subject=${encodeURIComponent("Start a DN diagnostic — 48-hour data pack")}` +
+    `&body=${encodeURIComponent("We'd like to start a diagnostic with DN and can share the 48-hour data pack.\n\nPlease get in touch.")}`;
+</script>
+</body>
+</html>
