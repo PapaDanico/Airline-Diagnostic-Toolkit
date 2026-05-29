@@ -101,9 +101,12 @@
   applyPartner(); mountChrome();
   const fmtUsd = n => "$" + Math.round(n).toLocaleString("en-US");
   // Bands mirror the scorecard's Cost & Fuel unit-cost question (USD/ASK).
+  // Target comes first so the badge can never contradict the gap message.
   function bandFor(caskUsd, targetUsd) {
-    if (caskUsd < 0.08) return { txt: "Best-in-class unit cost", col: "#5cd6a0" };
-    if (caskUsd <= targetUsd) return { txt: "At DN competitive target", col: "#5cd6a0" };
+    if (caskUsd <= targetUsd)
+      return caskUsd < 0.08
+        ? { txt: "Best-in-class unit cost", col: "#5cd6a0" }
+        : { txt: "At DN competitive target", col: "#5cd6a0" };
     if (caskUsd <= 0.11) return { txt: "Above target — optimisation upside", col: "#f0c14b" };
     if (caskUsd <= 0.13) return { txt: "High — significant cost gap", col: "#ff8a80" };
     return { txt: "Very high — urgent cost action", col: "#ff8a80" };
@@ -111,7 +114,8 @@
   function recalc() {
     const op = parseFloat(document.getElementById("opcost").value) || 0;
     const ask = parseFloat(document.getElementById("ask").value) || 0;
-    const targetCents = parseFloat(document.getElementById("target").value) || 0;
+    const targetRaw = parseFloat(document.getElementById("target").value);
+    const targetCents = targetRaw > 0 ? targetRaw : 9;   // fall back to DN default if blank/≤0
     const targetUsd = targetCents / 100;
     const caskEl = document.getElementById("cask");
     const bandEl = document.getElementById("band");
