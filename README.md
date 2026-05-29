@@ -3,7 +3,7 @@
 DN Consultancy's free, neutral **"first step"** in any African airline's digital-transformation
 journey: the **Airline Health Scorecard** (Tool A1) and supporting point solutions. A static,
 fully client-side web app — **no backend, no signup, no data ever leaves the visitor's browser** —
-deployed on Netlify.
+deployable on **Netlify or Vercel** (config for both is in the repo).
 
 > **Privacy by design.** Every answer is stored only in the visitor's `localStorage`. There is no
 > API, no analytics, no AI call-home — so the "stays on your device / works offline" promise is
@@ -15,16 +15,17 @@ deployed on Netlify.
 |------|---------|
 | `index.html` | Landing — "First Step" narrative, trust strip, 5-phase engagement model, 14-tool spotlight, 3× ROI guarantee. |
 | `diagnostic.html` | **Airline Health Scorecard** — 40 questions × 8 weighted domains. Privacy panel, progress tracking, partner-aware, iframe-embeddable. |
-| `results.html` | **Strategic gap report** — weighted health index ring, weakest-first findings table, radar profile, *"Next Steps: From Diagnosis to Solution"* prescriber, and DN-Engagement-Key-gated Toolboxes B/C/D. |
+| `results.html` | **Strategic gap report** — weighted health index ring, weakest-first findings table with sourced industry benchmarks, radar profile, *"Next Steps: From Diagnosis to Solution"* prescriber, sources block, and DN-Engagement-Key-gated Toolboxes B/C/D. **"Print / save as PDF"** produces a board-ready one-page report. |
 | `tools/fuel-optimizer.html` | **Fuel Contract Optimizer Lite** — client-side savings estimator; full tool gated behind a Contact CTA. |
-| `embed.html` | Sample partner (white-label) embed using `?partner=AFRAA`. |
+| `embed.html` | Generic white-label embed sample (DN-only; the partner registry ships empty). |
 
 ## Shared assets
 
-- `assets/css/dn.css` — DN design system (charcoal/steel/gold palette, Cormorant Garamond + DM Sans).
-- `assets/js/data.js` — domains, 40 questions, weights, benchmarks, prescriber mapping, 14-tool catalogue, partner registry.
-- `assets/js/common.js` — partner/white-label handling, inline DN monogram logo (SVG), storage, scoring engine.
+- `assets/css/dn.css` — DN design system (charcoal/steel/gold palette, Cormorant Garamond + DM Sans), responsive + print stylesheet.
+- `assets/js/data.js` — domains, 40 questions, weights, sourced benchmarks, standards mapping, prescriber, 14-tool catalogue, partner registry (empty).
+- `assets/js/common.js` — partner/white-label handling, official DN badge logo, storage, scoring engine.
 - `assets/js/diagnostic.js` / `results.js` — page logic.
+- `assets/img/` — `dn-logo-full.png` (hero lockup), `dn-badge.png` (nav/footer mark + favicon), `og-card.png` (1200×630 social share card). All transparent-background PNGs.
 
 ## Scoring
 
@@ -34,17 +35,27 @@ Commercial 10, Financial 10, People 9 = 100%). Each question scores 0–4. Domai
 
 ## White-label / embed
 
-Append `?partner=AFRAA` to swap the accent colour, show the partner logo, and add a co-branding line.
-Partner keys live in `assets/js/data.js` → `DN.partners`. Framing is allowed only from whitelisted
-domains via `Content-Security-Policy: frame-ancestors` in `_headers` (**never** `*`).
+This ships as a **DN Consultancy-only** product — `DN.partners` in `assets/js/data.js` is empty.
+The white-label engine is retained for a future real partner: add an entry keyed by a token, then
+append `?partner=<TOKEN>` to swap the accent colour, show the partner logo, and add a co-branding
+line. Framing is allowed only from whitelisted domains via `Content-Security-Policy: frame-ancestors`
+in `_headers` / `vercel.json` (**never** `*`). The **DN Engagement Key** that unlocks Toolbox B/C/D
+previews is set in `DN.engagementKey`.
 
 ## Run locally
 
 ```bash
-python3 -m http.server 8080   # then open http://localhost:8080
+python3 -m http.server 8080      # then open http://localhost:8080
+node scripts/check-data.mjs      # data-model integrity check (also run in CI)
 ```
 
-No build step. `netlify.toml` publishes the repo root as-is.
+No build step. `netlify.toml` (Netlify) and `vercel.json` (Vercel) both publish the repo root as-is,
+with `/scorecard` and `/fuel` redirects and security headers (incl. scoped `frame-ancestors`).
+
+## CI
+
+`.github/workflows/ci.yml` runs on every push/PR: JS syntax (`node --check`), `vercel.json`
+validation, data-model integrity (8 domains, weights = 100, 40 questions), and an HTML sanity check.
 
 ## Brand & docs
 
