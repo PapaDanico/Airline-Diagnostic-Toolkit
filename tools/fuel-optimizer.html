@@ -64,7 +64,7 @@
         <div class="rng" id="range">—</div>
         <p class="qual" id="qual">Enter your figures to see the range.</p>
         <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
-        <p style="font-size:.84rem;color:#bfbfbf;margin:0">Method: saving = annual spend × (your premium − benchmark premium). The range applies a 50–100% capture factor, recognising that not all of the gap is recoverable in one negotiation.</p>
+        <p style="font-size:.84rem;color:#bfbfbf;margin:0">Method: saving = annual spend × (your premium − benchmark) ÷ (100 + your premium), since the premium is already included in your spend. The range applies a 50–100% capture factor, recognising that not all of the gap is recoverable in one negotiation.</p>
       </div>
       <div class="guarantee" style="margin-top:1.4rem">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
@@ -95,9 +95,10 @@
     const spend = parseFloat(document.getElementById("spend").value) || 0;
     const prem = parseFloat(document.getElementById("premium").value) || 0;
     const bench = parseFloat(document.getElementById("benchmark").value) || 0;
-    const gapPct = Math.max(0, prem - bench) / 100;
-    const high = spend * gapPct;        // full capture
-    const low = high * 0.5;             // conservative capture
+    const gap = Math.max(0, prem - bench);     // premium gap, percentage points
+    const high = spend * gap / (100 + prem);   // premium is already inside spend
+    const low = high * 0.5;                    // conservative capture
+    const savePct = spend > 0 ? (high / spend) * 100 : 0;
     const rng = document.getElementById("range");
     const qual = document.getElementById("qual");
     if (high <= 0) {
@@ -106,7 +107,7 @@
       return;
     }
     rng.textContent = fmt(low) + " – " + fmt(high);
-    qual.innerHTML = `Your airline could be saving between <strong>${fmt(low)}</strong> and <strong>${fmt(high)}</strong> a year by renegotiating closer to market benchmarks — roughly ${(gapPct*100).toFixed(1)}% of your fuel spend is currently above benchmark.`;
+    qual.innerHTML = `Your airline could be saving between <strong>${fmt(low)}</strong> and <strong>${fmt(high)}</strong> a year by renegotiating closer to market benchmarks — roughly ${savePct.toFixed(1)}% of your current fuel spend.`;
   }
   // Keep the contact CTA a real, keyboard-focusable mailto link whose body
   // reflects the current inputs (works even without JS once first set).
