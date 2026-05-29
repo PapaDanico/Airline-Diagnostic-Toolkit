@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embed Sample — Airline Health Scorecard | DN Consultancy</title>
+<link rel="icon" type="image/png" href="assets/img/dn-badge.png">
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; background: #f4f4f2; color: #1c1c1c; }
+  .demo-head { background: #1c2b3a; color: #fff; padding: 18px 24px; }
+  .demo-head h1 { margin: 0; font-size: 1.2rem; }
+  .demo-head p { margin: .3rem 0 0; opacity: .85; font-size: .9rem; }
+  .frame-wrap { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+  iframe { width: 100%; height: 1400px; border: 1px solid #ddd; border-radius: 12px; background: #fff; }
+  .note { max-width: 1000px; margin: 0 auto 40px; padding: 0 16px; font-size: .88rem; color: #555; }
+  .note h2 { font-size: 1rem; margin: 1.4rem 0 .4rem; color: #1c1c1c; }
+  code { background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid #e3e3e3;
+         word-break: break-word; overflow-wrap: anywhere; }
+  pre code { display: block; padding: 12px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<!--
+  EMBED SAMPLE
+  ===========
+  This page demonstrates how the DN Airline Health Scorecard is embedded
+  inside another site via an <iframe>. The grey chrome below represents
+  the host page — it is not DN's own site.
+
+  Default behaviour is plain DN-branded embedding (no co-branding). The
+  white-label engine is built in but the partner registry is empty by
+  design — this is a DN Consultancy product.
+
+  To co-brand for a real partner later:
+    1. Add an entry to DN.partners in assets/js/data.js, keyed by a token.
+    2. Append `?partner=<TOKEN>` to the iframe src to trigger the co-brand
+       logo + accent swap and the "Powered by DN Consultancy…" line.
+    3. Whitelist the partner's production domain in `_headers`
+       (Content-Security-Policy: frame-ancestors). Never use `*`.
+-->
+<div class="demo-head">
+  <h1>Host site — Airline Digital Readiness</h1>
+  <p>Demonstration of an embedded scorecard. (This grey chrome is the host page, not DN's.)</p>
+</div>
+
+<div class="frame-wrap">
+  <iframe title="DN Airline Health Scorecard" src="diagnostic.html" loading="lazy"></iframe>
+</div>
+
+<div class="note">
+  <h2>Embed snippet</h2>
+  <p>Paste this into the host site's CMS:</p>
+  <pre><code>&lt;iframe
+  src="https://dnconsultancydiagnostictoolkit.netlify.app/diagnostic.html"
+  width="100%" height="1400" style="border:0;border-radius:12px"
+  title="DN Airline Health Scorecard"&gt;&lt;/iframe&gt;</code></pre>
+
+  <h2>Optional co-branding</h2>
+  <p>Once a partner is registered in <code>assets/js/data.js</code>, add their
+  token to the URL — for example <code>diagnostic.html?partner=EXAMPLE</code> —
+  to swap in their accent colour, logo and a co-brand line. Remember to add
+  their domain to <code>_headers</code> (<code>frame-ancestors</code>) before go-live.</p>
+</div>
+</body>
+</html>

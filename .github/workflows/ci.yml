@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: JS syntax check
+        run: |
+          for f in assets/js/*.js; do
+            echo "checking $f"
+            node --check "$f"
+          done
+
+      - name: Validate vercel.json
+        run: node -e "JSON.parse(require('fs').readFileSync('vercel.json','utf8')); console.log('vercel.json OK')"
+
+      - name: Data-model integrity
+        run: node scripts/check-data.mjs
+
+      - name: HTML sanity
+        run: |
+          for f in *.html tools/*.html; do
+            grep -q "</html>" "$f" || { echo "missing </html> in $f"; exit 1; }
+            echo "ok $f"
+          done

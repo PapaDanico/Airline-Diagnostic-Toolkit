@@ -1,0 +1,15 @@
+# Netlify headers — DN Airline Diagnostic Toolkit
+# Security headers for all routes. NOTE: we deliberately do NOT set
+# X-Frame-Options: DENY, because the scorecard must be embeddable by
+# whitelisted partners. Framing is instead controlled (scoped, not "*")
+# via Content-Security-Policy: frame-ancestors below.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  # Allow embedding only from DN's own origin by default. To let a real
+  # partner embed the scorecard, append their production domain(s) here,
+  # e.g. ... 'self' https://*.partner.example https://partner.example;
+  # Never use frame-ancestors *.
+  Content-Security-Policy: frame-ancestors 'self';
