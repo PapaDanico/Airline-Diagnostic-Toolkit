@@ -13,3 +13,8 @@
   from = "/fuel"
   to = "/tools/fuel-optimizer.html"
   status = 301
+
+[[redirects]]
+  from = "/cask"
+  to = "/tools/cask-calculator.html"
+  status = 301

@@ -109,6 +109,7 @@ const DN = {
       benchmarkSrc: "IATA, Cost Disadvantage of African Airlines, 2025",
       standard: "IATA Airline Cost Management Group (ACMG)",
       fuelLink: true,
+      caskLink: true,
       questions: [
         { t: "Where does your unit cost (CASK, USD per seat-km) sit?",
           o: ["> 0.13","0.11–0.13","0.09–0.11","0.08–0.09","< 0.08 (DN target ≤ 0.09)"] },
