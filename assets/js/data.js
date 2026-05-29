@@ -10,7 +10,7 @@ const DN = {
   brand: {
     name: "DN Consultancy",
     tagline: "Shaping Africa's Future, Together.",
-    email: "info@dnconsultancy.aero",
+    email: "info@aviationhubkenya.org",
     location: "Nairobi, Kenya",
     version: "v2.0 — Strategic Diagnostic & Point Solutions"
   },

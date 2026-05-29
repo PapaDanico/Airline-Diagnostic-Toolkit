@@ -604,4 +604,4 @@ const fs = require('fs');
 
 *Handover prepared: May 2026 (anonymised copy)*
 *DN Consultancy | Shaping Africa's Future, Together.*
-*info@dnconsultancy.aero | Nairobi, Kenya*
+*info@aviationhubkenya.org | Nairobi, Kenya*
