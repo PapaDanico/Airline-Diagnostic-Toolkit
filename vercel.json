@@ -4,7 +4,8 @@
   "trailingSlash": false,
   "redirects": [
     { "source": "/scorecard", "destination": "/diagnostic.html", "permanent": true },
-    { "source": "/fuel", "destination": "/tools/fuel-optimizer.html", "permanent": true }
+    { "source": "/fuel", "destination": "/tools/fuel-optimizer.html", "permanent": true },
+    { "source": "/cask", "destination": "/tools/cask-calculator.html", "permanent": true }
   ],
   "headers": [
     {

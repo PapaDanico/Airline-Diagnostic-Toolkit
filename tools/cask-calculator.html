@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="CASK Benchmarking Calculator — work out your unit cost (cost per available seat-kilometre) and see it against DN's competitive target and African cost context. Free, client-side, on your device.">
+<link rel="canonical" href="https://dnconsultancydiagnostictoolkit.netlify.app/tools/cask-calculator.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DN Consultancy">
+<meta property="og:title" content="CASK Benchmarking Calculator — DN Consultancy">
+<meta property="og:description" content="Work out your unit cost (cost per available seat-km) and benchmark it against DN's competitive target and African cost context. Free, client-side.">
+<meta property="og:url" content="https://dnconsultancydiagnostictoolkit.netlify.app/tools/cask-calculator.html">
+<meta property="og:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CASK Benchmarking Calculator — DN Consultancy">
+<meta name="twitter:description" content="Work out your unit cost and benchmark it against DN's competitive target.">
+<meta name="twitter:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
+<title>CASK Benchmarking Calculator | DN Consultancy</title>
+<link rel="icon" type="image/png" href="../assets/img/dn-badge.png">
+<link rel="apple-touch-icon" href="../assets/img/dn-badge.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/dn.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner><span data-logo></span><span>DN Consultancy<small>CASK Benchmarking Calculator</small></span></a>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+    <div class="nav-links">
+      <a href="../index.html" data-keep-partner>Home</a>
+      <a href="../diagnostic.html" data-keep-partner>Scorecard</a>
+    </div>
+  </div>
+</nav>
+
+<header class="diag-head">
+  <div class="wrap">
+    <p class="eyebrow">Free point solution · Tool A2</p>
+    <h1 style="margin:0">CASK Benchmarking Calculator</h1>
+    <p class="muted" style="max-width:680px">Unit cost is the single number that decides whether a route makes money. This calculator works out your CASK — cost per available seat-kilometre — and shows it against DN's competitive target and the African cost context. Runs entirely on your device.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap calc">
+    <div class="card">
+      <h3 style="margin-top:0">Your inputs</h3>
+      <div class="field">
+        <label for="opcost">Total annual operating cost (USD)</label>
+        <input id="opcost" type="number" min="0" step="1000000" placeholder="e.g. 280000000" value="280000000">
+        <div class="hint">All-in operating cost across the network, last 12 months.</div>
+      </div>
+      <div class="field">
+        <label for="ask">Annual available seat-kilometres (ASK)</label>
+        <input id="ask" type="number" min="0" step="100000000" placeholder="e.g. 3000000000" value="3000000000">
+        <div class="hint">ASK = seats &times; average stage length (km) &times; annual sectors. Don't have it precisely? Seats flown &times; average sector length is close enough.</div>
+      </div>
+      <div class="field">
+        <label for="target">DN competitive target (US&cent; per ASK)</label>
+        <input id="target" type="number" min="0" step="0.1" value="9">
+        <div class="hint">Configurable. DN's competitive short/medium-haul target is &le; 9 US&cent;/ASK (USD 0.09).</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="result-panel">
+        <p class="eyebrow" style="color:var(--dn-gold)">Your unit cost</p>
+        <div class="rng" id="cask">&mdash;</div>
+        <p id="band" style="font-weight:700;margin:.2rem 0 .6rem">Enter your figures.</p>
+        <p class="qual" id="qual">CASK = total operating cost &divide; available seat-kilometres.</p>
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
+        <p style="font-size:.84rem;color:#bfbfbf;margin:0">Context: African carriers' unit costs run close to <strong>double</strong> the rest of the world (IATA, <em>Cost Disadvantage of African Airlines</em>, 2025), driven by fuel (~40% of cost), thin scale and high financing and airport charges. The &le; 9 US&cent; target reflects a competitive position, not the regional average.</p>
+      </div>
+      <div class="guarantee" style="margin-top:1.4rem">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <div>
+          <strong>Unlock the full CASK Benchmarking pack.</strong>
+          <p style="margin:.4rem 0 .8rem;font-size:.9rem">Your CASK broken down by cost line, benchmarked against African peers and LCC comparators, with the biggest unit-cost levers ranked by impact.</p>
+          <a class="btn btn-gold" id="contact-cta">Talk to DN about your unit cost &rarr;</a>
+        </div>
+      </div>
+      <p class="disclaimer" style="margin-top:1rem">Indicative estimate only, for orientation. CASK is sensitive to stage length, gauge and accounting treatment, so peer comparison needs care. No data leaves your browser.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> DN Consultancy · <a data-email></a></span>
+    <span data-version></span>
+  </div></div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/common.js"></script>
+<script>
+  applyPartner(); mountChrome();
+  const fmtUsd = n => "$" + Math.round(n).toLocaleString("en-US");
+  // Bands mirror the scorecard's Cost & Fuel unit-cost question (USD/ASK).
+  function bandFor(caskUsd, targetUsd) {
+    if (caskUsd < 0.08) return { txt: "Best-in-class unit cost", col: "#5cd6a0" };
+    if (caskUsd <= targetUsd) return { txt: "At DN competitive target", col: "#5cd6a0" };
+    if (caskUsd <= 0.11) return { txt: "Above target — optimisation upside", col: "#f0c14b" };
+    if (caskUsd <= 0.13) return { txt: "High — significant cost gap", col: "#ff8a80" };
+    return { txt: "Very high — urgent cost action", col: "#ff8a80" };
+  }
+  function recalc() {
+    const op = parseFloat(document.getElementById("opcost").value) || 0;
+    const ask = parseFloat(document.getElementById("ask").value) || 0;
+    const targetCents = parseFloat(document.getElementById("target").value) || 0;
+    const targetUsd = targetCents / 100;
+    const caskEl = document.getElementById("cask");
+    const bandEl = document.getElementById("band");
+    const qual = document.getElementById("qual");
+    if (op <= 0 || ask <= 0) {
+      caskEl.textContent = "—";
+      caskEl.style.color = "";
+      bandEl.textContent = "Enter operating cost and ASK to see your CASK.";
+      bandEl.style.color = "";
+      qual.textContent = "CASK = total operating cost ÷ available seat-kilometres.";
+      return;
+    }
+    const caskUsd = op / ask;
+    const caskCents = caskUsd * 100;
+    const b = bandFor(caskUsd, targetUsd);
+    caskEl.textContent = caskCents.toFixed(2) + " US¢ / ASK";
+    caskEl.style.color = b.col;
+    bandEl.textContent = b.txt;
+    bandEl.style.color = b.col;
+    if (caskUsd > targetUsd) {
+      const gapUsd = caskUsd - targetUsd;
+      const high = gapUsd * ask;          // full gap to target
+      const low = high * 0.5;             // conservative capture
+      qual.innerHTML = `That's <strong>${(caskCents - targetCents).toFixed(2)} US¢</strong> above the DN target of ${targetCents.toFixed(1)} US¢. Closing that gap could remove <strong>${fmtUsd(low)}</strong>–<strong>${fmtUsd(high)}</strong> from annual operating cost (50–100% capture).`;
+    } else {
+      qual.innerHTML = `You're at or below the DN competitive target — a strong unit-cost position. The priority is protecting it as you grow: watch stage-length mix, gauge and overhead creep.`;
+    }
+  }
+  // Keep the contact CTA a real, keyboard-focusable mailto link reflecting inputs.
+  function updateCta() {
+    const op = document.getElementById("opcost").value;
+    const ask = document.getElementById("ask").value;
+    document.getElementById("contact-cta").href =
+      `mailto:${DN.brand.email}?subject=${encodeURIComponent("CASK Benchmarking — full pack & peer comparison")}&body=${encodeURIComponent("We'd like the full CASK Benchmarking pack.\n\nApprox annual operating cost (USD): "+op+"\nAnnual ASK: "+ask+"\n\nPlease get in touch.")}`;
+  }
+  ["opcost","ask","target"].forEach(id =>
+    document.getElementById(id).addEventListener("input", () => { recalc(); updateCta(); }));
+  recalc(); updateCta();
+</script>
+</body>
+</html>
