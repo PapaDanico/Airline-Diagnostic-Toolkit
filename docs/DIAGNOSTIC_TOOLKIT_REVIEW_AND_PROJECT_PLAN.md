@@ -75,7 +75,7 @@ The Integrated Woman Diagnostic is the same engine, so its internals are a relia
 
 ### Risks (must address)
 - **🔴 Privacy claim vs. AI reality (highest priority).** The v2 copy promises *"stays on your device… we never see your data… works offline."* But the AI-narrative feature **sends answers to an external API** (Anthropic via Cloudflare Worker). Without precise, prominent wording this is a **factual contradiction and a data-protection exposure** — especially under Kenya's **KDPA** (the same data-residency concern already flagged for Ratiba). *The privacy badge and the AI feature must be reconciled in copy and in behaviour (opt-in, clearly scoped).*
-- **🟠 Brand / contact inconsistency.** Memory lists `info@dnconsultancy.aero`; the sibling app's footer uses `info@dnconsultancy.co.ke`. Pick one canonical address before any partner sees the site.
+- **🟠 Brand / contact inconsistency — RESOLVED.** Per the DN Consultancy project configuration the canonical address is **`info@dnconsultancy.aero`**. The sibling app's footer (`info@dnconsultancy.co.ke`) is therefore the error to correct on any shared-engine output.
 - **🟠 Embed security trade-off.** The brief asks to *remove* `X-Frame-Options` / open `frame-ancestors *` for iframing. Wide-open framing invites clickjacking; scope `frame-ancestors` to known partner domains (AFRAA etc.), not `*`.
 - **🟠 "Lead magnet" vs. "no data collection" tension.** A funnel needs to capture leads; the product promises not to. Resolve deliberately: capture only on explicit CTA (e.g., "email me my report"), keep the scorecard itself data-free.
 - **🟡 Legal/registration blocker.** Memory notes DN entity registration + website go-live are pending legal setup, and VAT status is unconfirmed. Partner/commercial steps shouldn't front-run that.
@@ -114,7 +114,7 @@ Effort: S ≈ <½ day · M ≈ ½–1 day · L ≈ 1–2 days (single developer)
 | 0.1 | Pull the **live Netlify site source** into this repo (`/site` or root) and commit | M | Repo builds/serves the current live site locally |
 | 0.2 | Add `netlify.toml` + `_headers` (CSP scoped, not `*`) under version control | S | Headers reproducible; no `X-Frame-Options: DENY` blocking intended embeds |
 | 0.3 | Stand up a **SessionStart hook / dev server** (`python -m http.server` or `netlify dev`) + a link-check/HTML-validate script | S | `npm run dev` / documented one-liner serves the site; CI can lint HTML |
-| 0.4 | Decide canonical **contact email & brand tokens**; record in a `brand.md` | S | One email, one palette, one logo path agreed |
+| 0.4 | Apply the **DN brand standards** to the toolkit (now defined — see §B); record in `brand.md` | S | Canonical email `info@dnconsultancy.aero`, DN palette, Cormorant Garamond / DM Sans, and logo (`1.png`, dark-bg `filter: brightness(0) invert(1)`) applied consistently |
 
 ### Workstream 1 — Trust & privacy reconciliation *(blocking pre-req for partner work)*
 | # | Task | Effort | Acceptance |
@@ -165,7 +165,7 @@ Effort: S ≈ <½ day · M ≈ ½–1 day · L ≈ 1–2 days (single developer)
 
 ## 7. Open decisions for Capt. Dan
 1. **AI narrative on the airline toolkit — keep, make opt-in, or drop?** Drives all of WS1.
-2. **Canonical contact:** `info@dnconsultancy.aero` vs `info@dnconsultancy.co.ke`?
+2. ~~**Canonical contact:** `info@dnconsultancy.aero` vs `info@dnconsultancy.co.ke`?~~ **RESOLVED — `info@dnconsultancy.aero`** (DN project configuration).
 3. **Lead capture:** stay strictly data-free, or add an explicit opt-in "email me my report" capture? (Funnel vs. privacy trade-off.)
 4. **Embed scope:** which partner domains are whitelisted for framing (AFRAA confirmed)?
 5. **Engine strategy:** factor a shared core across the airline + Integrated Woman diagnostics now, or keep iterating per-product and refactor later?
@@ -175,10 +175,22 @@ Effort: S ≈ <½ day · M ≈ ½–1 day · L ≈ 1–2 days (single developer)
 
 ## 8. Immediate next actions (this week)
 - [ ] **WS0.1** — get the live site source into this repo (unblocks everything; needs the Netlify project or a copy of the deployed files).
-- [ ] **Decide #1 & #2** above (AI narrative; canonical email) — both are one-line decisions that unblock real work.
+- [ ] **Decide #1** above (AI narrative keep/opt-in/drop) — the one remaining one-line decision that unblocks WS1. *(#2 canonical email now resolved → `info@dnconsultancy.aero`.)*
 - [ ] **WS1.1/1.2** — reconcile privacy copy with the AI data flow.
 - [ ] Track these as tasks in the existing **ClickUp — DN Consultancy / Advisory & Training** space alongside the Ratiba and I-Fly workstreams.
 
 ---
 
 *Caveat restated: current-state findings are reconstructed from the v2.0 brief, the sibling Integrated Woman Diagnostic (same engine), and DN project memory. Items marked **[verify on live]** require a direct read of the deployed airline HTML, which was not reachable from this environment.*
+
+---
+
+## Appendix B — DN brand standards (apply to all toolkit work)
+
+Authoritative per the DN Consultancy project configuration. The Diagnostic Toolkit uses the **DN corporate identity** (unlike Ratiba, which deliberately carries its own Kenyan earth-tone brand).
+
+- **Firm:** DN Consultancy · Nairobi, Kenya · **`info@dnconsultancy.aero`** · *"Shaping Africa's Future, Together."*
+- **Palette:** `DN_DARK #1C1C1C` (headers/primary text) · `DN_STEEL #4A7FA5` (secondary/banners) · `DN_STEEL_LT #D6E4F0` (tints) · `DN_GOLD #C9A84C` (accents/dividers) · `DN_GOLD_LT #FFF8E6` (callouts) · `DN_FOG #F4F4F2` (off-white rows/panels) · `DN_MUTED #6B7280` (body/captions) · `DN_GREEN #1E8449` (compliant/positive) · `DN_RED #C0392B` (critical) · `DN_AMBER #D4AC0D` (watch/warnings).
+- **Type:** Cormorant Garamond (display/headings) · DM Sans (body/UI) · Calibri (Office docs).
+- **Logo:** D/N monogram (`1.png`); embed in HTML/Excel/Word; on dark backgrounds apply `filter: brightness(0) invert(1)`.
+- **Naming alignment:** the public scorecard is **A1 — Airline Health Scorecard** (40 questions, 8 domains, weighted health index); the gated tools are **Toolboxes B/C/D** behind the *DN Engagement Key*. v2.0 copy and the results "prescriber" should respect the existing 5-phase engagement model and the 3× ROI guarantee.
