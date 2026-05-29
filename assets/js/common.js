@@ -31,11 +31,14 @@ function applyPartner() {
   document.documentElement.style.setProperty("--accent-deep", cfg.accentDeep);
   document.querySelectorAll("[data-cobrand]").forEach(el => el.textContent = cfg.cobrand);
   document.querySelectorAll("img.partner-logo").forEach(img => { img.src = cfg.logo; img.alt = cfg.label; });
-  // preserve partner param across internal navigation
+  // preserve partner param across internal navigation, keeping links
+  // relative (reconstructing from URL.pathname broke ../ links on /tools/ pages).
   document.querySelectorAll('a[data-keep-partner]').forEach(a => {
-    const u = new URL(a.getAttribute("href"), location.href);
-    u.searchParams.set("partner", p);
-    a.setAttribute("href", u.pathname.replace(/^\//,'') + u.search);
+    const href = a.getAttribute("href");
+    if (!href || /^(https?:|mailto:|tel:|#)/i.test(href)) return;
+    const [pathPart, hash] = href.split("#");
+    const sep = pathPart.includes("?") ? "&" : "?";
+    a.setAttribute("href", pathPart + sep + "partner=" + encodeURIComponent(p) + (hash ? "#" + hash : ""));
   });
   return cfg;
 }
