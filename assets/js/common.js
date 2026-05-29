@@ -5,17 +5,17 @@
 
 const STORE_KEY = "dn_airline_scorecard_v2";
 
-/* ---- inline DN monogram logo (arc + spear motif) ----
-   Self-contained SVG so the toolkit works fully offline.
-   Replace with the official 1.png when supplied. */
-const DN_LOGO = `<svg class="logo" viewBox="0 0 64 64" role="img" aria-label="DN Consultancy">
-  <circle cx="32" cy="32" r="30" fill="none" stroke="#C9A84C" stroke-width="2.5"/>
-  <path d="M14 44 V20 h9 c8 0 13 5 13 12 s-5 12 -13 12 z M21 27 v10 h2 c4 0 6 -2 6 -5 s-2 -5 -6 -5 z"
-        fill="#1C1C1C"/>
-  <path d="M37 44 V20 h6 l9 16 V20 h6 v24 h-6 l-9 -16 v16 z" fill="#4A7FA5"/>
-  <path d="M8 56 L56 8" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"/>
-  <path d="M56 8 l-7 1 l1 6 z" fill="#C9A84C"/>
-</svg>`;
+/* ---- asset base ----
+   Resolved from common.js's own URL so logo/image paths work whether the
+   page lives at the site root (index/diagnostic/results) or in /tools/. */
+const ASSET_BASE = (function () {
+  const s = document.currentScript && document.currentScript.src;
+  return s ? s.replace(/assets\/js\/common\.js(\?.*)?$/, "") : "";
+})();
+
+/* ---- official DN monogram logo (arc + D/N + spear) ----
+   Cropped from the full DN Consultancy lockup. */
+const DN_LOGO = `<img class="logo" src="${ASSET_BASE}assets/img/dn-monogram.png" alt="DN Consultancy" width="40" height="40">`;
 
 /* ---- partner / white-label handling (?partner=AFRAA) ---- */
 function applyPartner() {
