@@ -21,6 +21,7 @@ deployable on **Netlify or Vercel** (config for both is in the repo).
 | `tools/fuel-optimizer.html` | **Fuel Contract Optimizer Lite** — client-side savings estimator; full tool gated behind a Contact CTA. |
 | `tools/data-request.html` | **48-Hour Data Request (Tool A3)** — 28-item diagnostic-readiness checklist grouped by domain; readiness meter, auto-saves to `localStorage`, print / save-to-PDF. |
 | `embed.html` | Generic white-label embed sample (DN-only; the partner registry ships empty). |
+| `privacy.html` / `terms.html` | **Privacy Notice** (aligned with Kenya's Data Protection Act, 2019) and **Terms of Use** (governed by the laws of Kenya). Linked from every footer. A few legally-specific placeholders (registered entity/number, postal address, ODPC registration, DPO) are marked `[in brackets]` for DN to complete. |
 
 ## Shared assets
 
