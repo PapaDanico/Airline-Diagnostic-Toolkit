@@ -1,0 +1,15 @@
+# Netlify configuration — DN Airline Diagnostic Toolkit (static site)
+[build]
+  publish = "."
+  # No build step: vanilla HTML/CSS/JS, served as-is.
+  command = ""
+
+[[redirects]]
+  from = "/scorecard"
+  to = "/diagnostic.html"
+  status = 301
+
+[[redirects]]
+  from = "/fuel"
+  to = "/tools/fuel-optimizer.html"
+  status = 301

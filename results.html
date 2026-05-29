@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Your Airline Health Scorecard strategic gap report — weighted health index, domain benchmarks, and next steps from diagnosis to solution.">
+<title>Your Strategic Gap Report | DN Consultancy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/dn.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html" data-keep-partner><span data-logo></span><span>DN Consultancy<small>Strategic Gap Report</small></span></a>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+    <div class="nav-links">
+      <a href="index.html" data-keep-partner>Home</a>
+      <a href="diagnostic.html" data-keep-partner>Scorecard</a>
+      <img class="partner-logo" alt="">
+    </div>
+  </div>
+</nav>
+
+<!-- empty state -->
+<div id="empty" class="wrap empty" style="display:none">
+  <h2>No completed scorecard found on this device</h2>
+  <p class="muted">Your report is generated from answers stored in this browser. Complete all 40 questions first.</p>
+  <a class="btn btn-primary btn-lg" href="diagnostic.html" data-keep-partner>Go to the scorecard →</a>
+</div>
+
+<div id="report" style="display:none">
+  <!-- score hero -->
+  <section class="score-hero">
+    <div class="wrap">
+      <div class="partner-banner" style="margin-bottom:1rem"><img class="partner-logo" alt=""><span data-cobrand></span></div>
+      <p class="eyebrow">Your strategic gap report</p>
+      <div class="summary">
+        <div class="index-ring" id="index-ring"><div class="inner"><b id="index-val">0</b><span>Health Index</span></div></div>
+        <div style="flex:1;min-width:260px">
+          <h1 style="margin:.2rem 0" id="index-band">—</h1>
+          <p id="index-text" style="color:#dcdcdc;max-width:560px"></p>
+          <div class="flex gap wrapf" style="margin-top:.6rem">
+            <button class="btn btn-gold" id="print">Print / save as PDF</button>
+            <button class="btn btn-ghost" id="retake" style="color:#fff;border-color:rgba(255,255,255,.35)">Retake</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- gap table -->
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">Findings · domains ranked weakest-first</p>
+      <h2>Where your gaps are</h2>
+      <table class="gap-table">
+        <thead><tr><th>Domain</th><th>Weight</th><th>Score</th><th></th><th>Status</th></tr></thead>
+        <tbody id="gap-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- radar -->
+  <section class="band-fog">
+    <div class="wrap radar-box">
+      <div>
+        <p class="eyebrow">Profile at a glance</p>
+        <h2>Your health profile</h2>
+        <p class="muted">Each axis is a domain score (0–100%). The shape shows where you are strong and where the priority gaps sit. Red dots are critical, amber need attention, green are strong.</p>
+      </div>
+      <svg id="radar" width="100%" style="max-width:420px;margin:0 auto;display:block"></svg>
+    </div>
+  </section>
+
+  <!-- prescriber -->
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">Next steps · from diagnosis to solution</p>
+      <h2>What to fix first</h2>
+      <p class="muted" style="max-width:720px">Based on your lowest-scoring domains, here are the solution <em>categories</em> worth exploring and the DN diagnostic that drills deeper into each. These are neutral, educational suggestions.</p>
+      <div id="rx" style="margin:1.4rem 0"></div>
+      <p class="disclaimer">DN Consultancy does not endorse or resell these third-party tools; they are listed as common options among African carriers. The right answer depends on your specific gaps — which is exactly what a deeper diagnostic establishes.</p>
+    </div>
+  </section>
+
+  <!-- locked toolboxes -->
+  <section class="band-fog">
+    <div class="wrap">
+      <p class="eyebrow">Go deeper · Toolboxes B / C / D</p>
+      <h2>The full DN Diagnostic Toolkit</h2>
+      <p class="muted" style="max-width:720px">Toolbox A is free. The deep-diagnostic, recommendation and sector-specific tools are deployed during a DN engagement. Have a DN Engagement Key? Unlock the previews below.</p>
+      <div class="keybar">
+        <input id="key-input" placeholder="Enter your DN Engagement Key" autocomplete="off">
+        <button class="btn btn-primary" id="key-apply">Unlock previews</button>
+        <span class="keymsg" id="key-msg"></span>
+      </div>
+      <div class="locked-grid" id="toolboxes"></div>
+      <div class="guarantee" style="margin-top:1.8rem">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 3 5v6c0 5 3.8 9.7 9 11 5.2-1.3 9-6 9-11V5l-9-4z"/></svg>
+        <div><strong>Ready to act on this report?</strong> A DN engagement turns these findings into a quantified 90-day sprint — with a 3× Year-1 ROI guarantee. <a data-email></a></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> DN Consultancy · <a data-email></a></span>
+    <span data-version></span>
+  </div></div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/common.js"></script>
+<script>applyPartner(); mountChrome();</script>
+<script src="assets/js/results.js"></script>
+</body>
+</html>

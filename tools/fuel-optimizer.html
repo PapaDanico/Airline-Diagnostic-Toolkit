@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Fuel Contract Optimizer Lite — estimate potential savings from renegotiating your jet fuel contract closer to market benchmarks. Free, client-side, on your device.">
+<title>Fuel Contract Optimizer Lite | DN Consultancy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/dn.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner><span data-logo></span><span>DN Consultancy<small>Fuel Contract Optimizer Lite</small></span></a>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+    <div class="nav-links">
+      <a href="../index.html" data-keep-partner>Home</a>
+      <a href="../diagnostic.html" data-keep-partner>Scorecard</a>
+    </div>
+  </div>
+</nav>
+
+<header class="diag-head">
+  <div class="wrap">
+    <p class="eyebrow">Free point solution · D4 preview</p>
+    <h1 style="margin:0">Fuel Contract Optimizer Lite</h1>
+    <p class="muted" style="max-width:680px">Fuel is typically a third of an African carrier's costs. This quick estimator shows the potential annual saving from renegotiating your jet-fuel contract closer to the market benchmark. Runs entirely on your device.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap calc">
+    <div class="card">
+      <h3 style="margin-top:0">Your inputs</h3>
+      <div class="field">
+        <label for="spend">Current annual fuel spend (USD)</label>
+        <input id="spend" type="number" min="0" step="100000" placeholder="e.g. 24000000" value="24000000">
+        <div class="hint">Total jet-fuel spend across the network, last 12 months.</div>
+      </div>
+      <div class="field">
+        <label for="uplift">Average fuel uplift per annum (litres)</label>
+        <input id="uplift" type="number" min="0" step="1000000" placeholder="e.g. 30000000" value="30000000">
+        <div class="hint">Optional — used to sense-check the spend. Leave as-is if unsure.</div>
+      </div>
+      <div class="field">
+        <label for="premium">Current contract premium to Platts (%)</label>
+        <input id="premium" type="number" min="0" step="0.1" placeholder="e.g. 6.5" value="6.5">
+        <div class="hint">The differential you pay above the Platts benchmark, all-in.</div>
+      </div>
+      <div class="field">
+        <label for="benchmark">Market benchmark premium (%)</label>
+        <input id="benchmark" type="number" min="0" step="0.1" value="2">
+        <div class="hint">Configurable. A well-negotiated regional contract often lands near 2%.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="result-panel">
+        <p class="eyebrow" style="color:var(--dn-gold)">Estimated annual saving</p>
+        <div class="rng" id="range">—</div>
+        <p class="qual" id="qual">Enter your figures to see the range.</p>
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
+        <p style="font-size:.84rem;color:#bfbfbf;margin:0">Method: saving = annual spend × (your premium − benchmark premium). The range applies a 50–100% capture factor, recognising that not all of the gap is recoverable in one negotiation.</p>
+      </div>
+      <div class="guarantee" style="margin-top:1.4rem">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <div>
+          <strong>Unlock the full Fuel Contract Optimizer and our negotiation playbook.</strong>
+          <p style="margin:.4rem 0 .8rem;font-size:.9rem">Tender template, supplier scoring matrix, hedge-trigger framework and a tailored negotiation strategy.</p>
+          <a class="btn btn-gold" id="contact-cta">Talk to DN about your fuel contract →</a>
+        </div>
+      </div>
+      <p class="disclaimer" style="margin-top:1rem">Indicative estimate only, for orientation. Actual savings depend on volume, supply location, credit terms and market conditions. No data leaves your browser.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> DN Consultancy · <a data-email></a></span>
+    <span data-version></span>
+  </div></div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/common.js"></script>
+<script>
+  applyPartner(); mountChrome();
+  const fmt = n => "$" + Math.round(n).toLocaleString("en-US");
+  function recalc() {
+    const spend = parseFloat(document.getElementById("spend").value) || 0;
+    const prem = parseFloat(document.getElementById("premium").value) || 0;
+    const bench = parseFloat(document.getElementById("benchmark").value) || 0;
+    const gapPct = Math.max(0, prem - bench) / 100;
+    const high = spend * gapPct;        // full capture
+    const low = high * 0.5;             // conservative capture
+    const rng = document.getElementById("range");
+    const qual = document.getElementById("qual");
+    if (high <= 0) {
+      rng.textContent = "On benchmark";
+      qual.textContent = "Your contract is already at or below the market benchmark. The opportunity is to lock that in and manage price risk — see the hedge-trigger framework in the full tool.";
+      return;
+    }
+    rng.textContent = fmt(low) + " – " + fmt(high);
+    qual.innerHTML = `Your airline could be saving between <strong>${fmt(low)}</strong> and <strong>${fmt(high)}</strong> a year by renegotiating closer to market benchmarks — roughly ${(gapPct*100).toFixed(1)}% of your fuel spend is currently above benchmark.`;
+  }
+  ["spend","premium","benchmark","uplift"].forEach(id =>
+    document.getElementById(id).addEventListener("input", recalc));
+  document.getElementById("contact-cta").addEventListener("click", () => {
+    const spend = document.getElementById("spend").value;
+    const prem = document.getElementById("premium").value;
+    location.href = `mailto:${DN.brand.email}?subject=${encodeURIComponent("Fuel Contract Optimizer — full tool & negotiation playbook")}&body=${encodeURIComponent("We'd like the full Fuel Contract Optimizer.\n\nApprox annual fuel spend (USD): "+spend+"\nCurrent premium to Platts (%): "+prem+"\n\nPlease get in touch.")}`;
+  });
+  recalc();
+</script>
+</body>
+</html>

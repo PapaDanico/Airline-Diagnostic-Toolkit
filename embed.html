@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Partner Embed Sample — Airline Health Scorecard</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; background: #f4f4f2; color: #1c1c1c; }
+  .demo-head { background: #0E6B3A; color: #fff; padding: 18px 24px; }
+  .demo-head h1 { margin: 0; font-size: 1.2rem; }
+  .demo-head p { margin: .3rem 0 0; opacity: .85; font-size: .9rem; }
+  .frame-wrap { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+  iframe { width: 100%; height: 1400px; border: 1px solid #ddd; border-radius: 12px; background: #fff; }
+  .note { max-width: 1000px; margin: 0 auto 40px; padding: 0 16px; font-size: .88rem; color: #555; }
+  code { background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid #e3e3e3; }
+</style>
+</head>
+<body>
+<!--
+  PARTNER EMBED SAMPLE
+  ====================
+  This page demonstrates how a partner (e.g. AFRAA) embeds the DN Airline Health
+  Scorecard inside their own site via an <iframe>.
+
+  1. Point the iframe `src` at diagnostic.html.
+  2. Append `?partner=<KEY>` (e.g. ?partner=AFRAA) to trigger co-branding:
+       - partner logo + accent colour swap
+       - "Powered by DN Consultancy, in collaboration with <PARTNER>" line
+     Partner keys are configured in assets/js/data.js (DN.partners).
+  3. Framing is allowed only from whitelisted partner domains — see the `_headers`
+     file (Content-Security-Policy: frame-ancestors ...). Add the partner's domain
+     there before going live. Do NOT use `frame-ancestors *` in production.
+-->
+<div class="demo-head">
+  <h1>AFRAA Member Resources — Airline Digital Readiness</h1>
+  <p>Demonstration of a co-branded embed. (This green chrome is the partner's site, not DN's.)</p>
+</div>
+
+<div class="frame-wrap">
+  <iframe title="DN Airline Health Scorecard" src="diagnostic.html?partner=AFRAA" loading="lazy"></iframe>
+</div>
+
+<p class="note">
+  Embed snippet a partner pastes into their CMS:<br><br>
+  <code>&lt;iframe src="https://dnconsultancydiagnostictoolkit.netlify.app/diagnostic.html?partner=AFRAA" width="100%" height="1400" style="border:0;border-radius:12px"&gt;&lt;/iframe&gt;</code>
+</p>
+</body>
+</html>
