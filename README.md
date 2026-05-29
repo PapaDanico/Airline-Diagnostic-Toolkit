@@ -19,6 +19,7 @@ deployable on **Netlify or Vercel** (config for both is in the repo).
 | `tools/operating-model-canvas.html` | **Operating Model Canvas (Tool A4)** — 9-panel one-page airline operating model; auto-saves to `localStorage`, print / save-to-PDF, facilitated workshop gated behind a Contact CTA. |
 | `tools/cask-calculator.html` | **CASK Benchmarking Calculator (Tool A2)** — client-side unit-cost calculator; bands your CASK against DN's competitive target and African cost context, full benchmarking pack gated behind a Contact CTA. |
 | `tools/fuel-optimizer.html` | **Fuel Contract Optimizer Lite** — client-side savings estimator; full tool gated behind a Contact CTA. |
+| `tools/data-request.html` | **48-Hour Data Request (Tool A3)** — 28-item diagnostic-readiness checklist grouped by domain; readiness meter, auto-saves to `localStorage`, print / save-to-PDF. |
 | `embed.html` | Generic white-label embed sample (DN-only; the partner registry ships empty). |
 
 ## Shared assets

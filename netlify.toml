@@ -23,3 +23,8 @@
   from = "/canvas"
   to = "/tools/operating-model-canvas.html"
   status = 301
+
+[[redirects]]
+  from = "/data"
+  to = "/tools/data-request.html"
+  status = 301

@@ -6,7 +6,8 @@
     { "source": "/scorecard", "destination": "/diagnostic.html", "permanent": true },
     { "source": "/fuel", "destination": "/tools/fuel-optimizer.html", "permanent": true },
     { "source": "/cask", "destination": "/tools/cask-calculator.html", "permanent": true },
-    { "source": "/canvas", "destination": "/tools/operating-model-canvas.html", "permanent": true }
+    { "source": "/canvas", "destination": "/tools/operating-model-canvas.html", "permanent": true },
+    { "source": "/data", "destination": "/tools/data-request.html", "permanent": true }
   ],
   "headers": [
     {
