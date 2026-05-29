@@ -17,7 +17,9 @@ const ASSET_BASE = (function () {
    Cropped from the full DN Consultancy lockup. */
 const DN_LOGO = `<img class="logo" src="${ASSET_BASE}assets/img/dn-monogram.png" alt="DN Consultancy" width="40" height="40">`;
 
-/* ---- partner / white-label handling (?partner=AFRAA) ---- */
+/* ---- partner / white-label handling (?partner=<KEY>) ----
+   No-op unless ?partner= matches a key registered in DN.partners
+   (empty by default — this is a DN Consultancy product). */
 function applyPartner() {
   const p = new URLSearchParams(location.search).get("partner");
   if (!p) return null;

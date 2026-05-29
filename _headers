@@ -8,6 +8,8 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
-  # Allow embedding only from DN + whitelisted partner domains.
-  # Add each partner's production domain here before they go live.
-  Content-Security-Policy: frame-ancestors 'self' https://*.afraa.org https://afraa.org https://*.afraa.aero;
+  # Allow embedding only from DN's own origin by default. To let a real
+  # partner embed the scorecard, append their production domain(s) here,
+  # e.g. ... 'self' https://*.partner.example https://partner.example;
+  # Never use frame-ancestors *.
+  Content-Security-Policy: frame-ancestors 'self';

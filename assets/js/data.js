@@ -18,12 +18,14 @@ const DN = {
   // Soft "DN Engagement Key" gate for Toolboxes B/C/D (marketing gate, not security).
   engagementKey: "DN-ENGAGE-2026",
 
-  // Partner white-label registry (?partner=AFRAA)
-  partners: {
-    AFRAA: { label: "AFRAA", accent: "#0E6B3A", accentDeep: "#0a4f2b",
-             cobrand: "Powered by DN Consultancy, in collaboration with AFRAA.",
-             logo: "assets/partner-afraa.png" }
-  },
+  // Partner white-label registry. Empty by default — this is a DN
+  // Consultancy product. To co-brand for a real partner, add an entry
+  // keyed by the ?partner= value (matched case-insensitively), e.g.:
+  //   EXAMPLE: { label: "Example Assoc.", accent: "#0E6B3A", accentDeep: "#0a4f2b",
+  //              cobrand: "Powered by DN Consultancy, in collaboration with Example Assoc.",
+  //              logo: "assets/partner-example.png" }
+  // Then whitelist their domain in _headers (frame-ancestors) before go-live.
+  partners: {},
 
   // 5-point maturity scale fallback (when a question reuses generic anchors)
   scaleGeneric: [
