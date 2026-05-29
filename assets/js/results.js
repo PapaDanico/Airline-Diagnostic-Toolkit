@@ -33,8 +33,10 @@
   const tbody = document.getElementById("gap-body");
   sorted.forEach(d => {
     const tr = document.createElement("tr");
+    const bench = d.benchmark
+      ? `<div class="bench"><b>Industry:</b> ${d.benchmark} <span class="src">— ${d.benchmarkSrc}</span></div>` : "";
     tr.innerHTML = `
-      <td><strong>${d.name}</strong><br><span class="muted" style="font-size:.82rem">${d.blurb}</span></td>
+      <td><strong>${d.name}</strong><br><span class="muted" style="font-size:.82rem">${d.blurb}</span>${bench}</td>
       <td>${d.weight}%</td>
       <td class="barcell"><div class="bar"><i class="fill-${d.rag}" style="width:${d.pct}%"></i></div></td>
       <td><strong>${d.pct}%</strong></td>
@@ -53,9 +55,11 @@
     const div = document.createElement("div");
     div.className = "rx";
     const fuel = d.fuelLink ? `<div class="dn-tool"><a href="tools/fuel-optimizer.html${partnerQS}">→ Get a quick estimate with our free Fuel Contract Optimizer Lite</a></div>` : "";
+    const std = d.standard ? `<div class="std">Aligns to recognised standard: <strong>${d.standard}</strong></div>` : "";
     div.innerHTML = `
       <h4>${d.name} — ${d.pct}% <span class="rag rag-${d.rag}" style="font-size:.8rem"><span class="dot"></span>${DN.ragLabel(d.pct)}</span></h4>
       <div class="cat">${d.rxCategory}</div>
+      ${std}
       <div class="dn-tool">DN diagnostic that goes deeper: ${d.dnTool}</div>
       ${fuel}`;
     rxHost.appendChild(div);

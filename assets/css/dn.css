@@ -254,7 +254,20 @@ body.has-partner .partner-logo { display: block; }
 .rx h4 { margin: 0 0 .3rem; font-family: var(--sans); font-size: 1.05rem; }
 .rx .cat { font-size: .9rem; }
 .rx .dn-tool { font-size: .84rem; color: var(--accent-deep); margin-top: .5rem; font-weight: 600; }
+.rx .std { font-size: .82rem; color: var(--dn-dark); margin-top: .4rem; }
 .disclaimer { font-size: .8rem; color: var(--dn-muted); font-style: italic; }
+
+/* industry benchmark anchor (gap table + prescriber) */
+.bench { font-size: .78rem; color: var(--accent-deep); margin-top: .45rem; line-height: 1.45; }
+.bench b { font-weight: 700; }
+.bench .src { color: var(--dn-muted); font-style: italic; }
+.std strong { color: var(--accent-deep); }
+
+/* sources block */
+.sources { background: var(--dn-fog); padding: 28px 0; }
+.sources ul { margin: .4rem 0 .8rem; padding-left: 1.1rem; columns: 2; column-gap: 32px; }
+.sources li { font-size: .84rem; color: var(--dn-dark); margin-bottom: .3rem; }
+@media (max-width: 680px){ .sources ul { columns: 1; } }
 
 /* locked toolboxes */
 .locked-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }

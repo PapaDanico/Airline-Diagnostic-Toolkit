@@ -42,6 +42,9 @@ const DN = {
       blurb: "ICAO SMS maturity, reporting culture, regulatory standing and safety-data analysis.",
       rxCategory: "Aviation SMS platforms and flight-data analysis (FDM/FOQA) tooling; independent safety-culture and SMS maturity assessment.",
       dnTool: "DN B4 — Safety Culture Maturity Assessment (ICAO SMS 5-level)",
+      benchmark: "64 African airlines are IOSA-registered; IOSA carriers average 0.92 vs 1.70 accidents per million flights, and IOSA is a condition of AFRAA & IATA membership.",
+      benchmarkSrc: "IATA 2024 Safety Report",
+      standard: "IOSA · ICAO SMS (Annex 19)",
       questions: [
         { t: "How mature is your Safety Management System (SMS)?",
           o: ["Deficient — SMS largely on paper only","Reactive — responds after events","Proactive — hazard identification embedded","Predictive — data-driven risk management","Optimising — continuous, fully integrated"] },
@@ -60,6 +63,9 @@ const DN = {
       blurb: "On-time performance, dispatch reliability, turnaround and disruption (IROPS) management.",
       rxCategory: "OCC / IROPS management systems, OTP and turn-time analytics, and movement-control tooling.",
       dnTool: "DN B3 — Fleet Utilisation & Turn-Time Audit; C4 — KPI Governance Framework",
+      benchmark: "Best-practice on-time performance (departures within 15 min) sits around 80–82%, with technical dispatch reliability ≥ 98.5%.",
+      benchmarkSrc: "Industry planning target",
+      standard: "IATA GADM operational data",
       questions: [
         { t: "What is your on-time performance (departures within 15 min)?",
           o: ["< 65%","65–72%","72–78%","78–82%","≥ 82% (DN target)"] },
@@ -78,6 +84,9 @@ const DN = {
       blurb: "Aircraft utilisation, route economics, fleet-network fit and planning horizon.",
       rxCategory: "Network and schedule planning tools and route-profitability / connectivity optimisers.",
       dnTool: "DN B1 — Route Profitability Diagnostic; D2 — Airport Viability; D3 — Codeshare Mapper",
+      benchmark: "AFRAA members flew 209bn ASKs and 144.7bn RPKs in 2024, with traffic up 13.2% year-on-year — capacity is growing, so fleet-network fit is decisive.",
+      benchmarkSrc: "AFRAA Q4 2024 report",
+      standard: "Network & fleet-planning best practice",
       questions: [
         { t: "What is your average aircraft utilisation (block hours per day)?",
           o: ["< 5","5–6.5","6.5–7.5","7.5–8.5","≥ 8.5 (DN target)"] },
@@ -96,6 +105,9 @@ const DN = {
       blurb: "Unit cost (CASK) position, fuel as a share of cost, procurement and cost discipline.",
       rxCategory: "Fuel-efficiency and tankering tools, MRO/maintenance cost systems, and procurement/cost-analytics platforms.",
       dnTool: "DN A2 — CASK Benchmarking Calculator; D4 — Fuel Procurement Optimisation",
+      benchmark: "Fuel is ~40% of operating cost for African carriers vs ~25% globally, and African unit costs run close to double the rest of the world.",
+      benchmarkSrc: "IATA, Cost Disadvantage of African Airlines, 2025",
+      standard: "IATA Airline Cost Management Group (ACMG)",
       fuelLink: true,
       questions: [
         { t: "Where does your unit cost (CASK, USD per seat-km) sit?",
@@ -115,6 +127,9 @@ const DN = {
       blurb: "Load factor, RM capability, pricing discipline, demand forecasting and yield vs market.",
       rxCategory: "Revenue management systems with demand forecasting and dynamic-pricing capability.",
       dnTool: "DN B5 — Revenue Mix Diagnostic; B1 — Route Profitability",
+      benchmark: "African airlines averaged a 74.5% passenger load factor in 2024 — a regional record, but still the world's lowest, vs ~83.5% globally.",
+      benchmarkSrc: "AFRAA / IATA, 2024",
+      standard: "IATA revenue benchmarking",
       fuelLink: false,
       questions: [
         { t: "What is your passenger load factor?",
@@ -134,6 +149,9 @@ const DN = {
       blurb: "Ancillary revenue, distribution mix, loyalty/CRM, cargo and digital experience.",
       rxCategory: "Ancillary merchandising engines, NDC/distribution platforms, loyalty/CRM, and cargo revenue management.",
       dnTool: "DN tool 20 — Ancillary Revenue Optimiser; B5 — Revenue Mix",
+      benchmark: "Leading carriers earn $20+ in ancillary revenue per passenger; many African carriers remain in single digits.",
+      benchmarkSrc: "Industry range",
+      standard: "IATA NDC / airline retailing",
       questions: [
         { t: "What is your ancillary revenue per passenger (USD)?",
           o: ["< 5","5–8","8–12","12–22","≥ 22 (DN target)"] },
@@ -152,6 +170,9 @@ const DN = {
       blurb: "Staffing ratios, turnover, training currency, structure and leadership capacity.",
       rxCategory: "Training-management / LMS systems, competency-based training tools, and workforce-planning solutions.",
       dnTool: "DN C5 — Training Needs Analysis; B2 — Staff Cost Efficiency Analyser",
+      benchmark: "Lean, well-run carriers target staff turnover under ~15% and benchmark headcount per aircraft against peer fleets.",
+      benchmarkSrc: "Industry planning target",
+      standard: "Competency-based training (ICAO/IATA)",
       questions: [
         { t: "How do staffing ratios compare to benchmark (per aircraft)?",
           o: ["Severely off","Off benchmark","Near benchmark","At benchmark","Optimised"] },
@@ -170,6 +191,9 @@ const DN = {
       blurb: "Profitability, liquidity, business planning, board governance and strategic execution.",
       rxCategory: "Financial-planning & analysis (FP&A) and board-reporting / KPI-governance tooling.",
       dnTool: "DN C1 — 90-Day Sprint; C3 — Board Presentation; C4 — KPI Governance; A4 — Operating Model Canvas",
+      benchmark: "African airlines posted a net margin of only ~1% in 2024 — roughly $1.20 profit per passenger — the thinnest of any region.",
+      benchmarkSrc: "IATA, 2024",
+      standard: "IATA Airline Performance Review (APR)",
       questions: [
         { t: "What is your operating profitability?",
           o: ["Heavy losses","Around break-even","Small profit","Healthy margin","Strong, sustained"] },
