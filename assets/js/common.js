@@ -13,9 +13,10 @@ const ASSET_BASE = (function () {
   return s ? s.replace(/assets\/js\/common\.js(\?.*)?$/, "") : "";
 })();
 
-/* ---- official DN monogram logo (arc + D/N + spear) ----
-   Cropped from the full DN Consultancy lockup. */
-const DN_LOGO = `<img class="logo" src="${ASSET_BASE}assets/img/dn-monogram.png" alt="DN Consultancy" width="40" height="40">`;
+/* ---- official DN Consultancy badge (circular D/N emblem) ----
+   Transparent-background PNG; on dark surfaces the footer applies
+   .logo-invert (brightness(0) invert(1)) to render it white. */
+const DN_LOGO = `<img class="logo" src="${ASSET_BASE}assets/img/dn-badge.png" alt="DN Consultancy" width="40" height="40">`;
 
 /* ---- partner / white-label handling (?partner=<KEY>) ----
    No-op unless ?partner= matches a key registered in DN.partners
