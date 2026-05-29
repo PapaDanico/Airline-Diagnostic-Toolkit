@@ -56,6 +56,22 @@ node scripts/check-data.mjs      # data-model integrity check (also run in CI)
 No build step. `netlify.toml` (Netlify) and `vercel.json` (Vercel) both publish the repo root as-is,
 with `/scorecard` and `/fuel` redirects and security headers (incl. scoped `frame-ancestors`).
 
+## Moving to a custom domain
+
+Canonical / Open Graph / Twitter URLs are absolute (crawlers need them), currently pointing at the
+netlify.app subdomain. To repoint everything to a custom domain in one idempotent command:
+
+```bash
+node scripts/set-domain.mjs diagnostics.example.com   # or https://www.example.com
+```
+
+## Lead signal (no analytics)
+
+The site collects no analytics by design. Each tool's contact CTA opens a `mailto:` with a tagged
+subject — `[DN Toolkit · CASK]`, `[DN Toolkit · Fuel]`, `[DN Toolkit · Canvas]`, `[DN Toolkit · Data]` —
+so inbound enquiries self-identify which tool converted the lead. Filter/label by subject in your inbox.
+For traffic volume, enable server-log analytics on Netlify or Cloudflare (no client script, no cookies).
+
 ## CI
 
 `.github/workflows/ci.yml` runs on every push/PR: JS syntax (`node --check`), `vercel.json`

@@ -157,6 +157,9 @@ section { padding: 72px 0; }
 /* guarantee box */
 .guarantee { background: var(--dn-gold-lt); border: 1px solid var(--dn-gold); border-radius: var(--radius); padding: 22px 26px; display: flex; gap: 1rem; align-items: flex-start; }
 .guarantee svg { color: var(--dn-gold); flex: 0 0 auto; }
+.cta-alt { font-size: .84rem; color: var(--dn-muted); margin: .6rem 0 0; }
+.linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--accent-deep); text-decoration: underline; cursor: pointer; }
+.linkbtn:hover { color: var(--dn-dark); }
 
 /* ---------- footer ---------- */
 .footer { background: var(--dn-dark); color: #cfcfcf; padding: 54px 0 28px; }

@@ -81,6 +81,7 @@
           <strong>Unlock the full CASK Benchmarking pack.</strong>
           <p style="margin:.4rem 0 .8rem;font-size:.9rem">Your CASK broken down by cost line, benchmarked against African peers and LCC comparators, with the biggest unit-cost levers ranked by impact.</p>
           <a class="btn btn-gold" id="contact-cta">Talk to DN about your unit cost &rarr;</a>
+        <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain></span></p>
         </div>
       </div>
       <p class="disclaimer" style="margin-top:1rem">Indicative estimate only, for orientation. CASK is sensitive to stage length, gauge and accounting treatment, so peer comparison needs care. No data leaves your browser.</p>
@@ -149,7 +150,7 @@
     const op = document.getElementById("opcost").value;
     const ask = document.getElementById("ask").value;
     document.getElementById("contact-cta").href =
-      `mailto:${DN.brand.email}?subject=${encodeURIComponent("CASK Benchmarking — full pack & peer comparison")}&body=${encodeURIComponent("We'd like the full CASK Benchmarking pack.\n\nApprox annual operating cost (USD): "+op+"\nAnnual ASK: "+ask+"\n\nPlease get in touch.")}`;
+      `mailto:${DN.brand.email}?subject=${encodeURIComponent("[DN Toolkit · CASK] Full benchmarking pack & peer comparison")}&body=${encodeURIComponent("We'd like the full CASK Benchmarking pack.\n\nApprox annual operating cost (USD): "+op+"\nAnnual ASK: "+ask+"\n\nPlease get in touch.")}`;
   }
   ["opcost","ask","target"].forEach(id =>
     document.getElementById(id).addEventListener("input", () => { recalc(); updateCta(); }));
