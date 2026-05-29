@@ -18,3 +18,8 @@
   from = "/cask"
   to = "/tools/cask-calculator.html"
   status = 301
+
+[[redirects]]
+  from = "/canvas"
+  to = "/tools/operating-model-canvas.html"
+  status = 301
