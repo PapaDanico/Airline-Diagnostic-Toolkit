@@ -116,6 +116,10 @@ section { padding: 72px 0; }
 
 /* ---------- cards / grids ---------- */
 .grid { display: grid; gap: 24px; }
+/* grid children default to min-width:auto, which lets wide content (long
+   words, fixed-width media) blow out the track and overflow the page —
+   min-width:0 lets them shrink to their track instead. */
+.grid > * { min-width: 0; }
 .g2 { grid-template-columns: repeat(2,1fr); }
 .g3 { grid-template-columns: repeat(3,1fr); }
 .g4 { grid-template-columns: repeat(4,1fr); }
@@ -225,7 +229,10 @@ body.has-partner .partner-logo { display: block; }
 .score-hero .summary { display: flex; gap: 36px; align-items: center; flex-wrap: wrap; }
 
 /* gap table */
-.gap-table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+/* table is wider than a phone; let it scroll within its own box rather
+   than pushing the whole page wide. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.gap-table { width: 100%; border-collapse: collapse; font-size: .92rem; min-width: 520px; }
 .gap-table th, .gap-table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid rgba(28,28,28,.1); }
 .gap-table th { font-family: var(--sans); font-size: .76rem; letter-spacing: .06em; text-transform: uppercase; color: var(--dn-muted); }
 .gap-table tr:hover td { background: var(--dn-fog); }
