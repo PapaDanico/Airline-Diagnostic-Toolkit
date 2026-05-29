@@ -72,10 +72,29 @@ subject — `[DN Toolkit · CASK]`, `[DN Toolkit · Fuel]`, `[DN Toolkit · Canv
 so inbound enquiries self-identify which tool converted the lead. Filter/label by subject in your inbox.
 For traffic volume, enable server-log analytics on Netlify or Cloudflare (no client script, no cookies).
 
+## Testing
+
+Behaviour tests live in `tests/` with their own isolated toolchain (Playwright), kept out of the repo
+root so the static site stays build-free.
+
+```bash
+cd tests && npm install && npx playwright install chromium
+node e2e.mjs     # core flows: diagnostic → results → key gate → empty state → CASK math → a11y
+node audit.mjs   # 10-page sweep: JS errors, h1, alt, dup IDs, broken links, overflow (desktop+mobile)
+```
+
 ## CI
 
-`.github/workflows/ci.yml` runs on every push/PR: JS syntax (`node --check`), `vercel.json`
-validation, data-model integrity (8 domains, weights = 100, 40 questions), and an HTML sanity check.
+`.github/workflows/ci.yml` runs on every push/PR in two jobs:
+- **validate** — JS syntax (`node --check`), `vercel.json` validation, data-model integrity
+  (8 domains, weights = 100, 40 questions), HTML sanity.
+- **e2e** — installs Chromium and runs the `tests/` behaviour + audit suites against the real pages.
+
+## SEO
+
+`sitemap.xml`, `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and JSON-LD
+(`Organization` + `WebApplication`) on the landing page. `set-domain.mjs` updates the sitemap and
+robots base URL alongside the page metadata.
 
 ## Brand & docs
 
