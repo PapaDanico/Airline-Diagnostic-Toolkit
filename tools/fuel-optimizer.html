@@ -108,14 +108,17 @@
     rng.textContent = fmt(low) + " – " + fmt(high);
     qual.innerHTML = `Your airline could be saving between <strong>${fmt(low)}</strong> and <strong>${fmt(high)}</strong> a year by renegotiating closer to market benchmarks — roughly ${(gapPct*100).toFixed(1)}% of your fuel spend is currently above benchmark.`;
   }
-  ["spend","premium","benchmark","uplift"].forEach(id =>
-    document.getElementById(id).addEventListener("input", recalc));
-  document.getElementById("contact-cta").addEventListener("click", () => {
+  // Keep the contact CTA a real, keyboard-focusable mailto link whose body
+  // reflects the current inputs (works even without JS once first set).
+  function updateCta() {
     const spend = document.getElementById("spend").value;
     const prem = document.getElementById("premium").value;
-    location.href = `mailto:${DN.brand.email}?subject=${encodeURIComponent("Fuel Contract Optimizer — full tool & negotiation playbook")}&body=${encodeURIComponent("We'd like the full Fuel Contract Optimizer.\n\nApprox annual fuel spend (USD): "+spend+"\nCurrent premium to Platts (%): "+prem+"\n\nPlease get in touch.")}`;
-  });
-  recalc();
+    document.getElementById("contact-cta").href =
+      `mailto:${DN.brand.email}?subject=${encodeURIComponent("Fuel Contract Optimizer — full tool & negotiation playbook")}&body=${encodeURIComponent("We'd like the full Fuel Contract Optimizer.\n\nApprox annual fuel spend (USD): "+spend+"\nCurrent premium to Platts (%): "+prem+"\n\nPlease get in touch.")}`;
+  }
+  ["spend","premium","benchmark","uplift"].forEach(id =>
+    document.getElementById(id).addEventListener("input", () => { recalc(); updateCta(); }));
+  recalc(); updateCta();
 </script>
 </body>
 </html>
