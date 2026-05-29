@@ -52,6 +52,17 @@ function mountChrome() {
     el.textContent = DN.brand.email;
     if (el.tagName === "A") el.href = "mailto:" + DN.brand.email;
   });
+  // Plain, selectable address (for visitors with no configured mail client).
+  document.querySelectorAll("[data-email-plain]").forEach(el => { el.textContent = DN.brand.email; });
+  // "Copy email" buttons — robust fallback when mailto: links do nothing.
+  document.querySelectorAll("[data-copy-email]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const original = btn.textContent;
+      try { await navigator.clipboard.writeText(DN.brand.email); btn.textContent = "Copied ✓"; }
+      catch { btn.textContent = DN.brand.email; }
+      setTimeout(() => { btn.textContent = original; }, 1600);
+    });
+  });
 }
 
 /* ---- storage ---- */

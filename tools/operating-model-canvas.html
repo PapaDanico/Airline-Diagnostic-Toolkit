@@ -98,6 +98,7 @@
         <strong>Turn the canvas into a strategy.</strong>
         <p style="margin:.4rem 0 .8rem;font-size:.9rem">DN facilitates the Operating Model Canvas as a half-day leadership workshop, then maps each panel to the 90-day sprint, KPI governance framework and board pack.</p>
         <a class="btn btn-gold" id="contact-cta">Book a canvas workshop with DN &rarr;</a>
+        <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain></span></p>
       </div>
     </div>
     <p class="disclaimer" style="margin-top:1rem">A working template for orientation, not a substitute for a full operating-model review. Your entries stay in this browser only.</p>
@@ -184,11 +185,11 @@
 
   // contact CTA (mailto, reflects the airline name)
   document.getElementById("contact-cta").href =
-    `mailto:${DN.brand.email}?subject=${encodeURIComponent("Operating Model Canvas workshop")}` +
+    `mailto:${DN.brand.email}?subject=${encodeURIComponent("[DN Toolkit · Canvas] Operating Model Canvas workshop")}` +
     `&body=${encodeURIComponent("We'd like to run the Operating Model Canvas workshop with DN.\n\nAirline: " + (airline.value || "") + "\n\nPlease get in touch.")}`;
   airline.addEventListener("input", () => {
     document.getElementById("contact-cta").href =
-      `mailto:${DN.brand.email}?subject=${encodeURIComponent("Operating Model Canvas workshop")}` +
+      `mailto:${DN.brand.email}?subject=${encodeURIComponent("[DN Toolkit · Canvas] Operating Model Canvas workshop")}` +
       `&body=${encodeURIComponent("We'd like to run the Operating Model Canvas workshop with DN.\n\nAirline: " + (airline.value || "") + "\n\nPlease get in touch.")}`;
   });
 </script>
