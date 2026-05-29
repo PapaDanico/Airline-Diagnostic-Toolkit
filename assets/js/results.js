@@ -105,6 +105,11 @@
     });
   }
 
+  /* ---- print-only report date ---- */
+  const pd = document.getElementById("print-date");
+  if (pd) pd.textContent = new Date().toLocaleDateString("en-GB",
+    { day: "numeric", month: "long", year: "numeric" });
+
   /* ---- actions ---- */
   document.getElementById("retake").addEventListener("click", () =>
     location.href = "diagnostic.html" + partnerQS);

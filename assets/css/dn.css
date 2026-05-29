@@ -311,8 +311,30 @@ body.has-partner .partner-logo { display: block; }
   .nav-toggle { display: block; }
   .dropdown-menu { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; border: 0; padding-left: 1rem; }
 }
+/* print-only branded header (hidden on screen) */
+.print-head { display: none; align-items: center; gap: 18px; padding: 0 0 14px; border-bottom: 2px solid var(--dn-dark); margin-bottom: 18px; }
+.print-head img { height: 64px; width: auto; }
+.print-head .ph-meta { font-size: .92rem; line-height: 1.4; }
+
 @media print {
-  .nav, .footer, .diag-actions, .keybar, .btn { display: none !important; }
-  body { color: #000; }
-  section { padding: 16px 0; }
+  @page { margin: 14mm; }
+  html, body { background: #fff !important; }
+  body { color: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* hide screen chrome + the sales gate; keep findings, radar, prescriber, sources, ROI/contact */
+  .nav, .footer, .diag-actions, .btn, .nav-toggle, #retake, #print,
+  .keybar, .locked-grid, .empty { display: none !important; }
+  .print-head { display: flex !important; }
+  /* hero: drop the dark gradient so white text becomes readable ink */
+  .score-hero { background: #fff !important; color: #000 !important; padding: 0 0 10px !important; }
+  .score-hero .eyebrow, .score-hero h1, .score-hero #index-text, .score-hero #index-band { color: var(--dn-dark) !important; }
+  .band-fog, .sources { background: #fff !important; }
+  section { padding: 12px 0 !important; }
+  /* preserve RAG / radar / ring colours when printing */
+  .rag, .bar, .bar > i, .index-ring, #radar polygon, #radar circle, .dot {
+    -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  /* avoid awkward splits */
+  .rx, .gap-table tr, .radar-box, .guarantee, .summary, .print-head { break-inside: avoid; page-break-inside: avoid; }
+  h1, h2 { page-break-after: avoid; }
+  a[data-email] { color: var(--dn-dark) !important; text-decoration: underline; }
+  .table-scroll { overflow: visible !important; }
 }
