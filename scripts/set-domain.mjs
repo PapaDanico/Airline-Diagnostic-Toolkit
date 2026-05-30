@@ -30,10 +30,11 @@ const oldBase = m[1];
 
 if (oldBase === newBase) { console.log(`Already set to ${newBase} — nothing to do.`); process.exit(0); }
 
-// Collect HTML files at the repo root and in tools/.
+// Collect HTML files at the repo root and in tools/, plus robots/sitemap.
 const files = [
   ...readdirSync(".").filter(f => f.endsWith(".html")),
-  ...readdirSync("tools").filter(f => f.endsWith(".html")).map(f => join("tools", f))
+  ...readdirSync("tools").filter(f => f.endsWith(".html")).map(f => join("tools", f)),
+  ...["robots.txt", "sitemap.xml"].filter(f => { try { readFileSync(f); return true; } catch { return false; } })
 ];
 
 let total = 0, touched = 0;
