@@ -34,3 +34,26 @@ jobs:
             grep -q "</html>" "$f" || { echo "missing </html> in $f"; exit 1; }
             echo "ok $f"
           done
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install test toolchain
+        working-directory: tests
+        run: npm install
+
+      - name: Install Chromium
+        working-directory: tests
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end behaviour tests
+        run: node tests/e2e.mjs
+
+      - name: Full-site page audit
+        run: node tests/audit.mjs

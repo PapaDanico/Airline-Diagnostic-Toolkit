@@ -1,0 +1,12 @@
+{
+  "name": "dn-airline-diagnostic-toolkit-tests",
+  "private": true,
+  "description": "Isolated test toolchain for the DN Airline Diagnostic Toolkit. Kept separate from the repo root so the static site has no build step or dependencies.",
+  "type": "module",
+  "scripts": {
+    "test": "node e2e.mjs && node audit.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}
