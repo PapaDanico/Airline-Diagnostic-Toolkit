@@ -56,6 +56,14 @@ await ctx.fill("#opcost", "280000000"); await ctx.fill("#ask", "3000000000"); aw
 await ctx.waitForTimeout(80);
 assert(/9\.33 US/.test(await ctx.$eval("#cask", e => e.textContent)), "CASK computes 9.33 US¢/ASK");
 
+// 6b. Training Needs Analysis computes gaps/priority/cost (not a static table)
+await ctx.goto(base + "/tools/training-tna.html"); await ctx.waitForTimeout(300);
+assert(await ctx.$$eval(".cur-select", e => e.length) === 39, "TNA renders 39 current-level selects");
+await ctx.selectOption("#tna-groups tr[data-key='0-0'] .cur-select", "2"); await ctx.waitForTimeout(120);
+assert(await ctx.$eval("#tna-groups tr[data-key='0-0'] .gap-val", e => e.textContent) === "3", "TNA gap computes (target 5 − current 2 = 3)");
+assert(/High/.test(await ctx.$eval("#tna-groups tr[data-key='0-0'] .priority", e => e.textContent)), "TNA flags high priority");
+assert(await ctx.$eval("#stat-high", e => e.textContent) === "1", "TNA summary tallies high-priority count");
+
 // 7. A11Y basics
 await ctx.goto(base + "/index.html"); await ctx.waitForTimeout(250);
 assert(await ctx.$$eval("img", els => els.filter(i => !i.hasAttribute("alt")).length) === 0, "all <img> have alt");

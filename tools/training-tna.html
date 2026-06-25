@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Training Needs Analysis: Competency-gap assessment across four staff groups (flight crew, cabin, engineers, ground) with priority flagging and cost estimation.">
+<meta name="description" content="Training Needs Analysis: Interactive competency-gap assessment across four staff groups (flight crew, cabin, engineers, ground) with live gap calculation, priority flagging and cost estimation.">
 <link rel="canonical" href="https://dnconsultancydiagnostictoolkit.netlify.app/tools/training-tna.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="DN Consultancy">
 <meta property="og:title" content="Training Needs Analysis — DN Consultancy">
-<meta property="og:description" content="Competency-gap assessment across four staff groups: flight crew, cabin, engineers, and ground operations.">
+<meta property="og:description" content="Interactive competency-gap assessment across four staff groups: flight crew, cabin, engineers, and ground operations.">
 <meta property="og:url" content="https://dnconsultancydiagnostictoolkit.netlify.app/tools/training-tna.html">
 <meta property="og:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Training Needs Analysis — DN Consultancy">
-<meta name="twitter:description" content="Competency-gap assessment across staff groups.">
+<meta name="twitter:description" content="Interactive competency-gap assessment across staff groups.">
 <meta name="twitter:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
 <title>Training Needs Analysis | DN Consultancy</title>
 <link rel="icon" type="image/png" href="../assets/img/dn-badge.png">
@@ -27,26 +27,42 @@
 .tna-container { max-width: 1200px; }
 .staff-group { margin-bottom: 2.4rem; }
 .staff-group h3 { color: #1a1a1a; margin: 1.2rem 0 0.8rem; font-size: 1.2rem; }
-.tna-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 1.2rem; }
+.tna-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 1.2rem; min-width: 640px; }
 .tna-table thead { background: #f5f5f5; }
 .tna-table th { padding: 0.6rem; text-align: left; font-weight: 600; border-bottom: 1px solid #ddd; }
 .tna-table td { padding: 0.6rem; border-bottom: 1px solid #eee; }
-.tna-table tr:hover { background: #fafafa; }
+.tna-table tr:hover td { background: #fafafa; }
 .competency { font-weight: 500; color: #333; }
 .target, .current, .gap { text-align: center; }
-.priority { text-align: center; font-size: 0.85rem; }
-.priority.high { color: #C0392B; font-weight: 600; }
-.priority.medium { color: #D4AC0D; font-weight: 600; }
-.priority.low { color: #1E8449; }
-.cost { text-align: right; font-family: monospace; }
-.summary-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
-.stat-card { background: #f9f9f9; padding: 1rem; border-left: 4px solid #4A7FA5; }
-.stat-card strong { display: block; font-size: 1.4rem; color: #1a1a1a; margin: 0.4rem 0; }
+.cur-select { padding: 0.35rem 0.4rem; border: 1px solid rgba(28,28,28,.25); border-radius: 6px; font-family: var(--sans); font-size: 0.9rem; background: #fff; cursor: pointer; }
+.cur-select:focus { outline: 2px solid var(--dn-steel); border-color: var(--dn-steel); }
+.gap-val { font-weight: 700; }
+.gap-pos { color: #C0392B; }
+.gap-zero { color: #1E8449; }
+.priority { text-align: center; }
+.pri-badge { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.22rem 0.55rem; border-radius: 4px; }
+.pri-high { background: #fee2e2; color: #991b1b; }
+.pri-medium { background: #fef3c7; color: #92400e; }
+.pri-low { background: #e0f2fe; color: #075985; }
+.pri-none { background: #dcfce7; color: #166534; }
+.pri-unset { color: #9ca3af; }
+.cost { text-align: right; font-family: monospace; white-space: nowrap; }
+.summary-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin-bottom: 1.4rem; }
+.stat-card { background: #f9f9f9; padding: 1rem; border-left: 4px solid #4A7FA5; border-radius: 0 8px 8px 0; }
+.stat-card strong { display: block; font-size: 1.5rem; color: #1a1a1a; margin: 0.3rem 0; }
+.stat-card.alert { border-left-color: #C0392B; }
 .stat-card small { color: #666; }
-.disclaimer { background: #fff8e6; padding: 1rem; border-left: 4px solid #D4AC0D; margin-bottom: 2rem; font-size: 0.9rem; }
+.disclaimer-box { background: #fff8e6; padding: 1rem; border-left: 4px solid #D4AC0D; margin-bottom: 2rem; font-size: 0.9rem; border-radius: 0 8px 8px 0; }
+.tna-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; margin: 1.4rem 0; }
+.sticky-summary { position: sticky; top: 78px; z-index: 5; background: #fff; padding-top: 0.6rem; }
 @media (max-width: 768px) {
-  .tna-table { font-size: 0.8rem; }
-  .tna-table th, .tna-table td { padding: 0.4rem; }
+  .tna-table { font-size: 0.82rem; }
+  .tna-table th, .tna-table td { padding: 0.45rem 0.4rem; }
+  .stat-card strong { font-size: 1.3rem; }
+}
+@media print {
+  .cur-select { border: 0; -webkit-appearance: none; appearance: none; }
+  .tna-actions, .nav, .disclaimer-box { display: none; }
 }
 </style>
 </head>
@@ -70,172 +86,42 @@
     <div class="partner-banner" style="margin-bottom:1rem;margin-top:2rem"><img class="partner-logo" alt=""><span data-cobrand></span></div>
     <p class="eyebrow">Workforce capability planning</p>
     <h1>Training Needs Analysis</h1>
-    <p style="font-size: 1.1rem; max-width: 720px; color: #666;">Assess competency gaps across your four core staff groups: flight crew, cabin crew, engineers, and ground operations. Identify priority areas and estimate investment for a competency-based training roadmap.</p>
+    <p style="font-size: 1.1rem; max-width: 720px; color: #666;">Rate your team's current proficiency against best-practice targets across four staff groups. The tool calculates competency gaps, flags training priorities, and estimates investment — live as you type.</p>
   </section>
 
   <section>
-    <div class="disclaimer">
-      <strong>Using this template:</strong> Enter your current and target proficiency levels (1–5 scale) for each competency. The tool calculates gaps and flags high-impact, high-effort items as priority training investments. This is a self-assessment framework — actual training design requires specialist instructional expertise and regulatory alignment (ICAO, KCAA for East Africa).
+    <div class="disclaimer-box">
+      <strong>How it works:</strong> For each competency, pick your team's <em>current</em> proficiency (1 = Awareness, 5 = Expert). Gap, priority and cost update instantly. Targets reflect best-practice standards — adjust your assessment honestly. Cost figures are indicative per-person estimates for planning only; actual training design requires specialist instructional expertise and regulatory alignment (ICAO, KCAA for East Africa). Your entries stay in your browser.
     </div>
   </section>
 
   <section>
-    <h2>Overview</h2>
-    <div class="summary-stats">
-      <div class="stat-card">
-        <small>Total Competencies</small>
-        <strong>39</strong>
-        <small style="display:block;margin-top:0.4rem">Across 4 staff groups</small>
+    <div class="sticky-summary">
+      <h2 style="margin-bottom:0.8rem">Live summary</h2>
+      <div class="summary-stats">
+        <div class="stat-card"><small>Competencies assessed</small><strong id="stat-assessed">0 / 39</strong><small>Pick a current level to assess</small></div>
+        <div class="stat-card"><small>Average gap</small><strong id="stat-avggap">—</strong><small>Target minus current</small></div>
+        <div class="stat-card alert"><small>High-priority items</small><strong id="stat-high">0</strong><small>Critical gaps to close first</small></div>
+        <div class="stat-card"><small>Est. training investment</small><strong id="stat-cost">£0</strong><small>Indicative, per person</small></div>
       </div>
-      <div class="stat-card">
-        <small>Proficiency Scale</small>
-        <strong>1–5</strong>
-        <small style="display:block;margin-top:0.4rem">1=Awareness, 5=Expert</small>
-      </div>
-      <div class="stat-card">
-        <small>Gap Calculation</small>
-        <strong>Target − Current</strong>
-        <small style="display:block;margin-top:0.4rem">Positive = investment needed</small>
+      <div class="tna-actions">
+        <button class="btn btn-gold" id="tna-print">Print / save as PDF</button>
+        <button class="btn btn-ghost" id="tna-export">↓ Export data (JSON)</button>
+        <button class="btn btn-ghost" id="tna-reset">Reset</button>
       </div>
     </div>
   </section>
 
-  <!-- Flight Crew -->
-  <section class="staff-group">
-    <h3>Flight Crew (Pilots & Flight Engineers)</h3>
-    <p class="muted">Operations, safety, and technical competencies specific to line flying and crew resource management.</p>
-    <div class="table-scroll">
-      <table class="tna-table">
-        <thead>
-          <tr>
-            <th>Competency</th>
-            <th class="target">Target</th>
-            <th class="current">Current</th>
-            <th class="gap">Gap</th>
-            <th class="priority">Priority</th>
-            <th class="cost">Est. Cost</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td class="competency">SOP compliance &amp; procedural discipline</td><td class="target">5</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Advanced threat &amp; error management (TEM)</td><td class="target">5</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Aircraft systems mastery (type-rating)</td><td class="target">5</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Navigation &amp; flight planning</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Crew resource management (CRM)</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Emergency procedures &amp; decision-making</td><td class="target">5</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Weather interpretation &amp; avoidance</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Fuel management &amp; optimization</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Communication &amp; technical English (ICAO Level 4+)</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- Cabin Crew -->
-  <section class="staff-group">
-    <h3>Cabin Crew</h3>
-    <p class="muted">Safety, customer service, and emergency-response competencies for in-flight operations.</p>
-    <div class="table-scroll">
-      <table class="tna-table">
-        <thead>
-          <tr>
-            <th>Competency</th>
-            <th class="target">Target</th>
-            <th class="current">Current</th>
-            <th class="gap">Gap</th>
-            <th class="priority">Priority</th>
-            <th class="cost">Est. Cost</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td class="competency">Emergency &amp; safety procedures</td><td class="target">5</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">First aid &amp; medical response</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Customer service &amp; hospitality</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Conflict &amp; passenger de-escalation</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Cultural awareness &amp; communication</td><td class="target">3</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">PRM (Person with Reduced Mobility) assistance</td><td class="target">3</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Dangerous goods awareness</td><td class="target">3</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Revenue protection &amp; fraud detection</td><td class="target">3</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- Engineers & Maintenance -->
-  <section class="staff-group">
-    <h3>Engineers &amp; Maintenance</h3>
-    <p class="muted">Technical, regulatory, and quality-assurance competencies for aircraft maintenance and airworthiness.</p>
-    <div class="table-scroll">
-      <table class="tna-table">
-        <thead>
-          <tr>
-            <th>Competency</th>
-            <th class="target">Target</th>
-            <th class="current">Current</th>
-            <th class="gap">Gap</th>
-            <th class="priority">Priority</th>
-            <th class="cost">Est. Cost</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td class="competency">AME licensing &amp; compliance (KCAA/EASA)</td><td class="target">5</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Aircraft systems &amp; troubleshooting (type-specific)</td><td class="target">5</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Maintenance planning &amp; scheduling</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Non-destructive testing (NDT) &amp; inspection</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Defect management &amp; task card execution</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Line maintenance &amp; turnaround procedures</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Quality assurance &amp; audit</td><td class="target">3</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Tool control &amp; asset management</td><td class="target">3</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Documentation &amp; technical English</td><td class="target">3</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Safety culture &amp; incident reporting</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- Ground Operations -->
-  <section class="staff-group">
-    <h3>Ground Operations &amp; Support</h3>
-    <p class="muted">Operational, safety, and customer-service competencies for ramp, cargo, dispatch, and ground services.</p>
-    <div class="table-scroll">
-      <table class="tna-table">
-        <thead>
-          <tr>
-            <th>Competency</th>
-            <th class="target">Target</th>
-            <th class="current">Current</th>
-            <th class="gap">Gap</th>
-            <th class="priority">Priority</th>
-            <th class="cost">Est. Cost</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td class="competency">Aircraft handling &amp; safety (ramp)</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Ground-service equipment operation</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Weight &amp; balance / loading procedures</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Cargo &amp; dangerous goods handling</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Turnaround &amp; dispatch procedures</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Flight planning &amp; load control</td><td class="target">3</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Customer service &amp; passenger handling</td><td class="target">3</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Fueling &amp; defueling procedures</td><td class="target">3</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Airside safety &amp; regulations</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Communication &amp; coordination (ground-to-flight)</td><td class="target">4</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Environmental &amp; waste management</td><td class="target">2</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-          <tr><td class="competency">Security &amp; restricted-area access</td><td class="target">3</td><td class="current">—</td><td class="gap">—</td><td class="priority">—</td><td class="cost">—</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+  <div id="tna-groups"></div>
 
   <section>
     <h2>How to use this assessment</h2>
     <ol style="max-width: 720px; line-height: 1.8;">
-      <li><strong>Fill in current proficiency:</strong> Rate each competency 1–5 for your team's present state. Be honest; gaps here drive investment decisions.</li>
-      <li><strong>Confirm target proficiency:</strong> The targets above reflect best-practice standards. Adjust if your business model requires different levels (e.g., a low-cost carrier may target 3 for some customer-service competencies).</li>
-      <li><strong>Calculate gaps:</strong> Gap = Target − Current. Positive = investment needed.</li>
-      <li><strong>Prioritize:</strong> Focus on gaps that are both large (impact) and affect critical safety or revenue competencies. Flag those as high priority.</li>
-      <li><strong>Cost estimate:</strong> Typical costs: basic classroom training £100–300/person; type-rating/specialist £500–2,000/person; mentorship/on-job £50–150/person. External instructors add 30–50%.</li>
-      <li><strong>Build a roadmap:</strong> Sequence training by priority and business cycle. Use the 90-Day Sprint tool to integrate with other operational fixes.</li>
+      <li><strong>Rate current proficiency:</strong> For each competency, select your team's present level (1–5). Be honest — gaps drive investment decisions.</li>
+      <li><strong>Review the gap:</strong> Gap = Target − Current. The tool flags priority by gap size and how safety-critical the competency is.</li>
+      <li><strong>Read the priority:</strong> <span class="pri-badge pri-high">High</span> = large gap on a critical competency, close first. <span class="pri-badge pri-medium">Medium</span> and <span class="pri-badge pri-low">Low</span> follow.</li>
+      <li><strong>Use the cost estimate:</strong> Indicative per-person figures (specialist/technical training costs more than soft-skills). Multiply by headcount for a budget envelope.</li>
+      <li><strong>Build a roadmap:</strong> Sequence training by priority. Use the 90-Day Sprint tool to integrate with other operational fixes.</li>
     </ol>
   </section>
 
@@ -257,5 +143,191 @@
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/common.js"></script>
 <script>applyPartner(); mountChrome();</script>
+<script>
+(function () {
+  // Competency model: name + best-practice target. costPerPoint = indicative £ per person to raise one proficiency level.
+  const GROUPS = [
+    { name: "Flight Crew (Pilots & Flight Engineers)",
+      note: "Operations, safety, and technical competencies specific to line flying and crew resource management.",
+      costPerPoint: 600, items: [
+        ["SOP compliance & procedural discipline", 5],
+        ["Advanced threat & error management (TEM)", 5],
+        ["Aircraft systems mastery (type-rating)", 5],
+        ["Navigation & flight planning", 4],
+        ["Crew resource management (CRM)", 4],
+        ["Emergency procedures & decision-making", 5],
+        ["Weather interpretation & avoidance", 4],
+        ["Fuel management & optimization", 4],
+        ["Communication & technical English (ICAO Level 4+)", 4] ] },
+    { name: "Cabin Crew",
+      note: "Safety, customer service, and emergency-response competencies for in-flight operations.",
+      costPerPoint: 250, items: [
+        ["Emergency & safety procedures", 5],
+        ["First aid & medical response", 4],
+        ["Customer service & hospitality", 4],
+        ["Conflict & passenger de-escalation", 4],
+        ["Cultural awareness & communication", 3],
+        ["PRM (Person with Reduced Mobility) assistance", 3],
+        ["Dangerous goods awareness", 3],
+        ["Revenue protection & fraud detection", 3] ] },
+    { name: "Engineers & Maintenance",
+      note: "Technical, regulatory, and quality-assurance competencies for aircraft maintenance and airworthiness.",
+      costPerPoint: 700, items: [
+        ["AME licensing & compliance (KCAA/EASA)", 5],
+        ["Aircraft systems & troubleshooting (type-specific)", 5],
+        ["Maintenance planning & scheduling", 4],
+        ["Non-destructive testing (NDT) & inspection", 4],
+        ["Defect management & task card execution", 4],
+        ["Line maintenance & turnaround procedures", 4],
+        ["Quality assurance & audit", 3],
+        ["Tool control & asset management", 3],
+        ["Documentation & technical English", 3],
+        ["Safety culture & incident reporting", 4] ] },
+    { name: "Ground Operations & Support",
+      note: "Operational, safety, and customer-service competencies for ramp, cargo, dispatch, and ground services.",
+      costPerPoint: 180, items: [
+        ["Aircraft handling & safety (ramp)", 4],
+        ["Ground-service equipment operation", 4],
+        ["Weight & balance / loading procedures", 4],
+        ["Cargo & dangerous goods handling", 4],
+        ["Turnaround & dispatch procedures", 4],
+        ["Flight planning & load control", 3],
+        ["Customer service & passenger handling", 3],
+        ["Fueling & defueling procedures", 3],
+        ["Airside safety & regulations", 4],
+        ["Communication & coordination (ground-to-flight)", 4],
+        ["Environmental & waste management", 2],
+        ["Security & restricted-area access", 3] ] }
+  ];
+
+  const STORE = "dn_tna_v1";
+  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const totalItems = GROUPS.reduce((a, g) => a + g.items.length, 0);
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { state = {}; }
+
+  function priority(gap, target) {
+    if (gap <= 0) return { cls: "pri-none", label: "On target" };
+    if (gap >= 2 && target >= 4) return { cls: "pri-high", label: "High" };
+    if (gap >= 2 || target >= 4) return { cls: "pri-medium", label: "Medium" };
+    return { cls: "pri-low", label: "Low" };
+  }
+  const money = n => "£" + Math.round(n).toLocaleString("en-GB");
+
+  // Build tables
+  const host = document.getElementById("tna-groups");
+  GROUPS.forEach((g, gi) => {
+    const rows = g.items.map((it, ii) => {
+      const key = gi + "-" + ii;
+      const cur = state[key];
+      const opts = [`<option value="">—</option>`].concat([1, 2, 3, 4, 5].map(n =>
+        `<option value="${n}"${cur === n ? " selected" : ""}>${n}</option>`)).join("");
+      return `<tr data-key="${key}" data-target="${it[1]}" data-cpp="${g.costPerPoint}">
+        <td class="competency">${esc(it[0])}</td>
+        <td class="target">${it[1]}</td>
+        <td class="current"><select class="cur-select" aria-label="Current level for ${esc(it[0])}">${opts}</select></td>
+        <td class="gap"><span class="gap-val">—</span></td>
+        <td class="priority"><span class="pri-unset">—</span></td>
+        <td class="cost">—</td>
+      </tr>`;
+    }).join("");
+    host.insertAdjacentHTML("beforeend", `
+      <section class="staff-group">
+        <h3>${esc(g.name)}</h3>
+        <p class="muted">${esc(g.note)}</p>
+        <div class="table-scroll">
+          <table class="tna-table">
+            <thead><tr>
+              <th>Competency</th><th class="target">Target</th><th class="current">Current</th>
+              <th class="gap">Gap</th><th class="priority">Priority</th><th class="cost">Est. Cost</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </section>`);
+  });
+
+  function recompute() {
+    let assessed = 0, gapSum = 0, highCount = 0, costSum = 0;
+    document.querySelectorAll("#tna-groups tr[data-key]").forEach(tr => {
+      const sel = tr.querySelector(".cur-select");
+      const target = parseInt(tr.dataset.target, 10);
+      const cpp = parseInt(tr.dataset.cpp, 10);
+      const gapCell = tr.querySelector(".gap-val");
+      const priCell = tr.querySelector(".priority");
+      const costCell = tr.querySelector(".cost");
+      if (sel.value === "") {
+        gapCell.textContent = "—"; gapCell.className = "gap-val";
+        priCell.innerHTML = `<span class="pri-unset">—</span>`;
+        costCell.textContent = "—";
+        return;
+      }
+      const cur = parseInt(sel.value, 10);
+      const gap = Math.max(0, target - cur);
+      assessed++; gapSum += gap;
+      gapCell.textContent = gap; gapCell.className = "gap-val " + (gap > 0 ? "gap-pos" : "gap-zero");
+      const pri = priority(gap, target);
+      priCell.innerHTML = `<span class="pri-badge ${pri.cls}">${pri.label}</span>`;
+      if (pri.cls === "pri-high") highCount++;
+      const cost = gap * cpp;
+      costSum += cost;
+      costCell.textContent = gap > 0 ? money(cost) : "£0";
+    });
+    document.getElementById("stat-assessed").textContent = assessed + " / " + totalItems;
+    document.getElementById("stat-avggap").textContent = assessed ? (gapSum / assessed).toFixed(1) : "—";
+    document.getElementById("stat-high").textContent = highCount;
+    document.getElementById("stat-cost").textContent = money(costSum);
+  }
+
+  function save() {
+    state = {};
+    document.querySelectorAll("#tna-groups tr[data-key]").forEach(tr => {
+      const v = tr.querySelector(".cur-select").value;
+      if (v !== "") state[tr.dataset.key] = parseInt(v, 10);
+    });
+    localStorage.setItem(STORE, JSON.stringify(state));
+  }
+
+  host.addEventListener("change", e => {
+    if (e.target.classList.contains("cur-select")) { save(); recompute(); }
+  });
+
+  document.getElementById("tna-print").addEventListener("click", () => window.print());
+  document.getElementById("tna-reset").addEventListener("click", () => {
+    if (!confirm("Clear all current-level entries?")) return;
+    localStorage.removeItem(STORE);
+    document.querySelectorAll("#tna-groups .cur-select").forEach(s => s.value = "");
+    recompute();
+  });
+  document.getElementById("tna-export").addEventListener("click", () => {
+    const rows = [];
+    document.querySelectorAll("#tna-groups tr[data-key]").forEach(tr => {
+      const cur = tr.querySelector(".cur-select").value;
+      rows.push({
+        competency: tr.querySelector(".competency").textContent,
+        target: parseInt(tr.dataset.target, 10),
+        current: cur === "" ? null : parseInt(cur, 10),
+        gap: cur === "" ? null : Math.max(0, parseInt(tr.dataset.target, 10) - parseInt(cur, 10))
+      });
+    });
+    const exp = {
+      tool: "Training Needs Analysis",
+      assessed: document.getElementById("stat-assessed").textContent,
+      avgGap: document.getElementById("stat-avggap").textContent,
+      highPriority: document.getElementById("stat-high").textContent,
+      estCost: document.getElementById("stat-cost").textContent,
+      competencies: rows,
+      timestamp: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(exp, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "dn-training-tna-" + new Date().toISOString().split("T")[0] + ".json";
+    a.click(); URL.revokeObjectURL(url);
+  });
+
+  recompute();
+})();
+</script>
 </body>
 </html>
