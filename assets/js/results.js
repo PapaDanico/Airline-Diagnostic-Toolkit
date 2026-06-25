@@ -69,6 +69,35 @@
     rxHost.appendChild(div);
   });
 
+  /* ---- smart tool recommendations based on top 3 gaps ---- */
+  const topGaps = sorted.slice(0, 3);
+  const relevantTools = new Set();
+  topGaps.forEach(d => {
+    if (d.dnTool) d.dnTool.split(";").forEach(t => {
+      const ref = t.trim().match(/^DN\s+([A-Z]\d)/)?.[1];
+      if (ref) relevantTools.add(ref);
+    });
+  });
+  if (relevantTools.size > 0) {
+    const recHost = document.createElement("div");
+    recHost.style.cssText = "margin-bottom:2rem;padding:1.4rem;background:var(--dn-steel-lt);border-radius:var(--radius);border-left:4px solid var(--accent)";
+    recHost.innerHTML = `<p class="eyebrow" style="margin-top:0">Quick wins for your top gaps</p>
+      <p style="margin:0.5rem 0;font-weight:600">Based on your ${topGaps.map(d => d.name).join(", ")} scores, these tools will give you quick insights:</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:1rem" id="rec-tools"></div>`;
+    document.querySelector(".locked-grid").parentElement.insertBefore(recHost, document.querySelector(".locked-grid"));
+    const recToolsHost = document.getElementById("rec-tools");
+    DN.toolboxes.forEach(tb => {
+      tb.tools.forEach(t => {
+        if (relevantTools.has(t.ref)) {
+          const c = document.createElement("div");
+          c.style.cssText = "padding:0.8rem;background:#fff;border-radius:var(--radius-sm);font-size:0.85rem";
+          c.innerHTML = `<div style="font-weight:700;color:var(--accent);margin-bottom:0.3rem">${t.ref}</div><div style="color:var(--dn-dark);line-height:1.4">${t.n}</div>`;
+          recToolsHost.appendChild(c);
+        }
+      });
+    });
+  }
+
   /* ---- locked Toolboxes B/C/D (DN Engagement Key gate) ---- */
   renderToolboxes();
   const unlocked = sessionStorage.getItem("dn_unlocked") === "1";
@@ -129,6 +158,23 @@
   document.getElementById("retake").addEventListener("click", () =>
     location.href = "diagnostic.html" + partnerQS);
   document.getElementById("print").addEventListener("click", () => window.print());
+
+  /* export data */
+  const exportBtn = document.createElement("button");
+  exportBtn.className = "btn btn-ghost";
+  exportBtn.textContent = "↓ Export data";
+  exportBtn.addEventListener("click", () => {
+    const exp = { scorecard: answers, index: s.index, domains: s.domains.map(d => ({name: d.name, score: d.pct, rag: d.rag})), timestamp: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(exp, null, 2)], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `dn-scorecard-${new Date().toISOString().split("T")[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+  document.querySelector(".diag-actions") ? document.querySelector(".diag-actions").appendChild(exportBtn) :
+    document.getElementById("print").parentElement.appendChild(exportBtn);
 })();
 
 /* ---- radar drawing ----
