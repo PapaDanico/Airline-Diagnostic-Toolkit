@@ -128,6 +128,7 @@
     const toolLinks = {
       "A1": "diagnostic.html",
       "A2": "tools/cask-calculator.html",
+      "A3": "tools/data-request.html",
       "A4": "tools/operating-model-canvas.html",
       "C5": "tools/training-tna.html"
     };
