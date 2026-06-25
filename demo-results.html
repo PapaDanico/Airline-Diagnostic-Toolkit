@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Sample Airline Health Scorecard report — see exactly what your strategic gap report looks like before you run the diagnostic.">
+<link rel="canonical" href="https://dnconsultancydiagnostictoolkit.netlify.app/demo-results.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DN Consultancy">
+<meta property="og:title" content="Sample Health Scorecard Report — DN Consultancy">
+<meta property="og:description" content="See what your strategic gap report looks like: health index, benchmarked findings, radar chart, and next-step recommendations.">
+<meta property="og:url" content="https://dnconsultancydiagnostictoolkit.netlify.app/demo-results.html">
+<meta property="og:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sample Health Scorecard Report — DN Consultancy">
+<meta name="twitter:description" content="See what your strategic gap report looks like before you run the diagnostic.">
+<meta name="twitter:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
+<title>Sample Health Scorecard Report | DN Consultancy</title>
+<link rel="icon" type="image/png" href="assets/img/dn-badge.png">
+<link rel="apple-touch-icon" href="assets/img/dn-badge.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/dn.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span data-logo></span><span>DN Consultancy<small>Sample Report</small></span></a>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="diagnostic.html">Scorecard</a>
+      <img class="partner-logo" alt="">
+    </div>
+  </div>
+</nav>
+
+<div style="background:#fff8e6;border-bottom:1px solid #e5cc00;padding:1rem 0;margin-bottom:2rem">
+  <div class="wrap" style="font-size:0.95rem;color:#664d00">
+    <strong>This is a sample report.</strong> Run the <a href="diagnostic.html" style="font-weight:600;color:#664d00;text-decoration:underline">live diagnostic</a> to generate your own personalized health scorecard in under 30 minutes.
+  </div>
+</div>
+
+<div id="report">
+  <section class="score-hero">
+    <div class="wrap">
+      <p class="eyebrow">Sample strategic gap report</p>
+      <div class="summary">
+        <div class="index-ring" style="--p: 58; --ring-color: #D4AC0D"><div class="inner"><b>58</b><span>Health Index</span></div></div>
+        <div style="flex:1;min-width:260px">
+          <h1 style="margin:.2rem 0;color:#D4AC0D">Needs attention</h1>
+          <p style="color:#dcdcdc;max-width:560px">Your airline is operationally sound with strong safety culture, but profitability and strategic planning need urgent attention. Focus on cost discipline, revenue management, and board-level governance in your 90-day sprint.</p>
+          <div class="flex gap wrapf" style="margin-top:.6rem">
+            <a class="btn btn-gold" href="diagnostic.html">Run your own diagnostic →</a>
+            <a class="btn btn-ghost" href="index.html" style="color:#fff;border-color:rgba(255,255,255,.35)">How it works</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">Findings · domains ranked weakest-first</p>
+      <h2>Where your gaps are</h2>
+      <div class="table-scroll">
+        <table class="gap-table">
+          <thead><tr><th>Domain</th><th>Weight</th><th>Score</th><th></th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Finance & Strategy</strong><br><span class="muted" style="font-size:.82rem">Business planning, KPIs, board governance</span></td><td>10%</td><td class="barcell"><div class="bar"><i class="fill-red" style="width:42%"></i></div></td><td><strong>42%</strong></td><td><span class="rag rag-red"><span class="dot"></span>Critical gap</span></td></tr>
+            <tr><td><strong>Cost & Fuel</strong><br><span class="muted" style="font-size:.82rem">CASK, fuel efficiency, procurement</span><div class="bench"><b>Industry:</b> ~2.0x higher unit costs in Africa <span class="src">— IATA 2025</span></div></td><td>14%</td><td class="barcell"><div class="bar"><i class="fill-amber" style="width:54%"></i></div></td><td><strong>54%</strong></td><td><span class="rag rag-amber"><span class="dot"></span>Needs attention</span></td></tr>
+            <tr><td><strong>Revenue & Yield</strong><br><span class="muted" style="font-size:.82rem">Load factor, RM, ancillary mix</span><div class="bench"><b>Industry:</b> African average 74.5% LF vs 83.5% global <span class="src">— AFRAA 2024</span></div></td><td>13%</td><td class="barcell"><div class="bar"><i class="fill-amber" style="width:62%"></i></div></td><td><strong>62%</strong></td><td><span class="rag rag-amber"><span class="dot"></span>Needs attention</span></td></tr>
+            <tr><td><strong>Operations & OTP</strong><br><span class="muted" style="font-size:.82rem">On-time performance, turnaround, IROPS</span></td><td>14%</td><td class="barcell"><div class="bar"><i class="fill-green" style="width:76%"></i></div></td><td><strong>76%</strong></td><td><span class="rag rag-green"><span class="dot"></span>Strong</span></td></tr>
+            <tr><td><strong>Safety & SMS</strong><br><span class="muted" style="font-size:.82rem">ICAO SMS maturity, safety culture</span></td><td>18%</td><td class="barcell"><div class="bar"><i class="fill-green" style="width:78%"></i></div></td><td><strong>78%</strong></td><td><span class="rag rag-green"><span class="dot"></span>Strong</span></td></tr>
+            <tr><td><strong>People & Training</strong><br><span class="muted" style="font-size:.82rem">Staffing, turnover, training currency</span></td><td>9%</td><td class="barcell"><div class="bar"><i class="fill-green" style="width:68%"></i></div></td><td><strong>68%</strong></td><td><span class="rag rag-green"><span class="dot"></span>Strong</span></td></tr>
+            <tr><td><strong>Fleet & Utilisation</strong><br><span class="muted" style="font-size:.82rem">Aircraft, block hours, maintenance</span></td><td>12%</td><td class="barcell"><div class="bar"><i class="fill-amber" style="width:64%"></i></div></td><td><strong>64%</strong></td><td><span class="rag rag-amber"><span class="dot"></span>Needs attention</span></td></tr>
+            <tr><td><strong>Commercial & Ancillary</strong><br><span class="muted" style="font-size:.82rem">Ancillary revenue, NDC, loyalty</span></td><td>10%</td><td class="barcell"><div class="bar"><i class="fill-amber" style="width:51%"></i></div></td><td><strong>51%</strong></td><td><span class="rag rag-amber"><span class="dot"></span>Needs attention</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="disclaimer">Industry figures are published references (AFRAA, IATA) shown for context. This is a confidential, self-reported diagnostic — not a live peer comparison of your airline. Sources are listed at the foot of the page.</p>
+    </div>
+  </section>
+
+  <section class="band-fog">
+    <div class="wrap radar-box">
+      <div>
+        <p class="eyebrow">Profile at a glance</p>
+        <h2>Your health profile</h2>
+        <p class="muted">Each axis is a domain score (0–100%). The shape shows where you are strong and where the priority gaps sit. Red dots are critical, amber need attention, green are strong.</p>
+      </div>
+      <svg id="radar" width="100%" style="max-width:480px;margin:0 auto;display:block" role="img" aria-label="Sample radar chart of health domains"></svg>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">Next steps · from diagnosis to solution</p>
+      <h2>What to fix first</h2>
+      <p class="muted" style="max-width:720px">Based on your lowest-scoring domains, here are the solution <em>categories</em> worth exploring and the DN diagnostic that drills deeper into each. These are neutral, educational suggestions.</p>
+      <div id="rx" style="margin:1.4rem 0"></div>
+      <p class="disclaimer">DN Consultancy does not endorse or resell these third-party tools; they are listed as common options among African carriers. The right answer depends on your specific gaps — which is exactly what a deeper diagnostic establishes.</p>
+    </div>
+  </section>
+
+  <section class="band-fog">
+    <div class="wrap" style="text-align:center">
+      <p class="eyebrow">See your own results</p>
+      <h2>This is what you'll get in under 30 minutes</h2>
+      <p style="max-width:640px;margin:0 auto 1.4rem;color:#666">Your answers stay private. Your report is generated instantly in your browser, no signup required. Share it with your board, download as PDF, or export the data.</p>
+      <a class="btn btn-gold btn-lg" href="diagnostic.html">Run the Airline Health Scorecard →</a>
+    </div>
+  </section>
+</div>
+
+<section class="sources">
+  <div class="wrap">
+    <p class="eyebrow">Sources for industry figures</p>
+    <ul>
+      <li>IATA <em>2024 Safety Report</em> &amp; IOSA programme (safety, accident rates)</li>
+      <li>AFRAA <em>Q4 2024 Performance Report</em> (load factor, ASK/RPK, traffic growth)</li>
+      <li>IATA <em>Cost Disadvantage of African Airlines</em>, 2025 (fuel share, unit cost)</li>
+      <li>IATA 2024 financial outlook (African net margin, profit per passenger)</li>
+    </ul>
+    <p class="muted" style="font-size:.8rem">Figures are regional/industry references for orientation; thresholds in this scorecard are indicative planning targets, not certified benchmarks.</p>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> DN Consultancy · <a data-email></a></span>
+    <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <span data-version></span></span>
+  </div></div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/common.js"></script>
+<script>applyPartner(); mountChrome();</script>
+<script>
+// Sample data for demo (same structure as real results)
+const sampleAnswers = {
+  safety: [2, 1, 2, 3, 2],
+  ops: [4, 4, 4, 4, 3],
+  fleet: [3, 3, 3, 3, 3],
+  cost: [2, 2, 2, 2, 2],
+  revenue: [3, 3, 3, 3, 2],
+  commercial: [2, 2, 2, 2, 2],
+  people: [3, 3, 3, 3, 3],
+  finance: [2, 2, 1, 2, 2]
+};
+const s = computeScores(sampleAnswers);
+const sorted = [...s.domains].sort((a, b) => a.pct - b.pct);
+
+// Prescriber
+const rxHost = document.getElementById("rx");
+sorted.filter(d => d.pct < 65).slice(0, 3).forEach(d => {
+  const div = document.createElement("div");
+  div.className = "rx";
+  const cask = d.caskLink ? `<div class="dn-tool"><a href="tools/cask-calculator.html">→ Check your unit cost with our free CASK Benchmarking Calculator</a></div>` : "";
+  const canvas = d.canvasLink ? `<div class="dn-tool"><a href="tools/operating-model-canvas.html">→ Map the whole business with our free Operating Model Canvas</a></div>` : "";
+  const std = d.standard ? `<div class="std">Aligns to recognised standard: <strong>${d.standard}</strong></div>` : "";
+  div.innerHTML = `
+    <h4>${d.name} — ${d.pct}% <span class="rag rag-${d.rag}" style="font-size:.8rem"><span class="dot"></span>${DN.ragLabel(d.pct)}</span></h4>
+    <div class="cat">${d.rxCategory}</div>
+    ${std}
+    <div class="dn-tool">DN diagnostic that goes deeper: ${d.dnTool}</div>
+    ${cask}
+    ${canvas}`;
+  rxHost.appendChild(div);
+});
+
+// Radar
+function drawRadar(svg, domains) {
+  const ns = "http://www.w3.org/2000/svg";
+  const n = domains.length;
+  const r = 120;
+  const labelGap = 16;
+  const gutterX = 96, gutterY = 40;
+  const W = r * 2 + gutterX * 2;
+  const H = r * 2 + gutterY * 2;
+  const cx = W / 2, cy = H / 2;
+  const pt = (i, rad) => {
+    const a = (Math.PI * 2 * i / n) - Math.PI / 2;
+    return [cx + rad * Math.cos(a), cy + rad * Math.sin(a)];
+  };
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  [0.25, 0.5, 0.75, 1].forEach(f => {
+    const poly = document.createElementNS(ns, "polygon");
+    poly.setAttribute("points", domains.map((_, i) => pt(i, r * f).join(",")).join(" "));
+    poly.setAttribute("fill", "none"); poly.setAttribute("stroke", "#D6E4F0"); poly.setAttribute("stroke-width", "1");
+    svg.appendChild(poly);
+  });
+  domains.forEach((d, i) => {
+    const [x, y] = pt(i, r);
+    const line = document.createElementNS(ns, "line");
+    line.setAttribute("x1", cx); line.setAttribute("y1", cy); line.setAttribute("x2", x); line.setAttribute("y2", y);
+    line.setAttribute("stroke", "#D6E4F0"); svg.appendChild(line);
+    const [lx, ly] = pt(i, r + labelGap);
+    const anchor = lx < cx - 5 ? "end" : lx > cx + 5 ? "start" : "middle";
+    const tx = document.createElementNS(ns, "text");
+    tx.setAttribute("x", lx); tx.setAttribute("y", ly); tx.setAttribute("text-anchor", anchor);
+    tx.setAttribute("dominant-baseline", "middle");
+    tx.setAttribute("font-size", "10"); tx.setAttribute("font-family", "DM Sans, sans-serif"); tx.setAttribute("fill", "#6B7280");
+    tx.textContent = d.name;
+    svg.appendChild(tx);
+  });
+  const poly = document.createElementNS(ns, "polygon");
+  poly.setAttribute("points", domains.map((d, i) => pt(i, r * d.pct / 100).join(",")).join(" "));
+  poly.setAttribute("fill", "rgba(74,127,165,.28)"); poly.setAttribute("stroke", "#4A7FA5"); poly.setAttribute("stroke-width", "2");
+  svg.appendChild(poly);
+  domains.forEach((d, i) => {
+    const [x, y] = pt(i, r * d.pct / 100);
+    const dot = document.createElementNS(ns, "circle");
+    dot.setAttribute("cx", x); dot.setAttribute("cy", y); dot.setAttribute("r", "3.2");
+    dot.setAttribute("fill", d.pct < 45 ? "#C0392B" : d.pct < 65 ? "#D4AC0D" : "#1E8449");
+    svg.appendChild(dot);
+  });
+}
+drawRadar(document.getElementById("radar"), s.domains);
+</script>
+</body>
+</html>
