@@ -96,11 +96,22 @@
 
   function renderToolboxes() {
     const host = document.getElementById("toolboxes");
+    const toolLinks = {
+      "A1": "diagnostic.html",
+      "A2": "tools/cask-calculator.html",
+      "A4": "tools/operating-model-canvas.html",
+      "C5": "tools/training-tna.html"
+    };
     DN.toolboxes.forEach(tb => {
       tb.tools.forEach(t => {
-        const c = document.createElement("div");
+        const c = document.createElement(toolLinks[t.ref] ? "a" : "div");
         c.className = "toolcard" + (tb.locked ? " locked" : " unlocked");
         c.dataset.box = tb.box;
+        if (toolLinks[t.ref]) {
+          c.href = toolLinks[t.ref] + partnerQS;
+          c.style.textDecoration = "none";
+          c.style.color = "inherit";
+        }
         c.innerHTML = `<span class="lockicon">${tb.locked ? "&#128274;" : "&#10003;"}</span>
           <span class="ref">Toolbox ${tb.box} · ${t.ref}</span>
           <h4>${t.n}</h4><p>${t.d}</p>`;
