@@ -128,7 +128,9 @@
     const toolLinks = {
       "A1": "diagnostic.html",
       "A2": "tools/cask-calculator.html",
+      "A3": "tools/data-request.html",
       "A4": "tools/operating-model-canvas.html",
+      "B5": "#", // locked, no direct link
       "C5": "tools/training-tna.html"
     };
     DN.toolboxes.forEach(tb => {
@@ -155,9 +157,15 @@
     { day: "numeric", month: "long", year: "numeric" });
 
   /* ---- actions ---- */
-  document.getElementById("retake").addEventListener("click", () =>
-    location.href = "diagnostic.html" + partnerQS);
-  document.getElementById("print").addEventListener("click", () => window.print());
+  document.getElementById("retake").addEventListener("click", () => {
+    if (confirm("Clear your answers and start over?")) {
+      clearAnswers();
+      location.href = "diagnostic.html" + partnerQS;
+    }
+  });
+  document.getElementById("print").addEventListener("click", () => {
+    window.print();
+  });
 
   /* export data */
   const exportBtn = document.createElement("button");
@@ -173,8 +181,10 @@
     a.click();
     URL.revokeObjectURL(url);
   });
-  document.querySelector(".diag-actions") ? document.querySelector(".diag-actions").appendChild(exportBtn) :
-    document.getElementById("print").parentElement.appendChild(exportBtn);
+  const actionParent = document.getElementById("print") && document.getElementById("print").parentElement;
+  if (actionParent) {
+    actionParent.appendChild(exportBtn);
+  }
 })();
 
 /* ---- radar drawing ----

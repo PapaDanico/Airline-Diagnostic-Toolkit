@@ -66,6 +66,22 @@ function mountChrome() {
       setTimeout(() => { btn.textContent = original; }, 1600);
     });
   });
+
+  // Global copy email helper
+  window.copyEmail = async (btn) => {
+    const original = btn.textContent;
+    try {
+      await navigator.clipboard.writeText(DN.brand.email);
+      btn.textContent = "Copied ✓";
+      btn.style.color = "var(--dn-green)";
+    } catch {
+      btn.textContent = DN.brand.email;
+    }
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.color = "";
+    }, 1600);
+  };
 }
 
 /* ---- storage ---- */
