@@ -256,6 +256,147 @@
 
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/common.js"></script>
-<script>applyPartner(); mountChrome();</script>
+<script>
+(function() {
+  const STORE_KEY = "dn_tna_data_v1";
+  const COST_PER_POINT = 150; // £150 per competency point
+
+  const staffGroups = [
+    {
+      id: "flight_crew",
+      name: "Flight Crew (Pilots & Flight Engineers)",
+      competencies: [
+        { name: "Aircraft systems & procedures", target: 5 },
+        { name: "Flight planning & weight & balance", target: 5 },
+        { name: "Crew resource management (CRM)", target: 4 },
+        { name: "Emergency procedures & safety", target: 5 },
+        { name: "Navigation & approach procedures", target: 4 },
+        { name: "Fuel management & efficiency", target: 4 },
+        { name: "Communication & radio telephony", target: 5 },
+        { name: "Regulatory compliance (KCAA/ICAO)", target: 4 }
+      ]
+    },
+    {
+      id: "cabin_crew",
+      name: "Cabin Crew (Attendants & Purser)",
+      competencies: [
+        { name: "Safety & emergency procedures", target: 5 },
+        { name: "Customer service & communication", target: 4 },
+        { name: "Passenger health & medical response", target: 4 },
+        { name: "Cargo & load planning basics", target: 3 },
+        { name: "Aircraft systems knowledge", target: 2 },
+        { name: "Diversity & cultural awareness", target: 3 },
+        { name: "First aid & CPR", target: 4 },
+        { name: "Security & threat awareness", target: 4 }
+      ]
+    },
+    {
+      id: "engineers",
+      name: "Maintenance Engineers (AME & Technicians)",
+      competencies: [
+        { name: "Aircraft maintenance procedures (CAR Part 66)", target: 5 },
+        { name: "Electrical systems & troubleshooting", target: 5 },
+        { name: "Hydraulic systems maintenance", target: 4 },
+        { name: "Engine operations & maintenance", target: 5 },
+        { name: "Avionics & instrumentation", target: 4 },
+        { name: "Fatigue & damage assessment", target: 4 },
+        { name: "Regulatory documentation (MEL, NDT)", target: 5 },
+        { name: "Quality assurance & record-keeping", target: 4 },
+        { name: "Safety & hazard awareness", target: 5 }
+      ]
+    },
+    {
+      id: "ground",
+      name: "Ground Operations & Support",
+      competencies: [
+        { name: "Aircraft handling & ramp safety", target: 4 },
+        { name: "Ground-service equipment operation", target: 4 },
+        { name: "Weight & balance / loading procedures", target: 4 },
+        { name: "Cargo & dangerous goods handling", target: 4 },
+        { name: "Turnaround & dispatch procedures", target: 4 },
+        { name: "Flight planning & load control", target: 3 },
+        { name: "Customer service & passenger handling", target: 3 },
+        { name: "Fueling & defueling procedures", target: 3 },
+        { name: "Airside safety & regulations", target: 4 },
+        { name: "Communication & coordination (ground-to-flight)", target: 4 },
+        { name: "Environmental & waste management", target: 2 },
+        { name: "Security & restricted-area access", target: 3 }
+      ]
+    }
+  ];
+
+  let data = JSON.parse(localStorage.getItem(STORE_KEY)) || {};
+
+  function renderTables() {
+    const container = document.querySelector(".tna-container");
+    staffGroups.forEach(group => {
+      let totalGap = 0, highPriority = 0, totalCost = 0;
+
+      let html = `<section class="staff-group">
+        <h3>${group.name}</h3>
+        <div class="table-scroll">
+          <table class="tna-table">
+            <thead><tr>
+              <th>Competency</th>
+              <th class="target">Target</th>
+              <th class="current">Current</th>
+              <th class="gap">Gap</th>
+              <th class="priority">Priority</th>
+              <th class="cost">Est. Cost</th>
+            </tr></thead>
+            <tbody>`;
+
+      group.competencies.forEach((comp, idx) => {
+        const current = (data[group.id]?.[idx] || 0);
+        const gap = Math.max(0, comp.target - current);
+        const cost = gap * COST_PER_POINT;
+        const priority = gap >= 2 ? "High" : gap > 0 ? "Medium" : "—";
+
+        totalGap += gap;
+        if (gap >= 2) highPriority++;
+        totalCost += cost;
+
+        html += `<tr>
+          <td class="competency">${comp.name}</td>
+          <td class="target">${comp.target}</td>
+          <td class="current"><input type="number" min="0" max="5" value="${current}" data-group="${group.id}" data-idx="${idx}" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px"></td>
+          <td class="gap">${gap}</td>
+          <td class="priority ${priority === 'High' ? 'high' : priority === 'Medium' ? 'medium' : 'low'}">${priority}</td>
+          <td class="cost">£${cost}</td>
+        </tr>`;
+      });
+
+      html += `</tbody></table></div>
+        <div class="summary-stats" style="margin-top:1rem">
+          <div class="stat-card" style="border-left-color:#C0392B"><small>Total Gap</small><strong>${totalGap}</strong></div>
+          <div class="stat-card" style="border-left-color:#D4AC0D"><small>High Priority</small><strong>${highPriority}</strong></div>
+          <div class="stat-card" style="border-left-color:#1E8449"><small>Est. Total Cost</small><strong>£${totalCost}</strong></div>
+        </div></section>`;
+
+      const section = document.createElement('div');
+      section.innerHTML = html;
+      container.insertBefore(section.firstElementChild, container.querySelector('section:last-child'));
+    });
+
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      input.addEventListener('change', (e) => {
+        const group = e.target.dataset.group;
+        const idx = parseInt(e.target.dataset.idx);
+        const val = parseInt(e.target.value) || 0;
+
+        if (!data[group]) data[group] = {};
+        data[group][idx] = val;
+        localStorage.setItem(STORE_KEY, JSON.stringify(data));
+
+        location.reload();
+      });
+    });
+  }
+
+  applyPartner();
+  mountChrome();
+  renderTables();
+})();
+</script>
 </body>
 </html>
