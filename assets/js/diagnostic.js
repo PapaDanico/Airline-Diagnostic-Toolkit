@@ -71,19 +71,34 @@
     const n = answeredCount();
     const pct = Math.round((n / total) * 100);
     document.querySelector(".progress-bar > i").style.width = pct + "%";
-    document.getElementById("progress-label").textContent =
-      `${n} of ${total} answered (${pct}%)`;
+    const remaining = total - n;
+    document.getElementById("progress-label").innerHTML =
+      `<span style="font-weight:600">${pct}%</span> complete — ${n} of ${total} answered` + (remaining > 0 ? ` (${remaining} left)` : "");
     const btn = document.getElementById("see-results");
     btn.disabled = n < total;
     btn.classList.toggle("btn-ghost", n < total);
     btn.classList.toggle("btn-gold", n >= total);
-    btn.textContent = n < total ? `Answer all to see your report (${total - n} left)` : "See my strategic report →";
+    btn.classList.toggle("btn-lg", n >= total);
+    if (n < total) {
+      btn.textContent = remaining === 1 ? "Answer 1 more question" : `Answer all ${remaining} questions`;
+    } else {
+      btn.textContent = "🎯 See my strategic report";
+    }
   }
 
   document.getElementById("see-results").addEventListener("click", () => {
     if (answeredCount() < total) return;
     const p = new URLSearchParams(location.search).get("partner");
     location.href = "results.html" + (p ? "?partner=" + encodeURIComponent(p) : "");
+  });
+
+  /* keyboard shortcut: Ctrl+Enter to submit if all answered */
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      if (answeredCount() >= total) {
+        document.getElementById("see-results").click();
+      }
+    }
   });
 
   document.getElementById("reset").addEventListener("click", () => {
