@@ -62,6 +62,21 @@
 .tna-actions .btn { box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.2s; }
 .tna-actions .btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 .sticky-summary { position: sticky; top: 78px; z-index: 5; background: #fff; padding-top: 0.6rem; }
+.progress-section { margin: 1.4rem 0; }
+.progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-bottom: 0.5rem; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #4A7FA5, #2d5a8c); transition: width 0.3s ease; border-radius: 4px; }
+.progress-label { font-size: 0.85rem; color: #6b7280; }
+.group-summaries { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; margin-bottom: 2rem; }
+.group-summary { background: #f9fafb; padding: 0.8rem; border-radius: 6px; border: 1px solid #e5e7eb; font-size: 0.85rem; }
+.group-summary .name { font-weight: 600; color: #1f2937; margin-bottom: 0.4rem; }
+.group-summary .stat { display: flex; justify-content: space-between; padding: 0.2rem 0; color: #6b7280; }
+.group-summary .stat strong { color: #374151; font-weight: 500; }
+.top-gaps { background: #f0f9ff; padding: 1.2rem; border-radius: 8px; border-left: 5px solid #0284c7; margin-bottom: 2rem; }
+.top-gaps h3 { margin-top: 0; color: #0c4a6e; font-size: 1rem; }
+.gap-item { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; font-size: 0.9rem; }
+.gap-item .comp { flex: 1; color: #1f2937; }
+.gap-item .metrics { display: flex; gap: 0.8rem; font-size: 0.85rem; }
+.gap-bar { display: inline-block; width: 30px; height: 4px; background: #dc2626; border-radius: 2px; }
 @media (max-width: 768px) {
   .tna-table { font-size: 0.8rem; }
   .tna-table th, .tna-table td { padding: 0.5rem 0.35rem; }
@@ -115,6 +130,10 @@
   <section>
     <div class="sticky-summary">
       <h2 style="margin-bottom:0.8rem">Live summary</h2>
+      <div class="progress-section">
+        <div class="progress-bar"><div class="progress-fill" id="progress-bar" style="width: 0%"></div></div>
+        <div class="progress-label"><span id="progress-pct">0</span>% complete · <span id="progress-count">0 / 39</span> competencies assessed</div>
+      </div>
       <div class="summary-stats">
         <div class="stat-card"><small>Competencies assessed</small><strong id="stat-assessed">0 / 39</strong><small>Pick a current level to assess</small></div>
         <div class="stat-card"><small>Average gap</small><strong id="stat-avggap">—</strong><small>Target minus current</small></div>
@@ -126,6 +145,18 @@
         <button class="btn btn-ghost" id="tna-export">↓ Export data (JSON)</button>
         <button class="btn btn-ghost" id="tna-reset">Reset</button>
       </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Assessment summary by staff group</h2>
+    <div class="group-summaries" id="group-summaries"></div>
+  </section>
+
+  <section id="top-gaps-section" style="display:none">
+    <div class="top-gaps">
+      <h3>🎯 Top gaps to close first</h3>
+      <div id="top-gaps-list"></div>
     </div>
   </section>
 
@@ -266,6 +297,12 @@
 
   function recompute() {
     let assessed = 0, gapSum = 0, highCount = 0, costSum = 0;
+    const allGaps = [];
+    const groupStats = {};
+    GROUPS.forEach(g => {
+      groupStats[g.name] = { gap: 0, high: 0, cost: 0, assessed: 0, total: g.items.length };
+    });
+
     document.querySelectorAll("#tna-groups tr[data-key]").forEach(tr => {
       const sel = tr.querySelector(".cur-select");
       const target = parseInt(tr.dataset.target, 10);
@@ -273,6 +310,8 @@
       const gapCell = tr.querySelector(".gap-val");
       const priCell = tr.querySelector(".priority");
       const costCell = tr.querySelector(".cost");
+      const groupName = tr.closest(".staff-group").querySelector("h3").textContent;
+
       if (sel.value === "") {
         gapCell.textContent = "—"; gapCell.className = "gap-val";
         priCell.innerHTML = `<span class="pri-unset">—</span>`;
@@ -289,11 +328,58 @@
       const cost = gap * cpp;
       costSum += cost;
       costCell.textContent = gap > 0 ? money(cost) : "£0";
+
+      if (groupStats[groupName]) {
+        groupStats[groupName].gap += gap;
+        groupStats[groupName].cost += cost;
+        groupStats[groupName].assessed++;
+        if (pri.cls === "pri-high") groupStats[groupName].high++;
+      }
+      if (gap > 0) allGaps.push({ competency: tr.querySelector(".competency").textContent, gap, cost, target, current: cur });
     });
+
     document.getElementById("stat-assessed").textContent = assessed + " / " + totalItems;
     document.getElementById("stat-avggap").textContent = assessed ? (gapSum / assessed).toFixed(1) : "—";
     document.getElementById("stat-high").textContent = highCount;
     document.getElementById("stat-cost").textContent = money(costSum);
+
+    // Update progress
+    const pct = Math.round((assessed / totalItems) * 100);
+    document.getElementById("progress-bar").style.width = pct + "%";
+    document.getElementById("progress-pct").textContent = pct;
+    document.getElementById("progress-count").textContent = assessed + " / " + totalItems;
+
+    // Update group summaries
+    const groupHost = document.getElementById("group-summaries");
+    groupHost.innerHTML = "";
+    GROUPS.forEach(g => {
+      const stats = groupStats[g.name];
+      const html = `<div class="group-summary">
+        <div class="name">${g.name}</div>
+        <div class="stat"><span>Gap:</span><strong>${stats.gap}</strong></div>
+        <div class="stat"><span>High Priority:</span><strong>${stats.high}</strong></div>
+        <div class="stat"><span>Est. Cost:</span><strong>${money(stats.cost)}</strong></div>
+        <div class="stat"><span>Assessed:</span><strong>${stats.assessed}/${stats.total}</strong></div>
+      </div>`;
+      groupHost.insertAdjacentHTML("beforeend", html);
+    });
+
+    // Update top gaps
+    const topGaps = allGaps.sort((a, b) => b.gap - a.gap).slice(0, 5);
+    if (topGaps.length > 0) {
+      document.getElementById("top-gaps-section").style.display = "block";
+      const listHost = document.getElementById("top-gaps-list");
+      listHost.innerHTML = topGaps.map(g => `
+        <div class="gap-item">
+          <span class="comp">${g.competency}</span>
+          <div class="metrics">
+            <span style="color:#dc2626;font-weight:600">Gap: ${g.gap}</span>
+            <span style="color:#6b7280">${money(g.cost)}</span>
+          </div>
+        </div>`).join("");
+    } else {
+      document.getElementById("top-gaps-section").style.display = "none";
+    }
   }
 
   function save() {
@@ -307,6 +393,18 @@
 
   host.addEventListener("change", e => {
     if (e.target.classList.contains("cur-select")) { save(); recompute(); }
+  });
+
+  // Keyboard shortcuts: press 1-5 to set proficiency while focused on a select
+  document.addEventListener("keydown", e => {
+    const isFocused = document.activeElement?.classList?.contains("cur-select");
+    if (!isFocused) return;
+    const num = parseInt(e.key, 10);
+    if (num >= 1 && num <= 5) {
+      e.preventDefault();
+      document.activeElement.value = String(num);
+      document.activeElement.dispatchEvent(new Event("change", { bubbles: true }));
+    }
   });
 
   document.getElementById("tna-print").addEventListener("click", () => window.print());
