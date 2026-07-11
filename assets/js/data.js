@@ -241,6 +241,16 @@ const DN = {
       {ref:"D4", n:"Fuel Procurement Optimisation", d:"Tender template + hedge-trigger framework."} ]}
   ],
 
+  benchmarkMeta: {
+    asOf: "Q4 2024 – mid-2025",
+    sources: [
+      "AFRAA Q4 2024 Airline Performance Update",
+      "IATA 2024 Safety Report",
+      "IATA, Cost Disadvantage of African Airlines (2025)",
+      "IATA GADM / ACMG operational and cost data"
+    ]
+  },
+
   phases: [
     {days:"Days 1–2", t:"Entry Diagnostic", d:"Health Scorecard, CASK benchmark, Operating Model Canvas, data request. Baseline + hypotheses.",
       tools:["Airline Health Scorecard","CASK Benchmarking Calculator","Operating Model Canvas","48-Hour Data Request"],

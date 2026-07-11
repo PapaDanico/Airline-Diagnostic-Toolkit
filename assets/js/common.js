@@ -126,7 +126,7 @@ function indexVerdict(idx) {
    axes get a gutter and never clip against the viewBox edge. Geometry is
    derived from the radius so the plot stays balanced, and labels longer
    than a threshold wrap onto two lines via <tspan>. */
-function drawRadar(svg, domains) {
+function drawRadar(svg, domains, overlay) {
   const ns = "http://www.w3.org/2000/svg";
   const n = domains.length;
   const r = 120;                 // radar radius
@@ -171,6 +171,15 @@ function drawRadar(svg, domains) {
     });
     svg.appendChild(tx);
   });
+  // optional comparison overlay (array of pct values), drawn under the data
+  if (overlay) {
+    const op = document.createElementNS(ns, "polygon");
+    op.setAttribute("points", overlay.map((pct, i) => pt(i, r * pct / 100).join(",")).join(" "));
+    op.setAttribute("fill", "none"); op.setAttribute("stroke", "#C9A227");
+    op.setAttribute("stroke-width", "2"); op.setAttribute("stroke-dasharray", "5 4");
+    op.setAttribute("class", "radar-overlay");
+    svg.appendChild(op);
+  }
   // data polygon
   const poly = document.createElementNS(ns, "polygon");
   poly.setAttribute("points", domains.map((d, i) => pt(i, r * d.pct / 100).join(",")).join(" "));

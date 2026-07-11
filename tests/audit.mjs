@@ -35,7 +35,7 @@ for (const pg of pages) {
       imgsNoAlt: [...document.querySelectorAll("img")].filter(i => !i.hasAttribute("alt")).length,
       btnsNoName: [...document.querySelectorAll("button")].filter(b => !(b.textContent.trim() || b.getAttribute("aria-label"))).length,
       dupes: [...new Set(ids.filter((x, i) => ids.indexOf(x) !== i))],
-      links: [...new Set([...document.querySelectorAll("a[href]")].map(a => a.getAttribute("href")).filter(h => h && !/^(https?:|mailto:|#|tel:)/.test(h)))],
+      links: [...new Set([...document.querySelectorAll("a[href]")].map(a => a.getAttribute("href")).filter(h => h && !/^(https?:|mailto:|#|tel:|data:)/.test(h)))],
       hasChrome: !!document.querySelector("[data-year]"),
       yearOk: document.querySelector("[data-year]")?.textContent === String(new Date().getFullYear())
     };

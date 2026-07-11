@@ -359,6 +359,63 @@
       dismiss();
     });
   }
+
+  /* ---- data-as-of stamp ---- */
+  const asofEl = document.getElementById("bench-asof");
+  if (asofEl && DN.benchmarkMeta) asofEl.textContent = DN.benchmarkMeta.asOf;
+
+  /* ---- optional CSV calibration (all client-side) ----
+     4 figures in, 3 derived metrics out, compared against the regional
+     benchmarks already cited in the report. Nothing leaves the browser. */
+  const tpl = document.getElementById("csv-template");
+  if (tpl) tpl.href = "data:text/csv;charset=utf-8," + encodeURIComponent(
+    "total_ask,total_rpk,total_opex_usd,fuel_cost_usd\n" +
+    "1200000000,890000000,110000000,42000000\n");
+  const csvIn = document.getElementById("csv-file");
+  if (csvIn) csvIn.addEventListener("change", () => {
+    const out = document.getElementById("calib-out");
+    const fail = m => { out.innerHTML = `<p style="color:var(--dn-red)">${m}</p>`; };
+    const f = csvIn.files[0];
+    if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      const rows = rd.result.trim().split(/\r?\n/).map(r => r.split(",").map(c => c.trim()));
+      if (rows.length < 2) return fail("The file needs a header row and one data row — use the template above.");
+      const hdr = rows[0].map(h => h.toLowerCase());
+      const need = ["total_ask", "total_rpk", "total_opex_usd", "fuel_cost_usd"];
+      const idx = need.map(n => hdr.indexOf(n));
+      if (idx.some(i => i < 0)) return fail("Missing column(s): " + need.filter((n, i) => idx[i] < 0).join(", ") + ". Use the template headers exactly.");
+      const v = idx.map(i => parseFloat(rows[1][i]));
+      if (v.some(x => !isFinite(x) || x <= 0)) return fail("All four values must be positive numbers.");
+      const [ask, rpk, opex, fuel] = v;
+      if (rpk > ask) return fail("RPK cannot exceed ASK — please check the figures.");
+      if (fuel > opex) return fail("Fuel cost cannot exceed total operating cost.");
+      const lf = rpk / ask * 100, cask = opex / ask * 100, fs = fuel / opex * 100;
+      const cmp = (val, bench, higherIsGood, note) => {
+        const diff = val - bench;
+        const good = higherIsGood ? diff > 0 : diff < 0;
+        const col = Math.abs(diff) < 3 ? "var(--dn-amber)" : good ? "var(--dn-green)" : "var(--dn-red)";
+        return `<span style="color:${col};font-weight:600">${diff > 0 ? "+" : ""}${diff.toFixed(1)} pts vs ${note}</span>`;
+      };
+      out.innerHTML = `
+        <div class="guarantee" style="align-items:flex-start">
+          <div style="width:100%">
+            <p class="eyebrow" style="margin-top:0">Data-calibrated view <span style="background:var(--dn-green);color:#fff;border-radius:999px;padding:1px 10px;font-size:.72rem;margin-left:6px">✓ computed from your figures</span></p>
+            <table style="width:100%;border-collapse:collapse;font-size:.94rem">
+              <tr><td style="padding:6px 0"><b>Passenger load factor</b></td><td>${lf.toFixed(1)}%</td>
+                  <td>${cmp(lf, 74.5, true, "the 74.5% African average (AFRAA 2024)")}</td></tr>
+              <tr><td style="padding:6px 0"><b>Unit cost (CASK)</b></td><td>${cask.toFixed(2)} US¢</td>
+                  <td><a href="tools/cask-calculator.html${partnerQS}">benchmark in detail with the CASK calculator →</a></td></tr>
+              <tr><td style="padding:6px 0"><b>Fuel share of opex</b></td><td>${fs.toFixed(1)}%</td>
+                  <td>${cmp(fs, 40, false, "the ~40% African average (IATA 2025)")}</td></tr>
+            </table>
+            <p class="muted" style="font-size:.82rem;margin:.7rem 0 0">These figures calibrate your <b>Cost &amp; Fuel Efficiency</b> and <b>Revenue &amp; Yield Management</b> scores — self-reported ratings in those domains can now be read against measured data. Processed locally; your file was not uploaded.</p>
+          </div>
+        </div>`;
+    };
+    rd.onerror = () => fail("Could not read the file.");
+    rd.readAsText(f);
+  });
 })();
 
 
