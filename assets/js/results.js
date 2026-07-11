@@ -8,8 +8,9 @@
 (function () {
   /* ---- share-link ingestion: ?s=<base64-encoded answers> ---- */
   const _sp = new URLSearchParams(location.search).get("s");
-  const isShared = Boolean(_sp);
-  const answers = _sp ? (decodeSharedAnswers(_sp) || loadAnswers()) : loadAnswers();
+  const _decoded = _sp ? decodeSharedAnswers(_sp) : null;
+  const isShared = Boolean(_decoded);
+  const answers = _decoded || loadAnswers();
   const s = computeScores(answers);
   const empty = document.getElementById("empty");
   const report = document.getElementById("report");
