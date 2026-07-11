@@ -360,6 +360,52 @@
     });
   }
 
+  /* ---- executive summary: rule-based prose from the scores ---- */
+  const execEl = document.getElementById("exec-summary");
+  if (execEl) {
+    const weakest = sorted[0], second = sorted[1], strongest = sorted[sorted.length - 1];
+    execEl.innerHTML =
+      `<p>This assessment places the airline at a Health Index of <b>${s.index}/100</b> — ` +
+      `<b>${v.band.toLowerCase()}</b>. The widest gaps are in <b>${weakest.name}</b> (${weakest.pct}%) ` +
+      `and <b>${second.name}</b> (${second.pct}%); together these carry ${weakest.weight + second.weight}% ` +
+      `of the weighted index, so improvement here moves the overall position fastest. ` +
+      `The strongest domain is <b>${strongest.name}</b> (${strongest.pct}%), which provides a stable ` +
+      `platform to fund and manage change. The recommended entry point is a focused diagnostic sprint ` +
+      `on ${weakest.name.toLowerCase()}, using the toolset prescribed in the next-steps section below.</p>`;
+  }
+
+  /* ---- debrief request (Netlify Forms via fetch, mirrors capture form) ---- */
+  const dbForm = document.getElementById("debrief-form");
+  if (dbForm) dbForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    const msg = document.getElementById("db-msg");
+    const btn = dbForm.querySelector("button[type='submit']");
+    btn.disabled = true; btn.textContent = "Sending…";
+    try {
+      const body = new URLSearchParams({
+        "form-name": "debrief-request", "bot-field": "",
+        name: document.getElementById("db-name").value.trim(),
+        email: document.getElementById("db-email").value.trim(),
+        airline: document.getElementById("db-airline").value.trim(),
+        role: document.getElementById("db-role").value.trim(),
+        preferred_week: document.getElementById("db-week").value.trim(),
+        health_index: String(s.index),
+        top_gaps: sorted.slice(0, 3).map(d => `${d.name} (${d.pct}%)`).join(", "),
+        share_url: shareURL
+      });
+      const resp = await fetch("/", { method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: body.toString() });
+      if (!resp.ok) throw new Error(resp.status);
+      dbForm.style.display = "none";
+      msg.textContent = "✓ Request received — a DN consultant will confirm your slot within 24 hours.";
+      msg.style.color = "var(--dn-green)";
+    } catch {
+      msg.innerHTML = `Could not send — email us at <a href="mailto:${DN.brand.email}">${DN.brand.email}</a>`;
+      msg.style.color = "var(--dn-red)";
+      btn.disabled = false; btn.textContent = "Request my debrief →";
+    }
+  });
+
   /* ---- data-as-of stamp ---- */
   const asofEl = document.getElementById("bench-asof");
   if (asofEl && DN.benchmarkMeta) asofEl.textContent = DN.benchmarkMeta.asOf;

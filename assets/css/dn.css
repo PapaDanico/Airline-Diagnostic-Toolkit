@@ -340,7 +340,8 @@ body.has-partner .partner-logo { display: block; }
   /* hide screen chrome + the sales gate; keep findings, radar, prescriber, sources, ROI/contact */
   .nav, .footer, .diag-actions, .btn, .nav-toggle, #retake, #print,
   .keybar, .locked-grid, .dn-rec-panel, .empty,
-  .email-capture-section, .book-cta-section, .share-bar, .shared-banner { display: none !important; }
+  .email-capture-section, .book-cta-section, .share-bar, .shared-banner,
+  #calibrate-section, #capture-nudge { display: none !important; }
   .print-head { display: flex !important; }
   /* hero: drop the dark gradient so white text becomes readable ink */
   .score-hero { background: #fff !important; color: #000 !important; padding: 0 0 10px !important; }

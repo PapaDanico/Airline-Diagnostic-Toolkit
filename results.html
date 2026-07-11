@@ -56,6 +56,17 @@
     <input type="hidden" name="top_gaps">
     <input type="hidden" name="share_url">
   </form>
+  <form name="debrief-request" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="text"   name="bot-field">
+    <input type="text"   name="name">
+    <input type="email"  name="email">
+    <input type="text"   name="airline">
+    <input type="text"   name="role">
+    <input type="text"   name="preferred_week">
+    <input type="hidden" name="health_index">
+    <input type="hidden" name="top_gaps">
+    <input type="hidden" name="share_url">
+  </form>
   <!-- print-only branded header -->
   <div class="print-head">
     <img src="assets/img/dn-logo-full.png" alt="DN Consultancy">
@@ -82,6 +93,14 @@
           <div class="share-bar" id="share-bar"></div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- executive summary (auto-generated prose) -->
+  <section id="exec-summary-section" style="padding-bottom:0">
+    <div class="wrap">
+      <p class="eyebrow">Executive summary</p>
+      <div id="exec-summary" style="max-width:820px;font-size:1.05rem;line-height:1.75"></div>
     </div>
   </section>
 
@@ -154,6 +173,23 @@
           <a class="btn btn-gold btn-lg" id="book-email-btn" href="#">Email us your findings →</a>
           <p class="cta-note">Response within 24 hours. No obligation.</p>
           <button class="btn btn-copy-link" id="book-copy-btn">Copy report link</button>
+        </div>
+      </div>
+
+      <!-- structured debrief request (Netlify form via fetch) -->
+      <div class="book-cta" id="debrief-box" style="margin-top:1.2rem">
+        <div style="width:100%">
+          <h3 style="margin-top:0">Or book a complimentary 30-minute findings debrief</h3>
+          <p class="muted">A DN consultant walks through <em>your</em> report with you — what the gaps mean, what peers do about them, and whether an engagement makes sense. No obligation.</p>
+          <form id="debrief-form" class="grid g2" style="gap:12px;margin-top:.8rem">
+            <input required name="name" id="db-name" placeholder="Your name">
+            <input required type="email" name="email" id="db-email" placeholder="Work email">
+            <input required name="airline" id="db-airline" placeholder="Airline / organisation">
+            <input name="role" id="db-role" placeholder="Your role (e.g. COO)">
+            <input name="preferred_week" id="db-week" placeholder="Preferred week (e.g. w/c 20 Jul)">
+            <button type="submit" class="btn btn-gold">Request my debrief →</button>
+          </form>
+          <p class="keymsg" id="db-msg" aria-live="polite"></p>
         </div>
       </div>
     </div>
