@@ -9,21 +9,26 @@
   const host = document.getElementById("domains");
   const total = DN.domains.reduce((a, d) => a + d.questions.length, 0);
 
-  /* first-time onboarding overlay */
-  if (!localStorage.getItem("dn_onboarded")) {
-    const overlay = document.createElement("div");
-    overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center";
-    overlay.innerHTML = `<div style="background:#fff;border-radius:12px;padding:32px;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
-      <h2 style="margin:0 0 1rem;font-size:1.4rem">Welcome to the Airline Health Scorecard</h2>
-      <p style="color:#666;margin:0 0 1.2rem;line-height:1.6"><strong>40 questions</strong> across 8 domains. Takes ~15 minutes. Your answers stay in your browser — no tracking.</p>
-      <button id="onboard-dismiss" style="width:100%;padding:0.85rem;background:#4A7FA5;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer">Got it, let's go →</button>
-    </div>`;
-    document.body.appendChild(overlay);
-    document.getElementById("onboard-dismiss").addEventListener("click", () => {
-      localStorage.setItem("dn_onboarded", "1");
-      overlay.remove();
-    });
-  }
+  /* first-time onboarding overlay — wrapped in try/catch so a Safari
+     private-browsing SecurityError doesn't abort the IIFE */
+  try {
+    if (!localStorage.getItem("dn_onboarded")) {
+      const overlay = document.createElement("div");
+      overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center";
+      overlay.innerHTML = `<div style="background:#fff;border-radius:12px;padding:32px;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+        <h2 style="margin:0 0 1rem;font-size:1.4rem">Welcome to the Airline Health Scorecard</h2>
+        <p style="color:#666;margin:0 0 1.2rem;line-height:1.6"><strong>40 questions</strong> across 8 domains. Takes ~15 minutes. Your answers stay in your browser — no tracking.</p>
+        <button id="onboard-dismiss" style="width:100%;padding:0.85rem;background:#4A7FA5;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer">Got it, let's go →</button>
+      </div>`;
+      document.body.appendChild(overlay);
+      /* scope the lookup to overlay — global getElementById returns the first
+         ID match, which a browser extension could steal */
+      overlay.querySelector("#onboard-dismiss").addEventListener("click", () => {
+        overlay.remove();                                  // remove first …
+        try { localStorage.setItem("dn_onboarded", "1"); } catch (_) {}  // … so QuotaExceededError can't leave overlay blocking the page
+      });
+    }
+  } catch (_) {}
 
   DN.domains.forEach((d, di) => {
     if (!answers[d.id]) answers[d.id] = [];
