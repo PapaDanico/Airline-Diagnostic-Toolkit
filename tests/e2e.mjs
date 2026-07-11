@@ -224,6 +224,33 @@ await page.setInputFiles("#csv-file", {
 await page.waitForTimeout(300);
 assert(/RPK cannot exceed ASK/.test(await page.$eval("#calib-out", e => e.textContent)), "impossible RPK>ASK rejected with message");
 
+/* ─── 4i. RESULTS — executive summary & debrief form ─── */
+section("Results page — executive summary & debrief form");
+const execTxt = await page.$eval("#exec-summary", e => e.textContent);
+const idxNow = await page.$eval("#index-val", e => e.textContent);
+assert(new RegExp(idxNow + "/100").test(execTxt), "exec summary quotes the health index");
+const weakestName = await page.evaluate(() => {
+  const s = computeScores(loadAnswers());
+  return [...s.domains].sort((a, b) => a.pct - b.pct)[0].name;
+});
+assert(execTxt.includes(weakestName), "exec summary names the weakest domain");
+assert(await page.$("form[name='debrief-request'][hidden]") !== null, "static debrief form present for Netlify detection");
+for (const id of ["db-name", "db-email", "db-airline", "db-role", "db-week"]) {
+  assert(await page.$("#" + id) !== null, `debrief field ${id} present`);
+}
+// print rules keep the exec summary but drop interactive sections
+const printVis = await page.evaluate(() => {
+  const probe = sel => { const el = document.querySelector(sel); return el ? getComputedStyle(el).display : "absent"; };
+  document.body.offsetHeight;
+  return { calibScreen: probe("#calibrate-section"), execScreen: probe("#exec-summary-section") };
+});
+assert(printVis.execScreen !== "none" && printVis.calibScreen !== "none", "exec summary + calibration visible on screen");
+await page.emulateMedia({ media: "print" });
+assert(await page.$eval("#calibrate-section", e => getComputedStyle(e).display) === "none", "calibration hidden in print");
+assert(await page.$eval("#exec-summary-section", e => getComputedStyle(e).display) !== "none", "exec summary printed");
+assert(await page.$eval(".book-cta-section", e => getComputedStyle(e).display) === "none", "debrief/book section hidden in print");
+await page.emulateMedia({ media: "screen" });
+
 /* ─── 5. RESULTS — engagement key gate ─── */
 section("Results page — engagement key gate");
 // Reload with valid localStorage
