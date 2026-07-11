@@ -455,6 +455,10 @@
               <tr><td style="padding:6px 0"><b>Fuel share of opex</b></td><td>${fs.toFixed(1)}%</td>
                   <td>${cmp(fs, 40, false, "the ~40% African average (IATA 2025)")}</td></tr>
             </table>
+            <p style="font-size:.92rem;margin:.8rem 0 0"><b>Positioning:</b> a ${lf.toFixed(1)}% load factor places you in roughly the
+              <b>${lf >= 78 ? "top third" : lf >= 70 ? "middle third" : "bottom third"}</b> of African carriers, and a ${fs.toFixed(1)}% fuel share in the
+              <b>${fs <= 33 ? "top third" : fs <= 43 ? "middle third" : "bottom third"}</b> on fuel-cost discipline
+              <span class="muted" style="font-size:.8rem">(indicative terciles derived from AFRAA/IATA regional aggregates)</span>.</p>
             <p class="muted" style="font-size:.82rem;margin:.7rem 0 0">These figures calibrate your <b>Cost &amp; Fuel Efficiency</b> and <b>Revenue &amp; Yield Management</b> scores — self-reported ratings in those domains can now be read against measured data. Processed locally; your file was not uploaded.</p>
           </div>
         </div>`;
