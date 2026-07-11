@@ -4,6 +4,7 @@
 import { chromium } from "playwright";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { existsSync } from "node:fs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const base = "file://" + ROOT;
@@ -16,8 +17,8 @@ const assert = (cond, msg) => {
 };
 function section(name) { console.log(`\n── ${name} ──`); }
 
-const EXEC = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
-const browser = await chromium.launch({ executablePath: EXEC });
+const DEV_EXEC = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+const browser = await chromium.launch(existsSync(DEV_EXEC) ? { executablePath: DEV_EXEC } : {});
 const page = await browser.newPage();
 const errs = [];
 page.on("pageerror", e => errs.push(e.message));

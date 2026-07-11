@@ -14,8 +14,8 @@ const pages = ["index.html", "diagnostic.html", "results.html", "demo-results.ht
 // fail with a cert/network error that is irrelevant to the page itself.
 const IGNORE = /ERR_CERT_AUTHORITY_INVALID|ERR_(NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION)|fonts\.googleapis|fonts\.gstatic/;
 
-const EXEC = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
-const b = await chromium.launch({ executablePath: EXEC });
+const DEV_EXEC = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+const b = await chromium.launch(existsSync(DEV_EXEC) ? { executablePath: DEV_EXEC } : {});
 let problems = 0;
 for (const pg of pages) {
   const dir = dirname(pg);
