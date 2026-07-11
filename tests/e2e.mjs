@@ -191,6 +191,39 @@ assert(/Scorecard/.test(await page.$eval("button.phase:first-child .phase-detail
 await page.click("button.phase:first-child"); await page.waitForTimeout(100);
 assert(await page.$eval("button.phase:first-child .phase-detail", d => d.hidden), "second click collapses detail");
 
+/* ─── 4g. HOMEPAGE — radar benchmark overlay ─── */
+section("Homepage — radar benchmark overlay");
+assert(await page.$("#hero-radar .radar-overlay") !== null, "dashed benchmark overlay polygon rendered");
+
+/* ─── 4h. RESULTS — CSV calibration ─── */
+section("Results page — CSV calibration");
+await page.evaluate(() => {
+  const ans = {};
+  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  saveAnswers(ans);
+  sessionStorage.setItem("dn_capture_nudged", "1");
+});
+await page.goto(base + "/results.html"); await page.waitForTimeout(500);
+assert(/Q4 2024/.test(await page.$eval("#bench-asof", e => e.textContent)), "data-as-of stamp rendered from DN.benchmarkMeta");
+assert((await page.$eval("#csv-template", a => a.href)).startsWith("data:text/csv"), "CSV template is a data-URI download");
+// valid upload → calibrated view with computed metrics
+await page.setInputFiles("#csv-file", {
+  name: "cal.csv", mimeType: "text/csv",
+  buffer: Buffer.from("total_ask,total_rpk,total_opex_usd,fuel_cost_usd\n1200000000,890000000,110000000,42000000\n")
+});
+await page.waitForTimeout(300);
+const calib = await page.$eval("#calib-out", e => e.textContent);
+assert(/74\.2%/.test(calib), "load factor computed (890/1200 = 74.2%)");
+assert(/9\.17 US¢/.test(calib), "CASK computed (110m/1200m = 9.17¢)");
+assert(/38\.2%/.test(calib), "fuel share computed (42/110 = 38.2%)");
+// invalid upload → clear error, no crash
+await page.setInputFiles("#csv-file", {
+  name: "bad.csv", mimeType: "text/csv",
+  buffer: Buffer.from("total_ask,total_rpk,total_opex_usd,fuel_cost_usd\n100,900,50,10\n")
+});
+await page.waitForTimeout(300);
+assert(/RPK cannot exceed ASK/.test(await page.$eval("#calib-out", e => e.textContent)), "impossible RPK>ASK rejected with message");
+
 /* ─── 5. RESULTS — engagement key gate ─── */
 section("Results page — engagement key gate");
 // Reload with valid localStorage

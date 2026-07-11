@@ -177,6 +177,19 @@
       </div>
     </div>
   </section>
+
+  <!-- optional data calibration (all client-side) -->
+  <section id="calibrate-section">
+    <div class="wrap">
+      <p class="eyebrow">Optional · Upgrade the evidence</p>
+      <h2>Calibrate this report with your own figures</h2>
+      <p class="muted" style="max-width:720px">Upload a 4-figure CSV and we compute your load factor, unit cost (CASK) and fuel share <strong>entirely in your browser</strong> — nothing is uploaded or stored. The computed figures are compared against the regional benchmarks used in this report.</p>
+      <p><a id="csv-template" class="btn btn-ghost" download="dn-calibration-template.csv">⬇ Download the CSV template</a></p>
+      <label for="csv-file" style="display:block;margin:.8rem 0 .3rem;font-weight:600">Upload your completed CSV</label>
+      <input type="file" id="csv-file" accept=".csv,text/csv">
+      <div id="calib-out" style="margin-top:1.2rem"></div>
+    </div>
+  </section>
 </div>
 
 <section class="sources">
@@ -188,7 +201,8 @@
       <li>IATA <em>Cost Disadvantage of African Airlines</em>, 2025 (fuel share, unit cost)</li>
       <li>IATA 2024 financial outlook (African net margin, profit per passenger)</li>
     </ul>
-    <p class="muted" style="font-size:.8rem">Figures are regional/industry references for orientation; thresholds in this scorecard are indicative planning targets, not certified benchmarks.</p>
+    <p class="muted" style="font-size:.8rem">Industry data as of <b id="bench-asof"></b>. Figures are regional/industry references for orientation; thresholds in this scorecard are indicative planning targets, not certified benchmarks.</p>
+    <p class="muted" style="font-size:.8rem">Evidence basis: domain scores are self-reported maturity ratings, shown alongside sourced industry context. Add your own figures in the calibration step above to upgrade the evidence level.</p>
   </div>
 </section>
 
