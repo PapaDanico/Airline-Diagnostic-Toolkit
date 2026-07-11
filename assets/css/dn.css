@@ -431,3 +431,14 @@ body.has-partner .partner-logo { display: block; }
   .book-cta-actions { width: 100%; }
   .book-cta-actions .btn { width: 100%; justify-content: center; }
 }
+
+/* interactive engagement phases (homepage) */
+button.phase { text-align: left; font: inherit; cursor: pointer; display: block; width: 100%; transition: box-shadow .2s, transform .2s; }
+button.phase:hover { box-shadow: 0 10px 28px rgba(0,0,0,.09); transform: translateY(-2px); }
+.phase-hint { display: inline-block; margin-top: .6rem; font-size: .74rem; font-weight: 700; letter-spacing: .05em; color: var(--accent); }
+.phase-detail { display: block; margin-top: .7rem; padding-top: .7rem; border-top: 1px dashed rgba(28,28,28,.15); font-size: .82rem; }
+.phase-detail b { display: block; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--dn-gold); margin: .5rem 0 .2rem; }
+.phase-detail ul { margin: 0; padding-left: 1.05rem; color: var(--dn-muted); }
+.phase-detail li { margin-bottom: .15rem; }
+.phase-detail .po { color: var(--dn-dark); }
+.phase.open { border-color: var(--accent); }

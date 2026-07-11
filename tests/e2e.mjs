@@ -179,6 +179,18 @@ assert(await page.$("#capture-nudge") === null, "nudge removed on dismiss");
 await page.reload(); await page.waitForTimeout(400);
 assert(await page.$("#capture-nudge") === null, "nudge not re-mounted after dismissal (sessionStorage)");
 
+/* ─── 4f. HOMEPAGE — interactive engagement phases ─── */
+section("Homepage — interactive engagement phases");
+await page.goto(base + "/index.html"); await page.waitForTimeout(400);
+assert(await page.$$eval("button.phase", e => e.length) === 5, "5 phase cards rendered as buttons");
+assert(await page.$$eval(".phase-detail[hidden]", e => e.length) === 5, "all phase details hidden initially");
+await page.click("button.phase:first-child"); await page.waitForTimeout(100);
+assert(await page.$eval("button.phase:first-child", b => b.getAttribute("aria-expanded")) === "true", "clicked phase reports aria-expanded=true");
+assert(await page.$eval("button.phase:first-child .phase-detail", d => !d.hidden), "clicked phase shows detail");
+assert(/Scorecard/.test(await page.$eval("button.phase:first-child .phase-detail", d => d.textContent)), "phase 1 detail lists its tools");
+await page.click("button.phase:first-child"); await page.waitForTimeout(100);
+assert(await page.$eval("button.phase:first-child .phase-detail", d => d.hidden), "second click collapses detail");
+
 /* ─── 5. RESULTS — engagement key gate ─── */
 section("Results page — engagement key gate");
 // Reload with valid localStorage

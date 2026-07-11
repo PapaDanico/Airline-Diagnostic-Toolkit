@@ -198,10 +198,27 @@
     drawRadar(document.getElementById("hero-radar"),
       DN.domains.map((d, i) => ({ name: d.name, pct: sample[i] })));
   }
-  // phases
+  // phases — click a phase to expand its tools + outcome
   const ph = document.getElementById("phases");
   DN.phases.forEach(p => ph.insertAdjacentHTML("beforeend",
-    `<div class="phase"><span class="days">${p.days}</span><h4>${p.t}</h4><p>${p.d}</p></div>`));
+    `<button type="button" class="phase" aria-expanded="false">
+       <span class="days">${p.days}</span><h4>${p.t}</h4><p>${p.d}</p>
+       <span class="phase-hint" aria-hidden="true">＋ details</span>
+       <span class="phase-detail" hidden>
+         <b>What we use</b>
+         <ul>${p.tools.map(t => `<li>${t}</li>`).join("")}</ul>
+         <b>What you get</b>
+         <span class="po">${p.outcome}</span>
+       </span>
+     </button>`));
+  ph.addEventListener("click", e => {
+    const card = e.target.closest(".phase");
+    if (!card) return;
+    const open = card.classList.toggle("open");
+    card.setAttribute("aria-expanded", open);
+    card.querySelector(".phase-detail").hidden = !open;
+    card.querySelector(".phase-hint").textContent = open ? "－ close" : "＋ details";
+  });
   // toolbox spotlight
   const ts = document.getElementById("toolbox-spotlight");
   DN.toolboxes.forEach(tb => ts.insertAdjacentHTML("beforeend",
