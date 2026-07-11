@@ -150,6 +150,35 @@ await page.evaluate(() => {
 await page.reload(); await page.waitForTimeout(300);
 assert(await page.$(".resume-banner") === null, "no resume banner when fully answered");
 
+/* ─── 4d. HOMEPAGE — hero radar preview ─── */
+section("Homepage — hero radar preview");
+await page.goto(base + "/index.html"); await page.waitForTimeout(400);
+assert(await page.$eval("#hero-radar", s => s.querySelectorAll("polygon").length) >= 5, "hero radar renders rings + data polygon");
+assert(await page.$eval("#hero-radar", s => s.querySelectorAll("text").length) === 8, "hero radar labels all 8 domains");
+
+/* ─── 4e. RESULTS — scroll-triggered capture nudge ─── */
+section("Results page — capture nudge");
+await page.evaluate(() => {
+  const ans = {};
+  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  saveAnswers(ans);
+  sessionStorage.removeItem("dn_capture_nudged");
+  sessionStorage.removeItem("dn_report_sent");
+});
+await page.goto(base + "/results.html"); await page.waitForTimeout(500);
+assert(await page.$("#capture-nudge") !== null, "nudge element mounted in own session");
+assert(await page.$eval("#capture-nudge", e => e.style.bottom !== "0px"), "nudge hidden before 60% scroll");
+await page.evaluate(() => scrollTo(0, (document.documentElement.scrollHeight - innerHeight) * 0.7));
+// scroll-behavior:smooth animates the jump — poll until the bar lands
+const nudgeShown = await page.waitForFunction(
+  () => document.getElementById("capture-nudge")?.style.bottom === "0px",
+  null, { timeout: 4000 }).then(() => true).catch(() => false);
+assert(nudgeShown, "nudge slides in after 60% scroll");
+await page.click("#nudge-x"); await page.waitForTimeout(150);
+assert(await page.$("#capture-nudge") === null, "nudge removed on dismiss");
+await page.reload(); await page.waitForTimeout(400);
+assert(await page.$("#capture-nudge") === null, "nudge not re-mounted after dismissal (sessionStorage)");
+
 /* ─── 5. RESULTS — engagement key gate ─── */
 section("Results page — engagement key gate");
 // Reload with valid localStorage

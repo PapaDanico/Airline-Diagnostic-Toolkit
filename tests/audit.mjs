@@ -9,7 +9,7 @@ import { existsSync } from "node:fs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pages = ["index.html", "diagnostic.html", "results.html", "demo-results.html", "embed.html", "privacy.html", "terms.html", "methodology.html",
-  "tools/fuel-optimizer.html", "tools/cask-calculator.html", "tools/operating-model-canvas.html", "tools/data-request.html", "tools/training-tna.html"];
+  "tools/index.html", "tools/fuel-optimizer.html", "tools/cask-calculator.html", "tools/operating-model-canvas.html", "tools/data-request.html", "tools/training-tna.html"];
 // Google Fonts is loaded from a CDN; in offline/sandbox CI that request can
 // fail with a cert/network error that is irrelevant to the page itself.
 const IGNORE = /ERR_CERT_AUTHORITY_INVALID|ERR_(NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION)|fonts\.googleapis|fonts\.gstatic/;
