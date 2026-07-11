@@ -110,6 +110,46 @@ assert(sharedBannerVisible, "shared-banner visible when ?s= param present");
 const captureSectionDisplay = await page.$eval("#email-capture-section", el => getComputedStyle(el).display);
 assert(captureSectionDisplay === "none", "email capture section hidden in shared session");
 
+/* ─── 4b. RESULTS — corrupt/invalid ?s= param falls back to own data ─── */
+section("Results page — corrupt ?s= param handling");
+await page.evaluate(() => {
+  const ans = {};
+  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  saveAnswers(ans);
+});
+// right length, but characters outside 0-4/x — must be rejected by decode
+const badS = btoa("9".repeat(40));
+await page.goto(base + "/results.html?s=" + encodeURIComponent(badS)); await page.waitForTimeout(500);
+assert(await page.$eval("#report", e => getComputedStyle(e).display !== "none"), "report falls back to own data on corrupt ?s=");
+assert(await page.$eval("#shared-banner", el => getComputedStyle(el).display) === "none", "shared-banner hidden on corrupt ?s=");
+assert(await page.$eval("#email-capture-section", el => getComputedStyle(el).display) !== "none", "email capture visible on corrupt ?s= (treated as own session)");
+
+/* ─── 4c. DIAGNOSTIC — resume banner on partial progress ─── */
+section("Diagnostic page — resume banner");
+await page.evaluate(() => {
+  const ans = {};
+  DN.domains.forEach((d, i) => { ans[d.id] = i < 4 ? [1, 2, 3, 2, 4] : []; });
+  saveAnswers(ans);
+  localStorage.setItem("dn_onboarded", "1"); // keep onboarding overlay from blocking clicks
+});
+await page.goto(base + "/diagnostic.html"); await page.waitForTimeout(400);
+assert(await page.$(".resume-banner") !== null, "resume banner shown with partial answers");
+assert(/20 of 40/.test(await page.$eval(".resume-banner", e => e.textContent)), "resume banner shows 20 of 40");
+await page.click("#resume-jump"); await page.waitForTimeout(300);
+assert(await page.$(".resume-banner") === null, "resume banner dismissed after jump");
+// no banner when nothing answered
+await page.evaluate(() => localStorage.removeItem("dn_airline_scorecard_v2"));
+await page.reload(); await page.waitForTimeout(300);
+assert(await page.$(".resume-banner") === null, "no resume banner with zero answers");
+// no banner when everything answered
+await page.evaluate(() => {
+  const ans = {};
+  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  saveAnswers(ans);
+});
+await page.reload(); await page.waitForTimeout(300);
+assert(await page.$(".resume-banner") === null, "no resume banner when fully answered");
+
 /* ─── 5. RESULTS — engagement key gate ─── */
 section("Results page — engagement key gate");
 // Reload with valid localStorage

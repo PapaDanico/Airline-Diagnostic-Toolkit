@@ -421,7 +421,7 @@ function decodeSharedAnswers(encoded) {
   try {
     const str = atob(encoded);
     const expected = DN.domains.reduce((n, d) => n + d.questions.length, 0);
-    if (str.length !== expected) return null;
+    if (str.length !== expected || !/^[0-4x]+$/.test(str)) return null;
     let pos = 0;
     const out = {};
     for (const d of DN.domains) {
