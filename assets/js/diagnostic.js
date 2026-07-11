@@ -30,6 +30,29 @@
     }
   } catch (_) {}
 
+  /* resume banner — shown when a previous visit left the diagnostic
+     part-answered; jumps to the first unanswered question */
+  const preAnswered = DN.domains.reduce((a, d) =>
+    a + (answers[d.id] || []).filter(v => Number.isInteger(v)).length, 0);
+  if (preAnswered > 0 && preAnswered < total) {
+    const bar = document.createElement("div");
+    bar.className = "resume-banner";
+    bar.style.cssText = "background:#FFF8E7;border:1px solid #E8C468;border-radius:10px;padding:14px 18px;margin:0 0 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap";
+    bar.innerHTML = `<span>👋 Welcome back — you've answered <b>${preAnswered} of ${total}</b> questions.</span>
+      <button id="resume-jump" class="btn btn-gold" style="white-space:nowrap">Resume where I left off →</button>`;
+    host.parentNode.insertBefore(bar, host);
+    bar.querySelector("#resume-jump").addEventListener("click", () => {
+      const firstUnanswered = [...document.querySelectorAll(".q")]
+        .find(q => !q.querySelector("input:checked"));
+      if (firstUnanswered) {
+        firstUnanswered.scrollIntoView({ behavior: "smooth", block: "center" });
+        firstUnanswered.style.outline = "2px solid #E8C468";
+        setTimeout(() => { firstUnanswered.style.outline = ""; }, 2500);
+      }
+      bar.remove();
+    });
+  }
+
   DN.domains.forEach((d, di) => {
     if (!answers[d.id]) answers[d.id] = [];
     const block = document.createElement("section");

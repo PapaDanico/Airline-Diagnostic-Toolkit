@@ -110,6 +110,87 @@ assert(sharedBannerVisible, "shared-banner visible when ?s= param present");
 const captureSectionDisplay = await page.$eval("#email-capture-section", el => getComputedStyle(el).display);
 assert(captureSectionDisplay === "none", "email capture section hidden in shared session");
 
+/* ─── 4b. RESULTS — corrupt/invalid ?s= param falls back to own data ─── */
+section("Results page — corrupt ?s= param handling");
+await page.evaluate(() => {
+  const ans = {};
+  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  saveAnswers(ans);
+});
+// right length, but characters outside 0-4/x — must be rejected by decode
+const badS = btoa("9".repeat(40));
+await page.goto(base + "/results.html?s=" + encodeURIComponent(badS)); await page.waitForTimeout(500);
+assert(await page.$eval("#report", e => getComputedStyle(e).display !== "none"), "report falls back to own data on corrupt ?s=");
+assert(await page.$eval("#shared-banner", el => getComputedStyle(el).display) === "none", "shared-banner hidden on corrupt ?s=");
+assert(await page.$eval("#email-capture-section", el => getComputedStyle(el).display) !== "none", "email capture visible on corrupt ?s= (treated as own session)");
+
+/* ─── 4c. DIAGNOSTIC — resume banner on partial progress ─── */
+section("Diagnostic page — resume banner");
+await page.evaluate(() => {
+  const ans = {};
+  DN.domains.forEach((d, i) => { ans[d.id] = i < 4 ? [1, 2, 3, 2, 4] : []; });
+  saveAnswers(ans);
+  localStorage.setItem("dn_onboarded", "1"); // keep onboarding overlay from blocking clicks
+});
+await page.goto(base + "/diagnostic.html"); await page.waitForTimeout(400);
+assert(await page.$(".resume-banner") !== null, "resume banner shown with partial answers");
+assert(/20 of 40/.test(await page.$eval(".resume-banner", e => e.textContent)), "resume banner shows 20 of 40");
+await page.click("#resume-jump"); await page.waitForTimeout(300);
+assert(await page.$(".resume-banner") === null, "resume banner dismissed after jump");
+// no banner when nothing answered
+await page.evaluate(() => localStorage.removeItem("dn_airline_scorecard_v2"));
+await page.reload(); await page.waitForTimeout(300);
+assert(await page.$(".resume-banner") === null, "no resume banner with zero answers");
+// no banner when everything answered
+await page.evaluate(() => {
+  const ans = {};
+  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  saveAnswers(ans);
+});
+await page.reload(); await page.waitForTimeout(300);
+assert(await page.$(".resume-banner") === null, "no resume banner when fully answered");
+
+/* ─── 4d. HOMEPAGE — hero radar preview ─── */
+section("Homepage — hero radar preview");
+await page.goto(base + "/index.html"); await page.waitForTimeout(400);
+assert(await page.$eval("#hero-radar", s => s.querySelectorAll("polygon").length) >= 5, "hero radar renders rings + data polygon");
+assert(await page.$eval("#hero-radar", s => s.querySelectorAll("text").length) === 8, "hero radar labels all 8 domains");
+
+/* ─── 4e. RESULTS — scroll-triggered capture nudge ─── */
+section("Results page — capture nudge");
+await page.evaluate(() => {
+  const ans = {};
+  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  saveAnswers(ans);
+  sessionStorage.removeItem("dn_capture_nudged");
+  sessionStorage.removeItem("dn_report_sent");
+});
+await page.goto(base + "/results.html"); await page.waitForTimeout(500);
+assert(await page.$("#capture-nudge") !== null, "nudge element mounted in own session");
+assert(await page.$eval("#capture-nudge", e => e.style.bottom !== "0px"), "nudge hidden before 60% scroll");
+await page.evaluate(() => scrollTo(0, (document.documentElement.scrollHeight - innerHeight) * 0.7));
+// scroll-behavior:smooth animates the jump — poll until the bar lands
+const nudgeShown = await page.waitForFunction(
+  () => document.getElementById("capture-nudge")?.style.bottom === "0px",
+  null, { timeout: 4000 }).then(() => true).catch(() => false);
+assert(nudgeShown, "nudge slides in after 60% scroll");
+await page.click("#nudge-x"); await page.waitForTimeout(150);
+assert(await page.$("#capture-nudge") === null, "nudge removed on dismiss");
+await page.reload(); await page.waitForTimeout(400);
+assert(await page.$("#capture-nudge") === null, "nudge not re-mounted after dismissal (sessionStorage)");
+
+/* ─── 4f. HOMEPAGE — interactive engagement phases ─── */
+section("Homepage — interactive engagement phases");
+await page.goto(base + "/index.html"); await page.waitForTimeout(400);
+assert(await page.$$eval("button.phase", e => e.length) === 5, "5 phase cards rendered as buttons");
+assert(await page.$$eval(".phase-detail[hidden]", e => e.length) === 5, "all phase details hidden initially");
+await page.click("button.phase:first-child"); await page.waitForTimeout(100);
+assert(await page.$eval("button.phase:first-child", b => b.getAttribute("aria-expanded")) === "true", "clicked phase reports aria-expanded=true");
+assert(await page.$eval("button.phase:first-child .phase-detail", d => !d.hidden), "clicked phase shows detail");
+assert(/Scorecard/.test(await page.$eval("button.phase:first-child .phase-detail", d => d.textContent)), "phase 1 detail lists its tools");
+await page.click("button.phase:first-child"); await page.waitForTimeout(100);
+assert(await page.$eval("button.phase:first-child .phase-detail", d => d.hidden), "second click collapses detail");
+
 /* ─── 5. RESULTS — engagement key gate ─── */
 section("Results page — engagement key gate");
 // Reload with valid localStorage

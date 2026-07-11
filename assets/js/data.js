@@ -242,11 +242,21 @@ const DN = {
   ],
 
   phases: [
-    {days:"Days 1–2", t:"Entry Diagnostic", d:"Health Scorecard, CASK benchmark, Operating Model Canvas, data request. Baseline + hypotheses."},
-    {days:"Days 3–14", t:"Deep Analysis", d:"Route P&L, staff cost, fleet utilisation, safety maturity, revenue mix — quantified, root-caused."},
-    {days:"Days 10–14", t:"Prioritisation", d:"Impact × effort matrix. Build the 90-day sprint framework."},
-    {days:"Days 14–21", t:"Board Delivery", d:"Board-structure presentation, governance framework, training TNA."},
-    {days:"Days 21–90", t:"Sprint Implementation", d:"Weekly check-ins, monthly reviews, results verification, final report."}
+    {days:"Days 1–2", t:"Entry Diagnostic", d:"Health Scorecard, CASK benchmark, Operating Model Canvas, data request. Baseline + hypotheses.",
+      tools:["Airline Health Scorecard","CASK Benchmarking Calculator","Operating Model Canvas","48-Hour Data Request"],
+      outcome:"A quantified baseline and a shortlist of hypotheses agreed with your leadership team."},
+    {days:"Days 3–14", t:"Deep Analysis", d:"Route P&L, staff cost, fleet utilisation, safety maturity, revenue mix — quantified, root-caused.",
+      tools:["Route P&L model","Staff cost benchmarks","Fleet utilisation analysis","SMS maturity review"],
+      outcome:"Every gap root-caused and sized in currency, not adjectives."},
+    {days:"Days 10–14", t:"Prioritisation", d:"Impact × effort matrix. Build the 90-day sprint framework.",
+      tools:["Impact × effort matrix","Quick-win register","Sprint charter templates"],
+      outcome:"A sequenced 90-day plan your team can actually staff and fund."},
+    {days:"Days 14–21", t:"Board Delivery", d:"Board-structure presentation, governance framework, training TNA.",
+      tools:["Board presentation pack","Governance framework","Training Needs Analysis"],
+      outcome:"Board sign-off with clear owners, budgets and decision rights."},
+    {days:"Days 21–90", t:"Sprint Implementation", d:"Weekly check-ins, monthly reviews, results verification, final report.",
+      tools:["Weekly sprint reviews","KPI dashboard","Results verification pack"],
+      outcome:"Verified results against the baseline — the 3× first-year ROI guarantee is measured here."}
   ]
 };
 

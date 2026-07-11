@@ -121,7 +121,87 @@ function indexVerdict(idx) {
     text: "Strong across the board. The opportunity is to defend the lead and institutionalise the discipline." };
 }
 
+/* ---- radar drawing ----
+   Canvas is wider than tall so the long domain labels on the left/right
+   axes get a gutter and never clip against the viewBox edge. Geometry is
+   derived from the radius so the plot stays balanced, and labels longer
+   than a threshold wrap onto two lines via <tspan>. */
+function drawRadar(svg, domains) {
+  const ns = "http://www.w3.org/2000/svg";
+  const n = domains.length;
+  const r = 120;                 // radar radius
+  const labelGap = 16;           // distance from outer ring to label anchor
+  const gutterX = 96, gutterY = 40; // room for wrapped side / top-bottom labels
+  const W = r * 2 + gutterX * 2;
+  const H = r * 2 + gutterY * 2;
+  const cx = W / 2, cy = H / 2;
+  const pt = (i, rad) => {
+    const a = (Math.PI * 2 * i / n) - Math.PI / 2;
+    return [cx + rad * Math.cos(a), cy + rad * Math.sin(a)];
+  };
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  // rings
+  [0.25, 0.5, 0.75, 1].forEach(f => {
+    const poly = document.createElementNS(ns, "polygon");
+    poly.setAttribute("points", domains.map((_, i) => pt(i, r * f).join(",")).join(" "));
+    poly.setAttribute("fill", "none"); poly.setAttribute("stroke", "#D6E4F0"); poly.setAttribute("stroke-width", "1");
+    svg.appendChild(poly);
+  });
+  // axes + labels
+  domains.forEach((d, i) => {
+    const [x, y] = pt(i, r);
+    const line = document.createElementNS(ns, "line");
+    line.setAttribute("x1", cx); line.setAttribute("y1", cy); line.setAttribute("x2", x); line.setAttribute("y2", y);
+    line.setAttribute("stroke", "#D6E4F0"); svg.appendChild(line);
+
+    const [lx, ly] = pt(i, r + labelGap);
+    const anchor = lx < cx - 5 ? "end" : lx > cx + 5 ? "start" : "middle";
+    const lines = wrapLabel(d.name, 16);
+    const tx = document.createElementNS(ns, "text");
+    tx.setAttribute("x", lx);
+    tx.setAttribute("y", ly - (lines.length - 1) * 5.5); // vertically centre the block
+    tx.setAttribute("text-anchor", anchor);
+    tx.setAttribute("dominant-baseline", "middle");
+    tx.setAttribute("font-size", "10"); tx.setAttribute("font-family", "DM Sans, sans-serif"); tx.setAttribute("fill", "#6B7280");
+    lines.forEach((ln, j) => {
+      const ts = document.createElementNS(ns, "tspan");
+      ts.setAttribute("x", lx); if (j) ts.setAttribute("dy", "11");
+      ts.textContent = ln;
+      tx.appendChild(ts);
+    });
+    svg.appendChild(tx);
+  });
+  // data polygon
+  const poly = document.createElementNS(ns, "polygon");
+  poly.setAttribute("points", domains.map((d, i) => pt(i, r * d.pct / 100).join(",")).join(" "));
+  poly.setAttribute("fill", "rgba(74,127,165,.28)"); poly.setAttribute("stroke", "#4A7FA5"); poly.setAttribute("stroke-width", "2");
+  svg.appendChild(poly);
+  domains.forEach((d, i) => {
+    const [x, y] = pt(i, r * d.pct / 100);
+    const dot = document.createElementNS(ns, "circle");
+    dot.setAttribute("cx", x); dot.setAttribute("cy", y); dot.setAttribute("r", "3.2");
+    dot.setAttribute("fill", d.pct < 45 ? "#C0392B" : d.pct < 65 ? "#D4AC0D" : "#1E8449");
+    svg.appendChild(dot);
+  });
+}
+
+/* Split a label into <=2 balanced lines if it exceeds maxChars, breaking
+   on the space nearest the middle so neither line runs long. */
+function wrapLabel(name, maxChars) {
+  if (name.length <= maxChars) return [name];
+  const words = name.split(" ");
+  if (words.length < 2) return [name];
+  const mid = name.length / 2;
+  let best = 0, bestDist = Infinity, len = 0;
+  for (let i = 0; i < words.length - 1; i++) {
+    len += words[i].length + 1;
+    const dist = Math.abs(len - mid);
+    if (dist < bestDist) { bestDist = dist; best = i; }
+  }
+  return [words.slice(0, best + 1).join(" "), words.slice(best + 1).join(" ")];
+}
+
 if (typeof window !== "undefined") {
   Object.assign(window, { STORE_KEY, DN_LOGO, applyPartner, mountChrome,
-    saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict });
+    saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel });
 }

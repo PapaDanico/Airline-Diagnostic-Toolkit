@@ -103,12 +103,8 @@
       <p class="eyebrow">Tool A1</p>
       <h3>Airline Health Scorecard</h3>
       <p class="muted">A weighted health index across <strong>8 domains</strong> and <strong>40 questions</strong> — benchmarked against African and global standards.</p>
-      <div class="grid g2" style="margin-top:1rem">
-        <div class="tile"><h4>Safety & SMS</h4><p>ICAO maturity</p></div>
-        <div class="tile"><h4>Cost & Fuel</h4><p>CASK position</p></div>
-        <div class="tile"><h4>Revenue & Yield</h4><p>RM capability</p></div>
-        <div class="tile"><h4>Financial & Strategy</h4><p>Board & plan</p></div>
-      </div>
+      <svg id="hero-radar" role="img" aria-label="Sample radar chart of the 8-domain health profile" style="width:100%;height:auto;margin-top:.6rem"></svg>
+      <p class="muted center" style="font-size:.8rem;margin:.3rem 0 0">Sample output — your radar is built from your 40 answers</p>
       <a class="btn btn-primary" style="margin-top:1.2rem;width:100%;justify-content:center" href="diagnostic.html" data-keep-partner>Begin</a>
     </div>
   </div>
@@ -143,6 +139,7 @@
     <h2>14 tools, four toolboxes</h2>
     <p class="muted" style="max-width:680px">Toolbox A is free and starts here. Toolboxes B, C and D are deployed during a DN engagement.</p>
     <div class="grid g4" id="toolbox-spotlight" style="margin-top:1.6rem"></div>
+    <p style="margin-top:1.5rem"><a class="btn btn-primary" href="tools/index.html" data-keep-partner>Browse all free tools →</a></p>
   </div>
 </section>
 
@@ -186,7 +183,7 @@
     </div>
     <div class="ver">
       <span>&copy; <span data-year></span> DN Consultancy · Shaping Africa's Future, Together.</span>
-      <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <span data-version></span></span>
+      <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="methodology.html">Methodology</a> · <span data-version></span></span>
     </div>
   </div>
 </footer>
@@ -195,10 +192,33 @@
 <script src="assets/js/common.js"></script>
 <script>
   applyPartner(); mountChrome();
-  // phases
+  // hero radar — illustrative profile of a mid-transformation carrier
+  {
+    const sample = [72, 58, 64, 47, 55, 61, 68, 52];
+    drawRadar(document.getElementById("hero-radar"),
+      DN.domains.map((d, i) => ({ name: d.name, pct: sample[i] })));
+  }
+  // phases — click a phase to expand its tools + outcome
   const ph = document.getElementById("phases");
   DN.phases.forEach(p => ph.insertAdjacentHTML("beforeend",
-    `<div class="phase"><span class="days">${p.days}</span><h4>${p.t}</h4><p>${p.d}</p></div>`));
+    `<button type="button" class="phase" aria-expanded="false">
+       <span class="days">${p.days}</span><h4>${p.t}</h4><p>${p.d}</p>
+       <span class="phase-hint" aria-hidden="true">＋ details</span>
+       <span class="phase-detail" hidden>
+         <b>What we use</b>
+         <ul>${p.tools.map(t => `<li>${t}</li>`).join("")}</ul>
+         <b>What you get</b>
+         <span class="po">${p.outcome}</span>
+       </span>
+     </button>`));
+  ph.addEventListener("click", e => {
+    const card = e.target.closest(".phase");
+    if (!card) return;
+    const open = card.classList.toggle("open");
+    card.setAttribute("aria-expanded", open);
+    card.querySelector(".phase-detail").hidden = !open;
+    card.querySelector(".phase-hint").textContent = open ? "－ close" : "＋ details";
+  });
   // toolbox spotlight
   const ts = document.getElementById("toolbox-spotlight");
   DN.toolboxes.forEach(tb => ts.insertAdjacentHTML("beforeend",
