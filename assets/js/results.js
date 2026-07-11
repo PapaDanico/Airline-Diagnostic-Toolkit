@@ -6,7 +6,10 @@
    ============================================================ */
 
 (function () {
-  const answers = loadAnswers();
+  /* ---- share-link ingestion: ?s=<base64-encoded answers> ---- */
+  const _sp = new URLSearchParams(location.search).get("s");
+  const isShared = Boolean(_sp);
+  const answers = _sp ? (decodeSharedAnswers(_sp) || loadAnswers()) : loadAnswers();
   const s = computeScores(answers);
   const empty = document.getElementById("empty");
   const report = document.getElementById("report");
@@ -16,6 +19,24 @@
 
   const partnerQS = (() => { const p = new URLSearchParams(location.search).get("partner");
     return p ? "?partner=" + encodeURIComponent(p) : ""; })();
+
+  /* ---- shareable URL (preserves existing params, adds ?s=) ---- */
+  const shareURL = (() => {
+    const p = new URLSearchParams(location.search);
+    p.set("s", encodeAnswers(answers));
+    return location.origin + location.pathname + "?" + p.toString();
+  })();
+
+  /* ---- shared-report banner (shown when opened via a share link) ---- */
+  if (isShared) {
+    const sb = document.getElementById("shared-banner");
+    if (sb) {
+      sb.style.display = "flex";
+      sb.querySelector("a").href = "diagnostic.html" + partnerQS;
+    }
+    const ec = document.getElementById("email-capture-section");
+    if (ec) ec.style.display = "none";
+  }
 
   /* ---- health index ring ---- */
   const v = indexVerdict(s.index);
@@ -194,6 +215,113 @@
   if (actionParent) {
     actionParent.appendChild(exportBtn);
   }
+
+  /* ---- share bar: WhatsApp · LinkedIn · copy link ---- */
+  const shareBar = document.getElementById("share-bar");
+  if (shareBar) {
+    const shareMsg = `I just ran the Airline Health Scorecard — health index ${s.index}/100. Top gaps: ${sorted.slice(0, 2).map(d => `${d.name} (${d.pct}%)`).join(", ")}. Full report:`;
+
+    const waA = document.createElement("a");
+    waA.className = "share-btn share-btn-wa";
+    waA.textContent = "Share via WhatsApp";
+    waA.href = "https://wa.me/?text=" + encodeURIComponent(shareMsg + " " + shareURL);
+    waA.target = "_blank"; waA.rel = "noopener";
+
+    const liA = document.createElement("a");
+    liA.className = "share-btn share-btn-li";
+    liA.textContent = "Share on LinkedIn";
+    liA.href = "https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(shareURL);
+    liA.target = "_blank"; liA.rel = "noopener";
+
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "share-btn share-btn-copy";
+    copyBtn.textContent = "Copy link";
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(shareURL);
+        copyBtn.textContent = "✓ Copied";
+      } catch {
+        copyBtn.textContent = shareURL.slice(0, 40) + "…";
+      }
+      setTimeout(() => { copyBtn.textContent = "Copy link"; }, 2200);
+    });
+
+    shareBar.appendChild(waA);
+    shareBar.appendChild(liA);
+    shareBar.appendChild(copyBtn);
+  }
+
+  /* ---- email capture (Netlify Forms via fetch) ---- */
+  if (sessionStorage.getItem("dn_report_sent") === "1") {
+    const ec = document.getElementById("email-capture-section");
+    if (ec) ec.style.display = "none";
+  }
+  const captureForm = document.getElementById("capture-form");
+  if (captureForm) {
+    captureForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      const emailEl = document.getElementById("capture-email");
+      const airlineEl = document.getElementById("capture-airline");
+      const msg = document.getElementById("capture-msg");
+      const submitBtn = captureForm.querySelector("button[type='submit']");
+      const email = emailEl.value.trim();
+      if (!email) { emailEl.focus(); return; }
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sending…";
+      try {
+        const body = new URLSearchParams({
+          "form-name": "scorecard-report",
+          "bot-field": "",
+          email,
+          airline: airlineEl.value.trim(),
+          health_index: String(s.index),
+          top_gaps: sorted.slice(0, 3).map(d => `${d.name} (${d.pct}%)`).join(", "),
+          share_url: shareURL
+        });
+        const resp = await fetch("/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: body.toString()
+        });
+        if (!resp.ok) throw new Error(resp.status);
+        msg.textContent = "✓ Sent — check your inbox in a moment.";
+        msg.style.color = "var(--dn-green)";
+        submitBtn.textContent = "✓ Sent";
+        sessionStorage.setItem("dn_report_sent", "1");
+      } catch {
+        msg.innerHTML = `Could not send — email us at <a href="mailto:${DN.brand.email}">${DN.brand.email}</a>`;
+        msg.style.color = "var(--dn-red)";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Send my report →";
+      }
+    });
+  }
+
+  /* ---- book-a-call: mailto pre-filled + copy-link ---- */
+  const bookEmailBtn = document.getElementById("book-email-btn");
+  if (bookEmailBtn) {
+    const gapSummary = sorted.slice(0, 3).map(d => `${d.name} (${d.pct}%)`).join(", ");
+    bookEmailBtn.href = `mailto:${DN.brand.email}` +
+      `?subject=${encodeURIComponent("DN Engagement — following my health scorecard")}` +
+      `&body=${encodeURIComponent(
+        `Hello,\n\nI have just completed the Airline Health Scorecard.\n\n` +
+        `Health Index: ${s.index}/100\nTop gaps: ${gapSummary}\n\n` +
+        `I would like to discuss how a DN engagement could help us close these gaps.\n\n` +
+        `Full report: ${shareURL}`
+      )}`;
+  }
+  const bookCopyBtn = document.getElementById("book-copy-btn");
+  if (bookCopyBtn) {
+    bookCopyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(shareURL);
+        bookCopyBtn.textContent = "✓ Link copied";
+      } catch {
+        bookCopyBtn.textContent = "Copy failed";
+      }
+      setTimeout(() => { bookCopyBtn.textContent = "Copy report link"; }, 2200);
+    });
+  }
 })();
 
 /* ---- radar drawing ----
@@ -274,4 +402,33 @@ function wrapLabel(name, maxChars) {
     if (dist < bestDist) { bestDist = dist; best = i; }
   }
   return [words.slice(0, best + 1).join(" "), words.slice(best + 1).join(" ")];
+}
+
+/* ---- share-link encode / decode ----
+   Serialises the 40 answers (0-4 per question, 'x' if unanswered) into a
+   compact base64 string so results can be shared via URL (?s=...). */
+function encodeAnswers(answers) {
+  return btoa(DN.domains.map(d =>
+    d.questions.map((_, qi) => {
+      const v = (answers[d.id] || [])[qi];
+      return Number.isInteger(v) ? String(v) : "x";
+    }).join("")
+  ).join(""));
+}
+
+function decodeSharedAnswers(encoded) {
+  try {
+    const str = atob(encoded);
+    const expected = DN.domains.reduce((n, d) => n + d.questions.length, 0);
+    if (str.length !== expected) return null;
+    let pos = 0;
+    const out = {};
+    for (const d of DN.domains) {
+      out[d.id] = d.questions.map(() => {
+        const c = str[pos++];
+        return c === "x" ? undefined : parseInt(c, 10);
+      });
+    }
+    return out;
+  } catch { return null; }
 }

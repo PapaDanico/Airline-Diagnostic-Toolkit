@@ -46,6 +46,16 @@
 </div>
 
 <div id="report" style="display:none">
+  <!-- Netlify Forms — static field list so Netlify registers the form at deploy time.
+       Submission happens via fetch() in results.js (never submitted directly). -->
+  <form name="scorecard-report" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="text"   name="bot-field">
+    <input type="email"  name="email">
+    <input type="text"   name="airline">
+    <input type="hidden" name="health_index">
+    <input type="hidden" name="top_gaps">
+    <input type="hidden" name="share_url">
+  </form>
   <!-- print-only branded header -->
   <div class="print-head">
     <img src="assets/img/dn-logo-full.png" alt="DN Consultancy">
@@ -55,6 +65,10 @@
   <section class="score-hero">
     <div class="wrap">
       <div class="partner-banner" style="margin-bottom:1rem"><img class="partner-logo" alt=""><span data-cobrand></span></div>
+      <div class="shared-banner" id="shared-banner" style="display:none">
+        <span>You're viewing a shared report.</span>
+        <a href="diagnostic.html">Take your own scorecard →</a>
+      </div>
       <p class="eyebrow">Your strategic gap report</p>
       <div class="summary">
         <div class="index-ring" id="index-ring"><div class="inner"><b id="index-val">0</b><span>Health Index</span></div></div>
@@ -65,6 +79,7 @@
             <button class="btn btn-gold" id="print">Print / save as PDF</button>
             <button class="btn btn-ghost" id="retake" style="color:#fff;border-color:rgba(255,255,255,.35)">Retake</button>
           </div>
+          <div class="share-bar" id="share-bar"></div>
         </div>
       </div>
     </div>
@@ -97,6 +112,25 @@
     </div>
   </section>
 
+  <!-- email capture -->
+  <section class="email-capture-section" id="email-capture-section">
+    <div class="wrap">
+      <div class="ec-card">
+        <div class="ec-icon">✉️</div>
+        <div class="ec-body">
+          <h3>Get this report in your inbox</h3>
+          <p class="muted">One email, no spam. Your health index and top findings — ready to share with your board.</p>
+        </div>
+        <form class="ec-form" id="capture-form" novalidate>
+          <input type="email" id="capture-email" placeholder="you@airline.com" autocomplete="email" required>
+          <input type="text"  id="capture-airline" placeholder="Airline name (optional)" autocomplete="organization">
+          <button type="submit" class="btn btn-primary">Send my report →</button>
+          <p class="ec-msg" id="capture-msg"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
   <!-- prescriber -->
   <section>
     <div class="wrap">
@@ -105,6 +139,23 @@
       <p class="muted" style="max-width:720px">Based on your lowest-scoring domains, here are the solution <em>categories</em> worth exploring and the DN diagnostic that drills deeper into each. These are neutral, educational suggestions.</p>
       <div id="rx" style="margin:1.4rem 0"></div>
       <p class="disclaimer">DN Consultancy does not endorse or resell these third-party tools; they are listed as common options among African carriers. The right answer depends on your specific gaps — which is exactly what a deeper diagnostic establishes.</p>
+    </div>
+  </section>
+
+  <!-- book-a-call CTA -->
+  <section class="book-cta-section">
+    <div class="wrap">
+      <div class="book-cta">
+        <div class="book-cta-body">
+          <h3>Ready to turn these findings into action?</h3>
+          <p>A DN engagement takes this gap report and builds it into a quantified 90-day sprint — with a 3× Year-1 ROI guarantee. We scope it from your specific findings, not a generic playbook.</p>
+        </div>
+        <div class="book-cta-actions">
+          <a class="btn btn-gold btn-lg" id="book-email-btn" href="#">Email us your findings →</a>
+          <p class="cta-note">Response within 24 hours. No obligation.</p>
+          <button class="btn btn-copy-link" id="book-copy-btn">Copy report link</button>
+        </div>
+      </div>
     </div>
   </section>
 
