@@ -339,7 +339,7 @@ body.has-partner .partner-logo { display: block; }
   body { color: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   /* hide screen chrome + the sales gate; keep findings, radar, prescriber, sources, ROI/contact */
   .nav, .footer, .diag-actions, .btn, .nav-toggle, #retake, #print,
-  .keybar, .locked-grid, .empty { display: none !important; }
+  .keybar, .locked-grid, .dn-rec-panel, .empty { display: none !important; }
   .print-head { display: flex !important; }
   /* hero: drop the dark gradient so white text becomes readable ink */
   .score-hero { background: #fff !important; color: #000 !important; padding: 0 0 10px !important; }
