@@ -251,6 +251,24 @@ assert(await page.$eval("#exec-summary-section", e => getComputedStyle(e).displa
 assert(await page.$eval(".book-cta-section", e => getComputedStyle(e).display) === "none", "debrief/book section hidden in print");
 await page.emulateMedia({ media: "screen" });
 
+/* ─── 4j. HOMEPAGE — results-in-practice; RESULTS — positioning; PARTNERS page ─── */
+section("Results-in-practice, positioning line, partners page");
+// positioning line appears in calibration output (uses last valid upload state — re-upload)
+await page.setInputFiles("#csv-file", {
+  name: "cal.csv", mimeType: "text/csv",
+  buffer: Buffer.from("total_ask,total_rpk,total_opex_usd,fuel_cost_usd\n1200000000,890000000,110000000,42000000\n")
+});
+await page.waitForTimeout(300);
+const posTxt = await page.$eval("#calib-out", e => e.textContent);
+assert(/middle third/.test(posTxt), "positioning terciles rendered (74.2% LF → middle third)");
+assert(/indicative terciles/.test(posTxt), "positioning labelled as indicative");
+await page.goto(base + "/index.html"); await page.waitForTimeout(400);
+assert(await page.$$eval("#results-in-practice .card", e => e.length) === 3, "3 indicative composite vignettes on homepage");
+assert(/not attributable to any single airline/i.test(await page.$eval("#results-in-practice", e => e.textContent)), "privacy disclaimer present");
+await page.goto(base + "/partners.html"); await page.waitForTimeout(400);
+assert(/mailto:/.test(await page.$eval("[data-partner-mailto]", a => a.href)), "partner CTA mailto pre-filled");
+assert(/partner=YOURNAME/.test(await page.$eval("section", e => e.textContent)), "partner link mechanics explained");
+
 /* ─── 5. RESULTS — engagement key gate ─── */
 section("Results page — engagement key gate");
 // Reload with valid localStorage
