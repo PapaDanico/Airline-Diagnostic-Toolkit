@@ -45,6 +45,12 @@
   </div>
 </header>
 
+<form name="tool-enquiry" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text" name="bot-field"><input type="hidden" name="tool">
+  <input type="text" name="name"><input type="email" name="email">
+  <input type="text" name="airline"><input type="text" name="concern">
+</form>
+
 <section>
   <div class="wrap calc">
     <div class="card">
@@ -82,9 +88,21 @@
       <div class="guarantee" style="margin-top:1.4rem">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         <div>
-          <strong>Unlock the full Fuel Contract Optimizer and our negotiation playbook.</strong>
-          <p style="margin:.4rem 0 .8rem;font-size:.9rem">Tender template, supplier scoring matrix, hedge-trigger framework and a tailored negotiation strategy.</p>
-          <a class="btn btn-gold" id="contact-cta">Talk to DN about your fuel contract →</a>
+          <strong>Get the DN Fuel Tender Specification.</strong>
+          <p style="margin:.4rem 0 .8rem;font-size:.9rem">The 1-page RFP framework we use in fuel-supply negotiations across East Africa — commercial terms to specify, evaluation criteria and hedging provisions. Enter your details and it's yours immediately.</p>
+          <form id="fuel-enquiry" class="grid g2" style="gap:10px">
+            <input type="hidden" name="tool" value="Fuel Contract Optimizer Lite">
+            <input name="name" placeholder="Name" required>
+            <input name="airline" placeholder="Airline / Organisation">
+            <input name="email" type="email" placeholder="Work email" required>
+            <select name="concern">
+              <option value="">Primary concern</option>
+              <option>Cost reduction</option><option>Safety / Regulatory</option>
+              <option>Revenue growth</option><option>AOC startup</option><option>Strategy</option>
+            </select>
+            <button type="submit" class="btn btn-gold" style="grid-column:1/-1">Get the Fuel Tender Specification →</button>
+          </form>
+          <p class="enq-msg" style="font-size:.88rem;margin-top:.6rem"></p>
           <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain></span></p>
         </div>
       </div>
@@ -123,17 +141,11 @@
     rng.textContent = fmt(low) + " – " + fmt(high);
     qual.innerHTML = `Your airline could be saving between <strong>${fmt(low)}</strong> and <strong>${fmt(high)}</strong> a year by renegotiating closer to market benchmarks — roughly ${savePct.toFixed(1)}% of your current fuel spend.`;
   }
-  // Keep the contact CTA a real, keyboard-focusable mailto link whose body
-  // reflects the current inputs (works even without JS once first set).
-  function updateCta() {
-    const spend = document.getElementById("spend").value;
-    const prem = document.getElementById("premium").value;
-    document.getElementById("contact-cta").href =
-      `mailto:${DN.brand.email}?subject=${encodeURIComponent("[DN Toolkit · Fuel] Full optimizer & negotiation playbook")}&body=${encodeURIComponent("We'd like the full Fuel Contract Optimizer.\n\nApprox annual fuel spend (USD): "+spend+"\nCurrent premium to Platts (%): "+prem+"\n\nPlease get in touch.")}`;
-  }
   ["spend","premium","benchmark","uplift"].forEach(id =>
-    document.getElementById(id).addEventListener("input", () => { recalc(); updateCta(); }));
-  recalc(); updateCta();
+    document.getElementById(id).addEventListener("input", recalc));
+  recalc();
+  wireToolEnquiryForm("fuel-enquiry", "Fuel Contract Optimizer Lite",
+    { downloadUrl: "../assets/docs/DN_Fuel_Tender_Spec.pdf", downloadName: "Fuel Tender Specification" });
 </script>
 </body>
 </html>

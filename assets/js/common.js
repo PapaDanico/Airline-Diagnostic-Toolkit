@@ -210,7 +210,40 @@ function wrapLabel(name, maxChars) {
   return [words.slice(0, best + 1).join(" "), words.slice(best + 1).join(" ")];
 }
 
+/* ---- shared tool-enquiry form wiring (fuel/CASK/canvas pages) ----
+   Submits to the "tool-enquiry" Netlify form via fetch (no page nav),
+   with a mailto fallback on failure. opts.downloadUrl reveals a gated
+   download link in the success message (used by the fuel tender spec). */
+function wireToolEnquiryForm(formId, toolName, opts) {
+  opts = opts || {};
+  const form = document.getElementById(formId);
+  if (!form) return;
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const msg = form.querySelector(".enq-msg");
+    const btn = form.querySelector("button[type='submit']");
+    const data = new URLSearchParams({ "form-name": "tool-enquiry", "bot-field": "", tool: toolName });
+    form.querySelectorAll("input, select").forEach(el => { if (el.name) data.set(el.name, el.value.trim()); });
+    btn.disabled = true; btn.textContent = "Sending…";
+    try {
+      const resp = await fetch("/", { method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: data.toString() });
+      if (!resp.ok) throw new Error(resp.status);
+      form.style.display = "none";
+      msg.innerHTML = opts.downloadUrl
+        ? `✓ Received — a DN consultant will follow up within 24 hours. <a href="${opts.downloadUrl}" download>Download your copy of the ${opts.downloadName || "spec"} now →</a>`
+        : "✓ Received — a DN consultant will follow up within 24 hours.";
+      msg.style.color = "var(--dn-green)";
+    } catch {
+      msg.innerHTML = `Could not send — email us at <a href="mailto:${DN.brand.email}">${DN.brand.email}</a>`;
+      msg.style.color = "var(--dn-red)";
+      btn.disabled = false; btn.textContent = "Try again →";
+    }
+  });
+}
+
 if (typeof window !== "undefined") {
   Object.assign(window, { STORE_KEY, DN_LOGO, applyPartner, mountChrome,
-    saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel });
+    saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel,
+    wireToolEnquiryForm });
 }
