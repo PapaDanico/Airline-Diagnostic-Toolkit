@@ -300,6 +300,11 @@ await page.fill("#ask", "3000000000");
 await page.fill("#target", "9");
 await page.waitForTimeout(100);
 assert(/9\.33/.test(await page.$eval("#cask", e => e.textContent)), "CASK computes 9.33 US¢/ASK");
+// fuel cost-line breakdown (item 4): 9.33¢ CASK × 34% fuel = 3.17¢; DN target 9¢×32% = 2.88¢ → gap 0.29¢
+assert(/3\.17/.test(await page.$eval("#fuelQual", e => e.textContent)), "fuel CASK computed from cost-line % (3.17¢)");
+assert(/0\.29/.test(await page.$eval("#fuelQual", e => e.textContent)), "fuel gap vs DN target computed (0.29¢)");
+await page.selectOption("#fleetType", "ATR72");
+assert(/Turboprop/.test(await page.$eval("#fleetNote", e => e.textContent)), "fleet-type stage-length note updates");
 
 /* ─── 8. TNA — initial render ─── */
 section("Training Needs Analysis — initial render");
@@ -472,6 +477,29 @@ for (const pg of ["index.html", "diagnostic.html", "results.html", "tools/traini
   const h1Count = await page.$$eval("h1", h => h.length);
   assert(h1Count === 1, `${pg}: exactly one <h1> (got ${h1Count})`);
 }
+
+/* ─── 23b. Tool-page enquiry forms (replace mailto, item 2) ─── */
+section("Tool pages — inline enquiry forms");
+await page.goto(base + "/tools/fuel-optimizer.html"); await page.waitForTimeout(300);
+assert(await page.$("form[name='tool-enquiry'][hidden]") !== null, "fuel page: static Netlify form present");
+assert(await page.$("#fuel-enquiry [name=email]") !== null, "fuel page: enquiry form email field present");
+assert(await page.$("#contact-cta") === null, "fuel page: bare mailto CTA removed");
+
+await page.goto(base + "/tools/cask-calculator.html"); await page.waitForTimeout(300);
+assert(await page.$("#cask-enquiry [name=email]") !== null, "CASK page: enquiry form email field present");
+assert(await page.$("#contact-cta") === null, "CASK page: bare mailto CTA removed");
+
+await page.goto(base + "/tools/operating-model-canvas.html"); await page.waitForTimeout(300);
+assert(await page.$("#canvas-enquiry [name=email]") !== null, "canvas page: enquiry form email field present");
+assert(await page.$("#contact-cta") === null, "canvas page: bare mailto CTA removed");
+
+/* ─── 23c. How It Works page ─── */
+section("How It Works page");
+await page.goto(base + "/how-it-works.html"); await page.waitForTimeout(300);
+assert(await page.$$eval(".phase", e => e.length) === 5, "5 engagement phases rendered from DN.phases");
+assert(/15,000/.test(await page.$eval("body", e => e.textContent)), "investment range shown");
+assert(/3.*Year-1 ROI/.test(await page.$eval("body", e => e.textContent)), "ROI guarantee shown");
+assert(await page.$("#brief-enquiry [name=email]") !== null, "engagement brief form present");
 
 /* ─── 24. No JS errors ─── */
 section("JavaScript errors");

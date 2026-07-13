@@ -45,6 +45,12 @@
   </div>
 </header>
 
+<form name="tool-enquiry" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text" name="bot-field"><input type="hidden" name="tool">
+  <input type="text" name="name"><input type="email" name="email">
+  <input type="text" name="airline"><input type="text" name="concern">
+</form>
+
 <section>
   <div class="wrap calc">
     <div class="card">
@@ -64,6 +70,24 @@
         <input id="target" type="number" min="0" step="0.1" value="9">
         <div class="hint">Configurable. DN's competitive short/medium-haul target is &le; 9 US&cent;/ASK (USD 0.09).</div>
       </div>
+      <div class="field">
+        <label for="fleetType">Fleet type</label>
+        <select id="fleetType">
+          <option>B737-800</option><option>A320</option><option>E190</option>
+          <option>ATR72</option><option>DH8D</option><option>Other</option>
+        </select>
+        <div class="hint" id="fleetNote"></div>
+      </div>
+      <div class="field">
+        <label>Cost-line breakdown (% of total operating cost)</label>
+        <div class="grid g2" style="gap:8px">
+          <div><label for="fuelPct" style="font-size:.8rem">Fuel</label><input id="fuelPct" type="number" min="0" max="100" step="1" value="34"></div>
+          <div><label for="crewPct" style="font-size:.8rem">Crew</label><input id="crewPct" type="number" min="0" max="100" step="1" value="22"></div>
+          <div><label for="maintPct" style="font-size:.8rem">Maintenance</label><input id="maintPct" type="number" min="0" max="100" step="1" value="18"></div>
+          <div><label for="airportPct" style="font-size:.8rem">Airport / Nav</label><input id="airportPct" type="number" min="0" max="100" step="1" value="12"></div>
+        </div>
+        <div class="hint">Approximate shares of your total operating cost — used to estimate your fuel-specific unit cost below.</div>
+      </div>
     </div>
 
     <div>
@@ -75,13 +99,29 @@
         <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
         <p style="font-size:.84rem;color:#bfbfbf;margin:0">Context: African carriers' unit costs run close to <strong>double</strong> the rest of the world (IATA, <em>Cost Disadvantage of African Airlines</em>, 2025), driven by fuel (~40% of cost), thin scale and high financing and airport charges. The &le; 9 US&cent; target reflects a competitive position, not the regional average.</p>
       </div>
+      <div class="result-panel" style="margin-top:1rem">
+        <p class="eyebrow" style="color:var(--dn-gold)">Fuel cost-line detail</p>
+        <p class="qual" id="fuelQual" style="margin:0">Enter your figures to see the fuel breakdown.</p>
+      </div>
       <div class="guarantee" style="margin-top:1.4rem">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         <div>
           <strong>Unlock the full CASK Benchmarking pack.</strong>
           <p style="margin:.4rem 0 .8rem;font-size:.9rem">Your CASK broken down by cost line, benchmarked against African peers and LCC comparators, with the biggest unit-cost levers ranked by impact.</p>
-          <a class="btn btn-gold" id="contact-cta">Talk to DN about your unit cost &rarr;</a>
-        <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain></span></p>
+          <form id="cask-enquiry" class="grid g2" style="gap:10px">
+            <input type="hidden" name="tool" value="CASK Benchmarking Calculator">
+            <input name="name" placeholder="Name" required>
+            <input name="airline" placeholder="Airline / Organisation">
+            <input name="email" type="email" placeholder="Work email" required>
+            <select name="concern">
+              <option value="">Primary concern</option>
+              <option>Cost reduction</option><option>Safety / Regulatory</option>
+              <option>Revenue growth</option><option>AOC startup</option><option>Strategy</option>
+            </select>
+            <button type="submit" class="btn btn-gold" style="grid-column:1/-1">Talk to DN about your unit cost →</button>
+          </form>
+          <p class="enq-msg" style="font-size:.88rem;margin-top:.6rem"></p>
+          <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain></span></p>
         </div>
       </div>
       <p class="disclaimer" style="margin-top:1rem">Indicative estimate only, for orientation. CASK is sensitive to stage length, gauge and accounting treatment, so peer comparison needs care. No data leaves your browser.</p>
@@ -145,16 +185,52 @@
       qual.innerHTML = `You're at or below the DN competitive target — a strong unit-cost position. The priority is protecting it as you grow: watch stage-length mix, gauge and overhead creep.`;
     }
   }
-  // Keep the contact CTA a real, keyboard-focusable mailto link reflecting inputs.
-  function updateCta() {
-    const op = document.getElementById("opcost").value;
-    const ask = document.getElementById("ask").value;
-    document.getElementById("contact-cta").href =
-      `mailto:${DN.brand.email}?subject=${encodeURIComponent("[DN Toolkit · CASK] Full benchmarking pack & peer comparison")}&body=${encodeURIComponent("We'd like the full CASK Benchmarking pack.\n\nApprox annual operating cost (USD): "+op+"\nAnnual ASK: "+ask+"\n\nPlease get in touch.")}`;
+  // fleet-type stage-length context (informational, not part of the CASK maths)
+  const FLEET_NOTE = {
+    "B737-800": "Typical stage length 900–1,500km; CASK is sensitive to the shorter end of this range.",
+    "A320": "Typical stage length 900–1,500km, comparable to the 737-800 — gauge and configuration matter more than type here.",
+    "E190": "Regional gauge (~100 seats); expect 10–20% higher CASK than narrowbody peers at the same stage length, offset by load-factor flexibility on thin routes.",
+    "ATR72": "Turboprop, short stage lengths (<700km typical); CASK is structurally higher per seat-km — compare on cost-per-trip, not just CASK.",
+    "DH8D": "Turboprop regional; similar dynamics to the ATR72 — benchmark trip economics, not CASK alone, for thin/short routes.",
+    "Other": "Benchmark against the closest comparable gauge and stage length in your network."
+  };
+  function updateFleetNote() {
+    document.getElementById("fleetNote").textContent = FLEET_NOTE[document.getElementById("fleetType").value] || "";
   }
+  document.getElementById("fleetType").addEventListener("change", updateFleetNote);
+  updateFleetNote();
+
+  // fuel cost-line detail: your fuel CASK vs. DN's 32%-of-target fuel share
+  const TARGET_FUEL_SHARE = 32;
+  function recalcFuel() {
+    const op = parseFloat(document.getElementById("opcost").value) || 0;
+    const ask = parseFloat(document.getElementById("ask").value) || 0;
+    const targetCents = (parseFloat(document.getElementById("target").value) || 9);
+    const fuelPct = parseFloat(document.getElementById("fuelPct").value) || 0;
+    const fuelQual = document.getElementById("fuelQual");
+    if (op <= 0 || ask <= 0 || fuelPct <= 0) {
+      fuelQual.textContent = "Enter your figures to see the fuel breakdown.";
+      return;
+    }
+    const caskCents = (op / ask) * 100;
+    const fuelCaskCents = caskCents * fuelPct / 100;
+    const targetFuelCaskCents = targetCents * TARGET_FUEL_SHARE / 100;
+    const gapCents = fuelCaskCents - targetFuelCaskCents;
+    if (gapCents <= 0) {
+      fuelQual.innerHTML = `Your fuel CASK is <strong>${fuelCaskCents.toFixed(2)} US¢/ASK</strong> (${fuelPct}% of total) — already at or below DN's ${TARGET_FUEL_SHARE}% target fuel share.`;
+      return;
+    }
+    const annualGap = (gapCents / 100 / 100) * ask; // cents→USD per ASK × ASK
+    fuelQual.innerHTML = `Your fuel CASK is <strong>${fuelCaskCents.toFixed(2)} US¢/ASK</strong> (${fuelPct}% of total). At DN's ${TARGET_FUEL_SHARE}% target fuel share (${targetFuelCaskCents.toFixed(2)}¢), it would be <strong>${gapCents.toFixed(2)}¢ lower</strong> — saving roughly <strong>${fmtUsd(annualGap)}</strong> a year.`;
+  }
+  ["opcost","ask","target","fuelPct"].forEach(id =>
+    document.getElementById(id).addEventListener("input", recalcFuel));
+  recalcFuel();
+
   ["opcost","ask","target"].forEach(id =>
-    document.getElementById(id).addEventListener("input", () => { recalc(); updateCta(); }));
-  recalc(); updateCta();
+    document.getElementById(id).addEventListener("input", recalc));
+  recalc();
+  wireToolEnquiryForm("cask-enquiry", "CASK Benchmarking Calculator");
 </script>
 </body>
 </html>
