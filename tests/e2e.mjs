@@ -501,6 +501,27 @@ assert(/15,000/.test(await page.$eval("body", e => e.textContent)), "investment 
 assert(/3.*Year-1 ROI/.test(await page.$eval("body", e => e.textContent)), "ROI guarantee shown");
 assert(await page.$("#brief-enquiry [name=email]") !== null, "engagement brief form present");
 
+/* ─── 25. MRO & Technical Readiness Diagnostic ─── */
+section("MRO & Technical Readiness Diagnostic");
+await page.evaluate(() => localStorage.removeItem("dn_mro_readiness_v1"));
+await page.goto(base + "/tools/mro-readiness.html"); await page.waitForTimeout(300);
+assert(await page.$$eval(".mro-q select", e => e.length) === 20, "renders 20 questions across 5 domains");
+assert(await page.$eval("#mro-index", e => e.textContent.trim()) === "—", "index shows — before all questions answered");
+await page.evaluate(() => {
+  const ans = { compliance: [2,2,2,2], records: [2,2,2,2], reliability: [2,2,2,2], mel: [2,2,2,2], sourcing: [2,2,2,2] };
+  localStorage.setItem("dn_mro_readiness_v1", JSON.stringify(ans));
+});
+await page.reload(); await page.waitForTimeout(300);
+assert(await page.$eval("#mro-index", e => e.textContent.trim()) === "50", "index computes to 50 when every answer is 2/4");
+assert(/Material gaps to close/.test(await page.$eval("#mro-band", e => e.textContent)), "band matches indexVerdict(50)");
+assert(await page.$eval("#mro-radar", s => s.querySelectorAll("polygon").length) >= 5, "radar renders rings + data polygon");
+assert(await page.$("#mro-enquiry [name=email]") !== null, "enquiry form present");
+assert(await page.$("form[name='tool-enquiry'][hidden]") !== null, "static Netlify form present for build-time detection");
+page.once("dialog", d => d.accept());
+await page.click("#mro-reset"); await page.waitForTimeout(200);
+assert(await page.$eval("#mro-index", e => e.textContent.trim()) === "—", "index resets to — after clearing answers");
+assert(await page.$$eval(".mro-q select", sels => sels.every(s => s.value === "")), "all selects cleared after reset");
+
 /* ─── 24. No JS errors ─── */
 section("JavaScript errors");
 assert(errs.length === 0, `no uncaught page errors (${errs.length ? errs.join(" | ") : "none"})`);

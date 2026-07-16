@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="MRO & Technical Readiness Diagnostic — a free 20-question maturity check across airworthiness compliance, technical records, reliability, MEL/dispatch and MRO sourcing. Free, client-side, on your device.">
+<link rel="canonical" href="https://dnconsultancydiagnostictoolkit.netlify.app/tools/mro-readiness.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DN Consultancy">
+<meta property="og:title" content="MRO & Technical Readiness Diagnostic — DN Consultancy">
+<meta property="og:description" content="A free maturity check for maintenance/technical departments: compliance, records, reliability, MEL and MRO sourcing.">
+<meta property="og:url" content="https://dnconsultancydiagnostictoolkit.netlify.app/tools/mro-readiness.html">
+<meta property="og:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MRO & Technical Readiness Diagnostic — DN Consultancy">
+<meta name="twitter:description" content="A free maturity check for maintenance/technical departments.">
+<meta name="twitter:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
+<title>MRO & Technical Readiness Diagnostic | DN Consultancy</title>
+<link rel="icon" type="image/png" href="../assets/img/dn-badge.png">
+<link rel="apple-touch-icon" href="../assets/img/dn-badge.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/dn.css">
+<style>
+  .mro-panel { border: 1px solid rgba(28,28,28,.14); border-radius: var(--radius-sm); padding: 16px 18px; background: var(--dn-white); margin-bottom: 14px; }
+  .mro-panel h3 { font-size: 1.02rem; margin: 0 0 2px; }
+  .mro-panel .w { font-size: .78rem; color: var(--dn-muted); margin-bottom: .7rem; }
+  .mro-q { margin-bottom: .8rem; }
+  .mro-q label { display: block; font-size: .9rem; margin-bottom: .3rem; }
+  .mro-q select { width: 100%; padding: 8px 10px; border: 1px solid rgba(28,28,28,.16); border-radius: 6px; font: inherit; background: var(--dn-fog); }
+  .mro-radar-wrap { max-width: 560px; margin: 1.2rem auto; }
+</style>
+</head>
+<body>
+
+<form name="tool-enquiry" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text" name="bot-field"><input type="hidden" name="tool">
+  <input type="text" name="name"><input type="email" name="email">
+  <input type="text" name="airline"><input type="text" name="concern">
+</form>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner><span data-logo></span><span>DN Consultancy<small>MRO &amp; Technical Readiness</small></span></a>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+    <div class="nav-links">
+      <a href="../index.html" data-keep-partner>Home</a>
+      <a href="../diagnostic.html" data-keep-partner>Scorecard</a>
+      <a href="index.html">Free tools</a>
+    </div>
+  </div>
+</nav>
+
+<header class="diag-head">
+  <div class="wrap">
+    <p class="eyebrow">Free point solution · For Chief Engineers &amp; CAMO Managers</p>
+    <h1 style="margin:0">MRO &amp; Technical Readiness Diagnostic</h1>
+    <p class="muted" style="max-width:720px">20 questions across 5 domains most CMMS platforms don't touch: airworthiness compliance, technical records, reliability programme, MEL/dispatch and MRO sourcing. Runs entirely on your device — nothing is uploaded.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div id="panels"></div>
+
+    <div class="mro-radar-wrap">
+      <svg id="mro-radar" role="img" aria-label="MRO readiness radar" style="width:100%;height:auto"></svg>
+    </div>
+
+    <div class="result-panel" style="margin-top:1rem">
+      <p class="eyebrow" style="color:var(--dn-gold)">Technical Readiness Index</p>
+      <div class="rng" id="mro-index">&mdash;</div>
+      <p id="mro-band" style="font-weight:700;margin:.2rem 0 .6rem">Answer the 20 questions to see your index.</p>
+      <p class="qual" id="mro-qual"></p>
+    </div>
+
+    <div class="guarantee" style="margin-top:1.4rem">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <div>
+        <strong>Turn this into a technical improvement plan.</strong>
+        <p style="margin:.4rem 0 .8rem;font-size:.9rem">DN maps your weakest domains to a quantified 90-day sprint — compliance-risk remediation, records digitisation, or MRO sourcing strategy, scoped from your actual gaps.</p>
+        <form id="mro-enquiry" class="grid g2" style="gap:10px">
+          <input type="hidden" name="tool" value="MRO & Technical Readiness Diagnostic">
+          <input name="name" placeholder="Name" required>
+          <input name="airline" placeholder="Airline / Organisation">
+          <input name="email" type="email" placeholder="Work email" required>
+          <select name="concern">
+            <option value="">Primary concern</option>
+            <option>Cost reduction</option><option>Safety / Regulatory</option>
+            <option>Revenue growth</option><option>AOC startup</option><option>Strategy</option>
+          </select>
+          <button type="submit" class="btn btn-gold" style="grid-column:1/-1">Talk to DN about your technical readiness →</button>
+        </form>
+        <p class="enq-msg" style="font-size:.88rem;margin-top:.6rem"></p>
+        <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain></span></p>
+      </div>
+    </div>
+    <p class="disclaimer" style="margin-top:1rem">A self-assessment screening tool, not a compliance audit. Indicative only. Your answers stay in this browser and are cleared with the reset button below.</p>
+    <p style="margin-top:.6rem"><button class="btn btn-ghost" id="mro-reset">Reset answers</button></p>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> DN Consultancy · <a data-email></a></span>
+    <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <span data-version></span></span>
+  </div></div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/common.js"></script>
+<script>
+  applyPartner(); mountChrome();
+
+  const DOMAINS = [
+    { id: "compliance", name: "Airworthiness & Compliance", weight: 25, qs: [
+      "AD / Service Bulletin tracking and close-out discipline",
+      "Audit readiness of technical records (if a regulator or lessor audited tomorrow)",
+      "Continuing airworthiness management oversight of the fleet",
+      "Occurrence / defect reporting discipline and follow-through"
+    ]},
+    { id: "records", name: "Technical Records & Digitisation", weight: 15, qs: [
+      "Digitisation of technical records (vs paper-based)",
+      "Component / life-limited-parts tracking accuracy (hours, cycles, calendar)",
+      "Retrievability — time to produce a component's full back-to-birth history",
+      "Data integration between maintenance, engineering and finance systems"
+    ]},
+    { id: "reliability", name: "Reliability & Maintenance Programme", weight: 20, qs: [
+      "MSG-3 task-interval review and escalation/de-escalation discipline",
+      "Defect trend analysis and root-cause investigation",
+      "Unscheduled removal rate tracking against fleet benchmarks",
+      "Maintenance programme optimisation (task packaging, check intervals)"
+    ]},
+    { id: "mel", name: "MEL & Dispatch Management", weight: 20, qs: [
+      "MEL deferral tracking and carry-forward visibility",
+      "Rectification-interval discipline (A/B/C category compliance)",
+      "Dispatch-reliability impact of deferred items — visibility to leadership",
+      "Recurring-defect linkage back to MEL and reliability data"
+    ]},
+    { id: "sourcing", name: "Spares, Rotables & MRO Sourcing", weight: 20, qs: [
+      "Spares availability planning and AOG risk management",
+      "Rotable pooling vs owned-stock strategy",
+      "In-house vs outsourced MRO (make-vs-buy) decision discipline",
+      "MRO turnaround-time (TAT) tracking against contracted SLAs"
+    ]}
+  ];
+  const SCALE = DN.scaleGeneric;
+  const KEY = "dn_mro_readiness_v1";
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
+  const save = (s) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {} };
+  let answers = load();
+
+  const panels = document.getElementById("panels");
+  DOMAINS.forEach(d => {
+    const panel = document.createElement("div");
+    panel.className = "mro-panel";
+    panel.innerHTML = `<h3>${d.name}</h3><p class="w">Weight ${d.weight}% of index</p>`;
+    d.qs.forEach((q, qi) => {
+      const wrap = document.createElement("div");
+      wrap.className = "mro-q";
+      const opts = SCALE.map((s, si) => `<option value="${si}">${si} — ${s}</option>`).join("");
+      wrap.innerHTML = `<label>${q}</label><select data-d="${d.id}" data-q="${qi}"><option value="">Not answered</option>${opts}</select>`;
+      panel.appendChild(wrap);
+      const sel = wrap.querySelector("select");
+      sel.value = (answers[d.id] || [])[qi] ?? "";
+      sel.addEventListener("change", () => {
+        answers[d.id] = answers[d.id] || [];
+        answers[d.id][qi] = sel.value === "" ? undefined : parseInt(sel.value, 10);
+        save(answers);
+        recalc();
+      });
+    });
+    panels.appendChild(panel);
+  });
+
+  function recalc() {
+    let weighted = 0, wsum = 0, answeredAll = true;
+    const domainPcts = DOMAINS.map(d => {
+      const vals = (answers[d.id] || []).filter(v => Number.isInteger(v));
+      if (vals.length < d.qs.length) answeredAll = false;
+      const pct = vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length / 4) * 100 : 0;
+      weighted += pct * d.weight; wsum += d.weight;
+      return { name: d.name, pct: Math.round(pct) };
+    });
+    drawRadar(document.getElementById("mro-radar"), domainPcts);
+    const idxEl = document.getElementById("mro-index");
+    const bandEl = document.getElementById("mro-band");
+    const qualEl = document.getElementById("mro-qual");
+    if (!answeredAll) {
+      idxEl.textContent = "—";
+      bandEl.textContent = "Answer all 20 questions to see your index.";
+      qualEl.textContent = "";
+      return;
+    }
+    const index = Math.round(weighted / wsum);
+    const v = indexVerdict(index);
+    idxEl.textContent = index;
+    idxEl.style.color = v.color;
+    bandEl.textContent = v.band;
+    bandEl.style.color = v.color;
+    const sorted = [...domainPcts].sort((a, b) => a.pct - b.pct);
+    qualEl.innerHTML = `Widest gaps: <strong>${sorted[0].name}</strong> (${sorted[0].pct}%) and <strong>${sorted[1].name}</strong> (${sorted[1].pct}%).`;
+  }
+  recalc();
+
+  document.getElementById("mro-reset").addEventListener("click", () => {
+    if (!confirm("Clear all your answers on this device?")) return;
+    answers = {}; save(answers);
+    document.querySelectorAll(".mro-q select").forEach(s => s.value = "");
+    recalc();
+  });
+
+  wireToolEnquiryForm("mro-enquiry", "MRO & Technical Readiness Diagnostic");
+</script>
+</body>
+</html>
