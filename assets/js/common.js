@@ -220,6 +220,9 @@ function wireToolEnquiryForm(formId, toolName, opts) {
   if (!form) return;
   form.addEventListener("submit", async e => {
     e.preventDefault();
+    // .enq-msg must live inside the <form> — form.querySelector only
+    // searches descendants, so a message element placed after </form>
+    // silently returns null here and every branch below would throw.
     const msg = form.querySelector(".enq-msg");
     const btn = form.querySelector("button[type='submit']");
     const data = new URLSearchParams({ "form-name": "tool-enquiry", "bot-field": "", tool: toolName });
@@ -230,13 +233,17 @@ function wireToolEnquiryForm(formId, toolName, opts) {
         headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: data.toString() });
       if (!resp.ok) throw new Error(resp.status);
       form.style.display = "none";
-      msg.innerHTML = opts.downloadUrl
-        ? `✓ Received — a DN consultant will follow up within 24 hours. <a href="${opts.downloadUrl}" download>Download your copy of the ${opts.downloadName || "spec"} now →</a>`
-        : "✓ Received — a DN consultant will follow up within 24 hours.";
-      msg.style.color = "var(--dn-green)";
+      if (msg) {
+        msg.innerHTML = opts.downloadUrl
+          ? `✓ Received — a DN consultant will follow up within 24 hours. <a href="${opts.downloadUrl}" download>Download your copy of the ${opts.downloadName || "spec"} now →</a>`
+          : "✓ Received — a DN consultant will follow up within 24 hours.";
+        msg.style.color = "var(--dn-green)";
+      }
     } catch {
-      msg.innerHTML = `Could not send — email us at <a href="mailto:${DN.brand.email}">${DN.brand.email}</a>`;
-      msg.style.color = "var(--dn-red)";
+      if (msg) {
+        msg.innerHTML = `Could not send — email us at <a href="mailto:${DN.brand.email}">${DN.brand.email}</a>`;
+        msg.style.color = "var(--dn-red)";
+      }
       btn.disabled = false; btn.textContent = "Try again →";
     }
   });

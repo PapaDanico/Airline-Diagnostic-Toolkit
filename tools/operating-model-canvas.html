@@ -114,8 +114,8 @@
             <option>Revenue growth</option><option>AOC startup</option><option>Strategy</option>
           </select>
           <button type="submit" class="btn btn-gold" style="grid-column:1/-1">Book a canvas workshop with DN →</button>
+          <p class="enq-msg" style="font-size:.88rem;margin-top:.6rem;grid-column:1/-1"></p>
         </form>
-        <p class="enq-msg" style="font-size:.88rem;margin-top:.6rem"></p>
         <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain></span></p>
       </div>
     </div>
@@ -202,11 +202,18 @@
   });
 
   wireToolEnquiryForm("canvas-enquiry", "Operating Model Canvas");
-  // pre-fill the enquiry form's airline field from the canvas's own airline input
-  airline.addEventListener("input", () => {
-    const f = document.querySelector("#canvas-enquiry [name=airline]");
-    if (f && !f.value) f.value = airline.value;
-  });
+  // live-sync the enquiry form's airline field from the canvas's own airline
+  // input, until the visitor edits the enquiry field directly (a naive
+  // "only fill while empty" guard would stop syncing after the first
+  // keystroke, since the field is non-empty from then on)
+  const enquiryAirline = document.querySelector("#canvas-enquiry [name=airline]");
+  if (enquiryAirline) {
+    let userEditedEnquiry = false;
+    enquiryAirline.addEventListener("input", () => { userEditedEnquiry = true; });
+    airline.addEventListener("input", () => {
+      if (!userEditedEnquiry) enquiryAirline.value = airline.value;
+    });
+  }
 </script>
 </body>
 </html>

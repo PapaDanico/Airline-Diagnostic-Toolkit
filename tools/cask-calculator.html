@@ -119,8 +119,8 @@
               <option>Revenue growth</option><option>AOC startup</option><option>Strategy</option>
             </select>
             <button type="submit" class="btn btn-gold" style="grid-column:1/-1">Talk to DN about your unit cost →</button>
+            <p class="enq-msg" style="font-size:.88rem;margin-top:.6rem;grid-column:1/-1"></p>
           </form>
-          <p class="enq-msg" style="font-size:.88rem;margin-top:.6rem"></p>
           <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain></span></p>
         </div>
       </div>
@@ -223,13 +223,13 @@
     const annualGap = (gapCents / 100 / 100) * ask; // cents→USD per ASK × ASK
     fuelQual.innerHTML = `Your fuel CASK is <strong>${fuelCaskCents.toFixed(2)} US¢/ASK</strong> (${fuelPct}% of total). At DN's ${TARGET_FUEL_SHARE}% target fuel share (${targetFuelCaskCents.toFixed(2)}¢), it would be <strong>${gapCents.toFixed(2)}¢ lower</strong> — saving roughly <strong>${fmtUsd(annualGap)}</strong> a year.`;
   }
-  ["opcost","ask","target","fuelPct"].forEach(id =>
-    document.getElementById(id).addEventListener("input", recalcFuel));
-  recalcFuel();
-
+  // opcost/ask/target feed both recalc() and recalcFuel(); fuelPct feeds
+  // only recalcFuel() — one listener per field, not one per consumer
+  const recalcAll = () => { recalc(); recalcFuel(); };
   ["opcost","ask","target"].forEach(id =>
-    document.getElementById(id).addEventListener("input", recalc));
-  recalc();
+    document.getElementById(id).addEventListener("input", recalcAll));
+  document.getElementById("fuelPct").addEventListener("input", recalcFuel);
+  recalcAll();
   wireToolEnquiryForm("cask-enquiry", "CASK Benchmarking Calculator");
 </script>
 </body>
