@@ -47,8 +47,14 @@ function applyPartner() {
 function mountChrome() {
   document.querySelectorAll("[data-logo]").forEach(el => el.innerHTML = DN_LOGO);
   const toggle = document.querySelector(".nav-toggle");
-  if (toggle) toggle.addEventListener("click", () =>
-    document.querySelector(".nav-links")?.classList.toggle("open"));
+  const navLinks = document.querySelector(".nav-links");
+  if (toggle && navLinks) {
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.addEventListener("click", () => {
+      const isOpen = navLinks.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", String(isOpen));
+    });
+  }
   document.querySelectorAll("[data-year]").forEach(el => el.textContent = new Date().getFullYear());
   document.querySelectorAll("[data-version]").forEach(el => el.textContent = DN.brand.version);
   document.querySelectorAll("[data-email]").forEach(el => {
@@ -224,6 +230,10 @@ function wireToolEnquiryForm(formId, toolName, opts) {
     // searches descendants, so a message element placed after </form>
     // silently returns null here and every branch below would throw.
     const msg = form.querySelector(".enq-msg");
+    if (msg) {
+      msg.setAttribute("role", "status");
+      msg.setAttribute("aria-live", "polite");
+    }
     const btn = form.querySelector("button[type='submit']");
     const data = new URLSearchParams({ "form-name": "tool-enquiry", "bot-field": "", tool: toolName });
     form.querySelectorAll("input, select").forEach(el => { if (el.name) data.set(el.name, el.value.trim()); });
