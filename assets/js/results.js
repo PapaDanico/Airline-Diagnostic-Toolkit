@@ -127,8 +127,9 @@
       <p style="margin:0.5rem 0;font-weight:600">Based on your ${topGaps.map(d => d.name).join(", ")} scores, these tools will give you quick insights:</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:1rem" id="rec-tools"></div>`;
     /* insert before the toolboxes <section>, not inside its .wrap */
-    const toolboxSection = document.querySelector(".locked-grid").closest("section");
-    toolboxSection.parentElement.insertBefore(recHost, toolboxSection);
+    const lockedGrid = document.querySelector(".locked-grid");
+    const toolboxSection = lockedGrid && lockedGrid.closest("section");
+    if (toolboxSection) toolboxSection.parentElement.insertBefore(recHost, toolboxSection);
     const recToolsHost = document.getElementById("rec-tools");
     DN.toolboxes.forEach(tb => {
       tb.tools.forEach(t => {
@@ -144,14 +145,14 @@
 
   /* ---- locked Toolboxes B/C/D (DN Engagement Key gate) ---- */
   renderToolboxes();
-  const unlocked = sessionStorage.getItem("dn_unlocked") === "1";
+  const unlocked = sessionGet("dn_unlocked") === "1";
   if (unlocked) setUnlocked(true);
 
   document.getElementById("key-apply").addEventListener("click", () => {
     const val = document.getElementById("key-input").value.trim();
     const msg = document.getElementById("key-msg");
     if (val.toUpperCase() === DN.engagementKey) {
-      sessionStorage.setItem("dn_unlocked", "1"); setUnlocked(true);
+      sessionSet("dn_unlocked", "1"); setUnlocked(true);
       msg.textContent = "Unlocked — full toolbox previews enabled."; msg.className = "keymsg rag-green";
     } else {
       msg.innerHTML = `Invalid key. <a href="mailto:${DN.brand.email}?subject=DN%20Engagement%20Key%20request">Request your DN Engagement Key →</a>`;
@@ -330,7 +331,6 @@
       "A2": "tools/cask-calculator.html",
       "A3": "tools/data-request.html",
       "A4": "tools/operating-model-canvas.html",
-      "B5": "#", // locked, no direct link
       "C5": "tools/training-tna.html"
     };
     DN.toolboxes.forEach(tb => {
@@ -435,7 +435,7 @@
   }
 
   /* ---- email capture (Netlify Forms via fetch) ---- */
-  if (sessionStorage.getItem("dn_report_sent") === "1") {
+  if (sessionGet("dn_report_sent") === "1") {
     const ec = document.getElementById("email-capture-section");
     if (ec) ec.style.display = "none";
   }
@@ -474,7 +474,7 @@
         msg.textContent = "✓ Sent — your Executive Brief & 90-Day Roadmap will arrive in your inbox.";
         msg.style.color = "var(--dn-green)";
         submitBtn.textContent = "✓ Executive Brief Requested";
-        sessionStorage.setItem("dn_report_sent", "1");
+        sessionSet("dn_report_sent", "1");
       } catch {
         msg.innerHTML = `Could not send — email us at <a href="mailto:${DN.brand.email}">${DN.brand.email}</a>`;
         msg.style.color = "var(--dn-red)";
@@ -513,8 +513,8 @@
   /* ---- capture nudge: slide-in bar once the reader is 60% through the
      report — engaged readers convert far better than a footer form.
      Skipped for shared views, after a send, or once dismissed. ---- */
-  if (!isShared && sessionStorage.getItem("dn_report_sent") !== "1"
-      && sessionStorage.getItem("dn_capture_nudged") !== "1") {
+  if (!isShared && sessionGet("dn_report_sent") !== "1"
+      && sessionGet("dn_capture_nudged") !== "1") {
     const nudge = document.createElement("div");
     nudge.id = "capture-nudge";
     nudge.style.cssText = "position:fixed;left:0;right:0;bottom:-90px;z-index:60;background:var(--dn-dark,#1F3044);color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;box-shadow:0 -6px 24px rgba(0,0,0,.25);transition:bottom .35s ease";
@@ -535,7 +535,7 @@
     const dismiss = () => {
       nudge.remove();
       removeEventListener("scroll", onScroll);
-      try { sessionStorage.setItem("dn_capture_nudged", "1"); } catch (_) {}
+      sessionSet("dn_capture_nudged", "1");
     };
     nudge.querySelector("#nudge-x").addEventListener("click", dismiss);
     nudge.querySelector("#nudge-go").addEventListener("click", () => {

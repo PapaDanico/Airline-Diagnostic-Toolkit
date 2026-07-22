@@ -199,14 +199,17 @@
     const pct = Math.round((checked / total) * 100);
     document.getElementById('collected-count').textContent = checked;
     document.getElementById('progress-pct').textContent = pct + '%';
-    localStorage.setItem('dn_data_request_progress', JSON.stringify(Array.from(allCheckboxes).map(c => c.checked)));
+    try { localStorage.setItem('dn_data_request_progress', JSON.stringify(Array.from(allCheckboxes).map(c => c.checked))); } catch {}
   }
   allCheckboxes.forEach(checkbox => { checkbox.addEventListener('change', updateProgress); });
-  const saved = localStorage.getItem('dn_data_request_progress');
+  let saved = null;
+  try { saved = localStorage.getItem('dn_data_request_progress'); } catch {}
   if (saved) {
-    const checked = JSON.parse(saved);
-    allCheckboxes.forEach((c, i) => { c.checked = checked[i] || false; });
-    updateProgress();
+    try {
+      const checked = JSON.parse(saved);
+      allCheckboxes.forEach((c, i) => { c.checked = checked[i] || false; });
+      updateProgress();
+    } catch {}
   }
 })();
 </script>
