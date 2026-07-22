@@ -8,13 +8,18 @@ import { dirname, resolve, join, normalize } from "node:path";
 import { existsSync } from "node:fs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const pages = ["index.html", "diagnostic.html", "results.html", "embed.html", "privacy.html", "terms.html",
-  "tools/fuel-optimizer.html", "tools/cask-calculator.html", "tools/operating-model-canvas.html", "tools/data-request.html", "tools/training-tna.html"];
+const pages = ["index.html", "diagnostic.html", "results.html", "demo-results.html", "embed.html", "privacy.html", "terms.html", "methodology.html", "partners.html", "how-it-works.html",
+  "tools/index.html", "tools/mro-readiness.html", "tools/fuel-optimizer.html", "tools/cask-calculator.html", "tools/operating-model-canvas.html", "tools/data-request.html", "tools/training-tna.html"];
 // Google Fonts is loaded from a CDN; in offline/sandbox CI that request can
 // fail with a cert/network error that is irrelevant to the page itself.
 const IGNORE = /ERR_CERT_AUTHORITY_INVALID|ERR_(NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION)|fonts\.googleapis|fonts\.gstatic/;
 
-const b = await chromium.launch();
+const CANDIDATE_EXECS = [
+  "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
+  "/opt/build/repo/.netlify/plugins/node_modules/@netlify/plugin-lighthouse/node_modules/puppeteer-core/.local-chromium/linux-1045629/chrome-linux/chrome"
+];
+const execPath = CANDIDATE_EXECS.find(p => existsSync(p));
+const b = await chromium.launch(execPath ? { executablePath: execPath } : {});
 let problems = 0;
 for (const pg of pages) {
   const dir = dirname(pg);
@@ -34,7 +39,7 @@ for (const pg of pages) {
       imgsNoAlt: [...document.querySelectorAll("img")].filter(i => !i.hasAttribute("alt")).length,
       btnsNoName: [...document.querySelectorAll("button")].filter(b => !(b.textContent.trim() || b.getAttribute("aria-label"))).length,
       dupes: [...new Set(ids.filter((x, i) => ids.indexOf(x) !== i))],
-      links: [...new Set([...document.querySelectorAll("a[href]")].map(a => a.getAttribute("href")).filter(h => h && !/^(https?:|mailto:|#|tel:)/.test(h)))],
+      links: [...new Set([...document.querySelectorAll("a[href]")].map(a => a.getAttribute("href")).filter(h => h && !/^(https?:|mailto:|#|tel:|data:)/.test(h)))],
       hasChrome: !!document.querySelector("[data-year]"),
       yearOk: document.querySelector("[data-year]")?.textContent === String(new Date().getFullYear())
     };

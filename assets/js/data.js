@@ -36,6 +36,59 @@ const DN = {
     "Best-practice / continuously improving"
   ],
 
+  // Pre-diagnostic calibration options
+  calibration: {
+    fleetTypes: ["Turboprop", "Regional Jet", "Narrowbody", "Mixed Fleet"],
+    operatingModels: ["Scheduled Regional", "ACMI & Charter", "Flag Carrier", "Cargo"]
+  },
+
+  // Dynamic weighting matrix adjustment based on fleet type & operating model
+  getAdjustedWeights(fleetType, opModel) {
+    const base = { safety: 18, ops: 14, fleet: 12, cost: 14, revenue: 13, commercial: 10, people: 9, finance: 10 };
+    if (!fleetType && !opModel) return base;
+
+    const adj = { ...base };
+
+    if (opModel === "Cargo") {
+      adj.ops += 3; adj.cost += 3; adj.safety += 2;
+      adj.commercial = Math.max(2, adj.commercial - 4);
+      adj.revenue = Math.max(3, adj.revenue - 4);
+    } else if (opModel === "ACMI & Charter") {
+      adj.fleet += 3; adj.ops += 3; adj.safety += 2;
+      adj.commercial = Math.max(2, adj.commercial - 4);
+      adj.revenue = Math.max(3, adj.revenue - 4);
+    } else if (opModel === "Flag Carrier") {
+      adj.revenue += 2; adj.commercial += 2; adj.finance += 2;
+      adj.cost = Math.max(8, adj.cost - 2);
+      adj.ops = Math.max(10, adj.ops - 2);
+      adj.fleet = Math.max(8, adj.fleet - 2);
+    }
+
+    if (fleetType === "Turboprop") {
+      adj.cost += 2; adj.ops += 1; adj.commercial = Math.max(2, adj.commercial - 2); adj.fleet -= 1;
+    } else if (fleetType === "Narrowbody") {
+      adj.revenue += 2; adj.fleet += 1; adj.cost = Math.max(8, adj.cost - 1); adj.ops = Math.max(10, adj.ops - 2);
+    } else if (fleetType === "Regional Jet") {
+      adj.ops += 2; adj.cost += 1; adj.commercial = Math.max(2, adj.commercial - 2); adj.revenue = Math.max(8, adj.revenue - 1);
+    } else if (fleetType === "Mixed Fleet") {
+      adj.fleet += 2; adj.finance += 1; adj.safety += 1; adj.cost = Math.max(8, adj.cost - 2); adj.revenue = Math.max(8, adj.revenue - 2);
+    }
+
+    const sum = Object.values(adj).reduce((a, b) => a + b, 0);
+    const result = {};
+    let normSum = 0;
+    const keys = Object.keys(adj);
+    keys.forEach((k, idx) => {
+      if (idx === keys.length - 1) {
+        result[k] = 100 - normSum;
+      } else {
+        result[k] = Math.round((adj[k] / sum) * 100);
+        normSum += result[k];
+      }
+    });
+    return result;
+  },
+
   domains: [
     {
       id: "safety", name: "Safety & SMS Maturity", weight: 18,
@@ -241,12 +294,32 @@ const DN = {
       {ref:"D4", n:"Fuel Procurement Optimisation", d:"Tender template + hedge-trigger framework."} ]}
   ],
 
+  benchmarkMeta: {
+    asOf: "Q4 2024 – mid-2025",
+    sources: [
+      "AFRAA Q4 2024 Airline Performance Update",
+      "IATA 2024 Safety Report",
+      "IATA, Cost Disadvantage of African Airlines (2025)",
+      "IATA GADM / ACMG operational and cost data"
+    ]
+  },
+
   phases: [
-    {days:"Days 1–2", t:"Entry Diagnostic", d:"Health Scorecard, CASK benchmark, Operating Model Canvas, data request. Baseline + hypotheses."},
-    {days:"Days 3–14", t:"Deep Analysis", d:"Route P&L, staff cost, fleet utilisation, safety maturity, revenue mix — quantified, root-caused."},
-    {days:"Days 10–14", t:"Prioritisation", d:"Impact × effort matrix. Build the 90-day sprint framework."},
-    {days:"Days 14–21", t:"Board Delivery", d:"Board-structure presentation, governance framework, training TNA."},
-    {days:"Days 21–90", t:"Sprint Implementation", d:"Weekly check-ins, monthly reviews, results verification, final report."}
+    {days:"Days 1–2", t:"Entry Diagnostic", d:"Health Scorecard, CASK benchmark, Operating Model Canvas, data request. Baseline + hypotheses.",
+      tools:["Airline Health Scorecard","CASK Benchmarking Calculator","Operating Model Canvas","48-Hour Data Request"],
+      outcome:"A quantified baseline and a shortlist of hypotheses agreed with your leadership team."},
+    {days:"Days 3–14", t:"Deep Analysis", d:"Route P&L, staff cost, fleet utilisation, safety maturity, revenue mix — quantified, root-caused.",
+      tools:["Route P&L model","Staff cost benchmarks","Fleet utilisation analysis","SMS maturity review"],
+      outcome:"Every gap root-caused and sized in currency, not adjectives."},
+    {days:"Days 10–14", t:"Prioritisation", d:"Impact × effort matrix. Build the 90-day sprint framework.",
+      tools:["Impact × effort matrix","Quick-win register","Sprint charter templates"],
+      outcome:"A sequenced 90-day plan your team can actually staff and fund."},
+    {days:"Days 14–21", t:"Board Delivery", d:"Board-structure presentation, governance framework, training TNA.",
+      tools:["Board presentation pack","Governance framework","Training Needs Analysis"],
+      outcome:"Board sign-off with clear owners, budgets and decision rights."},
+    {days:"Days 21–90", t:"Sprint Implementation", d:"Weekly check-ins, monthly reviews, results verification, final report.",
+      tools:["Weekly sprint reviews","KPI dashboard","Results verification pack"],
+      outcome:"Verified results against the baseline — the 3× first-year ROI guarantee is measured here."}
   ]
 };
 

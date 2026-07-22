@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Distribute the DN Airline Health Scorecard to your airline clients under your own brand — co-branded links, no integration work, full data privacy.">
+<link rel="canonical" href="https://dnconsultancydiagnostictoolkit.netlify.app/partners.html">
+<meta name="robots" content="all">
+<title>Partner Programme | DN Consultancy</title>
+<link rel="icon" type="image/png" href="assets/img/dn-badge.png">
+<link rel="apple-touch-icon" href="assets/img/dn-badge.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/dn.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span data-logo></span><span>DN Consultancy<small>Partner Programme</small></span></a>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="tools/index.html">Free tools</a>
+      <a href="methodology.html">Methodology</a>
+    </div>
+  </div>
+</nav>
+
+<header class="diag-head">
+  <div class="wrap">
+    <p class="eyebrow">For aviation software vendors, lessors, consultancies &amp; associations</p>
+    <h1 style="margin:0">Put the Airline Health Scorecard in front of your clients — under your brand</h1>
+    <p class="muted" style="max-width:720px">The diagnostic complements the tools you already sell: it tells an airline <em>what to fix</em>, creating the business case for the solutions that fix it.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="grid g3">
+      <div class="card">
+        <p class="eyebrow">1 · Your link</p>
+        <h3>Co-branded in minutes</h3>
+        <p class="muted">You get a dedicated link (<code>?partner=YOURNAME</code>). Every page a client visits through it carries your accent colours and a "in partnership with" banner — no integration, no code on your side.</p>
+      </div>
+      <div class="card">
+        <p class="eyebrow">2 · Their diagnostic</p>
+        <h3>Privacy stays intact</h3>
+        <p class="muted">Clients complete the 40-question scorecard in their own browser. Answers never reach DN <em>or</em> you — the same privacy-first model that makes airline executives willing to answer honestly.</p>
+      </div>
+      <div class="card">
+        <p class="eyebrow">3 · The follow-up</p>
+        <h3>Qualified conversations</h3>
+        <p class="muted">The gap report prescribes next steps that map to your product category as well as DN's engagement phases — so the client arrives at your sales conversation already knowing why they need it.</p>
+      </div>
+    </div>
+
+    <div class="guarantee" style="margin-top:2rem">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 3 5v6c0 5 3.8 9.7 9 11 5.2-1.3 9-6 9-11V5l-9-4z"/></svg>
+      <div><strong>Who it fits.</strong> Analytics and revenue-management vendors, MRO software providers, lessors doing portfolio health checks, regional airline associations, and consultancies that want a neutral diagnostic front-end. The scorecard is deliberately tool-agnostic — it complements platforms like Cirium, AviAnalysis and Maureva rather than competing with them.</div>
+    </div>
+
+    <div style="text-align:center;margin-top:2.4rem">
+      <a class="btn btn-gold btn-lg" href="#" data-partner-mailto>Discuss a partnership →</a>
+      <p class="muted" style="font-size:.85rem;margin-top:.6rem">Typical setup within one week. No fees to pilot with your first three clients.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> DN Consultancy · <a data-email></a></span>
+    <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="methodology.html">Methodology</a> · <span data-version></span></span>
+  </div></div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/common.js"></script>
+<script>
+  applyPartner(); mountChrome();
+  document.querySelector("[data-partner-mailto]").href =
+    `mailto:${DN.brand.email}?subject=${encodeURIComponent("Partner programme — Airline Health Scorecard")}` +
+    `&body=${encodeURIComponent("Hello DN,\n\nWe'd like to explore distributing the Airline Health Scorecard to our clients.\n\nOrganisation:\nWhat we provide to airlines:\nApprox. number of airline clients:\n\nRegards,")}`;
+</script>
+</body>
+</html>

@@ -46,6 +46,29 @@
 </div>
 
 <div id="report" style="display:none">
+  <!-- Netlify Forms — static field list so Netlify registers the form at deploy time.
+       Submission happens via fetch() in results.js (never submitted directly). -->
+  <form name="scorecard-report" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="text"   name="bot-field">
+    <input type="text"   name="name">
+    <input type="email"  name="email">
+    <input type="text"   name="airline">
+    <input type="text"   name="fleet_size">
+    <input type="hidden" name="health_index">
+    <input type="hidden" name="top_gaps">
+    <input type="hidden" name="share_url">
+  </form>
+  <form name="debrief-request" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="text"   name="bot-field">
+    <input type="text"   name="name">
+    <input type="email"  name="email">
+    <input type="text"   name="airline">
+    <input type="text"   name="role">
+    <input type="text"   name="preferred_week">
+    <input type="hidden" name="health_index">
+    <input type="hidden" name="top_gaps">
+    <input type="hidden" name="share_url">
+  </form>
   <!-- print-only branded header -->
   <div class="print-head">
     <img src="assets/img/dn-logo-full.png" alt="DN Consultancy">
@@ -55,6 +78,10 @@
   <section class="score-hero">
     <div class="wrap">
       <div class="partner-banner" style="margin-bottom:1rem"><img class="partner-logo" alt=""><span data-cobrand></span></div>
+      <div class="shared-banner" id="shared-banner" style="display:none">
+        <span>You're viewing a shared report.</span>
+        <a href="diagnostic.html">Take your own scorecard →</a>
+      </div>
       <p class="eyebrow">Your strategic gap report</p>
       <div class="summary">
         <div class="index-ring" id="index-ring"><div class="inner"><b id="index-val">0</b><span>Health Index</span></div></div>
@@ -65,8 +92,17 @@
             <button class="btn btn-gold" id="print">Print / save as PDF</button>
             <button class="btn btn-ghost" id="retake" style="color:#fff;border-color:rgba(255,255,255,.35)">Retake</button>
           </div>
+          <div class="share-bar" id="share-bar"></div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- executive summary (auto-generated prose) -->
+  <section id="exec-summary-section" style="padding-bottom:0">
+    <div class="wrap">
+      <p class="eyebrow">Executive summary</p>
+      <div id="exec-summary" style="max-width:820px;font-size:1.05rem;line-height:1.75"></div>
     </div>
   </section>
 
@@ -97,6 +133,33 @@
     </div>
   </section>
 
+  <!-- email capture / board-ready export -->
+  <section class="email-capture-section" id="email-capture-section">
+    <div class="wrap">
+      <div class="ec-card">
+        <div class="ec-icon">📋</div>
+        <div class="ec-body">
+          <h3>Send Me the Board-Ready Executive Brief &amp; 90-Day Roadmap (PDF)</h3>
+          <p class="muted">Instant on-screen results are 100% free with no email required. Request an executive briefing pack formatted for leadership and board presentations.</p>
+        </div>
+        <form class="ec-form" id="capture-form" novalidate>
+          <input type="text"  id="capture-name" placeholder="Your Name" autocomplete="name" required>
+          <input type="email" id="capture-email" placeholder="Work Email" autocomplete="email" required>
+          <input type="text"  id="capture-airline" placeholder="Airline Name" autocomplete="organization" required>
+          <select id="capture-fleet" required>
+            <option value="" disabled selected>Fleet Size</option>
+            <option value="1–2 aircraft">1–2 aircraft</option>
+            <option value="3–5 aircraft">3–5 aircraft</option>
+            <option value="6–15 aircraft">6–15 aircraft</option>
+            <option value="16+ aircraft">16+ aircraft</option>
+          </select>
+          <button type="submit" class="btn btn-primary" style="width:100%">Send Executive Brief &amp; Roadmap (PDF) →</button>
+          <p class="ec-msg" id="capture-msg"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
   <!-- prescriber -->
   <section>
     <div class="wrap">
@@ -105,6 +168,40 @@
       <p class="muted" style="max-width:720px">Based on your lowest-scoring domains, here are the solution <em>categories</em> worth exploring and the DN diagnostic that drills deeper into each. These are neutral, educational suggestions.</p>
       <div id="rx" style="margin:1.4rem 0"></div>
       <p class="disclaimer">DN Consultancy does not endorse or resell these third-party tools; they are listed as common options among African carriers. The right answer depends on your specific gaps — which is exactly what a deeper diagnostic establishes.</p>
+    </div>
+  </section>
+
+  <!-- book-a-call CTA -->
+  <section class="book-cta-section">
+    <div class="wrap">
+      <div class="book-cta">
+        <div class="book-cta-body">
+          <h3>Ready to turn these findings into action?</h3>
+          <p>A DN engagement takes this gap report and builds it into a quantified 90-day sprint — with a 3× Year-1 ROI guarantee. We scope it from your specific findings, not a generic playbook.</p>
+        </div>
+        <div class="book-cta-actions">
+          <a class="btn btn-gold btn-lg" id="book-email-btn" href="#">Email us your findings →</a>
+          <p class="cta-note">Response within 24 hours. No obligation.</p>
+          <button class="btn btn-copy-link" id="book-copy-btn">Copy report link</button>
+        </div>
+      </div>
+
+      <!-- structured debrief request (Netlify form via fetch) -->
+      <div class="book-cta" id="debrief-box" style="margin-top:1.2rem">
+        <div style="width:100%">
+          <h3 style="margin-top:0">Or book a complimentary 30-minute findings debrief</h3>
+          <p class="muted">A DN consultant walks through <em>your</em> report with you — what the gaps mean, what peers do about them, and whether an engagement makes sense. No obligation.</p>
+          <form id="debrief-form" class="grid g2" style="gap:12px;margin-top:.8rem">
+            <input required name="name" id="db-name" placeholder="Your name">
+            <input required type="email" name="email" id="db-email" placeholder="Work email">
+            <input required name="airline" id="db-airline" placeholder="Airline / organisation">
+            <input name="role" id="db-role" placeholder="Your role (e.g. COO)">
+            <input name="preferred_week" id="db-week" placeholder="Preferred week (e.g. w/c 20 Jul)">
+            <button type="submit" class="btn btn-gold">Request my debrief →</button>
+          </form>
+          <p class="keymsg" id="db-msg" aria-live="polite"></p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -122,8 +219,21 @@
       <div class="locked-grid" id="toolboxes"></div>
       <div class="guarantee" style="margin-top:1.8rem">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 3 5v6c0 5 3.8 9.7 9 11 5.2-1.3 9-6 9-11V5l-9-4z"/></svg>
-        <div><strong>Ready to act on this report?</strong> A DN engagement turns these findings into a quantified 90-day sprint — with a 3× Year-1 ROI guarantee. <a data-email></a></div>
+        <div><strong>Ready to act on this report?</strong> A DN engagement turns these findings into a quantified 90-day sprint — with a 3× Year-1 ROI guarantee. <span style="display:block;font-size:0.85rem;margin-top:0.3rem;color:var(--dn-muted)">3× ROI Guarantee applies to carriers with 3+ aircraft operating scheduled or contract services upon completion of Phase 2 data verification.</span> <a data-email></a></div>
       </div>
+    </div>
+  </section>
+
+  <!-- optional data calibration (all client-side) -->
+  <section id="calibrate-section">
+    <div class="wrap">
+      <p class="eyebrow">Optional · Upgrade the evidence</p>
+      <h2>Calibrate this report with your own figures</h2>
+      <p class="muted" style="max-width:720px">Upload a 4-figure CSV and we compute your load factor, unit cost (CASK) and fuel share <strong>entirely in your browser</strong> — nothing is uploaded or stored. The computed figures are compared against the regional benchmarks used in this report.</p>
+      <p><a id="csv-template" class="btn btn-ghost" download="dn-calibration-template.csv">⬇ Download the CSV template</a></p>
+      <label for="csv-file" style="display:block;margin:.8rem 0 .3rem;font-weight:600">Upload your completed CSV</label>
+      <input type="file" id="csv-file" accept=".csv,text/csv">
+      <div id="calib-out" style="margin-top:1.2rem"></div>
     </div>
   </section>
 </div>
@@ -137,14 +247,15 @@
       <li>IATA <em>Cost Disadvantage of African Airlines</em>, 2025 (fuel share, unit cost)</li>
       <li>IATA 2024 financial outlook (African net margin, profit per passenger)</li>
     </ul>
-    <p class="muted" style="font-size:.8rem">Figures are regional/industry references for orientation; thresholds in this scorecard are indicative planning targets, not certified benchmarks.</p>
+    <p class="muted" style="font-size:.8rem">Industry data as of <b id="bench-asof"></b>. Figures are regional/industry references for orientation; thresholds in this scorecard are indicative planning targets, not certified benchmarks.</p>
+    <p class="muted" style="font-size:.8rem">Evidence basis: domain scores are self-reported maturity ratings, shown alongside sourced industry context. Add your own figures in the calibration step above to upgrade the evidence level.</p>
   </div>
 </section>
 
 <footer class="footer">
   <div class="wrap"><div class="ver" style="border:0">
     <span>&copy; <span data-year></span> DN Consultancy · <a data-email></a></span>
-    <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <span data-version></span></span>
+    <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="methodology.html">Methodology</a> · <span data-version></span></span>
   </div></div>
 </footer>
 

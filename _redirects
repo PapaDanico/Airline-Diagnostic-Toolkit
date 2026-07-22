@@ -1,0 +1,16 @@
+# DN Consultancy — Static & Clean Routing Rules
+/scorecard              /diagnostic.html                   301
+/results                /results.html                      301
+/cask                   /tools/cask-calculator.html        301
+/fuel                   /tools/fuel-optimizer.html         301
+/canvas                 /tools/operating-model-canvas.html 301
+/data                   /tools/data-request.html           301
+
+/tools/cask-calculator  /tools/cask-calculator.html        200
+/tools/fuel-optimizer   /tools/fuel-optimizer.html         200
+/tools/operating-model-canvas /tools/operating-model-canvas.html 200
+/tools/data-request     /tools/data-request.html           200
+/tools/mro-readiness    /tools/mro-readiness.html          200
+/tools/training-tna     /tools/training-tna.html           200
+
+/*                      /404.html                          404

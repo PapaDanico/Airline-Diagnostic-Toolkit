@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="48-Hour Data Request — the 28-item priority data pack DN needs to baseline an airline. Tick off what you have, track readiness, print or save to PDF. Free, client-side.">
+<meta name="description" content="48-Hour Data Request: Structured priority data pack for rapid airline diagnostics — 28 essential metrics across safety, ops, fleet, cost, and finance.">
 <link rel="canonical" href="https://dnconsultancydiagnostictoolkit.netlify.app/tools/data-request.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="DN Consultancy">
 <meta property="og:title" content="48-Hour Data Request — DN Consultancy">
-<meta property="og:description" content="The 28-item priority data pack DN needs to baseline an airline. Tick off what you have, track readiness, print or save to PDF. Free, client-side.">
+<meta property="og:description" content="Structured 28-item data pack for rapid diagnostics: safety, ops, fleet, cost, revenue, and finance metrics.">
 <meta property="og:url" content="https://dnconsultancydiagnostictoolkit.netlify.app/tools/data-request.html">
 <meta property="og:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="48-Hour Data Request — DN Consultancy">
-<meta name="twitter:description" content="The 28-item priority data pack DN needs to baseline an airline.">
+<meta name="twitter:description" content="Structured priority data pack for rapid diagnostics.">
 <meta name="twitter:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
 <title>48-Hour Data Request | DN Consultancy</title>
 <link rel="icon" type="image/png" href="../assets/img/dn-badge.png">
@@ -24,31 +24,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/dn.css">
 <style>
-  .dr-bar-wrap { position: sticky; top: 64px; z-index: 5; background: var(--dn-white); border: 1px solid rgba(28,28,28,.12);
-    border-radius: var(--radius-sm); padding: 14px 18px; margin-bottom: 22px; box-shadow: var(--shadow); }
-  .dr-bar-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-  .dr-bar-top strong { font-size: 1.05rem; }
-  .dr-track { height: 9px; background: var(--dn-fog); border-radius: 99px; overflow: hidden; margin-top: 9px; }
-  .dr-track > i { display: block; height: 100%; width: 0; background: var(--dn-green); transition: width .25s ease; }
-  .dr-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; }
-  .dr-cat { margin-bottom: 20px; }
-  .dr-cat h3 { font-family: var(--sans); font-size: .82rem; letter-spacing: .12em; text-transform: uppercase;
-    color: var(--accent); margin: 0 0 .5rem; border-bottom: 1px solid rgba(28,28,28,.1); padding-bottom: .4rem; }
-  .dr-item { display: flex; gap: 11px; align-items: flex-start; padding: 8px 6px; border-radius: 6px; cursor: pointer; }
-  .dr-item:hover { background: var(--dn-fog); }
-  .dr-item input { width: 18px; height: 18px; margin-top: 2px; flex: 0 0 auto; accent-color: var(--accent);
-    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .dr-item span { font-size: .94rem; line-height: 1.4; }
-  .dr-item input:checked + span { color: var(--dn-muted); text-decoration: line-through; }
-  @media print {
-    .dr-actions, .dr-bar-wrap .dr-track { display: none !important; }
-    .dr-bar-wrap { position: static; box-shadow: none; border-color: #999; }
-    .dr-print-head { display: block !important; }
-    .diag-head { display: none !important; }
-    .dr-item { break-inside: avoid; page-break-inside: avoid; }
-    .dr-item:hover { background: transparent; }
-  }
-  .dr-print-head { display: none; padding-bottom: 12px; border-bottom: 2px solid var(--dn-dark); margin-bottom: 16px; }
+.data-request { max-width: 900px; }
+.dr-section { margin-bottom: 2.2rem; }
+.dr-section h3 { color: #1a1a1a; margin: 1.4rem 0 0.8rem; font-size: 1.1rem; }
+.dr-list { list-style: none; padding: 0; margin: 0; }
+.dr-item { display: flex; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid #eee; align-items: flex-start; }
+.dr-item:last-child { border-bottom: none; }
+.dr-item input { margin-top: 0.4rem; flex: 0 0 auto; accent-color: #4A7FA5; cursor: pointer; }
+.dr-item label { cursor: pointer; flex: 1; }
+.dr-item strong { color: #333; display: block; margin-bottom: 0.2rem; }
+.dr-item .hint { font-size: 0.82rem; color: #666; }
+.dr-priority { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-left: 0.5rem; padding: 0.2rem 0.5rem; border-radius: 3px; }
+.pri-high { background: #fee2e2; color: #991b1b; }
+.summary-box { background: #f0f9ff; border: 1px solid #0284c7; border-radius: 12px; padding: 1.4rem; margin: 2rem 0; }
+.summary-box strong { color: #0c4a6e; display: block; margin-bottom: 0.5rem; }
+.progress-tracker { display: flex; gap: 1.2rem; margin: 1.4rem 0; flex-wrap: wrap; }
+.tracker-item { flex: 1; min-width: 140px; background: #f5f5f5; padding: 1rem; border-radius: 8px; text-align: center; }
+.tracker-item .count { font-size: 1.6rem; font-weight: 700; color: #4A7FA5; }
+.tracker-item .label { font-size: 0.8rem; color: #666; margin-top: 0.4rem; }
+@media (max-width: 768px) {
+  .dr-item { padding: 0.6rem 0; }
+  .tracker-item { min-width: 100px; padding: 0.8rem; }
+  .tracker-item .count { font-size: 1.3rem; }
+}
 </style>
 </head>
 <body>
@@ -60,52 +58,127 @@
     <div class="nav-links">
       <a href="../index.html" data-keep-partner>Home</a>
       <a href="../diagnostic.html" data-keep-partner>Scorecard</a>
+      <a href="../results.html" data-keep-partner>Results</a>
+      <img class="partner-logo" alt="">
     </div>
   </div>
 </nav>
 
-<header class="diag-head">
-  <div class="wrap">
-    <p class="eyebrow">Free point solution · Tool A3</p>
-    <h1 style="margin:0">48-Hour Data Request</h1>
-    <p class="muted" style="max-width:720px">The 28 priority items DN needs to baseline an airline in the first 48 hours. Tick off what you can already lay your hands on to see how diagnostic-ready you are — and where to start gathering. Saves on your device; print it as a prep checklist for your team.</p>
-  </div>
-</header>
+<div class="wrap data-request">
+  <section>
+    <div class="partner-banner" style="margin-bottom:1rem;margin-top:2rem"><img class="partner-logo" alt=""><span data-cobrand></span></div>
+    <p class="eyebrow">Data pack for rapid diagnostics</p>
+    <h1>48-Hour Data Request</h1>
+    <p style="font-size: 1.1rem; max-width: 720px; color: #666;">A structured checklist of 28 essential metrics across safety, operations, fleet, cost, revenue, and finance. Collect these data points to accelerate diagnostics and validate hypotheses from your initial scorecard.</p>
+  </section>
 
-<section>
-  <div class="wrap">
-    <div class="dr-print-head">
-      <strong style="font-size:1.1rem">DN 48-Hour Data Request — readiness checklist</strong>
-      <span class="muted" id="ph-date" style="float:right"></span>
+  <section>
+    <div class="summary-box">
+      <strong>Using this template:</strong> Share this checklist with your operations, finance, and planning teams. Items marked PRIORITY are critical for baseline analysis. Mark items collected in the box to track progress. Aim to gather all data within 48 hours of your diagnostic session to keep momentum.
     </div>
+  </section>
 
-    <div class="dr-bar-wrap">
-      <div class="dr-bar-top">
-        <strong id="dr-count">0 of 28 items ready</strong>
-        <span class="muted" id="dr-pct">0% — let's get started</span>
+  <section>
+    <h2>Progress Tracker</h2>
+    <div class="progress-tracker">
+      <div class="tracker-item">
+        <div class="count" id="total-items">28</div>
+        <div class="label">Total Items</div>
       </div>
-      <div class="dr-track"><i id="dr-fill"></i></div>
-    </div>
-
-    <div class="dr-actions">
-      <button class="btn btn-dark" id="print">Print / save as PDF</button>
-      <button class="btn btn-ghost" id="clear">Reset checklist</button>
-    </div>
-
-    <div id="list"></div>
-
-    <div class="guarantee" style="margin-top:1.8rem">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-      <div>
-        <strong>Ready to start? DN turns this pack into a baseline in days.</strong>
-        <p style="margin:.4rem 0 .8rem;font-size:.9rem">Share the pack through a secure data room and DN returns a Health Scorecard, CASK benchmark and quick-win shortlist inside the first sprint.</p>
-        <a class="btn btn-gold" id="contact-cta">Start your diagnostic with DN &rarr;</a>
-        <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain></span></p>
+      <div class="tracker-item">
+        <div class="count" id="collected-count">0</div>
+        <div class="label">Collected</div>
+      </div>
+      <div class="tracker-item">
+        <div class="count" id="progress-pct">0%</div>
+        <div class="label">Complete</div>
       </div>
     </div>
-    <p class="disclaimer" style="margin-top:1rem">A preparation aid, not a data submission — your ticks stay in this browser only. Nothing is uploaded.</p>
-  </div>
-</section>
+  </section>
+
+  <section class="dr-section">
+    <h3>Safety &amp; Compliance</h3>
+    <ul class="dr-list">
+      <li class="dr-item"><input type="checkbox" id="s1"><label for="s1"><strong>Safety event log (last 3 years) <span class="dr-priority pri-high">PRIORITY</span></strong><div class="hint">Accidents, incidents, serious events; regulatory findings; corrective actions</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="s2"><label for="s2"><strong>Safety Management System (SMS) maturity assessment <span class="dr-priority pri-high">PRIORITY</span></strong><div class="hint">ICAO SMS 5 levels; current state; gap to best practice</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="s3"><label for="s3"><strong>Regulatory compliance checklist</strong><div class="hint">AOC conditions, CAR Part 8 (KCAA), audit findings, action items</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="s4"><label for="s4"><strong>IOSA assessment status</strong><div class="hint">If applicable: audit year, findings, roadmap</div></label></li>
+    </ul>
+  </section>
+
+  <section class="dr-section">
+    <h3>Operations &amp; Reliability</h3>
+    <ul class="dr-list">
+      <li class="dr-item"><input type="checkbox" id="o1"><label for="o1"><strong>Monthly on-time performance (last 12 months) <span class="dr-priority pri-high">PRIORITY</span></strong><div class="hint">Departures within 15 min; technical reliability; dispatch reliability %</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="o2"><label for="o2"><strong>Turn time analysis (by aircraft type)</strong><div class="hint">Average turnaround time; target vs. actual; blocking times</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="o3"><label for="o3"><strong>IROPS (disruption) metrics</strong><div class="hint">Cancellations, delays &gt;2hrs, technical issues; root causes</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="o4"><label for="o4"><strong>Crew scheduling &amp; utilisation</strong><div class="hint">Duty hours per month; rest compliance; fatigue events</div></label></li>
+    </ul>
+  </section>
+
+  <section class="dr-section">
+    <h3>Fleet &amp; Capacity</h3>
+    <ul class="dr-list">
+      <li class="dr-item"><input type="checkbox" id="f1"><label for="f1"><strong>Fleet inventory (by type) <span class="dr-priority pri-high">PRIORITY</span></strong><div class="hint">Aircraft counts, age, seating, owned vs. leased, maintenance reserve status</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="f2"><label for="f2"><strong>Block hours and utilisation (last 12 months)</strong><div class="hint">Annual block hours per aircraft; target vs. actual; seasonal variation</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="f3"><label for="f3"><strong>Maintenance spend &amp; reserve forecast</strong><div class="hint">Annual maintenance spend; checks due; maintenance reserve funding</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="f4"><label for="f4"><strong>Technical dispatch reliability by aircraft type</strong><div class="hint">% available; AOG events; mean time between failures</div></label></li>
+    </ul>
+  </section>
+
+  <section class="dr-section">
+    <h3>Cost &amp; Fuel</h3>
+    <ul class="dr-list">
+      <li class="dr-item"><input type="checkbox" id="c1"><label for="c1"><strong>Operating cost statement (last 12 months) <span class="dr-priority pri-high">PRIORITY</span></strong><div class="hint">Fuel, crew, maintenance, landing fees, rentals; breakdown by cost centre</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="c2"><label for="c2"><strong>Fuel consumption &amp; prices (last 12 months)</strong><div class="hint">Monthly volumes; unit prices; hedging strategy; supplier contracts</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="c3"><label for="c3"><strong>Staff costs by grade</strong><div class="hint">Pilots, cabin, ground staff; headcount; average salary; benefits</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="c4"><label for="c4"><strong>Landing fees and airport agreements</strong><div class="hint">By base airport; freight terms; ground handling contracts</div></label></li>
+    </ul>
+  </section>
+
+  <section class="dr-section">
+    <h3>Revenue &amp; Demand</h3>
+    <ul class="dr-list">
+      <li class="dr-item"><input type="checkbox" id="r1"><label for="r1"><strong>Load factor &amp; capacity (last 12 months) <span class="dr-priority pri-high">PRIORITY</span></strong><div class="hint">ASK, RPK, load factor % by month; domestic vs. regional breakdown</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="r2"><label for="r2"><strong>Yield &amp; RASM (last 12 months)</strong><div class="hint">Revenue per available seat mile; yield per passenger; yield per ton (if cargo)</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="r3"><label for="r3"><strong>Route P&L summary</strong><div class="hint">Top 10 routes by revenue; load factors; profitability; break-even LF</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="r4"><label for="r4"><strong>Ancillary revenue &amp; distribution mix</strong><div class="hint">Baggage, seat selection, loyalty, cargo; direct vs. OTA ticket split</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="r5"><label for="r5"><strong>Demand forecast (next 24 months)</strong><div class="hint">Booking curve; forward bookings; seasonal assumptions; growth drivers</div></label></li>
+    </ul>
+  </section>
+
+  <section class="dr-section">
+    <h3>Finance &amp; Strategic Planning</h3>
+    <ul class="dr-list">
+      <li class="dr-item"><input type="checkbox" id="fb1"><label for="fb1"><strong>Profit &amp; loss (audited, last 3 years) <span class="dr-priority pri-high">PRIORITY</span></strong><div class="hint">Revenue, operating costs, EBITDA, net profit; year-on-year trend</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="fb2"><label for="fb2"><strong>Balance sheet &amp; liquidity</strong><div class="hint">Cash position; debt; working capital; covenant compliance</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="fb3"><label for="fb3"><strong>Business plan (rolling 3–5 year)</strong><div class="hint">Revenue forecast; cost assumptions; capex plan; capacity growth</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="fb4"><label for="fb4"><strong>KPI dashboard &amp; board reporting</strong><div class="hint">Current KPIs tracked; cadence; governance structure</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="fb5"><label for="fb5"><strong>Strategy document</strong><div class="hint">Vision, mission, strategic priorities; 3-year roadmap; key initiatives</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="fb6"><label for="fb6"><strong>Organisational chart &amp; skill gaps</strong><div class="hint">Senior team bios; experience; identified capability gaps; training needs</div></label></li>
+      <li class="dr-item"><input type="checkbox" id="fb7"><label for="fb7"><strong>Partnership &amp; codeshare agreements</strong><div class="hint">Strategic partners; interline routes; revenue share terms</div></label></li>
+    </ul>
+  </section>
+
+  <section style="margin: 2.4rem 0;">
+    <h2>How to use this checklist</h2>
+    <ol style="max-width: 720px; line-height: 1.8;">
+      <li><strong>Share with your team:</strong> Download and email this checklist to ops, finance, and planning leads with a 48-hour deadline.</li>
+      <li><strong>Gather data:</strong> Collect data from ERP, maintenance systems, crew management, revenue systems, and annual accounts.</li>
+      <li><strong>Track progress:</strong> Use the checkbox on the left to track what's collected. Progress is saved in your browser.</li>
+      <li><strong>Prioritise:</strong> Items marked PRIORITY are non-negotiable for baseline diagnostics.</li>
+      <li><strong>Validate:</strong> Cross-check data sources and flag any inconsistencies to the finance/ops leads.</li>
+      <li><strong>Hand over:</strong> Consolidate into a single folder and share with your DN engagement lead for analysis.</li>
+    </ol>
+  </section>
+
+  <section style="margin: 2.4rem 0;">
+    <div class="guarantee" style="margin-top:0">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 3 5v6c0 5 3.8 9.7 9 11 5.2-1.3 9-6 9-11V5l-9-4z"/></svg>
+      <div><strong>Ready to act on this data?</strong> A DN engagement quantifies these metrics, validates hypotheses, and prioritises your 90-day roadmap. <a data-email></a></div>
+    </div>
+  </section>
+</div>
 
 <footer class="footer">
   <div class="wrap"><div class="ver" style="border:0">
@@ -116,103 +189,26 @@
 
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/common.js"></script>
+<script>applyPartner(); mountChrome();</script>
 <script>
-  applyPartner(); mountChrome();
-
-  const CATEGORIES = [
-    { cat: "Safety & Compliance", items: [
-      "Current AOC and operations specifications",
-      "Safety reports & SMS dashboard (SPIs), last 12 months",
-      "Open regulatory (KCAA) findings register",
-      "FDM/FOQA summary or latest safety review" ] },
-    { cat: "Operational Reliability", items: [
-      "On-time performance (OTP) by month, last 12 months",
-      "Technical dispatch reliability & AOG log",
-      "Aircraft utilisation (block hours/day) by tail",
-      "Turnaround times by station and aircraft type" ] },
-    { cat: "Fleet & Network", items: [
-      "Fleet list: type, age, ownership, lease terms",
-      "Current schedule / timetable (all routes)",
-      "Route-level traffic: pax, load factor, frequency",
-      "Network map and slot / airport constraints" ] },
-    { cat: "Cost & Fuel", items: [
-      "Audited financial statements, last 2 years",
-      "Operating cost breakdown by cost line",
-      "Fuel: volumes, spend, contract terms & premiums",
-      "Major contracts: MRO, ground handling, leases" ] },
-    { cat: "Revenue & Commercial", items: [
-      "Revenue by route and by class, last 12 months",
-      "Yield / RASK trends",
-      "Ancillary revenue breakdown",
-      "Distribution mix and channel costs (GDS/OTA/direct)" ] },
-    { cat: "People & Organisation", items: [
-      "Org chart and headcount by function",
-      "Staff cost by group and FTE per aircraft",
-      "Staff turnover and training-currency status",
-      "Leadership structure / key management CVs" ] },
-    { cat: "Finance & Strategy", items: [
-      "Current business plan / strategy document",
-      "Cash flow and liquidity position (latest)",
-      "Board pack / management reporting sample",
-      "KPI dashboard / current KPIs tracked" ] }
-  ];
-  const TOTAL = CATEGORIES.reduce((n, c) => n + c.items.length, 0); // 28
-
-  const KEY = "dn_data_request_v1";
-  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
-  const save = (s) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {} };
-  let state = load();
-
-  const list = document.getElementById("list");
-  let idx = 0;
-  CATEGORIES.forEach(group => {
-    const sec = document.createElement("div");
-    sec.className = "dr-cat";
-    const h = document.createElement("h3");
-    h.textContent = group.cat;
-    sec.appendChild(h);
-    group.items.forEach(label => {
-      const id = "dr-" + idx++;
-      const row = document.createElement("label");
-      row.className = "dr-item";
-      row.innerHTML = `<input type="checkbox" id="${id}"><span>${label}</span>`;
-      const box = row.querySelector("input");
-      box.checked = !!state[id];
-      box.addEventListener("change", () => { state[id] = box.checked; save(state); refresh(); });
-      sec.appendChild(row);
-    });
-    list.appendChild(sec);
-  });
-
-  const countEl = document.getElementById("dr-count");
-  const pctEl = document.getElementById("dr-pct");
-  const fillEl = document.getElementById("dr-fill");
-  function refresh() {
-    const done = Object.values(state).filter(Boolean).length;
-    const pct = Math.round((done / TOTAL) * 100);
-    countEl.textContent = `${done} of ${TOTAL} items ready`;
-    fillEl.style.width = pct + "%";
-    pctEl.textContent = pct === 0 ? "0% — let's get started"
-      : pct < 50 ? pct + "% — early days"
-      : pct < 80 ? pct + "% — getting there"
-      : pct < 100 ? pct + "% — nearly diagnostic-ready"
-      : "100% — fully diagnostic-ready";
-    fillEl.style.background = pct < 50 ? "var(--dn-red)" : pct < 80 ? "var(--dn-amber)" : "var(--dn-green)";
+(function() {
+  const allCheckboxes = document.querySelectorAll('.dr-item input[type="checkbox"]');
+  function updateProgress() {
+    const checked = Array.from(allCheckboxes).filter(c => c.checked).length;
+    const total = allCheckboxes.length;
+    const pct = Math.round((checked / total) * 100);
+    document.getElementById('collected-count').textContent = checked;
+    document.getElementById('progress-pct').textContent = pct + '%';
+    localStorage.setItem('dn_data_request_progress', JSON.stringify(Array.from(allCheckboxes).map(c => c.checked)));
   }
-  refresh();
-
-  document.getElementById("ph-date").textContent =
-    new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
-  document.getElementById("print").addEventListener("click", () => window.print());
-  document.getElementById("clear").addEventListener("click", () => {
-    if (!confirm("Reset the whole checklist?")) return;
-    state = {}; save(state);
-    document.querySelectorAll(".dr-item input").forEach(b => { b.checked = false; });
-    refresh();
-  });
-  document.getElementById("contact-cta").href =
-    `mailto:${DN.brand.email}?subject=${encodeURIComponent("[DN Toolkit · Data] Start a diagnostic — 48-hour data pack")}` +
-    `&body=${encodeURIComponent("We'd like to start a diagnostic with DN and can share the 48-hour data pack.\n\nPlease get in touch.")}`;
+  allCheckboxes.forEach(checkbox => { checkbox.addEventListener('change', updateProgress); });
+  const saved = localStorage.getItem('dn_data_request_progress');
+  if (saved) {
+    const checked = JSON.parse(saved);
+    allCheckboxes.forEach((c, i) => { c.checked = checked[i] || false; });
+    updateProgress();
+  }
+})();
 </script>
 </body>
 </html>
