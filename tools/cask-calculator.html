@@ -220,7 +220,7 @@
       fuelQual.innerHTML = `Your fuel CASK is <strong>${fuelCaskCents.toFixed(2)} US¢/ASK</strong> (${fuelPct}% of total) — already at or below DN's ${TARGET_FUEL_SHARE}% target fuel share.`;
       return;
     }
-    const annualGap = (gapCents / 100 / 100) * ask; // cents→USD per ASK × ASK
+    const annualGap = (gapCents / 100) * ask; // cents→USD per ASK × ASK
     fuelQual.innerHTML = `Your fuel CASK is <strong>${fuelCaskCents.toFixed(2)} US¢/ASK</strong> (${fuelPct}% of total). At DN's ${TARGET_FUEL_SHARE}% target fuel share (${targetFuelCaskCents.toFixed(2)}¢), it would be <strong>${gapCents.toFixed(2)}¢ lower</strong> — saving roughly <strong>${fmtUsd(annualGap)}</strong> a year.`;
   }
   // opcost/ask/target feed both recalc() and recalcFuel(); fuelPct feeds
