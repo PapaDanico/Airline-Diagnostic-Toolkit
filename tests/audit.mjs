@@ -14,8 +14,12 @@ const pages = ["index.html", "diagnostic.html", "results.html", "demo-results.ht
 // fail with a cert/network error that is irrelevant to the page itself.
 const IGNORE = /ERR_CERT_AUTHORITY_INVALID|ERR_(NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION)|fonts\.googleapis|fonts\.gstatic/;
 
-const DEV_EXEC = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
-const b = await chromium.launch(existsSync(DEV_EXEC) ? { executablePath: DEV_EXEC } : {});
+const CANDIDATE_EXECS = [
+  "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
+  "/opt/build/repo/.netlify/plugins/node_modules/@netlify/plugin-lighthouse/node_modules/puppeteer-core/.local-chromium/linux-1045629/chrome-linux/chrome"
+];
+const execPath = CANDIDATE_EXECS.find(p => existsSync(p));
+const b = await chromium.launch(execPath ? { executablePath: execPath } : {});
 let problems = 0;
 for (const pg of pages) {
   const dir = dirname(pg);

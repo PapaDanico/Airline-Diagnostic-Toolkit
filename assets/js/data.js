@@ -36,6 +36,59 @@ const DN = {
     "Best-practice / continuously improving"
   ],
 
+  // Pre-diagnostic calibration options
+  calibration: {
+    fleetTypes: ["Turboprop", "Regional Jet", "Narrowbody", "Mixed Fleet"],
+    operatingModels: ["Scheduled Regional", "ACMI & Charter", "Flag Carrier", "Cargo"]
+  },
+
+  // Dynamic weighting matrix adjustment based on fleet type & operating model
+  getAdjustedWeights(fleetType, opModel) {
+    const base = { safety: 18, ops: 14, fleet: 12, cost: 14, revenue: 13, commercial: 10, people: 9, finance: 10 };
+    if (!fleetType && !opModel) return base;
+
+    const adj = { ...base };
+
+    if (opModel === "Cargo") {
+      adj.ops += 3; adj.cost += 3; adj.safety += 2;
+      adj.commercial = Math.max(2, adj.commercial - 4);
+      adj.revenue = Math.max(3, adj.revenue - 4);
+    } else if (opModel === "ACMI & Charter") {
+      adj.fleet += 3; adj.ops += 3; adj.safety += 2;
+      adj.commercial = Math.max(2, adj.commercial - 4);
+      adj.revenue = Math.max(3, adj.revenue - 4);
+    } else if (opModel === "Flag Carrier") {
+      adj.revenue += 2; adj.commercial += 2; adj.finance += 2;
+      adj.cost = Math.max(8, adj.cost - 2);
+      adj.ops = Math.max(10, adj.ops - 2);
+      adj.fleet = Math.max(8, adj.fleet - 2);
+    }
+
+    if (fleetType === "Turboprop") {
+      adj.cost += 2; adj.ops += 1; adj.commercial = Math.max(2, adj.commercial - 2); adj.fleet -= 1;
+    } else if (fleetType === "Narrowbody") {
+      adj.revenue += 2; adj.fleet += 1; adj.cost = Math.max(8, adj.cost - 1); adj.ops = Math.max(10, adj.ops - 2);
+    } else if (fleetType === "Regional Jet") {
+      adj.ops += 2; adj.cost += 1; adj.commercial = Math.max(2, adj.commercial - 2); adj.revenue = Math.max(8, adj.revenue - 1);
+    } else if (fleetType === "Mixed Fleet") {
+      adj.fleet += 2; adj.finance += 1; adj.safety += 1; adj.cost = Math.max(8, adj.cost - 2); adj.revenue = Math.max(8, adj.revenue - 2);
+    }
+
+    const sum = Object.values(adj).reduce((a, b) => a + b, 0);
+    const result = {};
+    let normSum = 0;
+    const keys = Object.keys(adj);
+    keys.forEach((k, idx) => {
+      if (idx === keys.length - 1) {
+        result[k] = 100 - normSum;
+      } else {
+        result[k] = Math.round((adj[k] / sum) * 100);
+        normSum += result[k];
+      }
+    });
+    return result;
+  },
+
   domains: [
     {
       id: "safety", name: "Safety & SMS Maturity", weight: 18,

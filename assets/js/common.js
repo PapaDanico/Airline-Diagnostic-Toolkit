@@ -100,20 +100,26 @@ function clearAnswers() { localStorage.removeItem(STORE_KEY); }
    returns { domains:[{id,name,weight,pct,answered,total,rag}], index, answeredAll } */
 function computeScores(answers) {
   let weighted = 0, wsum = 0, answeredAll = true;
+  const calib = answers._calibration || {};
+  const weights = (window.DN && DN.getAdjustedWeights)
+    ? DN.getAdjustedWeights(calib.fleetType, calib.opModel)
+    : {};
+
   const domains = DN.domains.map(d => {
+    const weight = weights[d.id] !== undefined ? weights[d.id] : d.weight;
     const arr = answers[d.id] || [];
     const answered = arr.filter(v => Number.isInteger(v)).length;
     const total = d.questions.length;
     if (answered < total) answeredAll = false;
     const sum = arr.reduce((a, v) => a + (Number.isInteger(v) ? v : 0), 0);
     const pct = answered ? Math.round((sum / (answered * 4)) * 100) : 0;
-    weighted += pct * d.weight; wsum += d.weight;
-    return { id: d.id, name: d.name, weight: d.weight, pct, answered, total,
+    weighted += pct * weight; wsum += weight;
+    return { id: d.id, name: d.name, weight, pct, answered, total,
              rag: DN.rag(pct), blurb: d.blurb, rxCategory: d.rxCategory, dnTool: d.dnTool, fuelLink: d.fuelLink,
              benchmark: d.benchmark, benchmarkSrc: d.benchmarkSrc, standard: d.standard,
              caskLink: d.caskLink, canvasLink: d.canvasLink };
   });
-  return { domains, index: wsum ? Math.round(weighted / wsum) : 0, answeredAll };
+  return { domains, index: wsum ? Math.round(weighted / wsum) : 0, answeredAll, calibration: calib };
 }
 
 function indexVerdict(idx) {
@@ -133,6 +139,8 @@ function indexVerdict(idx) {
    derived from the radius so the plot stays balanced, and labels longer
    than a threshold wrap onto two lines via <tspan>. */
 function drawRadar(svg, domains, overlay) {
+  if (!svg || !domains || !domains.length) return;
+  svg.innerHTML = "";
   const ns = "http://www.w3.org/2000/svg";
   const n = domains.length;
   const r = 120;                 // radar radius

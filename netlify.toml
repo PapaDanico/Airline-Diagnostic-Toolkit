@@ -10,6 +10,11 @@
   status = 301
 
 [[redirects]]
+  from = "/results"
+  to = "/results.html"
+  status = 301
+
+[[redirects]]
   from = "/fuel"
   to = "/tools/fuel-optimizer.html"
   status = 301
@@ -28,3 +33,38 @@
   from = "/data"
   to = "/tools/data-request.html"
   status = 301
+
+[[redirects]]
+  from = "/tools/cask-calculator"
+  to = "/tools/cask-calculator.html"
+  status = 200
+
+[[redirects]]
+  from = "/tools/fuel-optimizer"
+  to = "/tools/fuel-optimizer.html"
+  status = 200
+
+[[redirects]]
+  from = "/tools/operating-model-canvas"
+  to = "/tools/operating-model-canvas.html"
+  status = 200
+
+[[redirects]]
+  from = "/tools/data-request"
+  to = "/tools/data-request.html"
+  status = 200
+
+[[redirects]]
+  from = "/tools/mro-readiness"
+  to = "/tools/mro-readiness.html"
+  status = 200
+
+[[redirects]]
+  from = "/tools/training-tna"
+  to = "/tools/training-tna.html"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404

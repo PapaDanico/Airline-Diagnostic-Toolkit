@@ -7,10 +7,19 @@
 
 (function () {
   /* ---- share-link ingestion: ?s=<base64-encoded answers> ---- */
-  const _sp = new URLSearchParams(location.search).get("s");
+  const _params = new URLSearchParams(location.search);
+  const _sp = _params.get("s");
   const _decoded = _sp ? decodeSharedAnswers(_sp) : null;
   const isShared = Boolean(_decoded);
   const answers = _decoded || loadAnswers();
+
+  if (_params.get("fleet") || _params.get("model")) {
+    answers._calibration = {
+      fleetType: _params.get("fleet") || (answers._calibration && answers._calibration.fleetType) || "",
+      opModel: _params.get("model") || (answers._calibration && answers._calibration.opModel) || ""
+    };
+  }
+
   const s = computeScores(answers);
   const empty = document.getElementById("empty");
   const report = document.getElementById("report");
@@ -21,10 +30,12 @@
   const partnerQS = (() => { const p = new URLSearchParams(location.search).get("partner");
     return p ? "?partner=" + encodeURIComponent(p) : ""; })();
 
-  /* ---- shareable URL (preserves existing params, adds ?s=) ---- */
+  /* ---- shareable URL (preserves existing params, adds ?s= & calibration) ---- */
   const shareURL = (() => {
     const p = new URLSearchParams(location.search);
     p.set("s", encodeAnswers(answers));
+    if (s.calibration && s.calibration.fleetType) p.set("fleet", s.calibration.fleetType);
+    if (s.calibration && s.calibration.opModel) p.set("model", s.calibration.opModel);
     return location.origin + location.pathname + "?" + p.toString();
   })();
 
@@ -49,6 +60,13 @@
   document.getElementById("index-band").textContent = v.band;
   document.getElementById("index-band").style.color = v.color;
   document.getElementById("index-text").textContent = v.text;
+
+  if (s.calibration && (s.calibration.fleetType || s.calibration.opModel)) {
+    const calibEl = document.createElement("div");
+    calibEl.style.cssText = "display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 14px;font-size:.85rem;color:#fff;margin-top:.6rem";
+    calibEl.innerHTML = `🎯 <b>Context Calibrated:</b> ${s.calibration.fleetType || 'Standard Fleet'} · ${s.calibration.opModel || 'Scheduled Model'}`;
+    document.getElementById("index-text")?.parentNode?.appendChild(calibEl);
+  }
 
   /* ---- gap table (sorted weakest-first to read like a findings page) ---- */
   const sorted = [...s.domains].sort((a, b) => a.pct - b.pct);
@@ -149,6 +167,162 @@
     });
   }
 
+  function openToolPreviewModal(ref, name, box) {
+    let existing = document.getElementById("tool-preview-modal");
+    if (existing) existing.remove();
+
+    const previews = {
+      "B1": {
+        title: "B1 — Route Profitability Diagnostic",
+        subtitle: "Sample Route P&L & Break-Even Analysis Output",
+        content: `
+          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+            <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: Route Performance Breakdown</p>
+            <table style="width:100%;font-size:0.84rem;border-collapse:collapse;background:#fff">
+              <thead><tr style="background:var(--dn-steel-lt);text-align:left"><th style="padding:6px">Route</th><th>ASK (k)</th><th>LF (%)</th><th>Contribution</th><th>Break-Even LF</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">NBO – MBA</td><td>1,240</td><td>78.4%</td><td style="color:var(--dn-green)">+$14,200/mo</td><td>62.0%</td><td><span style="color:var(--dn-green)">● Profitable</span></td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">NBO – EBB</td><td>2,100</td><td>61.2%</td><td style="color:var(--dn-red)">-$8,400/mo</td><td>68.5%</td><td><span style="color:var(--dn-red)">● Deficit</span></td></tr>
+                <tr><td style="padding:6px">NBO – JNB</td><td>5,800</td><td>71.0%</td><td style="color:var(--dn-green)">+$42,100/mo</td><td>65.0%</td><td><span style="color:var(--dn-green)">● Profitable</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:0.88rem;color:#555">Quantifies route contribution margin, direct operating costs, and revenue break-even point for every sector in your network during Phase 2 of a DN engagement.</p>`
+      },
+      "B2": {
+        title: "B2 — Staff Cost Efficiency Analyser",
+        subtitle: "Sample Crew Efficiency & Headcount Benchmarking Output",
+        content: `
+          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+            <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: Labour Ratio & Crew Utilization Audit</p>
+            <div style="font-size:0.85rem;line-height:1.6">
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Flight Deck Crew Ratio</span><b>5.4 crews / aircraft (Peer Benchmark: 4.8)</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Cabin Crew Monthly Utilization</span><b style="color:var(--dn-amber)">62 block hrs/mo (DN Target: 75 hrs)</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Identified Annual Labour Efficiency Gain</span><b style="color:var(--dn-green)">$240,000 / year</b></div>
+            </div>
+          </div>
+          <p style="font-size:0.88rem;color:#555">Audits crew pairing efficiency, roster productivity, and staff-to-aircraft ratios across all operational departments.</p>`
+      },
+      "B3": {
+        title: "B3 — Fleet Utilisation & Turn-Time Audit",
+        subtitle: "Sample Maintenance Breakdown & Fleet Availability Output",
+        content: `
+          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+            <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: Fleet Utilization & Maintenance Cost Audit</p>
+            <div style="font-size:0.85rem;line-height:1.6">
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Average Daily Block Hours</span><b>6.2 hrs/day (Target: 8.5 hrs)</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Ground Turnaround Time (Turn-Time)</span><b style="color:var(--dn-amber)">68 mins (Benchmark: 45 mins)</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Direct Maintenance Cost / Block Hr</span><b>$1,280 (Peer Average: $1,050)</b></div>
+            </div>
+          </div>
+          <p style="font-size:0.88rem;color:#555">Pinpoints ground turn-time bottlenecks, unscheduled maintenance downtime, and direct flight-hour maintenance expense.</p>`
+      },
+      "B4": {
+        title: "B4 — Safety Culture Maturity Assessment",
+        subtitle: "Sample ICAO SMS 5-Level Maturity Audit & Compliance Report",
+        content: `
+          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+            <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: SMS Maturity Matrix (ICAO Annex 19)</p>
+            <div style="font-size:0.85rem;line-height:1.6">
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Level 1 & 2 (Reactive Safety Management)</span><b style="color:var(--dn-green)">100% Compliant</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Level 3 (Proactive Hazard Identification)</span><b style="color:var(--dn-amber)">65% Compliant</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Level 4 & 5 (Predictive & Continuous Improvement)</span><b style="color:var(--dn-red)">25% Compliant (Priority Gap)</b></div>
+            </div>
+          </div>
+          <p style="font-size:0.88rem;color:#555">Evaluates safety reporting culture, KCAA/ICAO finding closure rates, and predictive hazard analytics readiness.</p>`
+      },
+      "B5": {
+        title: "B5 — Revenue Mix Diagnostic",
+        subtitle: "Sample Ancillary & Yield Diversification Gap Output",
+        content: `
+          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+            <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: Ancillary & Distribution Yield Breakdown</p>
+            <div style="font-size:0.85rem;line-height:1.6">
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Ancillary Revenue per Pax</span><b>$5.80 (IATA Regional Benchmark: $18.50)</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Direct Web/App Distribution Share</span><b style="color:var(--dn-amber)">28% (Target: ≥ 55%)</b></div>
+            </div>
+          </div>
+          <p style="font-size:0.88rem;color:#555">Uncovers unbundled merchandising, belly-cargo monetization, and direct distribution margin opportunities.</p>`
+      },
+      "C1": {
+        title: "C1 — 90-Day Sprint Template",
+        subtitle: "Sample Transformation Roadmap & Execution Charter",
+        content: `
+          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+            <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: 90-Day Sprint Milestones & Targets</p>
+            <ul style="font-size:0.85rem;margin:0;padding-left:18px;line-height:1.6">
+              <li><b>Days 1–30:</b> Quick wins (Fuel tankering policy, turn-time standardization, AOG escalation).</li>
+              <li><b>Days 31–60:</b> Structural fixes (Route P&L adjustments, crew roster optimization, supplier renegotiation).</li>
+              <li><b>Days 61–90:</b> KPI institutionalization & final board-verified ROI audit.</li>
+            </ul>
+          </div>
+          <p style="font-size:0.88rem;color:#555">A fully staffed and budgeted transformation roadmap delivered at the end of Phase 3.</p>`
+      },
+      "C3": {
+        title: "C3 — Board Presentation Template",
+        subtitle: "Sample Executive Findings & Board Presentation Deck",
+        content: `
+          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+            <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: 8-Slide Board Structure</p>
+            <div style="font-size:0.84rem;color:#333;line-height:1.5">
+              1. Executive Health Baseline · 2. Sized Financial & Operational Gaps · 3. Route Contribution Heatmap · 4. CASK Disadvantage Sizing · 5. 90-Day Sprint Plan & Budgets · 6. KPI Governance Matrix.
+            </div>
+          </div>
+          <p style="font-size:0.88rem;color:#555">Ready-to-present board deck synthesizing all Phase 2 diagnostic findings into clear decision rights.</p>`
+      },
+      "D1": {
+        title: "D1 — AOC Startup Readiness Checklist",
+        subtitle: "Sample 30-Item Regulatory Compliance Tracker",
+        content: `
+          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+            <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: 5-Phase AOC Certification Tracker</p>
+            <div style="font-size:0.85rem;line-height:1.6">
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Phase 1 & 2 (Pre-Application & Formal Application)</span><b style="color:var(--dn-green)">Complete</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Phase 3 (Document Evaluation & Manuals)</span><b style="color:var(--dn-amber)">In Progress (82%)</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Phase 4 & 5 (Demonstration Flights & Certification)</span><b>Scheduled</b></div>
+            </div>
+          </div>
+          <p style="font-size:0.88rem;color:#555">Structured regulatory checklist for new airline startups or AOC variations under Civil Aviation Authorities.</p>`
+      }
+    };
+
+    const data = previews[ref] || {
+      title: `${ref} — ${name}`,
+      subtitle: `Sample Output & Deliverable Framework (Toolbox ${box})`,
+      content: `
+        <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+          <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Toolbox ${box} Deliverable Preview</p>
+          <p style="font-size:0.85rem;margin:0">Full standardized analytical model and report output deployed during a DN Consultancy engagement.</p>
+        </div>`
+    };
+
+    const modal = document.createElement("div");
+    modal.id = "tool-preview-modal";
+    modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px";
+    modal.innerHTML = `
+      <div style="background:#fff;border-radius:12px;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 20px 50px rgba(0,0,0,0.3);position:relative">
+        <button id="modal-close" style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666">&times;</button>
+        <span class="eyebrow" style="margin-top:0">Phase 2–5 Deliverable Preview · Toolbox ${box}</span>
+        <h2 style="margin:0.2rem 0 0.4rem;font-size:1.35rem;font-family:var(--sans);font-weight:700">${data.title}</h2>
+        <p style="color:var(--dn-steel);font-weight:600;margin:0 0 1rem;font-size:0.92rem">${data.subtitle}</p>
+        ${data.content}
+        <div style="margin-top:1.4rem;padding-top:1rem;border-top:1px solid #eee;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+          <span style="font-size:0.82rem;color:#666">Deployed during Phase 2–5 of a DN engagement</span>
+          <button id="modal-req-btn" class="btn btn-gold" style="font-size:0.88rem;padding:0.6rem 1.1rem">Request Engagement Brief →</button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(modal);
+
+    modal.querySelector("#modal-close").addEventListener("click", () => modal.remove());
+    modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
+    modal.querySelector("#modal-req-btn").addEventListener("click", () => {
+      modal.remove();
+      document.getElementById("email-capture-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById("capture-name")?.focus();
+    });
+  }
+
   function renderToolboxes() {
     const host = document.getElementById("toolboxes");
     const toolLinks = {
@@ -171,7 +345,15 @@
         }
         c.innerHTML = `<span class="lockicon">${tb.locked ? "&#128274;" : "&#10003;"}</span>
           <span class="ref">Toolbox ${tb.box} · ${t.ref}</span>
-          <h4>${t.n}</h4><p>${t.d}</p>`;
+          <h4>${t.n}</h4><p>${t.d}</p>
+          <button class="btn-preview-trigger" style="margin-top:0.6rem;background:rgba(74,127,165,.1);border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:0.3rem 0.65rem;font-size:0.78rem;font-weight:600;cursor:pointer">🔍 Preview Sample Output</button>`;
+        
+        c.querySelector(".btn-preview-trigger").addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openToolPreviewModal(t.ref, t.n, tb.box);
+        });
+
         host.appendChild(c);
       });
     });
@@ -261,20 +443,24 @@
   if (captureForm) {
     captureForm.addEventListener("submit", async e => {
       e.preventDefault();
+      const nameEl = document.getElementById("capture-name");
       const emailEl = document.getElementById("capture-email");
       const airlineEl = document.getElementById("capture-airline");
+      const fleetEl = document.getElementById("capture-fleet");
       const msg = document.getElementById("capture-msg");
       const submitBtn = captureForm.querySelector("button[type='submit']");
-      const email = emailEl.value.trim();
-      if (!email) { emailEl.focus(); return; }
+      const email = emailEl ? emailEl.value.trim() : "";
+      if (!email) { if (emailEl) emailEl.focus(); return; }
       submitBtn.disabled = true;
       submitBtn.textContent = "Sending…";
       try {
         const body = new URLSearchParams({
           "form-name": "scorecard-report",
           "bot-field": "",
+          name: nameEl ? nameEl.value.trim() : "",
           email,
-          airline: airlineEl.value.trim(),
+          airline: airlineEl ? airlineEl.value.trim() : "",
+          fleet_size: fleetEl ? fleetEl.value : "",
           health_index: String(s.index),
           top_gaps: sorted.slice(0, 3).map(d => `${d.name} (${d.pct}%)`).join(", "),
           share_url: shareURL
@@ -285,15 +471,15 @@
           body: body.toString()
         });
         if (!resp.ok) throw new Error(resp.status);
-        msg.textContent = "✓ Sent — check your inbox in a moment.";
+        msg.textContent = "✓ Sent — your Executive Brief & 90-Day Roadmap will arrive in your inbox.";
         msg.style.color = "var(--dn-green)";
-        submitBtn.textContent = "✓ Sent";
+        submitBtn.textContent = "✓ Executive Brief Requested";
         sessionStorage.setItem("dn_report_sent", "1");
       } catch {
         msg.innerHTML = `Could not send — email us at <a href="mailto:${DN.brand.email}">${DN.brand.email}</a>`;
         msg.style.color = "var(--dn-red)";
         submitBtn.disabled = false;
-        submitBtn.textContent = "Send my report →";
+        submitBtn.textContent = "Send Executive Brief & Roadmap (PDF) →";
       }
     });
   }
