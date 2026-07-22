@@ -50,8 +50,10 @@
        Submission happens via fetch() in results.js (never submitted directly). -->
   <form name="scorecard-report" data-netlify="true" netlify-honeypot="bot-field" hidden>
     <input type="text"   name="bot-field">
+    <input type="text"   name="name">
     <input type="email"  name="email">
     <input type="text"   name="airline">
+    <input type="text"   name="fleet_size">
     <input type="hidden" name="health_index">
     <input type="hidden" name="top_gaps">
     <input type="hidden" name="share_url">
@@ -131,19 +133,27 @@
     </div>
   </section>
 
-  <!-- email capture -->
+  <!-- email capture / board-ready export -->
   <section class="email-capture-section" id="email-capture-section">
     <div class="wrap">
       <div class="ec-card">
-        <div class="ec-icon">✉️</div>
+        <div class="ec-icon">📋</div>
         <div class="ec-body">
-          <h3>Get this report in your inbox</h3>
-          <p class="muted">One email, no spam. Your health index and top findings — ready to share with your board.</p>
+          <h3>Send Me the Board-Ready Executive Brief &amp; 90-Day Roadmap (PDF)</h3>
+          <p class="muted">Instant on-screen results are 100% free with no email required. Request an executive briefing pack formatted for leadership and board presentations.</p>
         </div>
         <form class="ec-form" id="capture-form" novalidate>
-          <input type="email" id="capture-email" placeholder="you@airline.com" autocomplete="email" required>
-          <input type="text"  id="capture-airline" placeholder="Airline name (optional)" autocomplete="organization">
-          <button type="submit" class="btn btn-primary">Send my report →</button>
+          <input type="text"  id="capture-name" placeholder="Your Name" autocomplete="name" required>
+          <input type="email" id="capture-email" placeholder="Work Email" autocomplete="email" required>
+          <input type="text"  id="capture-airline" placeholder="Airline Name" autocomplete="organization" required>
+          <select id="capture-fleet" required>
+            <option value="" disabled selected>Fleet Size</option>
+            <option value="1–2 aircraft">1–2 aircraft</option>
+            <option value="3–5 aircraft">3–5 aircraft</option>
+            <option value="6–15 aircraft">6–15 aircraft</option>
+            <option value="16+ aircraft">16+ aircraft</option>
+          </select>
+          <button type="submit" class="btn btn-primary" style="width:100%">Send Executive Brief &amp; Roadmap (PDF) →</button>
           <p class="ec-msg" id="capture-msg"></p>
         </form>
       </div>
@@ -209,7 +219,7 @@
       <div class="locked-grid" id="toolboxes"></div>
       <div class="guarantee" style="margin-top:1.8rem">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 3 5v6c0 5 3.8 9.7 9 11 5.2-1.3 9-6 9-11V5l-9-4z"/></svg>
-        <div><strong>Ready to act on this report?</strong> A DN engagement turns these findings into a quantified 90-day sprint — with a 3× Year-1 ROI guarantee. <a data-email></a></div>
+        <div><strong>Ready to act on this report?</strong> A DN engagement turns these findings into a quantified 90-day sprint — with a 3× Year-1 ROI guarantee. <span style="display:block;font-size:0.85rem;margin-top:0.3rem;color:var(--dn-muted)">3× ROI Guarantee applies to carriers with 3+ aircraft operating scheduled or contract services upon completion of Phase 2 data verification.</span> <a data-email></a></div>
       </div>
     </div>
   </section>

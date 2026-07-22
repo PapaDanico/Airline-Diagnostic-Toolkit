@@ -400,7 +400,8 @@ body.has-partner .partner-logo { display: block; }
 .ec-body p  { margin: 0; font-size: .9rem; }
 .ec-form { display: flex; flex-wrap: wrap; gap: .55rem; align-items: flex-start; flex: 2; min-width: 260px; }
 .ec-form input[type="email"],
-.ec-form input[type="text"] {
+.ec-form input[type="text"],
+.ec-form select {
   flex: 1 1 150px; padding: .72rem 1rem;
   border: 1px solid rgba(28,28,28,.2); border-radius: var(--radius-sm);
   font-family: var(--sans); font-size: .94rem; background: #fff;

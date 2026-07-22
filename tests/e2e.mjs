@@ -17,8 +17,12 @@ const assert = (cond, msg) => {
 };
 function section(name) { console.log(`\n── ${name} ──`); }
 
-const DEV_EXEC = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
-const browser = await chromium.launch(existsSync(DEV_EXEC) ? { executablePath: DEV_EXEC } : {});
+const CANDIDATE_EXECS = [
+  "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
+  "/opt/build/repo/.netlify/plugins/node_modules/@netlify/plugin-lighthouse/node_modules/puppeteer-core/.local-chromium/linux-1045629/chrome-linux/chrome"
+];
+const execPath = CANDIDATE_EXECS.find(p => existsSync(p));
+const browser = await chromium.launch(execPath ? { executablePath: execPath } : {});
 const page = await browser.newPage();
 const errs = [];
 page.on("pageerror", e => errs.push(e.message));
