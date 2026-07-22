@@ -249,7 +249,7 @@
   ];
 
   const STORE = "dn_tna_v1";
-  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const totalItems = GROUPS.reduce((a, g) => a + g.items.length, 0);
   let state = {};
   try { state = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { state = {}; }
@@ -388,7 +388,7 @@
       const v = tr.querySelector(".cur-select").value;
       if (v !== "") state[tr.dataset.key] = parseInt(v, 10);
     });
-    localStorage.setItem(STORE, JSON.stringify(state));
+    try { localStorage.setItem(STORE, JSON.stringify(state)); } catch {}
   }
 
   host.addEventListener("change", e => {
@@ -410,7 +410,7 @@
   document.getElementById("tna-print").addEventListener("click", () => window.print());
   document.getElementById("tna-reset").addEventListener("click", () => {
     if (!confirm("Clear all current-level entries?")) return;
-    localStorage.removeItem(STORE);
+    try { localStorage.removeItem(STORE); } catch {}
     document.querySelectorAll("#tna-groups .cur-select").forEach(s => s.value = "");
     recompute();
   });

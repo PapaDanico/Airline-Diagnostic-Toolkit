@@ -344,8 +344,9 @@ body.has-partner .partner-logo { display: block; }
   #calibrate-section, #capture-nudge { display: none !important; }
   .print-head { display: flex !important; }
   /* hero: drop the dark gradient so white text becomes readable ink */
-  .score-hero { background: #fff !important; color: #000 !important; padding: 0 0 10px !important; }
-  .score-hero .eyebrow, .score-hero h1, .score-hero #index-text, .score-hero #index-band { color: var(--dn-dark) !important; }
+  .score-hero, .result-panel, .band-dark, .band-steel { background: #fff !important; color: #000 !important; padding: 0 0 10px !important; }
+  .score-hero .eyebrow, .score-hero h1, .score-hero #index-text, .score-hero #index-band,
+  .result-panel *, .band-dark *, .band-dark h2, .band-dark h3, .band-steel h2, .band-steel p { color: var(--dn-dark) !important; }
   .band-fog, .sources { background: #fff !important; }
   section { padding: 12px 0 !important; }
   /* preserve RAG / radar / ring colours when printing */
@@ -432,11 +433,13 @@ body.has-partner .partner-logo { display: block; }
   .book-cta { padding: 24px 20px; }
   .book-cta-actions { width: 100%; }
   .book-cta-actions .btn { width: 100%; justify-content: center; }
+  .g4 { grid-template-columns: 1fr; }
 }
 
 /* interactive engagement phases (homepage) */
 button.phase { text-align: left; font: inherit; cursor: pointer; display: block; width: 100%; transition: box-shadow .2s, transform .2s; }
-button.phase:hover { box-shadow: 0 10px 28px rgba(0,0,0,.09); transform: translateY(-2px); }
+button.phase:hover, button.phase:focus-visible { box-shadow: 0 10px 28px rgba(0,0,0,.09); transform: translateY(-2px); }
+button.phase:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .phase-hint { display: inline-block; margin-top: .6rem; font-size: .74rem; font-weight: 700; letter-spacing: .05em; color: var(--accent); }
 .phase-detail { display: block; margin-top: .7rem; padding-top: .7rem; border-top: 1px dashed rgba(28,28,28,.15); font-size: .82rem; }
 .phase-detail b { display: block; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--dn-gold); margin: .5rem 0 .2rem; }

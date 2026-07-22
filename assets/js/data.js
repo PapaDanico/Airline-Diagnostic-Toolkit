@@ -202,7 +202,7 @@ const DN = {
       id: "commercial", name: "Commercial & Ancillary", weight: 10,
       blurb: "Ancillary revenue, distribution mix, loyalty/CRM, cargo and digital experience.",
       rxCategory: "Ancillary merchandising engines, NDC/distribution platforms, loyalty/CRM, and cargo revenue management.",
-      dnTool: "DN tool 20 — Ancillary Revenue Optimiser; B5 — Revenue Mix",
+      dnTool: "B5 — Revenue Mix Diagnostic",
       benchmark: "Leading carriers earn $20+ in ancillary revenue per passenger; many African carriers remain in single digits.",
       benchmarkSrc: "Industry range",
       standard: "IATA NDC / airline retailing",
