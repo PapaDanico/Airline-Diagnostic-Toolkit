@@ -96,6 +96,15 @@ await page.click("#capture-form button[type=submit]");
 await page.waitForFunction(() => document.getElementById("capture-msg")?.textContent.trim().length > 0, null, { timeout: 4000 }).catch(() => {});
 assert((await page.$eval("#capture-msg", e => e.textContent)).length > 0, "capture form submit produces a visible message (not a silent throw)");
 
+// negative case: form carries novalidate, so name/airline/fleet must be
+// enforced in JS — submitting with only email filled must not proceed
+await page.reload(); await page.waitForTimeout(300);
+await page.fill("#capture-email", "test2@example.com");
+await page.click("#capture-form button[type=submit]");
+await page.waitForTimeout(200);
+assert(await page.$eval("#capture-msg", e => e.textContent.trim()) === "", "capture form blocks submit when name/airline/fleet are blank");
+assert(await page.evaluate(() => document.activeElement.id) === "capture-name", "focus moves to the first blank required field (name)");
+
 // Book-a-call CTA
 assert(await page.$("#book-email-btn") !== null, "book-a-call email button present");
 assert(await page.$("#book-copy-btn") !== null, "book-a-call copy link button present");
@@ -269,6 +278,8 @@ assert(await page.$("form[name='debrief-request'][hidden]") !== null, "static de
 for (const id of ["db-name", "db-email", "db-airline", "db-role", "db-week"]) {
   assert(await page.$("#" + id) !== null, `debrief field ${id} present`);
 }
+assert(await page.$eval("#db-role", e => e.tagName) === "SELECT", "role is a guided dropdown, not free text");
+assert(await page.$eval("#db-week", e => e.tagName) === "SELECT", "preferred week is a guided dropdown, not free text");
 await page.fill("#db-name", "Test User");
 await page.fill("#db-email", "test@example.com");
 await page.fill("#db-airline", "Test Airways");
@@ -321,6 +332,20 @@ assert(/Invalid/i.test(await page.$eval("#key-msg", e => e.textContent)), "wrong
 await page.fill("#key-input", "dn-engage-2026"); await page.click("#key-apply"); await page.waitForTimeout(150);
 assert(/Unlocked/i.test(await page.$eval("#key-msg", e => e.textContent)), "correct key (lowercase) unlocks");
 assert(await page.$$eval(".toolcard.unlocked", e => e.length) > 0, "toolcards unlock after valid key");
+
+// preview-modal trigger only belongs on locked (paid-engagement) cards —
+// showing it on already-free Toolbox A cards would pop a generic modal
+// falsely claiming the tool is "deployed during a DN engagement"
+assert(await page.$eval(".toolcard.unlocked[data-box='A']", c => c.querySelector(".btn-preview-trigger")) === null,
+  "no preview-trigger button on free Toolbox A cards");
+assert(await page.$eval(".toolcard.locked", c => c.querySelector(".btn-preview-trigger")) !== null,
+  "preview-trigger button present on a locked toolbox card");
+await page.click(".toolcard.locked .btn-preview-trigger");
+await page.waitForSelector("#tool-preview-modal");
+assert(await page.$eval("#tool-preview-modal", m => m.getAttribute("role")) === "dialog", "preview modal has role=dialog");
+await page.keyboard.press("Escape");
+await page.waitForTimeout(150);
+assert(await page.$("#tool-preview-modal") === null, "Escape key closes the preview modal");
 
 /* ─── 6. RESULTS — empty state ─── */
 section("Results page — empty state");

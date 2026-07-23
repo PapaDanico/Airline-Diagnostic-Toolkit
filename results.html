@@ -195,8 +195,24 @@
             <input required name="name" id="db-name" placeholder="Your name">
             <input required type="email" name="email" id="db-email" placeholder="Work email">
             <input required name="airline" id="db-airline" placeholder="Airline / organisation">
-            <input name="role" id="db-role" placeholder="Your role (e.g. COO)">
-            <input name="preferred_week" id="db-week" placeholder="Preferred week (e.g. w/c 20 Jul)">
+            <select name="role" id="db-role">
+              <option value="">Your role</option>
+              <option>CEO / Accountable Manager</option>
+              <option>COO / Operations</option>
+              <option>CFO / Finance</option>
+              <option>Chief Pilot / Ops</option>
+              <option>Director Safety / Head of Maintenance</option>
+              <option>Consultant / Advisor</option>
+              <option>Other</option>
+            </select>
+            <select name="preferred_week" id="db-week">
+              <option value="">Preferred week</option>
+              <option>This week</option>
+              <option>Next week</option>
+              <option>Within 2 weeks</option>
+              <option>Within a month</option>
+              <option>Flexible / no preference</option>
+            </select>
             <button type="submit" class="btn btn-gold">Request my debrief →</button>
           </form>
           <p class="keymsg" id="db-msg" aria-live="polite"></p>
