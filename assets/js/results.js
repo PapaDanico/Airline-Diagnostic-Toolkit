@@ -343,7 +343,7 @@
       "A2": "tools/cask-calculator.html",
       "A3": "tools/data-request.html",
       "A4": "tools/operating-model-canvas.html",
-      "C5": "tools/training-tna.html"
+      "A5": "tools/training-tna.html"
     };
     DN.toolboxes.forEach(tb => {
       tb.tools.forEach(t => {
@@ -356,7 +356,7 @@
           c.style.color = "inherit";
         }
         /* preview modal only makes sense for locked (paid-engagement) tools —
-           A1-A4 and C5 are already free and one click away from the real
+           Toolbox A (A1-A5) is already free and one click away from the real
            thing, so showing "Preview Sample Output" there is redundant and,
            worse, pops a generic "deployed during a DN engagement" modal
            that's simply false for a tool the visitor can use right now */

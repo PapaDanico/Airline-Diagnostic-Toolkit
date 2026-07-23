@@ -333,6 +333,13 @@ await page.fill("#key-input", "dn-engage-2026"); await page.click("#key-apply");
 assert(/Unlocked/i.test(await page.$eval("#key-msg", e => e.textContent)), "correct key (lowercase) unlocks");
 assert(await page.$$eval(".toolcard.unlocked", e => e.length) > 0, "toolcards unlock after valid key");
 
+// Training Needs Analysis is a fully free tool (tools/training-tna.html) —
+// it must render as an unlocked Toolbox A card (ref A5), not a locked one
+// under Toolbox C, which would falsely present it as engagement-gated
+assert(await page.$("a.toolcard[href*='training-tna']") !== null, "TNA toolcard is a direct link (not gated)");
+assert(await page.$eval("a.toolcard[href*='training-tna']", a => a.classList.contains("unlocked")), "TNA toolcard renders as unlocked");
+assert(/Toolbox A/.test(await page.$eval("a.toolcard[href*='training-tna'] .ref", e => e.textContent)), "TNA is listed under free Toolbox A, not locked Toolbox C");
+
 // preview-modal trigger only belongs on locked (paid-engagement) cards —
 // showing it on already-free Toolbox A cards would pop a generic modal
 // falsely claiming the tool is "deployed during a DN engagement"
