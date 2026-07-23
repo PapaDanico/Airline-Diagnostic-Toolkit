@@ -65,7 +65,7 @@ const DN = {
     }
 
     if (fleetType === "Turboprop") {
-      adj.cost += 2; adj.ops += 1; adj.commercial = Math.max(2, adj.commercial - 2); adj.fleet -= 1;
+      adj.cost += 2; adj.ops += 1; adj.commercial = Math.max(2, adj.commercial - 2); adj.fleet = Math.max(8, adj.fleet - 1);
     } else if (fleetType === "Narrowbody") {
       adj.revenue += 2; adj.fleet += 1; adj.cost = Math.max(8, adj.cost - 1); adj.ops = Math.max(10, adj.ops - 2);
     } else if (fleetType === "Regional Jet") {

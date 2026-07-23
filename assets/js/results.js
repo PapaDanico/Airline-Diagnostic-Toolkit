@@ -168,7 +168,7 @@
     });
   }
 
-  function openToolPreviewModal(ref, name, box) {
+  function openToolPreviewModal(ref, name, box, triggerEl) {
     let existing = document.getElementById("tool-preview-modal");
     if (existing) existing.remove();
 
@@ -299,12 +299,15 @@
 
     const modal = document.createElement("div");
     modal.id = "tool-preview-modal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-labelledby", "modal-title");
     modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px";
     modal.innerHTML = `
       <div style="background:#fff;border-radius:12px;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 20px 50px rgba(0,0,0,0.3);position:relative">
-        <button id="modal-close" style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666">&times;</button>
+        <button id="modal-close" aria-label="Close preview" style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666">&times;</button>
         <span class="eyebrow" style="margin-top:0">Phase 2–5 Deliverable Preview · Toolbox ${box}</span>
-        <h2 style="margin:0.2rem 0 0.4rem;font-size:1.35rem;font-family:var(--sans);font-weight:700">${data.title}</h2>
+        <h2 id="modal-title" style="margin:0.2rem 0 0.4rem;font-size:1.35rem;font-family:var(--sans);font-weight:700">${data.title}</h2>
         <p style="color:var(--dn-steel);font-weight:600;margin:0 0 1rem;font-size:0.92rem">${data.subtitle}</p>
         ${data.content}
         <div style="margin-top:1.4rem;padding-top:1rem;border-top:1px solid #eee;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
@@ -314,11 +317,20 @@
       </div>`;
 
     document.body.appendChild(modal);
+    modal.querySelector("#modal-close").focus();
 
-    modal.querySelector("#modal-close").addEventListener("click", () => modal.remove());
-    modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
-    modal.querySelector("#modal-req-btn").addEventListener("click", () => {
+    const onKeydown = e => { if (e.key === "Escape") closeModal(); };
+    function closeModal() {
+      document.removeEventListener("keydown", onKeydown);
       modal.remove();
+      (triggerEl || document.body).focus?.();
+    }
+    document.addEventListener("keydown", onKeydown);
+
+    modal.querySelector("#modal-close").addEventListener("click", closeModal);
+    modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+    modal.querySelector("#modal-req-btn").addEventListener("click", () => {
+      closeModal();
       document.getElementById("email-capture-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
       document.getElementById("capture-name")?.focus();
     });
@@ -343,16 +355,26 @@
           c.style.textDecoration = "none";
           c.style.color = "inherit";
         }
+        /* preview modal only makes sense for locked (paid-engagement) tools —
+           A1-A4 and C5 are already free and one click away from the real
+           thing, so showing "Preview Sample Output" there is redundant and,
+           worse, pops a generic "deployed during a DN engagement" modal
+           that's simply false for a tool the visitor can use right now */
+        const previewBtn = tb.locked
+          ? `<button class="btn-preview-trigger" style="margin-top:0.6rem;background:rgba(74,127,165,.1);border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:0.3rem 0.65rem;font-size:0.78rem;font-weight:600;cursor:pointer">🔍 Preview Sample Output</button>`
+          : "";
         c.innerHTML = `<span class="lockicon">${tb.locked ? "&#128274;" : "&#10003;"}</span>
           <span class="ref">Toolbox ${tb.box} · ${t.ref}</span>
           <h4>${t.n}</h4><p>${t.d}</p>
-          <button class="btn-preview-trigger" style="margin-top:0.6rem;background:rgba(74,127,165,.1);border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:0.3rem 0.65rem;font-size:0.78rem;font-weight:600;cursor:pointer">🔍 Preview Sample Output</button>`;
-        
-        c.querySelector(".btn-preview-trigger").addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          openToolPreviewModal(t.ref, t.n, tb.box);
-        });
+          ${previewBtn}`;
+
+        if (tb.locked) {
+          c.querySelector(".btn-preview-trigger").addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openToolPreviewModal(t.ref, t.n, tb.box, e.currentTarget);
+          });
+        }
 
         host.appendChild(c);
       });
@@ -449,18 +471,29 @@
       const fleetEl = document.getElementById("capture-fleet");
       const msg = document.getElementById("capture-msg");
       const submitBtn = captureForm.querySelector("button[type='submit']");
+      const name = nameEl ? nameEl.value.trim() : "";
       const email = emailEl ? emailEl.value.trim() : "";
+      const airline = airlineEl ? airlineEl.value.trim() : "";
+      const fleet = fleetEl ? fleetEl.value : "";
+      /* the form carries novalidate (for consistent cross-browser focus
+         behaviour rather than the browser's native validation bubble),
+         so every required field needs its own check here — email was
+         the only one guarded, leaving name/airline/fleet submittable
+         blank despite their required attribute */
+      if (!name) { if (nameEl) nameEl.focus(); return; }
       if (!email) { if (emailEl) emailEl.focus(); return; }
+      if (!airline) { if (airlineEl) airlineEl.focus(); return; }
+      if (!fleet) { if (fleetEl) fleetEl.focus(); return; }
       submitBtn.disabled = true;
       submitBtn.textContent = "Sending…";
       try {
         const body = new URLSearchParams({
           "form-name": "scorecard-report",
           "bot-field": "",
-          name: nameEl ? nameEl.value.trim() : "",
+          name,
           email,
-          airline: airlineEl ? airlineEl.value.trim() : "",
-          fleet_size: fleetEl ? fleetEl.value : "",
+          airline,
+          fleet_size: fleet,
           health_index: String(s.index),
           top_gaps: sorted.slice(0, 3).map(d => `${d.name} (${d.pct}%)`).join(", "),
           share_url: shareURL

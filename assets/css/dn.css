@@ -447,3 +447,9 @@ button.phase:focus-visible { outline: 2px solid var(--accent); outline-offset: 2
 .phase-detail li { margin-bottom: .15rem; }
 .phase-detail .po { color: var(--dn-dark); }
 .phase.open { border-color: var(--accent); }
+
+/* tool preview modal trigger (locked toolbox cards) */
+.btn-preview-trigger { transition: background-color .15s, box-shadow .15s; }
+.btn-preview-trigger:hover { background: rgba(74,127,165,.18) !important; }
+.btn-preview-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#tool-preview-modal #modal-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
