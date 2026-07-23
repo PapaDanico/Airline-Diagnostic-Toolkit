@@ -127,8 +127,9 @@
       <p style="margin:0.5rem 0;font-weight:600">Based on your ${topGaps.map(d => d.name).join(", ")} scores, these tools will give you quick insights:</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:1rem" id="rec-tools"></div>`;
     /* insert before the toolboxes <section>, not inside its .wrap */
-    const toolboxSection = document.querySelector(".locked-grid").closest("section");
-    toolboxSection.parentElement.insertBefore(recHost, toolboxSection);
+    const lockedGrid = document.querySelector(".locked-grid");
+    const toolboxSection = lockedGrid && lockedGrid.closest("section");
+    if (toolboxSection) toolboxSection.parentElement.insertBefore(recHost, toolboxSection);
     const recToolsHost = document.getElementById("rec-tools");
     DN.toolboxes.forEach(tb => {
       tb.tools.forEach(t => {
@@ -144,14 +145,14 @@
 
   /* ---- locked Toolboxes B/C/D (DN Engagement Key gate) ---- */
   renderToolboxes();
-  const unlocked = sessionStorage.getItem("dn_unlocked") === "1";
+  const unlocked = sessionGet("dn_unlocked") === "1";
   if (unlocked) setUnlocked(true);
 
   document.getElementById("key-apply").addEventListener("click", () => {
     const val = document.getElementById("key-input").value.trim();
     const msg = document.getElementById("key-msg");
     if (val.toUpperCase() === DN.engagementKey) {
-      sessionStorage.setItem("dn_unlocked", "1"); setUnlocked(true);
+      sessionSet("dn_unlocked", "1"); setUnlocked(true);
       msg.textContent = "Unlocked — full toolbox previews enabled."; msg.className = "keymsg rag-green";
     } else {
       msg.innerHTML = `Invalid key. <a href="mailto:${DN.brand.email}?subject=DN%20Engagement%20Key%20request">Request your DN Engagement Key →</a>`;
@@ -167,7 +168,7 @@
     });
   }
 
-  function openToolPreviewModal(ref, name, box) {
+  function openToolPreviewModal(ref, name, box, triggerEl) {
     let existing = document.getElementById("tool-preview-modal");
     if (existing) existing.remove();
 
@@ -298,12 +299,15 @@
 
     const modal = document.createElement("div");
     modal.id = "tool-preview-modal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-labelledby", "modal-title");
     modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px";
     modal.innerHTML = `
       <div style="background:#fff;border-radius:12px;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 20px 50px rgba(0,0,0,0.3);position:relative">
-        <button id="modal-close" style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666">&times;</button>
+        <button id="modal-close" aria-label="Close preview" style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666">&times;</button>
         <span class="eyebrow" style="margin-top:0">Phase 2–5 Deliverable Preview · Toolbox ${box}</span>
-        <h2 style="margin:0.2rem 0 0.4rem;font-size:1.35rem;font-family:var(--sans);font-weight:700">${data.title}</h2>
+        <h2 id="modal-title" style="margin:0.2rem 0 0.4rem;font-size:1.35rem;font-family:var(--sans);font-weight:700">${data.title}</h2>
         <p style="color:var(--dn-steel);font-weight:600;margin:0 0 1rem;font-size:0.92rem">${data.subtitle}</p>
         ${data.content}
         <div style="margin-top:1.4rem;padding-top:1rem;border-top:1px solid #eee;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
@@ -313,11 +317,20 @@
       </div>`;
 
     document.body.appendChild(modal);
+    modal.querySelector("#modal-close").focus();
 
-    modal.querySelector("#modal-close").addEventListener("click", () => modal.remove());
-    modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
-    modal.querySelector("#modal-req-btn").addEventListener("click", () => {
+    const onKeydown = e => { if (e.key === "Escape") closeModal(); };
+    function closeModal() {
+      document.removeEventListener("keydown", onKeydown);
       modal.remove();
+      (triggerEl || document.body).focus?.();
+    }
+    document.addEventListener("keydown", onKeydown);
+
+    modal.querySelector("#modal-close").addEventListener("click", closeModal);
+    modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+    modal.querySelector("#modal-req-btn").addEventListener("click", () => {
+      closeModal();
       document.getElementById("email-capture-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
       document.getElementById("capture-name")?.focus();
     });
@@ -330,8 +343,7 @@
       "A2": "tools/cask-calculator.html",
       "A3": "tools/data-request.html",
       "A4": "tools/operating-model-canvas.html",
-      "B5": "#", // locked, no direct link
-      "C5": "tools/training-tna.html"
+      "A5": "tools/training-tna.html"
     };
     DN.toolboxes.forEach(tb => {
       tb.tools.forEach(t => {
@@ -343,16 +355,26 @@
           c.style.textDecoration = "none";
           c.style.color = "inherit";
         }
+        /* preview modal only makes sense for locked (paid-engagement) tools —
+           Toolbox A (A1-A5) is already free and one click away from the real
+           thing, so showing "Preview Sample Output" there is redundant and,
+           worse, pops a generic "deployed during a DN engagement" modal
+           that's simply false for a tool the visitor can use right now */
+        const previewBtn = tb.locked
+          ? `<button class="btn-preview-trigger" style="margin-top:0.6rem;background:rgba(74,127,165,.1);border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:0.3rem 0.65rem;font-size:0.78rem;font-weight:600;cursor:pointer">🔍 Preview Sample Output</button>`
+          : "";
         c.innerHTML = `<span class="lockicon">${tb.locked ? "&#128274;" : "&#10003;"}</span>
           <span class="ref">Toolbox ${tb.box} · ${t.ref}</span>
           <h4>${t.n}</h4><p>${t.d}</p>
-          <button class="btn-preview-trigger" style="margin-top:0.6rem;background:rgba(74,127,165,.1);border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:0.3rem 0.65rem;font-size:0.78rem;font-weight:600;cursor:pointer">🔍 Preview Sample Output</button>`;
-        
-        c.querySelector(".btn-preview-trigger").addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          openToolPreviewModal(t.ref, t.n, tb.box);
-        });
+          ${previewBtn}`;
+
+        if (tb.locked) {
+          c.querySelector(".btn-preview-trigger").addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openToolPreviewModal(t.ref, t.n, tb.box, e.currentTarget);
+          });
+        }
 
         host.appendChild(c);
       });
@@ -435,7 +457,7 @@
   }
 
   /* ---- email capture (Netlify Forms via fetch) ---- */
-  if (sessionStorage.getItem("dn_report_sent") === "1") {
+  if (sessionGet("dn_report_sent") === "1") {
     const ec = document.getElementById("email-capture-section");
     if (ec) ec.style.display = "none";
   }
@@ -449,18 +471,29 @@
       const fleetEl = document.getElementById("capture-fleet");
       const msg = document.getElementById("capture-msg");
       const submitBtn = captureForm.querySelector("button[type='submit']");
+      const name = nameEl ? nameEl.value.trim() : "";
       const email = emailEl ? emailEl.value.trim() : "";
+      const airline = airlineEl ? airlineEl.value.trim() : "";
+      const fleet = fleetEl ? fleetEl.value : "";
+      /* the form carries novalidate (for consistent cross-browser focus
+         behaviour rather than the browser's native validation bubble),
+         so every required field needs its own check here — email was
+         the only one guarded, leaving name/airline/fleet submittable
+         blank despite their required attribute */
+      if (!name) { if (nameEl) nameEl.focus(); return; }
       if (!email) { if (emailEl) emailEl.focus(); return; }
+      if (!airline) { if (airlineEl) airlineEl.focus(); return; }
+      if (!fleet) { if (fleetEl) fleetEl.focus(); return; }
       submitBtn.disabled = true;
       submitBtn.textContent = "Sending…";
       try {
         const body = new URLSearchParams({
           "form-name": "scorecard-report",
           "bot-field": "",
-          name: nameEl ? nameEl.value.trim() : "",
+          name,
           email,
-          airline: airlineEl ? airlineEl.value.trim() : "",
-          fleet_size: fleetEl ? fleetEl.value : "",
+          airline,
+          fleet_size: fleet,
           health_index: String(s.index),
           top_gaps: sorted.slice(0, 3).map(d => `${d.name} (${d.pct}%)`).join(", "),
           share_url: shareURL
@@ -474,7 +507,7 @@
         msg.textContent = "✓ Sent — your Executive Brief & 90-Day Roadmap will arrive in your inbox.";
         msg.style.color = "var(--dn-green)";
         submitBtn.textContent = "✓ Executive Brief Requested";
-        sessionStorage.setItem("dn_report_sent", "1");
+        sessionSet("dn_report_sent", "1");
       } catch {
         msg.innerHTML = `Could not send — email us at <a href="mailto:${DN.brand.email}">${DN.brand.email}</a>`;
         msg.style.color = "var(--dn-red)";
@@ -513,8 +546,8 @@
   /* ---- capture nudge: slide-in bar once the reader is 60% through the
      report — engaged readers convert far better than a footer form.
      Skipped for shared views, after a send, or once dismissed. ---- */
-  if (!isShared && sessionStorage.getItem("dn_report_sent") !== "1"
-      && sessionStorage.getItem("dn_capture_nudged") !== "1") {
+  if (!isShared && sessionGet("dn_report_sent") !== "1"
+      && sessionGet("dn_capture_nudged") !== "1") {
     const nudge = document.createElement("div");
     nudge.id = "capture-nudge";
     nudge.style.cssText = "position:fixed;left:0;right:0;bottom:-90px;z-index:60;background:var(--dn-dark,#1F3044);color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;box-shadow:0 -6px 24px rgba(0,0,0,.25);transition:bottom .35s ease";
@@ -535,7 +568,7 @@
     const dismiss = () => {
       nudge.remove();
       removeEventListener("scroll", onScroll);
-      try { sessionStorage.setItem("dn_capture_nudged", "1"); } catch (_) {}
+      sessionSet("dn_capture_nudged", "1");
     };
     nudge.querySelector("#nudge-x").addEventListener("click", dismiss);
     nudge.querySelector("#nudge-go").addEventListener("click", () => {

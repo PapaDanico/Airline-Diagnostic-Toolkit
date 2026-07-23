@@ -65,7 +65,7 @@ const DN = {
     }
 
     if (fleetType === "Turboprop") {
-      adj.cost += 2; adj.ops += 1; adj.commercial = Math.max(2, adj.commercial - 2); adj.fleet -= 1;
+      adj.cost += 2; adj.ops += 1; adj.commercial = Math.max(2, adj.commercial - 2); adj.fleet = Math.max(8, adj.fleet - 1);
     } else if (fleetType === "Narrowbody") {
       adj.revenue += 2; adj.fleet += 1; adj.cost = Math.max(8, adj.cost - 1); adj.ops = Math.max(10, adj.ops - 2);
     } else if (fleetType === "Regional Jet") {
@@ -202,7 +202,7 @@ const DN = {
       id: "commercial", name: "Commercial & Ancillary", weight: 10,
       blurb: "Ancillary revenue, distribution mix, loyalty/CRM, cargo and digital experience.",
       rxCategory: "Ancillary merchandising engines, NDC/distribution platforms, loyalty/CRM, and cargo revenue management.",
-      dnTool: "DN tool 20 — Ancillary Revenue Optimiser; B5 — Revenue Mix",
+      dnTool: "DN B5 — Revenue Mix Diagnostic",
       benchmark: "Leading carriers earn $20+ in ancillary revenue per passenger; many African carriers remain in single digits.",
       benchmarkSrc: "Industry range",
       standard: "IATA NDC / airline retailing",
@@ -223,7 +223,7 @@ const DN = {
       id: "people", name: "People & Organisation", weight: 9,
       blurb: "Staffing ratios, turnover, training currency, structure and leadership capacity.",
       rxCategory: "Training-management / LMS systems, competency-based training tools, and workforce-planning solutions.",
-      dnTool: "DN C5 — Training Needs Analysis; B2 — Staff Cost Efficiency Analyser",
+      dnTool: "DN A5 — Training Needs Analysis; B2 — Staff Cost Efficiency Analyser",
       benchmark: "Lean, well-run carriers target staff turnover under ~15% and benchmark headcount per aircraft against peer fleets.",
       benchmarkSrc: "Industry planning target",
       standard: "Competency-based training (ICAO/IATA)",
@@ -274,7 +274,8 @@ const DN = {
       {ref:"A1", n:"Airline Health Scorecard", d:"40 questions, 8 domains, weighted health index (this tool)."},
       {ref:"A2", n:"CASK Benchmarking Calculator", d:"Cost efficiency vs African and LCC benchmarks."},
       {ref:"A3", n:"48-Hour Data Request", d:"28-item structured priority data pack."},
-      {ref:"A4", n:"Operating Model Canvas", d:"9-panel airline model on one page."} ]},
+      {ref:"A4", n:"Operating Model Canvas", d:"9-panel airline model on one page."},
+      {ref:"A5", n:"Training Needs Analysis", d:"Competency-gap assessment, 4 staff groups."} ]},
     { box:"B", locked:true, title:"Deep Diagnostic", tools:[
       {ref:"B1", n:"Route Profitability Diagnostic", d:"Fast P&L with break-even load factor per route."},
       {ref:"B2", n:"Staff Cost Efficiency Analyser", d:"Labour-ratio benchmarking across all staff groups."},
@@ -285,8 +286,7 @@ const DN = {
       {ref:"C1", n:"90-Day Sprint Template", d:"3 financial targets, 5 ops fixes, 2 commercial initiatives."},
       {ref:"C2", n:"Quick Win Identifier", d:"Impact × effort priority matrix."},
       {ref:"C3", n:"Board Presentation Template", d:"8-slide board-structure findings deck."},
-      {ref:"C4", n:"KPI Governance Framework", d:"12-KPI monthly management report."},
-      {ref:"C5", n:"Training Needs Analysis", d:"Competency-gap assessment, 4 staff groups."} ]},
+      {ref:"C4", n:"KPI Governance Framework", d:"12-KPI monthly management report."} ]},
     { box:"D", locked:true, title:"Sector-Specific", tools:[
       {ref:"D1", n:"AOC Startup Readiness Checklist", d:"30-item KCAA application tracker."},
       {ref:"D2", n:"African Airport Viability Scorecard", d:"45-criteria Go / No-Go assessment."},

@@ -17,6 +17,26 @@ const assert = (cond, msg) => {
 };
 function section(name) { console.log(`\n── ${name} ──`); }
 
+/* Simulates a real submit on a wireToolEnquiryForm()-driven form. Under
+   file:// there's no server, so fetch("/") always rejects and the code
+   takes the catch branch — that's fine: it's the exact branch that threw
+   (msg was null) before the enq-msg-outside-<form> bug was fixed, so
+   asserting it renders a real message instead of leaving the button
+   stuck on "Sending…" forever is precisely the regression test needed. */
+async function assertEnquiryFormSubmits(page, formSelector, label) {
+  await page.fill(`${formSelector} [name=name]`, "Test User");
+  await page.fill(`${formSelector} [name=email]`, "test@example.com");
+  await page.click(`${formSelector} button[type=submit]`);
+  await page.waitForFunction(
+    sel => document.querySelector(sel)?.textContent.trim().length > 0,
+    `${formSelector} .enq-msg`, { timeout: 4000 }
+  ).catch(() => {});
+  const msgText = await page.$eval(`${formSelector} .enq-msg`, e => e.textContent).catch(() => "");
+  const btnText = await page.$eval(`${formSelector} button[type=submit]`, e => e.textContent).catch(() => "");
+  assert(msgText.length > 0, `${label}: submit produces a visible message (not a silent throw)`);
+  assert(!/^Sending/.test(btnText), `${label}: submit button isn't stuck on "Sending…"`);
+}
+
 const CANDIDATE_EXECS = [
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
   "/opt/build/repo/.netlify/plugins/node_modules/@netlify/plugin-lighthouse/node_modules/puppeteer-core/.local-chromium/linux-1045629/chrome-linux/chrome"
@@ -68,6 +88,22 @@ assert(await page.$eval("#email-capture-section", el => getComputedStyle(el).dis
 assert(await page.$("#capture-email") !== null, "capture email input present");
 assert(await page.$("#capture-airline") !== null, "capture airline input present");
 assert(await page.$("#capture-form") !== null, "capture form present");
+await page.fill("#capture-name", "Test User");
+await page.fill("#capture-email", "test@example.com");
+await page.fill("#capture-airline", "Test Airways");
+await page.selectOption("#capture-fleet", "3–5 aircraft");
+await page.click("#capture-form button[type=submit]");
+await page.waitForFunction(() => document.getElementById("capture-msg")?.textContent.trim().length > 0, null, { timeout: 4000 }).catch(() => {});
+assert((await page.$eval("#capture-msg", e => e.textContent)).length > 0, "capture form submit produces a visible message (not a silent throw)");
+
+// negative case: form carries novalidate, so name/airline/fleet must be
+// enforced in JS — submitting with only email filled must not proceed
+await page.reload(); await page.waitForTimeout(300);
+await page.fill("#capture-email", "test2@example.com");
+await page.click("#capture-form button[type=submit]");
+await page.waitForTimeout(200);
+assert(await page.$eval("#capture-msg", e => e.textContent.trim()) === "", "capture form blocks submit when name/airline/fleet are blank");
+assert(await page.evaluate(() => document.activeElement.id) === "capture-name", "focus moves to the first blank required field (name)");
 
 // Book-a-call CTA
 assert(await page.$("#book-email-btn") !== null, "book-a-call email button present");
@@ -242,6 +278,14 @@ assert(await page.$("form[name='debrief-request'][hidden]") !== null, "static de
 for (const id of ["db-name", "db-email", "db-airline", "db-role", "db-week"]) {
   assert(await page.$("#" + id) !== null, `debrief field ${id} present`);
 }
+assert(await page.$eval("#db-role", e => e.tagName) === "SELECT", "role is a guided dropdown, not free text");
+assert(await page.$eval("#db-week", e => e.tagName) === "SELECT", "preferred week is a guided dropdown, not free text");
+await page.fill("#db-name", "Test User");
+await page.fill("#db-email", "test@example.com");
+await page.fill("#db-airline", "Test Airways");
+await page.click("#debrief-form button[type=submit]");
+await page.waitForFunction(() => document.getElementById("db-msg")?.textContent.trim().length > 0, null, { timeout: 4000 }).catch(() => {});
+assert((await page.$eval("#db-msg", e => e.textContent)).length > 0, "debrief form submit produces a visible message (not a silent throw)");
 // print rules keep the exec summary but drop interactive sections
 const printVis = await page.evaluate(() => {
   const probe = sel => { const el = document.querySelector(sel); return el ? getComputedStyle(el).display : "absent"; };
@@ -288,6 +332,27 @@ assert(/Invalid/i.test(await page.$eval("#key-msg", e => e.textContent)), "wrong
 await page.fill("#key-input", "dn-engage-2026"); await page.click("#key-apply"); await page.waitForTimeout(150);
 assert(/Unlocked/i.test(await page.$eval("#key-msg", e => e.textContent)), "correct key (lowercase) unlocks");
 assert(await page.$$eval(".toolcard.unlocked", e => e.length) > 0, "toolcards unlock after valid key");
+
+// Training Needs Analysis is a fully free tool (tools/training-tna.html) —
+// it must render as an unlocked Toolbox A card (ref A5), not a locked one
+// under Toolbox C, which would falsely present it as engagement-gated
+assert(await page.$("a.toolcard[href*='training-tna']") !== null, "TNA toolcard is a direct link (not gated)");
+assert(await page.$eval("a.toolcard[href*='training-tna']", a => a.classList.contains("unlocked")), "TNA toolcard renders as unlocked");
+assert(/Toolbox A/.test(await page.$eval("a.toolcard[href*='training-tna'] .ref", e => e.textContent)), "TNA is listed under free Toolbox A, not locked Toolbox C");
+
+// preview-modal trigger only belongs on locked (paid-engagement) cards —
+// showing it on already-free Toolbox A cards would pop a generic modal
+// falsely claiming the tool is "deployed during a DN engagement"
+assert(await page.$eval(".toolcard.unlocked[data-box='A']", c => c.querySelector(".btn-preview-trigger")) === null,
+  "no preview-trigger button on free Toolbox A cards");
+assert(await page.$eval(".toolcard.locked", c => c.querySelector(".btn-preview-trigger")) !== null,
+  "preview-trigger button present on a locked toolbox card");
+await page.click(".toolcard.locked .btn-preview-trigger");
+await page.waitForSelector("#tool-preview-modal");
+assert(await page.$eval("#tool-preview-modal", m => m.getAttribute("role")) === "dialog", "preview modal has role=dialog");
+await page.keyboard.press("Escape");
+await page.waitForTimeout(150);
+assert(await page.$("#tool-preview-modal") === null, "Escape key closes the preview modal");
 
 /* ─── 6. RESULTS — empty state ─── */
 section("Results page — empty state");
@@ -488,14 +553,17 @@ await page.goto(base + "/tools/fuel-optimizer.html"); await page.waitForTimeout(
 assert(await page.$("form[name='tool-enquiry'][hidden]") !== null, "fuel page: static Netlify form present");
 assert(await page.$("#fuel-enquiry [name=email]") !== null, "fuel page: enquiry form email field present");
 assert(await page.$("#contact-cta") === null, "fuel page: bare mailto CTA removed");
+await assertEnquiryFormSubmits(page, "#fuel-enquiry", "fuel page");
 
 await page.goto(base + "/tools/cask-calculator.html"); await page.waitForTimeout(300);
 assert(await page.$("#cask-enquiry [name=email]") !== null, "CASK page: enquiry form email field present");
 assert(await page.$("#contact-cta") === null, "CASK page: bare mailto CTA removed");
+await assertEnquiryFormSubmits(page, "#cask-enquiry", "CASK page");
 
 await page.goto(base + "/tools/operating-model-canvas.html"); await page.waitForTimeout(300);
 assert(await page.$("#canvas-enquiry [name=email]") !== null, "canvas page: enquiry form email field present");
 assert(await page.$("#contact-cta") === null, "canvas page: bare mailto CTA removed");
+await assertEnquiryFormSubmits(page, "#canvas-enquiry", "canvas page");
 
 /* ─── 23c. How It Works page ─── */
 section("How It Works page");
@@ -504,6 +572,7 @@ assert(await page.$$eval(".phase", e => e.length) === 5, "5 engagement phases re
 assert(/15,000/.test(await page.$eval("body", e => e.textContent)), "investment range shown");
 assert(/3.*Year-1 ROI/.test(await page.$eval("body", e => e.textContent)), "ROI guarantee shown");
 assert(await page.$("#brief-enquiry [name=email]") !== null, "engagement brief form present");
+await assertEnquiryFormSubmits(page, "#brief-enquiry", "how-it-works page");
 
 /* ─── 25. MRO & Technical Readiness Diagnostic ─── */
 section("MRO & Technical Readiness Diagnostic");
@@ -521,6 +590,7 @@ assert(/Material gaps to close/.test(await page.$eval("#mro-band", e => e.textCo
 assert(await page.$eval("#mro-radar", s => s.querySelectorAll("polygon").length) >= 5, "radar renders rings + data polygon");
 assert(await page.$("#mro-enquiry [name=email]") !== null, "enquiry form present");
 assert(await page.$("form[name='tool-enquiry'][hidden]") !== null, "static Netlify form present for build-time detection");
+await assertEnquiryFormSubmits(page, "#mro-enquiry", "MRO diagnostic page");
 page.once("dialog", d => d.accept());
 await page.click("#mro-reset"); await page.waitForTimeout(200);
 assert(await page.$eval("#mro-index", e => e.textContent.trim()) === "—", "index resets to — after clearing answers");

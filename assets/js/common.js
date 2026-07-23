@@ -91,9 +91,19 @@ function mountChrome() {
 }
 
 /* ---- storage ---- */
-function saveAnswers(obj) { localStorage.setItem(STORE_KEY, JSON.stringify(obj)); }
+function saveAnswers(obj) { try { localStorage.setItem(STORE_KEY, JSON.stringify(obj)); } catch {} }
 function loadAnswers() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; } }
-function clearAnswers() { localStorage.removeItem(STORE_KEY); }
+function clearAnswers() { try { localStorage.removeItem(STORE_KEY); } catch {} }
+
+/* ---- storage access that can never throw ----
+   Safari private browsing (and storage-blocked configurations) throw a
+   SecurityError on any localStorage/sessionStorage call, not just writes.
+   A single unguarded call anywhere in a top-level script aborts every
+   feature wired after it — these wrappers make that class of bug
+   structurally impossible instead of relying on a try/catch at every
+   call site. */
+function sessionGet(key) { try { return sessionStorage.getItem(key); } catch { return null; } }
+function sessionSet(key, value) { try { sessionStorage.setItem(key, value); } catch {} }
 
 /* ---- scoring engine ----
    answers: { "<domainId>": [s0..s4 per question] }
@@ -270,5 +280,5 @@ function wireToolEnquiryForm(formId, toolName, opts) {
 if (typeof window !== "undefined") {
   Object.assign(window, { STORE_KEY, DN_LOGO, applyPartner, mountChrome,
     saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel,
-    wireToolEnquiryForm });
+    wireToolEnquiryForm, sessionGet, sessionSet });
 }

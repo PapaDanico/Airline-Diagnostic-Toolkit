@@ -5,6 +5,8 @@
 /fuel                   /tools/fuel-optimizer.html         301
 /canvas                 /tools/operating-model-canvas.html 301
 /data                   /tools/data-request.html           301
+/mro                    /tools/mro-readiness.html          301
+/tna                    /tools/training-tna.html           301
 
 /tools/cask-calculator  /tools/cask-calculator.html        200
 /tools/fuel-optimizer   /tools/fuel-optimizer.html         200
