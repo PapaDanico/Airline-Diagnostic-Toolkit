@@ -43,17 +43,68 @@ function applyPartner() {
   return cfg;
 }
 
+/* ---- global primary navigation ----
+   One canonical menu rendered on every page, so navigation is identical
+   site-wide instead of each page hand-rolling its own (which had drifted:
+   different links/order per page, self-referential entries, and stray
+   one-off links). Path-aware for root vs /tools/ pages; the current page
+   is marked and rendered non-navigating. */
+function buildNav() {
+  const inTools = location.pathname.includes("/tools/");
+  const root = inTools ? "../" : "";
+  const here = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  const items = [
+    { file: "index.html",        href: root + "index.html",        label: "Home" },
+    { file: "how-it-works.html", href: root + "how-it-works.html", label: "How It Works" },
+    // "Free Tools" points at the tools explorer (tools/index.html)
+    { file: inTools ? "index.html" : "tools/index.html",
+      href: inTools ? "index.html" : "tools/index.html", label: "Free Tools", tools: true },
+    { file: "methodology.html",  href: root + "methodology.html",  label: "Methodology" }
+  ];
+  const isActive = it => it.tools ? (inTools && here === "index.html")
+                                  : (!inTools && here === it.file) || (inTools && false);
+  const links = items.map(it => {
+    if (isActive(it)) return `<span class="nav-current" aria-current="page">${it.label}</span>`;
+    return `<a href="${it.href}" data-keep-partner>${it.label}</a>`;
+  });
+  // primary CTA — omit as a link on the scorecard page itself
+  const onScorecard = here === "diagnostic.html";
+  if (!onScorecard) links.push(`<a class="btn btn-primary" href="${root}diagnostic.html" data-keep-partner>Start the scorecard</a>`);
+  return links.join("\n");
+}
+
 /* ---- nav (mobile toggle) + brand/footer injection ---- */
 function mountChrome() {
   document.querySelectorAll("[data-logo]").forEach(el => el.innerHTML = DN_LOGO);
   const toggle = document.querySelector(".nav-toggle");
   const navLinks = document.querySelector(".nav-links");
+  if (navLinks) {
+    // render the canonical menu, replacing whatever static links the page shipped
+    navLinks.innerHTML = buildNav();
+    // re-apply partner param to the freshly-generated links (applyPartner ran
+    // before mountChrome, so it only saw the original static markup)
+    const p = new URLSearchParams(location.search).get("partner");
+    if (p && document.body.classList.contains("has-partner")) {
+      navLinks.querySelectorAll("a[data-keep-partner]").forEach(a => {
+        const href = a.getAttribute("href");
+        if (!href || /^(https?:|mailto:|tel:|#)/i.test(href)) return;
+        const [pathPart, hash] = href.split("#");
+        const sep = pathPart.includes("?") ? "&" : "?";
+        a.setAttribute("href", pathPart + sep + "partner=" + encodeURIComponent(p) + (hash ? "#" + hash : ""));
+      });
+    }
+  }
   if (toggle && navLinks) {
     toggle.setAttribute("aria-expanded", "false");
-    toggle.addEventListener("click", () => {
-      const isOpen = navLinks.classList.toggle("open");
-      toggle.setAttribute("aria-expanded", String(isOpen));
+    const setOpen = open => { navLinks.classList.toggle("open", open); toggle.setAttribute("aria-expanded", String(open)); };
+    toggle.addEventListener("click", e => { e.stopPropagation(); setOpen(!navLinks.classList.contains("open")); });
+    // mobile UX: close the menu after choosing a destination, on outside
+    // click, or on Escape — previously it stayed stuck open
+    navLinks.addEventListener("click", e => { if (e.target.closest("a")) setOpen(false); });
+    document.addEventListener("click", e => {
+      if (navLinks.classList.contains("open") && !navLinks.contains(e.target) && e.target !== toggle) setOpen(false);
     });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") setOpen(false); });
   }
   document.querySelectorAll("[data-year]").forEach(el => el.textContent = new Date().getFullYear());
   document.querySelectorAll("[data-version]").forEach(el => el.textContent = DN.brand.version);
