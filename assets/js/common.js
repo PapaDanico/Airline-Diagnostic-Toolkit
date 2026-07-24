@@ -22,25 +22,42 @@ const DN_LOGO = `<img class="logo" src="${ASSET_BASE}assets/img/dn-badge.png" al
    No-op unless ?partner= matches a key registered in DN.partners
    (empty by default — this is a DN Consultancy product). */
 function applyPartner() {
-  const p = new URLSearchParams(location.search).get("partner");
+  const p = activePartnerKey();
   if (!p) return null;
-  const cfg = (window.DN && DN.partners[p.toUpperCase()]) || null;
-  if (!cfg) return null;
+  const cfg = DN.partners[p.toUpperCase()];
   document.body.classList.add("has-partner", "partner-" + p.toLowerCase());
   document.documentElement.style.setProperty("--accent", cfg.accent);
   document.documentElement.style.setProperty("--accent-deep", cfg.accentDeep);
   document.querySelectorAll("[data-cobrand]").forEach(el => el.textContent = cfg.cobrand);
   document.querySelectorAll("img.partner-logo").forEach(img => { img.src = cfg.logo; img.alt = cfg.label; });
-  // preserve partner param across internal navigation, keeping links
-  // relative (reconstructing from URL.pathname broke ../ links on /tools/ pages).
-  document.querySelectorAll('a[data-keep-partner]').forEach(a => {
+  // Note: propagating the partner param onto internal links is handled once in
+  // mountChrome (keepPartnerParam), after the canonical nav has been generated.
+  return cfg;
+}
+
+/* ---- resolve the active white-label partner from ?partner= ----
+   Returns the URL key only if it maps to a registered DN.partners entry,
+   else null — so a bogus ?partner= never leaks into navigation. */
+function activePartnerKey() {
+  const p = new URLSearchParams(location.search).get("partner");
+  if (!p) return null;
+  return (window.DN && DN.partners[p.toUpperCase()]) ? p : null;
+}
+
+/* ---- preserve ?partner= across internal navigation ----
+   Appends the param to every data-keep-partner link under `scope`, keeping
+   hrefs relative (rebuilding from URL.pathname broke ../ links on /tools/
+   pages). Skips external/anchor hrefs and links that already carry it. */
+function keepPartnerParam(scope, p) {
+  if (!p) return;
+  scope.querySelectorAll("a[data-keep-partner]").forEach(a => {
     const href = a.getAttribute("href");
     if (!href || /^(https?:|mailto:|tel:|#)/i.test(href)) return;
     const [pathPart, hash] = href.split("#");
+    if (/[?&]partner=/i.test(pathPart)) return;
     const sep = pathPart.includes("?") ? "&" : "?";
     a.setAttribute("href", pathPart + sep + "partner=" + encodeURIComponent(p) + (hash ? "#" + hash : ""));
   });
-  return cfg;
 }
 
 /* ---- global primary navigation ----
@@ -61,11 +78,17 @@ function buildNav() {
       href: inTools ? "index.html" : "tools/index.html", label: "Free Tools", tools: true },
     { file: "methodology.html",  href: root + "methodology.html",  label: "Methodology" }
   ];
-  const isActive = it => it.tools ? (inTools && here === "index.html")
-                                  : (!inTools && here === it.file) || (inTools && false);
   const links = items.map(it => {
-    if (isActive(it)) return `<span class="nav-current" aria-current="page">${it.label}</span>`;
-    return `<a href="${it.href}" data-keep-partner>${it.label}</a>`;
+    // Exact current page → non-navigating label (no link to the page you're on).
+    const onPage = it.tools ? (inTools && here === "index.html")
+                            : (!inTools && here === it.file);
+    if (onPage) return `<span class="nav-current" aria-current="page">${it.label}</span>`;
+    // "Free Tools" on an individual tool page → mark the section but keep it a
+    // live link back to the explorer, so deep visitors still see "you are here"
+    // without losing the way back.
+    const inSection = it.tools && inTools;
+    const attrs = inSection ? ' class="nav-section" aria-current="location"' : "";
+    return `<a href="${it.href}"${attrs} data-keep-partner>${it.label}</a>`;
   });
   // primary CTA — omit as a link on the scorecard page itself
   const onScorecard = here === "diagnostic.html";
@@ -81,19 +104,12 @@ function mountChrome() {
   if (navLinks) {
     // render the canonical menu, replacing whatever static links the page shipped
     navLinks.innerHTML = buildNav();
-    // re-apply partner param to the freshly-generated links (applyPartner ran
-    // before mountChrome, so it only saw the original static markup)
-    const p = new URLSearchParams(location.search).get("partner");
-    if (p && document.body.classList.contains("has-partner")) {
-      navLinks.querySelectorAll("a[data-keep-partner]").forEach(a => {
-        const href = a.getAttribute("href");
-        if (!href || /^(https?:|mailto:|tel:|#)/i.test(href)) return;
-        const [pathPart, hash] = href.split("#");
-        const sep = pathPart.includes("?") ? "&" : "?";
-        a.setAttribute("href", pathPart + sep + "partner=" + encodeURIComponent(p) + (hash ? "#" + hash : ""));
-      });
-    }
   }
+  // Propagate ?partner= across every internal link in one pass — the generated
+  // nav plus any data-keep-partner links in the page body/footer. Done here
+  // (not in applyPartner) so the freshly-built nav is included, and gated on a
+  // validated partner key rather than applyPartner's side effects.
+  keepPartnerParam(document, activePartnerKey());
   if (toggle && navLinks) {
     toggle.setAttribute("aria-expanded", "false");
     const setOpen = open => { navLinks.classList.toggle("open", open); toggle.setAttribute("aria-expanded", String(open)); };

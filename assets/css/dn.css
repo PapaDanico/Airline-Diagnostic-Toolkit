@@ -114,7 +114,10 @@ section { padding: 72px 0; }
 /* current-page marker in the global nav — present, not clickable */
 .nav-current { color: var(--accent); font-weight: 700; font-size: .94rem; cursor: default; position: relative; }
 .nav-current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: var(--accent); border-radius: 2px; }
-@media (max-width: 880px) { .nav-current::after { display: none; } }
+/* current-section marker — a live link (back to the explorer) shown "you are here" */
+.nav-links a.nav-section { color: var(--accent); font-weight: 700; position: relative; }
+.nav-links a.nav-section::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: var(--accent); opacity: .45; border-radius: 2px; }
+@media (max-width: 880px) { .nav-current::after, .nav-links a.nav-section::after { display: none; } }
 .nav-toggle { display: none; background: none; border: 0; font-size: 1.6rem; cursor: pointer; color: var(--dn-dark); }
 
 /* dropdown */
