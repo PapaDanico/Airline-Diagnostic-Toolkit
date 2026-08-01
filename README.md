@@ -141,7 +141,7 @@ Canonical / Open Graph / Twitter URLs are absolute (crawlers need them). To repo
 pages, sitemap and robots — in one idempotent command:
 
 ```bash
-node scripts/set-domain.mjs jkassociates.example.com
+node scripts/set-domain.mjs jkassociates.example.com   # e.g. a custom domain
 ```
 
 ## Lead signal (no analytics)
