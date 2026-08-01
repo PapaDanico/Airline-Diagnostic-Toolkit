@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="One view of a greenfield aviation venture — certification readiness, capital, corporate structure and postholders in a single Launch Readiness Index, with a critical-path schedule back from your target certificate date. Free, private, runs entirely in your browser.">
+<link rel="canonical" href="https://jkassociates.enterprises/tools/venture-dashboard.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JK & Associates">
+<meta property="og:title" content="Venture Control Room — JK & Associates">
+<meta property="og:description" content="Every tool, one venture file. Launch Readiness Index, critical path and a board-ready pack.">
+<meta property="og:url" content="https://jkassociates.enterprises/tools/venture-dashboard.html">
+<meta property="og:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Venture Control Room — JK & Associates">
+<meta name="twitter:description" content="Every tool, one venture file. Launch Readiness Index and critical path.">
+<meta name="twitter:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<title>Venture Control Room | JK &amp; Associates</title>
+<link rel="icon" type="image/png" href="../assets/img/jk-badge.png">
+<link rel="apple-touch-icon" href="../assets/img/jk-badge.png">
+<link rel="preload" href="../assets/fonts/cormorant-garamond-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/dm-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="../assets/css/jk.css">
+<style>
+  /* ---- venture identity bar ---- */
+  .vf-bar { display: grid; grid-template-columns: 2fr 1.4fr 1fr; gap: 18px; align-items: end; }
+  .vf-bar > * { min-width: 0; }
+  .vf-bar .field { margin-bottom: 0; }
+  @media (max-width: 760px) { .vf-bar { grid-template-columns: 1fr; } }
+
+  /* ---- module cards ----
+     Four modules, so a two-by-two block rather than auto-fit: auto-fit
+     put three across and left the fourth stranded on its own row, which
+     reads as an afterthought instead of the fourth quarter of one
+     picture. */
+  .mods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  @media (max-width: 720px) { .mods { grid-template-columns: 1fr; } }
+  .mod { background: #fff; border: 1px solid var(--jk-line); border-left: 4px solid var(--jk-line-2);
+         border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: .6rem; }
+  .mod.is-green { border-left-color: var(--jk-green); }
+  .mod.is-amber { border-left-color: var(--jk-amber-sig); }
+  .mod.is-red   { border-left-color: var(--jk-red); }
+  .mod .m-top { display: flex; align-items: baseline; justify-content: space-between; gap: .8rem; }
+  .mod h3 { margin: 0; font-size: 1.05rem; font-family: var(--sans); font-weight: 700; letter-spacing: 0; }
+  .mod .m-pct { font-family: var(--serif); font-weight: 700; font-size: 1.5rem; line-height: 1;
+                font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+  .mod .m-head { margin: 0; font-size: .9rem; font-weight: 600; }
+  .mod .m-facts { display: grid; gap: 2px; margin: 0; font-size: .82rem; color: var(--jk-muted); }
+  .mod .m-facts div { display: flex; justify-content: space-between; gap: .8rem; }
+  .mod .m-facts b { font-weight: 600; color: var(--jk-ink); font-variant-numeric: lining-nums tabular-nums; }
+  .mod .m-next { margin: 0; font-size: .84rem; line-height: 1.5; flex: 1; }
+  .mod .m-next b { display: block; font-size: .7rem; letter-spacing: .1em; text-transform: uppercase;
+                   color: var(--jk-muted); margin-bottom: .15rem; }
+
+  /* ---- critical path ----
+     A real Gantt: each phase is offset along a shared track by the time
+     that precedes it. Bars all starting at the left edge would have
+     drawn five parallel activities, which is the opposite of what a
+     certification schedule is. */
+  .cp { display: grid; gap: 8px; }
+  .cp-row { display: grid; grid-template-columns: 30px 190px 1fr 170px; gap: 14px; align-items: center; font-size: .87rem; }
+  .cp-row > * { min-width: 0; }
+  .cp-n { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+          background: var(--jk-parchment-2); color: var(--jk-muted); font-weight: 700; font-size: .8rem;
+          font-variant-numeric: lining-nums; }
+  .cp-row.is-now .cp-n { background: var(--accent); color: #fff; }
+  .cp-name { font-weight: 600; }
+  .cp-row.is-now .cp-name { color: var(--accent-deep); }
+  .cp-name small { display: block; font-weight: 400; font-size: .74rem; color: var(--jk-muted); }
+  .cp-track { position: relative; height: 22px; background: var(--jk-parchment-2); border-radius: 5px; }
+  .cp-track > i { position: absolute; top: 0; bottom: 0; border-radius: 5px;
+                  background: linear-gradient(90deg, var(--jk-terracotta), var(--jk-amber)); }
+  .cp-row.is-now .cp-track > i { box-shadow: 0 0 0 2px var(--jk-ink); }
+  .cp-dates { font-size: .78rem; color: var(--jk-muted); text-align: right;
+              font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+  @media (max-width: 820px) {
+    .cp-row { grid-template-columns: 28px 1fr; row-gap: 4px; }
+    .cp-track, .cp-dates { grid-column: 2; text-align: left; }
+  }
+
+  /* ---- workspace panel ---- */
+  .ws-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1rem; }
+  .ws-msg { font-size: .85rem; margin: .9rem 0 0; }
+
+  /* The board pack is the deliverable: printed, it must read as one
+     document, so the interactive scaffolding steps out of the way. */
+  @media print {
+    .vf-bar, .ws-actions, .mod .m-next b { break-inside: avoid; }
+    .mods { grid-template-columns: 1fr 1fr; }
+    .mod { break-inside: avoid; box-shadow: none; }
+    .cp-row { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner>
+      <span data-logo></span>
+      <span>JK &amp; Associates<small>Venture Control Room</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="nav-links"></div>
+  </div>
+</nav>
+
+<main id="main">
+
+<header class="tool-head">
+  <div class="wrap">
+    <p class="ref">Tool V0 · Free</p>
+    <h1>Venture Control Room</h1>
+    <p class="lead">Four tools, one venture. This page reads everything you have already done in the Certification Navigator, Venture Builder, Corporate Structure Designer and Organogram Planner, and answers the only question an investment committee actually asks: how ready is this, and what is stopping it.</p>
+    <div class="trust-strip">
+      <div class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 10V8a6 6 0 1 1 12 0v2h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1Zm2 0h8V8a4 4 0 0 0-8 0v2Zm4 5a1.6 1.6 0 0 0-.8 3v1.4a.8.8 0 0 0 1.6 0V18a1.6 1.6 0 0 0-.8-3Z"/></svg> Stays on your device</div>
+      <div class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2c1.9 0 3.6.65 4.95 1.75L5.75 16.95A7.95 7.95 0 0 1 12 4Zm0 16a7.9 7.9 0 0 1-4.95-1.75L18.25 7.05A7.95 7.95 0 0 1 12 20Z"/></svg> No signup</div>
+      <div class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 3 7v6c0 4.5 3.8 8.7 9 10 5.2-1.3 9-5.5 9-10V7l-9-4Zm-1.2 12.6L7.4 12.2l1.4-1.4 2 2 4.4-4.4 1.4 1.4-5.8 5.8Z"/></svg> Yours to export</div>
+    </div>
+  </div>
+</header>
+
+<!-- VENTURE IDENTITY -->
+<section style="padding-top:40px;padding-bottom:0">
+  <div class="wrap">
+    <p class="eyebrow">The venture file</p>
+    <h2 style="margin-bottom:.4rem">Name it, and set the date you are working back from</h2>
+    <p class="muted" style="max-width:680px">The target is the certificate in hand, not first flight. Everything below is scheduled backwards from it.</p>
+    <div class="vf-bar" style="margin-top:1.4rem">
+      <div class="field">
+        <label for="vf-name">Venture name</label>
+        <input type="text" id="vf-name" placeholder="e.g. Rift Valley Air" autocomplete="organization" maxlength="80">
+      </div>
+      <div class="field">
+        <label for="vf-sector">Sector</label>
+        <select id="vf-sector"></select>
+      </div>
+      <div class="field">
+        <label for="vf-target">Target certificate date</label>
+        <input type="date" id="vf-target">
+      </div>
+    </div>
+    <div id="vf-mismatch"></div>
+  </div>
+</section>
+
+<!-- READINESS -->
+<section class="score-hero" style="margin-top:3rem" id="readiness">
+  <div class="wrap">
+    <p class="eyebrow" style="color:var(--jk-amber)">Launch Readiness Index</p>
+    <div class="summary" style="margin-top:1rem">
+      <div class="index-ring" id="ring" style="--p:0" role="img" aria-labelledby="ring-label">
+        <div class="inner"><div><b id="ring-val">0</b><br><span>of 100</span></div></div>
+      </div>
+      <div style="flex:1;min-width:min(100%,300px)">
+        <!-- The page's single h1 is the tool title; this is the readiness
+             verdict, styled to h1 scale but ranked below it. -->
+        <h2 style="margin:0 0 .3rem;color:#fff;font-size:clamp(2.2rem,5vw,3.6rem);line-height:1.06;letter-spacing:-.022em" id="ring-band">Concept</h2>
+        <p style="max-width:600px;margin:0 0 1.2rem" id="ring-text"></p>
+        <div class="kpis" style="max-width:640px">
+          <div class="kpi"><div class="kv tnum" id="k-gate">—</div><div class="kl">Certification gate items</div></div>
+          <div class="kpi"><div class="kv tnum" id="k-gap">—</div><div class="kl">Funding gap</div></div>
+          <div class="kpi"><div class="kv tnum" id="k-posts">—</div><div class="kl">Accepted posts named</div></div>
+          <div class="kpi"><div class="kv tnum" id="k-months">—</div><div class="kl">Months to target</div></div>
+        </div>
+      </div>
+    </div>
+    <p class="muted" style="font-size:.82rem;margin:1.6rem 0 0;max-width:760px">
+      The index is a weighted composite — certification <b>40</b>, capital <b>25</b>, organisation <b>20</b>, structure <b>15</b>.
+      The certificate carries the most because no amount of capital substitutes for it. A module you have not opened counts as zero,
+      deliberately: an unanswered question is not a passed one.
+    </p>
+  </div>
+</section>
+
+<!-- MODULES -->
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Where the venture stands</p>
+    <h2 style="margin-bottom:.4rem">The four build modules</h2>
+    <p class="muted" style="max-width:700px;margin-bottom:1.6rem">Each card reads that tool's saved work on this device. Nothing is duplicated — open a tool, change something, come back and this updates.</p>
+    <div class="mods" id="mods"></div>
+    <div id="scorecard-x" style="margin-top:1.8rem"></div>
+  </div>
+</section>
+
+<!-- CRITICAL PATH -->
+<section class="band-parchment">
+  <div class="wrap">
+    <p class="eyebrow">Critical path</p>
+    <h2 style="margin-bottom:.4rem">Working back from the certificate</h2>
+    <p class="muted" style="max-width:720px;margin-bottom:1.6rem">The five phases scheduled against your sector's indicative lead band. The date that matters is the first one — the day you must be at the pre-application meeting for the target to survive.</p>
+    <div id="cp-host"></div>
+  </div>
+</section>
+
+<!-- WORKSPACE -->
+<section>
+  <div class="wrap">
+    <div class="tool-layout">
+      <div>
+        <p class="eyebrow">Your workspace</p>
+        <h2 style="margin-bottom:.4rem">Take it with you</h2>
+        <p class="muted" style="max-width:640px">There is no account here, and that is the point — but "no account" must not mean one cleared browser costs you months of work. Export writes the whole workspace to a file you save. Import reads one back, on this device or another, or from a colleague working the same venture.</p>
+        <div class="ws-actions">
+          <button class="btn btn-primary" id="ws-export">Export workspace (.json)</button>
+          <button class="btn btn-ghost" id="ws-import-btn">Import a workspace file</button>
+          <input type="file" id="ws-import" accept="application/json,.json" hidden>
+        </div>
+        <p class="ws-msg muted" id="ws-msg" role="status" aria-live="polite"></p>
+        <div class="note" style="max-width:640px">
+          <b>The file never leaves your device unless you send it</b>
+          Exporting writes to your downloads folder. Importing replaces the saved state of every tool the file covers, so export
+          your current work first if you want to keep it.
+        </div>
+      </div>
+
+      <aside class="rail">
+        <div class="result-panel">
+          <p class="eyebrow" style="color:var(--jk-amber)">Board pack</p>
+          <p style="font-size:.88rem;margin:0 0 1rem">Print this page and you get the whole venture in one document — readiness, every module, the critical path and the date it turns on.</p>
+          <div style="display:flex;flex-direction:column;gap:.5rem">
+            <button class="btn btn-amber" id="print" style="justify-content:center">Print / save as PDF</button>
+            <a class="btn btn-ghost-lt" id="talk" href="#" style="justify-content:center">Have JK review this venture</a>
+            <button class="btn btn-ghost-lt" id="ws-clear" style="justify-content:center;font-size:.85rem">Clear the venture file</button>
+          </div>
+        </div>
+        <p class="muted no-print" style="font-size:.78rem;margin-top:.9rem;line-height:1.5">
+          Everything here is derived from what you typed into the tools in this browser. Clearing site data clears it.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="band-ember no-print">
+  <div class="wrap" style="text-align:center">
+    <h2>A readiness score is not a plan.</h2>
+    <p style="max-width:640px;margin:0 auto 1.4rem">These tools tell you where the gaps are. Closing them is the engagement — the Schedule of Events, the manual set, the postholder submissions, the regulator relationship and the capital story that survives diligence.</p>
+    <a class="btn btn-amber btn-lg" id="cta-mail" href="#">Talk to us about your venture</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer no-print">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <a class="brand" href="../index.html" style="color:#fff" data-keep-partner><span data-logo="light"></span><span style="color:#fff">JK &amp; Associates</span></a>
+        <p style="margin-top:1rem;max-width:320px;font-size:.9rem">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
+      </div>
+      <div>
+        <h4>Build a venture</h4>
+        <p><a href="venture-dashboard.html" data-keep-partner>Venture Control Room</a></p>
+        <p><a href="certification-navigator.html" data-keep-partner>Certification Navigator</a></p>
+        <p><a href="venture-builder.html" data-keep-partner>Venture Builder</a></p>
+        <p><a href="corporate-structure.html" data-keep-partner>Corporate Structure</a></p>
+        <p><a href="organogram-planner.html" data-keep-partner>Organogram Planner</a></p>
+      </div>
+      <div>
+        <h4>Reference</h4>
+        <p><a href="../regulations.html">Kenya regulatory index</a></p>
+        <p><a href="../methodology.html">Methodology</a></p>
+        <p><a href="../how-it-works.html">How it works</a></p>
+        <p><a href="index.html" data-keep-partner>All free tools</a></p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p><a data-email></a></p>
+        <p>Nairobi, Kenya</p>
+        <h4 style="margin-top:1.2rem">Legal</h4>
+        <p><a href="../privacy.html">Privacy Notice</a></p>
+        <p><a href="../terms.html">Terms of Use</a></p>
+      </div>
+    </div>
+    <div class="ver">
+      <span>&copy; <span data-year></span> JK &amp; Associates · Shaping Africa's Future, Together.</span>
+      <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../methodology.html">Methodology</a> · <span data-version></span></span>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/data-ventures.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/venture-file.js"></script>
+<script>
+(function () {
+  applyPartner(); mountChrome();
+  mountPrintHead("Venture Control Room");
+
+  const $ = id => document.getElementById(id);
+  const RAG = { green: "var(--jk-green)", amber: "var(--jk-amber-sig)", red: "var(--jk-red)", idle: "var(--jk-muted)" };
+  const fmtDate = d => d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+
+  /* ---------- identity fields ---------- */
+  JKV.sectors.forEach(s => {
+    const o = document.createElement("option");
+    o.value = s.id; o.textContent = `${s.icon} ${s.name}`;
+    $("vf-sector").appendChild(o);
+  });
+
+  let prof = JKW.profile();
+  $("vf-name").value = prof.name;
+  $("vf-sector").value = prof.sector;
+  $("vf-target").value = prof.target;
+
+  $("vf-name").addEventListener("input", () => { prof = JKW.saveProfile({ name: $("vf-name").value }); render(); });
+  $("vf-sector").addEventListener("change", () => { prof = JKW.saveProfile({ sector: $("vf-sector").value }); render(); });
+  $("vf-target").addEventListener("change", () => { prof = JKW.saveProfile({ target: $("vf-target").value }); render(); });
+
+  /* ---------- module cards ---------- */
+  function renderModules(mods) {
+    $("mods").innerHTML = mods.map(m => `
+      <article class="mod ${m.rag === "idle" ? "" : "is-" + m.rag}">
+        <div class="m-top">
+          <h3><span aria-hidden="true">${m.icon}</span> ${escapeHtml(m.name)}</h3>
+          <span class="m-pct" style="color:${m.started ? RAG[m.rag] : "var(--jk-muted)"}">${m.started ? m.pct + "%" : "—"}</span>
+        </div>
+        <div class="progress-bar" role="img" aria-label="${escapeHtml(m.name)}: ${m.started ? m.pct + " per cent complete" : "not started"}">
+          <i style="width:${m.started ? m.pct : 0}%"></i></div>
+        <p class="m-head">${escapeHtml(m.headline)}</p>
+        ${m.facts.length ? `<div class="m-facts">${m.facts.map(f =>
+          `<div><span>${escapeHtml(f.k)}</span><b>${escapeHtml(f.v)}</b></div>`).join("")}</div>` : ""}
+        <p class="m-next"><b>Next</b>${escapeHtml(m.next)}</p>
+        <a class="btn ${m.started ? "btn-ghost" : "btn-primary"}" href="${m.href}?sector=${encodeURIComponent(prof.sector)}"
+           data-keep-partner style="justify-content:center">${m.started ? "Continue" : "Open"} →</a>
+      </article>`).join("");
+    keepPartnerParam($("mods"), activePartnerKey());
+  }
+
+  /* A tool left pointing at a different sector from the venture file is a
+     silent source of nonsense — the readiness index would be summing four
+     answers to different questions. Say so rather than quietly reconciling. */
+  function renderMismatch(mods) {
+    const off = mods.filter(m => m.started && m.sector && m.sector !== prof.sector);
+    $("vf-mismatch").innerHTML = off.length
+      ? `<div class="note warn"><b>${off.length} tool${off.length > 1 ? "s are" : " is"} set to a different sector</b>
+           ${off.map(m => `${escapeHtml(m.name)} (${escapeHtml((JKV.sector(m.sector) || {}).short || m.sector)})`).join(", ")}.
+           The readiness index still counts ${off.length > 1 ? "them" : "it"}, but the numbers describe a different venture.
+           Open each tool and switch it to ${escapeHtml((JKV.sector(prof.sector) || {}).short || prof.sector)}, or change the sector above.</div>`
+      : "";
+  }
+
+  /* ---------- critical path ---------- */
+  function renderPath(tl) {
+    if (!tl) {
+      $("cp-host").innerHTML = `<div class="note"><b>Set a target certificate date</b>Enter the date you need the certificate in hand and the five phases will be scheduled backwards from it against your sector's indicative lead band.</div>`;
+      return;
+    }
+    const sec = JKV.sector(prof.sector);
+    let offset = 0;
+    const rows = tl.phases.map(p => {
+      const left = offset; offset += p.share;
+      return `
+      <div class="cp-row${p.active ? " is-now" : ""}">
+        <span class="cp-n" aria-hidden="true">${p.n}</span>
+        <div class="cp-name">${escapeHtml(p.t)}${p.active ? "<small>you are here</small>" : ""}</div>
+        <div class="cp-track" role="img" aria-label="Phase ${p.n}, ${escapeHtml(p.t)}: ${fmtDate(p.from)} to ${fmtDate(p.to)}">
+          <i style="left:${left.toFixed(1)}%;width:${p.share.toFixed(1)}%"></i></div>
+        <div class="cp-dates">${fmtDate(p.from)} → ${fmtDate(p.to)}</div>
+      </div>`;
+    }).join("");
+
+    const verdict = tl.late
+      ? `<div class="note warn"><b>The target has already slipped</b>On the realistic ${tl.hi}-month band you needed to be at the
+           pre-application meeting by <b>${fmtDate(tl.startHi)}</b> — ${tl.slipMonths} month${tl.slipMonths === 1 ? "" : "s"} ago.
+           Either move the target, or plan against the optimistic ${tl.lo}-month band and accept that it assumes every submission
+           lands first time. Nothing about ${escapeHtml(sec ? sec.short : "this sector")} certification recovers a slip by working harder.</div>`
+      : tl.tight
+        ? `<div class="note warn"><b>Only the optimistic band still fits</b>The realistic ${tl.hi}-month path needed a
+             ${fmtDate(tl.startHi)} start. You can still make ${fmtDate(tl.target)} on the ${tl.lo}-month band, which assumes
+             no rejected application, no re-submitted manual and no repeated inspection. Treat it as the floor, not the plan.</div>`
+        : `<div class="note ok"><b>The date is still reachable</b>Start pre-application by <b>${fmtDate(tl.startHi)}</b> for the
+             realistic ${tl.hi}-month path, or by ${fmtDate(tl.startLo)} if everything lands first time.</div>`;
+
+    $("cp-host").innerHTML =
+      `<div class="cp">${rows}</div>
+       <p class="muted" style="font-size:.8rem;margin:1.1rem 0 0;max-width:760px">
+         Phase durations are apportioned from the sector's ${tl.lo}–${tl.hi} month band
+         (${Object.entries(JKW.PHASE_SHARE).map(([k, v]) => `${JKV.phaseSpine.find(p => p.id === k).t} ${Math.round(v * 100)}%`).join(" · ")}).
+         Document evaluation and on-site demonstration dominate because that is where applications actually sit.
+         This is a planning aid, not a commitment from the Authority.</p>
+       ${verdict}`;
+  }
+
+  /* ---------- operating-track cross-link ---------- */
+  function renderScorecard() {
+    const sc = JKW.scorecard();
+    $("scorecard-x").innerHTML = sc
+      ? `<div class="note"><b>You also have an Airline Health Scorecard on this device — index ${sc.index}/100, "${escapeHtml(sc.verdict.band)}"</b>
+           That diagnostic measures an operating carrier, so it sits outside the Launch Readiness Index rather than inside it.
+           <a href="../results.html">Open the scorecard results →</a></div>`
+      : "";
+  }
+
+  /* ---------- render ---------- */
+  function render() {
+    const mods = JKW.modules(prof);
+    const r = JKW.readiness(mods);
+
+    const ringColor = r.index >= 75 ? "var(--jk-green)" : r.index >= 45 ? "var(--jk-amber)" : "var(--jk-red)";
+    $("ring").style.setProperty("--p", r.index);
+    $("ring").style.setProperty("--ring-color", ringColor);
+    $("ring").setAttribute("aria-label", `Launch Readiness Index ${r.index} of 100 — ${r.band.t}`);
+    $("ring-val").textContent = r.index;
+    $("ring-band").textContent = r.band.t;
+    $("ring-text").textContent = r.band.d;
+
+    const cert = mods.find(m => m.id === "certnav");
+    const ven  = mods.find(m => m.id === "venture");
+    const org  = mods.find(m => m.id === "organogram");
+    const gate = cert.facts.find(f => f.k === "Gate items closed");
+    $("k-gate").textContent  = gate ? gate.v : "—";
+    $("k-gap").textContent   = ven.capital ? (ven.capital.gap > 0 ? fmtMoney(ven.capital.gap) : "None") : "—";
+    $("k-posts").textContent = org.postsTotal ? `${org.named}/${org.postsTotal}` : "—";
+
+    const tl = JKW.timeline(prof, mods);
+    $("k-months").textContent = tl ? (tl.monthsToTarget >= 0 ? tl.monthsToTarget : "Past") : "—";
+
+    renderModules(mods);
+    renderMismatch(mods);
+    renderPath(tl);
+    renderScorecard();
+
+    const body =
+      `Venture: ${prof.name || "(unnamed)"}\n` +
+      `Sector: ${(JKV.sector(prof.sector) || {}).name || prof.sector}\n` +
+      `Target certificate date: ${prof.target || "not set"}\n` +
+      `Launch Readiness Index: ${r.index}/100 — ${r.band.t}\n\n` +
+      mods.map(m => `  ${m.name}: ${m.started ? m.pct + "%" : "not started"} — ${m.headline}\n    Next: ${m.next}`).join("\n") +
+      `\n\nI would like this venture reviewed.`;
+    const href = toolMailto("Control Room", prof.name || "Greenfield venture", body);
+    $("talk").href = href; $("cta-mail").href = href;
+
+    mountPrintHead("Venture Control Room", prof.name || undefined);
+  }
+
+  /* ---------- workspace export / import ---------- */
+  const msg = (text, kind) => {
+    const el = $("ws-msg");
+    el.textContent = text;
+    el.style.color = kind === "ok" ? "var(--jk-green)" : kind === "err" ? "var(--jk-red)" : "";
+  };
+
+  $("ws-export").addEventListener("click", () => {
+    JKW.download();
+    msg("Workspace written to your downloads folder.", "ok");
+  });
+
+  $("ws-import-btn").addEventListener("click", () => $("ws-import").click());
+  $("ws-import").addEventListener("change", () => {
+    const file = $("ws-import").files && $("ws-import").files[0];
+    if (!file) return;
+    // A workspace of typed text and integers is kilobytes. Anything past a
+    // megabyte is not one of ours, and parsing it would only hang the tab.
+    if (file.size > 1024 * 1024) { msg("That file is too large to be a JK workspace.", "err"); return; }
+    const reader = new FileReader();
+    reader.onerror = () => msg("Could not read that file.", "err");
+    reader.onload = () => {
+      let parsed;
+      try { parsed = JSON.parse(reader.result); }
+      catch { msg("That file is not valid JSON.", "err"); return; }
+      const res = JKW.importObject(parsed);
+      if (!res.ok) { msg(res.error, "err"); return; }
+      prof = JKW.profile();
+      $("vf-name").value = prof.name;
+      $("vf-sector").value = prof.sector;
+      $("vf-target").value = prof.target;
+      render();
+      msg(`Restored ${res.written} record${res.written === 1 ? "" : "s"}${res.skipped ? `, skipped ${res.skipped}` : ""}. Every tool now opens on this venture.`, "ok");
+    };
+    reader.readAsText(file);
+    $("ws-import").value = "";   // let the same file be chosen again
+  });
+
+  $("ws-clear").addEventListener("click", () => {
+    if (!confirm("Clear the venture name, sector and target date? The individual tools keep their own saved work.")) return;
+    try { localStorage.removeItem(JKW.PROFILE_KEY); } catch {}
+    prof = JKW.profile();
+    $("vf-name").value = ""; $("vf-sector").value = prof.sector; $("vf-target").value = "";
+    render();
+    msg("Venture file cleared.", "ok");
+  });
+
+  $("print").addEventListener("click", () => window.print());
+
+  /* A tool changed in another tab should not leave this page reporting a
+     stale picture — the whole premise is that it reflects the workspace. */
+  window.addEventListener("storage", e => {
+    if (e.key && JKW.KEY_RE.test(e.key)) { prof = JKW.profile(); render(); }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

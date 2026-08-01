@@ -165,6 +165,16 @@ section { padding: var(--sec-y) 0; }
 }
 .skip-link:focus { left: 0; text-decoration: none; }
 
+/* Present to assistive technology, absent from the visual composition —
+   for things a screen reader needs and a sighted reader already has from
+   the surrounding layout, such as a data table's caption. Clipped rather
+   than display:none, which would remove it from the accessibility tree
+   as well and defeat the purpose. */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
 /* ---------- buttons ---------- */
 .btn {
   display: inline-flex; align-items: center; gap: .5rem;
@@ -348,7 +358,11 @@ section { padding: var(--sec-y) 0; }
 section.band-dark:has(.metrics) { padding: var(--sec-y-tight) 0; }
 .band-dark h2, .band-dark h3, .band-dark h4 { color: #fff; }
 .band-dark .eyebrow { color: var(--jk-amber); }
-.band-dark .muted { color: rgba(255,255,255,.66); }
+/* Secondary text on any dark surface. --jk-muted is a warm grey chosen
+   against parchment; on ink it drops to roughly 2:1 and stops being
+   readable, so every dark band re-states it. */
+.band-dark .muted, .score-hero .muted, .hero-ink .muted { color: rgba(255,255,255,.66); }
+.band-dark .muted b, .score-hero .muted b, .hero-ink .muted b { color: rgba(255,255,255,.9); }
 .band-ember { background: linear-gradient(135deg, var(--jk-terracotta) 0%, var(--jk-oxblood) 100%); color: #fff; }
 .band-ember h2, .band-ember h3, .band-ember p { color: #fff; }
 .band-ember .eyebrow { color: var(--jk-sand); }
@@ -736,9 +750,16 @@ body.has-partner .partner-logo { display: block; }
 .kpi.is-red   { border-left-color: var(--jk-red);       } .kpi.is-red .kv   { color: var(--jk-red-dk); }
 .kpi.is-amber { border-left-color: var(--jk-amber-sig); } .kpi.is-amber .kv { color: #96600a; }
 .kpi.is-green { border-left-color: var(--jk-green);     } .kpi.is-green .kv { color: var(--jk-green); }
-.result-panel .kpi { background: rgba(255,255,255,.07); border-left-color: var(--jk-amber); }
-.result-panel .kpi .kv { color: #fff; }
-.result-panel .kpi .kl { color: rgba(255,255,255,.62); }
+/* KPI tiles on a dark surface. Keyed to the surface, not to one panel:
+   the tile's default parchment fill and inherited ink would otherwise
+   render white-on-parchment — an invisible number — anywhere but the
+   results rail. .kpi.is-red/amber/green still win on specificity, which
+   is correct: a RAG-coloured figure must stay readable on either
+   surface, and those colours are chosen to be. */
+.result-panel .kpi, .score-hero .kpi, .band-dark .kpi, .hero-ink .kpi {
+  background: rgba(255,255,255,.07); border-left-color: var(--jk-amber); }
+.result-panel .kpi .kv, .score-hero .kpi .kv, .band-dark .kpi .kv, .hero-ink .kpi .kv { color: #fff; }
+.result-panel .kpi .kl, .score-hero .kpi .kl, .band-dark .kpi .kl, .hero-ink .kpi .kl { color: rgba(255,255,255,.62); }
 
 /* data table (structure/org/venture tools) */
 .dtable { width: 100%; border-collapse: collapse; font-size: .87rem; min-width: 560px; }
@@ -840,7 +861,8 @@ body.has-partner .partner-logo { display: block; }
   .score-hero, .result-panel, .band-dark, .band-ember, .hero-ink { background: #fff !important; color: #000 !important; padding: 0 0 10px !important; }
   .score-hero .eyebrow, .score-hero h1, .score-hero #index-text, .score-hero #index-band,
   .result-panel *, .band-dark *, .band-dark h2, .band-dark h3, .band-ember h2, .band-ember p,
-  .hero-ink *, .result-panel .kpi .kv, .result-panel .kpi .kl { color: var(--jk-ink) !important; }
+  .hero-ink *, .result-panel .kpi .kv, .result-panel .kpi .kl,
+  .score-hero .kpi .kv, .score-hero .kpi .kl, .score-hero h2 { color: var(--jk-ink) !important; }
   .band-parchment, .sources, .tool-head { background: #fff !important; }
   section { padding: 12px 0 !important; }
   .rag, .bar, .bar > i, .index-ring, #radar polygon, #radar circle, .dot,

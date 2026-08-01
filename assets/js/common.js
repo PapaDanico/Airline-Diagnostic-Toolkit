@@ -76,6 +76,7 @@ function keepPartnerParam(scope, p) {
    half of the practice a tool belongs to. */
 const TOOL_MENU = [
   { group: "Build a venture", items: [
+    { file: "tools/venture-dashboard.html",       label: "Venture Control Room" },
     { file: "tools/certification-navigator.html", label: "KCAA Certification Navigator" },
     { file: "tools/venture-builder.html",         label: "Greenfield Venture Builder" },
     { file: "tools/corporate-structure.html",     label: "Corporate Structure Designer" },
@@ -103,6 +104,7 @@ function buildNav() {
   const items = [
     { file: "index.html",        href: root + "index.html",        label: "Home" },
     { file: "how-it-works.html", href: root + "how-it-works.html", label: "How It Works" },
+    { file: "regulations.html",  href: root + "regulations.html",  label: "Regulations" },
     { file: "methodology.html",  href: root + "methodology.html",  label: "Methodology" }
   ];
   const link = it => {
@@ -129,7 +131,7 @@ function buildNav() {
   out.push(`<div class="dropdown">${topLabel}<div class="dropdown-menu">${groups}
     <div class="dd-head">All</div><a href="${explorerHref}" data-keep-partner>Browse every tool →</a></div></div>`);
 
-  out.push(link(items[2]));
+  out.push(link(items[2]), link(items[3]));
 
   // primary CTA — the venture path is the wider front door, but do not
   // link to a page the visitor is already standing on.
@@ -581,6 +583,70 @@ function mountReveal() {
   });
 }
 
+/* ---- level annual debt service ----
+   Standard amortising payment: the constant annual amount that retires
+   `principal` over `years` at `ratePct`. Lives here rather than in the
+   Venture Builder because the dashboard re-derives the same DSCR from the
+   saved model — two implementations of this would drift, and the number
+   they disagree about is the one a lender reads. */
+function annualDebtService(principal, ratePct, years) {
+  if (!(principal > 0) || !(years > 0)) return 0;
+  const r = ratePct / 100;
+  if (r === 0) return principal / years;
+  return principal * r / (1 - Math.pow(1 + r, -years));
+}
+
+/* ---- look-through effective interest ----
+   Walks each OpCo holding back up the ownership chain, multiplying
+   percentages. A party appearing both directly at OpCo and through the
+   chain (the classic founder-trust pattern) has its two paths summed —
+   which is exactly the number a regulator reconstructs, and the one
+   applicants routinely get wrong by reading only the OpCo register.
+
+   `holders` is { tierKey: [{ n, p, chain, local, direct }] }.
+   Returns { partyName: { direct, indirect, local } } in percentage points. */
+function lookThrough(holders) {
+  holders = holders || {};
+  const parties = {};
+  const add = (name, amount, isDirect, local) => {
+    const k = String(name || "").trim() || "Unnamed";
+    parties[k] = parties[k] || { direct: 0, indirect: 0, local: false };
+    parties[k][isDirect ? "direct" : "indirect"] += amount;
+    if (local) parties[k].local = true;
+  };
+
+  /* The same tier can legitimately be reached by several paths with
+     different shares (the founder trust is reached both directly from
+     OpCo and up through HoldCo), so the guard has to be per-path, not
+     global — a visited *set* would silently drop the second path and
+     understate the founder's interest. `path` carries the chain walked so
+     far and only blocks a genuine cycle. */
+  function resolve(tierKey, share, isDirect, path) {
+    if (share <= 0) return;
+    if (path.includes(tierKey)) return;            // genuine cycle — stop
+    const next = path.concat(tierKey);
+    (holders[tierKey] || []).forEach(h => {
+      const frac = (+h.p || 0) / 100;
+      if (frac <= 0) return;
+      if (h.chain && holders[h.chain]) resolve(h.chain, share * frac, isDirect, next);
+      else add(h.n, share * frac * 100, isDirect, h.local);
+    });
+  }
+
+  (holders.op || []).forEach(h => {
+    const frac = (+h.p || 0) / 100;
+    if (frac <= 0) return;
+    if (h.chain && holders[h.chain]) {
+      // a stake the founder holds at OpCo through their own named vehicle
+      // is still a DIRECT OpCo interest; everything else is indirect.
+      resolve(h.chain, frac, !!h.direct, ["op"]);
+    } else {
+      add(h.n, frac * 100, true, h.local);
+    }
+  });
+  return parties;
+}
+
 /* ---- accessible collapse/expand for a disclosure button ---- */
 function wireDisclosure(btn, panel, onToggle) {
   if (!btn || !panel) return;
@@ -598,5 +664,6 @@ if (typeof window !== "undefined") {
     saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel,
     wireToolEnquiryForm, sessionGet, sessionSet,
     toolStore, fmtMoney, fmtNum, fmtRatio, clampNum, escapeHtml, mountReveal,
-    citeChip, citeChips, mountPrintHead, toolMailto, wireDisclosure });
+    citeChip, citeChips, mountPrintHead, toolMailto, wireDisclosure,
+    annualDebtService, lookThrough });
 }
