@@ -4,8 +4,9 @@
    Exits non-zero on any issue. Run: node tests/audit.mjs */
 import { chromium } from "playwright";
 import { fileURLToPath } from "node:url";
-import { dirname, resolve, join, normalize } from "node:path";
-import { existsSync } from "node:fs";
+import { dirname, resolve, join, normalize, extname } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { createServer } from "node:http";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pages = ["index.html", "diagnostic.html", "results.html", "demo-results.html", "embed.html", "privacy.html", "terms.html", "methodology.html", "partners.html", "how-it-works.html",
@@ -21,6 +22,32 @@ const CANDIDATE_EXECS = [
   "/opt/build/repo/.netlify/plugins/node_modules/@netlify/plugin-lighthouse/node_modules/puppeteer-core/.local-chromium/linux-1045629/chrome-linux/chrome"
 ];
 const execPath = CANDIDATE_EXECS.find(p => existsSync(p));
+
+/* Pages are served over HTTP rather than opened as file:// URLs.
+   file:// gives every page a null origin, which makes the browser reject
+   any CORS-mode fetch — including webfonts, which are always fetched in
+   CORS mode and therefore need the crossorigin attribute on their
+   preload. Under file:// that correct markup produced 84 spurious
+   failures. Serving over HTTP also matches how the site actually runs,
+   so the audit can see real header, redirect and protocol behaviour. */
+const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8",
+  ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml",
+  ".woff2": "font/woff2", ".json": "application/json", ".xml": "application/xml",
+  ".pdf": "application/pdf", ".txt": "text/plain; charset=utf-8" };
+
+const server = createServer((req, res) => {
+  const rel = decodeURIComponent(req.url.split("?")[0]).replace(/^\/+/, "");
+  // contain every request inside ROOT — a path-traversal attempt should 403,
+  // not read the filesystem, even in a test harness
+  const target = normalize(join(ROOT, rel || "index.html"));
+  if (!target.startsWith(ROOT)) { res.writeHead(403).end("forbidden"); return; }
+  if (!existsSync(target)) { res.writeHead(404).end("not found"); return; }
+  res.writeHead(200, { "Content-Type": MIME[extname(target).toLowerCase()] || "application/octet-stream" });
+  res.end(readFileSync(target));
+});
+await new Promise(r => server.listen(0, "127.0.0.1", r));
+const BASE = `http://127.0.0.1:${server.address().port}/`;
 const b = await chromium.launch(execPath ? { executablePath: execPath } : {});
 let problems = 0;
 for (const pg of pages) {
@@ -32,7 +59,7 @@ for (const pg of pages) {
   p.on("console", m => { if (m.type() === "error" && !IGNORE.test(m.text())) errs.push("console: " + m.text()); });
   if (pg === "results.html") await p.addInitScript(() => localStorage.setItem("dn_airline_scorecard_v2",
     JSON.stringify({ safety: [2, 2, 2, 2, 2], ops: [2, 2, 2, 2, 2], fleet: [2, 2, 2, 2, 2], cost: [2, 2, 2, 2, 2], revenue: [2, 2, 2, 2, 2], commercial: [2, 2, 2, 2, 2], people: [2, 2, 2, 2, 2], finance: [2, 2, 2, 2, 2] })));
-  await p.goto("file://" + ROOT + "/" + pg); await p.waitForTimeout(300);
+  await p.goto(BASE + pg); await p.waitForTimeout(300);
   const deskOX = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   const r = await p.evaluate(() => {
     const ids = [...document.querySelectorAll("[id]")].map(e => e.id);
@@ -65,5 +92,6 @@ for (const pg of pages) {
   await ctx.close();
 }
 await b.close();
+server.close();
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);
 process.exit(problems ? 1 : 0);
