@@ -124,8 +124,8 @@ function buildNav() {
     return `<div class="dd-head">${g.group}</div>${rows}`;
   }).join("");
   const topLabel = onExplorer
-    ? `<span class="nav-current" aria-current="page">Free Tools ▾</span>`
-    : `<a href="${explorerHref}"${inTools ? ' class="nav-section" aria-current="location"' : ""} data-keep-partner>Free Tools ▾</a>`;
+    ? `<span class="nav-current" aria-current="page">Free Tools <svg class="dd-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>`
+    : `<a href="${explorerHref}"${inTools ? ' class="nav-section" aria-current="location"' : ""} data-keep-partner>Free Tools <svg class="dd-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>`;
   out.push(`<div class="dropdown">${topLabel}<div class="dropdown-menu">${groups}
     <div class="dd-head">All</div><a href="${explorerHref}" data-keep-partner>Browse every tool →</a></div></div>`);
 
@@ -186,6 +186,10 @@ function mountChrome() {
       setTimeout(() => { btn.textContent = original; }, 1600);
     });
   });
+
+  // Reveal is mounted last, after the nav and footer exist, so generated
+  // chrome participates in the same motion system as authored markup.
+  mountReveal();
 
   // Global copy email helper
   window.copyEmail = async (btn) => {
@@ -522,6 +526,61 @@ function toolMailto(tag, subject, body) {
     `&body=${encodeURIComponent(body || "")}`;
 }
 
+/* ---- scroll reveal ----
+   Content is visible by default and only *becomes* animatable once this
+   runs, so anything without JS — a crawler, a reader mode, a failed
+   script load — still sees a complete page. The transform is a few pixels
+   with no layout impact, each element reveals once and is then unobserved,
+   and the whole thing no-ops under prefers-reduced-motion. Restraint is
+   the point: motion should make the page feel considered, not staged. */
+function mountReveal() {
+  if (!("IntersectionObserver" in window)) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const targets = document.querySelectorAll("[data-reveal], section > .wrap > *");
+  if (!targets.length) return;
+  document.documentElement.classList.add("has-reveal");
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("is-in");
+      io.unobserve(e.target);
+    });
+  }, { rootMargin: "0px 0px -8% 0px", threshold: 0.06 });
+
+  /* Anything that hides content behind JS needs an escape hatch, because
+     the failure mode is a blank page rather than a missing flourish.
+     Printing is the case that actually bit: "Print / save as PDF" is the
+     headline feature of every tool, and a visitor who landed and printed
+     without scrolling got a board pack with 23 invisible blocks. The
+     print stylesheet handles it declaratively; beforeprint covers
+     browsers that snapshot layout before applying print media; and the
+     timeout covers an observer that never fires at all. */
+  const revealAll = () => {
+    io.disconnect();
+    document.querySelectorAll(".will-reveal").forEach(el => el.classList.add("is-in"));
+  };
+  window.addEventListener("beforeprint", revealAll);
+  if (window.matchMedia) {
+    const mq = window.matchMedia("print");
+    if (mq.addEventListener) mq.addEventListener("change", e => { if (e.matches) revealAll(); });
+  }
+  setTimeout(revealAll, 8000);
+
+  targets.forEach((el, i) => {
+    // Anything already on screen at load reveals immediately — a visitor
+    // should never watch the first viewport assemble itself.
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.92) {
+      el.classList.add("is-in");
+      return;
+    }
+    el.style.setProperty("--reveal-i", String(i % 6));
+    el.classList.add("will-reveal");
+    io.observe(el);
+  });
+}
+
 /* ---- accessible collapse/expand for a disclosure button ---- */
 function wireDisclosure(btn, panel, onToggle) {
   if (!btn || !panel) return;
@@ -538,6 +597,6 @@ if (typeof window !== "undefined") {
   Object.assign(window, { STORE_KEY, JK_LOGO, JK_LOGO_LIGHT, applyPartner, mountChrome,
     saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel,
     wireToolEnquiryForm, sessionGet, sessionSet,
-    toolStore, fmtMoney, fmtNum, fmtRatio, clampNum, escapeHtml,
+    toolStore, fmtMoney, fmtNum, fmtRatio, clampNum, escapeHtml, mountReveal,
     citeChip, citeChips, mountPrintHead, toolMailto, wireDisclosure });
 }

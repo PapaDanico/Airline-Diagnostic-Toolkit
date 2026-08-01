@@ -190,6 +190,64 @@ await page.evaluate(() => {
 await page.reload(); await page.waitForTimeout(300);
 assert(await page.$(".resume-banner") === null, "no resume banner when fully answered");
 
+/* ─── 4b-bis. PRESENTATION — figures, reveal, print ───
+   Cormorant Garamond defaults to old-style figures, which made "11"
+   render as "II" and "12–24" as "I2–24" across every numeric surface.
+   And scroll-reveal, added for polish, hid 23 blocks from anyone who
+   landed and printed without scrolling — on a product whose headline
+   feature is "Print / save as PDF". Both are silent failures. */
+section("Presentation — figures, reveal and print");
+
+await page.goto(base + "/index.html"); await page.waitForTimeout(500);
+assert(await page.evaluate(() => getComputedStyle(document.body).fontVariantNumeric.includes("lining-nums")),
+  "lining figures inherit from the root (old-style figures never reach data)");
+assert(await page.evaluate(() => {
+  const el = document.querySelector("#market-stats b");
+  return el && getComputedStyle(el).fontVariantNumeric.includes("lining-nums");
+}), "JS-generated stat figures inherit lining numerals");
+assert(await page.evaluate(() => {
+  const el = document.querySelector(".metrics .m .v");
+  return el && getComputedStyle(el).fontVariantNumeric.includes("tabular-nums");
+}), "metric figures are tabular");
+
+// no self-hosted-font regression: the privacy promise depends on it
+assert(await page.evaluate(() =>
+  ![...document.querySelectorAll("link[href],script[src]")]
+    .some(e => /fonts\.googleapis|fonts\.gstatic/.test(e.getAttribute("href") || e.getAttribute("src") || ""))),
+  "no third-party font requests (the 'nothing leaves your browser' promise holds)");
+
+// reveal must never survive into print
+{
+  const hiddenBefore = await page.evaluate(() =>
+    [...document.querySelectorAll(".will-reveal")].filter(e => +getComputedStyle(e).opacity === 0).length);
+  assert(hiddenBefore > 0, "below-fold content starts un-revealed (motion is actually running)");
+  await page.emulateMedia({ media: "print" });
+  await page.waitForTimeout(250);
+  const hiddenInPrint = await page.evaluate(() =>
+    [...document.querySelectorAll(".will-reveal")].filter(e => +getComputedStyle(e).opacity === 0).length);
+  assert(hiddenInPrint === 0, "every revealed block is visible in print (no blank board packs)");
+  await page.emulateMedia({ media: "screen" });
+}
+
+// scrolling reveals everything
+await page.evaluate(async () => {
+  for (let y = 0; y < document.body.scrollHeight; y += 500) {
+    scrollTo(0, y); await new Promise(r => setTimeout(r, 40));
+  }
+});
+await page.waitForTimeout(800);
+assert(await page.evaluate(() =>
+  [...document.querySelectorAll(".will-reveal")].filter(e => +getComputedStyle(e).opacity === 0).length === 0),
+  "all content reveals after a normal scroll through the page");
+
+// currency values must not break between unit and figure
+await page.goto(base + "/tools/venture-builder.html"); await page.waitForTimeout(500);
+await page.fill("#f-debt", "3000000"); await page.waitForTimeout(300);
+assert(await page.evaluate(() => {
+  const el = document.querySelector("#r-capex");
+  return el && getComputedStyle(el).whiteSpace === "nowrap" && el.getClientRects().length === 1;
+}), "currency KPI renders on a single line (never 'USD' / '6.33M' split across rows)");
+
 /* ─── 4c-bis. VENTURE TOOLS — injection, clamping, formatting ───
    These three defects were found by audit, not by a user, and each one
    fails silently: markup in a shareholder name executes, a negative

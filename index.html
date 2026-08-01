@@ -20,8 +20,9 @@
 <title>JK &amp; Associates — Aviation Advisory for Africa | Build, Certify, Scale</title>
 <link rel="icon" type="image/png" href="assets/img/jk-badge.png">
 <link rel="apple-touch-icon" href="assets/img/jk-badge.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" href="assets/fonts/cormorant-garamond-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/dm-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/fonts.css">
 <link rel="stylesheet" href="assets/css/jk.css">
 <script type="application/ld+json">
 {
@@ -84,9 +85,13 @@
 <header class="hero hero-ink">
   <div class="wrap hero-grid">
     <div>
-      <img class="hero-logo" src="assets/img/jk-logo-full-light.png" width="417" height="320"
-           fetchpriority="high" decoding="async"
-           alt="JK &amp; Associates — Shaping Africa's Future, Together">
+      <!-- Emblem only. The nav already carries the wordmark and the
+           descriptor; repeating the full lockup here stated the brand
+           three times inside 400px and put the least legible element on
+           the page — muted terracotta lettering on a terracotta glow —
+           directly above the headline. -->
+      <img class="hero-mark" src="assets/img/jk-badge-light.png" width="192" height="192"
+           fetchpriority="high" decoding="async" alt="">
       <p class="eyebrow">Aviation advisory · Kenya &amp; Africa</p>
       <h1>Build, certify and scale <span>aviation ventures</span> in Africa.</h1>
       <p class="lead">Africa is the fastest-growing aviation market on earth and the least profitable. Demand is not the constraint — execution is. We take operators and investors from first idea to certificate to sustained performance.</p>
@@ -95,9 +100,9 @@
         <a class="btn btn-ghost-lt btn-lg" href="#doors">See both tracks</a>
       </div>
       <div class="trust-strip">
-        <div class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 3 5v6c0 5 3.8 9.7 9 11 5.2-1.3 9-6 9-11V5l-9-4z"/></svg> Stays on your device</div>
-        <div class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 3 5v6c0 5 3.8 9.7 9 11 5.2-1.3 9-6 9-11V5l-9-4z"/></svg> No signup, no sales calls</div>
-        <div class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 3 5v6c0 5 3.8 9.7 9 11 5.2-1.3 9-6 9-11V5l-9-4z"/></svg> Every requirement cited</div>
+        <div class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 10V8a6 6 0 1 1 12 0v2h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1Zm2 0h8V8a4 4 0 0 0-8 0v2Zm4 5a1.6 1.6 0 0 0-.8 3v1.4a.8.8 0 0 0 1.6 0V18a1.6 1.6 0 0 0-.8-3Z"/></svg> Stays on your device</div>
+        <div class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2c1.9 0 3.6.65 4.95 1.75L5.75 16.95A7.95 7.95 0 0 1 12 4Zm0 16a7.9 7.9 0 0 1-4.95-1.75L18.25 7.05A7.95 7.95 0 0 1 12 20Z"/></svg> No signup, no sales calls</div>
+        <div class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm7.5 1.6V8.5H18.4L13.5 3.6ZM8 12.4h8V14H8v-1.6Zm0 3.6h5.5v1.6H8V16Z"/></svg> Every requirement cited</div>
       </div>
     </div>
     <div class="card" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16);backdrop-filter:blur(6px)">
