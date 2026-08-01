@@ -1,6 +1,6 @@
 # Global benchmark and upgrade roadmap
 
-**Prepared** 1 August 2026 · **Platform version at time of writing** v3.0 → v3.1
+**Prepared** 1 August 2026 · **Platform version at time of writing** v3.0 → v3.2
 
 ---
 
@@ -138,9 +138,10 @@ put a cap table into someone else's SaaS.
    and never turned into dates. A venture's binding constraint is the calendar.
 3. **~~Work was trapped in one browser.~~** *(closed in v3.1)* No account is a
    feature; no way to move or back up the work was not.
-4. **No scenario comparison.** Every tool holds exactly one model. Group A sells
-   "build and compare scenarios" as headline functionality. An investor asking
-   "what if we lease three instead of two" has to overwrite the answer they had.
+4. **~~No scenario comparison.~~** *(closed in v3.2)* Every tool held exactly one
+   model, so an investor asking "what if we lease three instead of two" had to
+   overwrite the answer they had. Group A sells "build and compare scenarios" as
+   headline functionality; we now do too.
 5. **No named evidence.** Group C's entire credibility rests on delivered
    certifications. Ours rests on the quality of the tools, which is a real but
    slower argument.
@@ -210,7 +211,7 @@ be built within it.
 
 | # | Upgrade | Why | Effort |
 |---|---|---|---|
-| 1 | **Scenario save and compare.** Named snapshots of the venture file; a side-by-side view of two or three. | Closes the largest remaining gap against Group A. Turns "what if we lease three instead of two" from an overwrite into a comparison. | M |
+| ~~1~~ | ~~**Scenario save and compare.**~~ **Shipped in v3.2** — named snapshots of the whole workspace, up to twelve, compared side by side against the live one with differing rows highlighted, and restorable over it. | Closed the largest remaining gap against Group A. | M |
 | 2 | **Greenfield peer bands.** Publish indicative capital, headcount and lead-time distributions per sector so a venture sees where it sits, the way the operating track already does against CASK. | Benchmarking is the thing every Group A and B player sells. We have the sector models to derive it. | M |
 | 3 | **Sensitivity / tornado on the capital model.** Vary each capex line and the revenue case; rank by impact on DSCR and funding gap. | An investment committee asks "what breaks this first". The model already holds every input. | S |
 | 4 | **Evidence register per requirement.** Against each of the 167 checklist items, record the document that closes it and its date. | Group D's "digital chain of evidence", applied pre-certification. Turns the Navigator from a checklist into a submission index. | M |

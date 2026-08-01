@@ -85,6 +85,39 @@
   .ws-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1rem; }
   .ws-msg { font-size: .85rem; margin: .9rem 0 0; }
 
+  /* ---- scenarios ---- */
+  .scn-save { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin: 1.4rem 0 .4rem; }
+  .scn-save .field { margin: 0; flex: 1 1 280px; min-width: 0; }
+  .scn-row { display: grid; grid-template-columns: 28px 1fr 128px 118px auto; gap: 14px; align-items: center;
+             padding: 13px 16px; border: 1px solid var(--jk-line); border-radius: var(--radius-sm);
+             margin-bottom: 8px; background: #fff; }
+  .scn-row > * { min-width: 0; }
+  .scn-row.is-live { background: var(--jk-parchment); border-style: dashed; }
+  .scn-name { font-weight: 600; font-size: .93rem; }
+  .scn-name small { display: block; font-weight: 400; font-size: .76rem; color: var(--jk-muted);
+                    font-variant-numeric: lining-nums tabular-nums; }
+  .scn-idx { font-family: var(--serif); font-weight: 700; font-size: 1.35rem; line-height: 1;
+             font-variant-numeric: lining-nums tabular-nums; }
+  .scn-idx small { display: block; font-family: var(--sans); font-weight: 400; font-size: .72rem;
+                   letter-spacing: .06em; text-transform: uppercase; color: var(--jk-muted); }
+  .scn-cap { font-size: .86rem; font-variant-numeric: lining-nums tabular-nums; }
+  .scn-acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .scn-acts .btn { padding: .38rem .8rem; font-size: .8rem; }
+  @media (max-width: 760px) {
+    .scn-row { grid-template-columns: 28px 1fr; row-gap: 8px; }
+    .scn-idx, .scn-cap, .scn-acts { grid-column: 2; justify-content: flex-start; }
+  }
+
+  .cmp { width: 100%; border-collapse: collapse; font-size: .87rem; min-width: 560px; }
+  .cmp th, .cmp td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--jk-line); }
+  .cmp thead th { font-family: var(--sans); font-size: .74rem; letter-spacing: .06em; text-transform: uppercase;
+                  color: var(--jk-muted); vertical-align: bottom; }
+  .cmp thead th.is-live { color: var(--accent); }
+  .cmp tbody th { font-weight: 600; color: var(--jk-muted); font-size: .82rem; width: 210px; }
+  .cmp td { font-variant-numeric: lining-nums tabular-nums; }
+  .cmp td.differs { background: var(--jk-amber-lt); font-weight: 600; }
+  .cmp td .rag-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: .4rem; }
+
   /* The board pack is the deliverable: printed, it must read as one
      document, so the interactive scaffolding steps out of the way. */
   @media print {
@@ -198,8 +231,29 @@
   </div>
 </section>
 
+<!-- SCENARIOS -->
+<section id="scenarios">
+  <div class="wrap">
+    <p class="eyebrow">Scenarios</p>
+    <h2 style="margin-bottom:.4rem">Model more than one future</h2>
+    <p class="muted" style="max-width:720px">Each tool holds one model, so testing an alternative used to mean destroying the answer you had. Save the workspace as a named scenario first — two aircraft or three, leased or owned, HoldCo or three-tier — then compare them side by side and restore whichever you want to work on.</p>
+
+    <div class="scn-save">
+      <div class="field">
+        <label for="scn-name">Name this scenario</label>
+        <input type="text" id="scn-name" placeholder="e.g. Base case — 2 aircraft, leased" maxlength="60">
+      </div>
+      <button class="btn btn-primary" id="scn-save">Save current workspace</button>
+    </div>
+    <p class="ws-msg muted" id="scn-msg" role="status" aria-live="polite"></p>
+
+    <div id="scn-list" style="margin-top:1.2rem"></div>
+    <div id="scn-compare" style="margin-top:2rem"></div>
+  </div>
+</section>
+
 <!-- WORKSPACE -->
-<section>
+<section class="band-parchment">
   <div class="wrap">
     <div class="tool-layout">
       <div>
@@ -428,6 +482,7 @@
     renderMismatch(mods);
     renderPath(tl);
     renderScorecard();
+    renderScenarios();
 
     const body =
       `Venture: ${prof.name || "(unnamed)"}\n` +
@@ -441,6 +496,152 @@
 
     mountPrintHead("Venture Control Room", prof.name || undefined);
   }
+
+  /* ============================================================
+     SCENARIOS
+     ============================================================ */
+  const MAX_COMPARE = 3;
+  let compareSel = [];   // scenario ids ticked for comparison
+
+  const scnMsg = (text, kind) => {
+    const el = $("scn-msg");
+    el.textContent = text;
+    el.style.color = kind === "ok" ? "var(--jk-green)" : kind === "err" ? "var(--jk-red)" : "";
+  };
+
+  const ragDot = rag => rag
+    ? `<span class="rag-dot" style="background:${RAG[rag] || "transparent"}" aria-hidden="true"></span>` : "";
+
+  function renderScenarios() {
+    const list = JKW.scenarios();
+    const live = JKW.summarise(prof, JKW.liveSource());
+
+    const liveRow = `
+      <div class="scn-row is-live">
+        <span aria-hidden="true">●</span>
+        <div class="scn-name">Current workspace<small>Unsaved — what the tools hold right now</small></div>
+        <div class="scn-idx">${live.readiness.index}<small>index</small></div>
+        <div class="scn-cap">${escapeHtml(live.rows.capital.v)}</div>
+        <div class="scn-acts"><span class="muted" style="font-size:.8rem">always compared</span></div>
+      </div>`;
+
+    const rows = list.map(s => {
+      const sum = JKW.summarise(s.profile || prof, JKW.objSource(s.stores));
+      const on = compareSel.includes(s.id);
+      const when = new Date(s.savedAt);
+      const whenTxt = isNaN(when.getTime()) ? "" :
+        when.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) +
+        " · " + when.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+      return `
+        <div class="scn-row">
+          <input type="checkbox" data-cmp="${s.id}" ${on ? "checked" : ""}
+                 aria-label="Compare ${escapeHtml(s.name)}">
+          <div class="scn-name">${escapeHtml(s.name)}<small>${escapeHtml(whenTxt)} · ${escapeHtml(sum.rows.sector.v)}</small></div>
+          <div class="scn-idx">${sum.readiness.index}<small>index</small></div>
+          <div class="scn-cap">${escapeHtml(sum.rows.capital.v)}</div>
+          <div class="scn-acts">
+            <button class="btn btn-ghost" data-restore="${s.id}">Restore</button>
+            <button class="btn btn-ghost" data-del="${s.id}">Delete</button>
+          </div>
+        </div>`;
+    }).join("");
+
+    $("scn-list").innerHTML = list.length
+      ? liveRow + rows +
+        `<p class="muted" style="font-size:.8rem;margin:.7rem 0 0">Tick up to ${MAX_COMPARE} scenarios to compare against the current workspace. ${list.length}/${JKW.MAX_SCENARIOS} saved.</p>`
+      : liveRow + `<p class="muted" style="font-size:.85rem;margin:.7rem 0 0">No scenarios saved yet. Save the current workspace above to start comparing.</p>`;
+
+    /* Ticking a box updates only the comparison table. Re-rendering the
+       whole list here would replace the checkbox the visitor just
+       activated, throwing keyboard focus back to the top of the
+       document mid-interaction. */
+    $("scn-list").querySelectorAll("[data-cmp]").forEach(cb => cb.addEventListener("change", () => {
+      const id = cb.dataset.cmp;
+      if (cb.checked) {
+        if (compareSel.length >= MAX_COMPARE) {
+          cb.checked = false;
+          scnMsg(`Compare up to ${MAX_COMPARE} scenarios at once — untick one first.`, "err");
+          return;
+        }
+        compareSel.push(id);
+      } else {
+        compareSel = compareSel.filter(x => x !== id);
+      }
+      scnMsg("", "");
+      renderCompare(JKW.summarise(prof, JKW.liveSource()), list);
+    }));
+
+    $("scn-list").querySelectorAll("[data-restore]").forEach(b => b.addEventListener("click", () => {
+      const s = list.find(x => x.id === b.dataset.restore);
+      if (!s) return;
+      // Restoring overwrites live work that may not be saved anywhere.
+      if (!confirm(`Restore "${s.name}"?\n\nThis replaces what the tools currently hold. If the current workspace is not saved as a scenario, it will be lost.`)) return;
+      const res = JKW.restoreScenario(s.id);
+      if (!res.ok) { scnMsg(res.error, "err"); return; }
+      prof = JKW.profile();
+      $("vf-name").value = prof.name;
+      $("vf-sector").value = prof.sector;
+      $("vf-target").value = prof.target;
+      render();
+      scnMsg(`Restored "${s.name}". Every tool now opens on that scenario.`, "ok");
+    }));
+
+    $("scn-list").querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+      const s = list.find(x => x.id === b.dataset.del);
+      if (!s || !confirm(`Delete the scenario "${s.name}"? This cannot be undone.`)) return;
+      JKW.deleteScenario(s.id);
+      compareSel = compareSel.filter(x => x !== s.id);
+      renderScenarios();
+      scnMsg(`Deleted "${s.name}".`, "ok");
+    }));
+
+    renderCompare(live, list);
+  }
+
+  /* The comparison only earns its space if it points at what differs —
+     otherwise it is fifteen rows the reader has to diff by eye. */
+  function renderCompare(live, list) {
+    const chosen = compareSel.map(id => list.find(s => s.id === id)).filter(Boolean);
+    if (!chosen.length) {
+      $("scn-compare").innerHTML = list.length
+        ? `<div class="note"><b>Tick a scenario to compare it</b>The current workspace is always the first column, so you can see what a saved scenario would change before you restore it.</div>`
+        : "";
+      return;
+    }
+    const cols = [{ name: "Current workspace", live: true, sum: live }].concat(
+      chosen.map(s => ({ name: s.name, live: false, sum: JKW.summarise(s.profile || prof, JKW.objSource(s.stores)) })));
+
+    const keys = Object.keys(live.rows);
+    const body = keys.map(k => {
+      const vals = cols.map(c => c.sum.rows[k]);
+      const differs = vals.some(v => v.v !== vals[0].v);
+      return `<tr>
+        <th scope="row">${escapeHtml(vals[0].label)}</th>
+        ${vals.map(v => `<td class="${differs ? "differs" : ""}">${ragDot(v.rag)}${escapeHtml(v.v)}</td>`).join("")}
+      </tr>`;
+    }).join("");
+
+    $("scn-compare").innerHTML = `
+      <h3 style="margin:0 0 .5rem">Side by side</h3>
+      <p class="muted" style="font-size:.85rem;margin:0 0 1rem">Rows that differ across the columns are highlighted. Everything else is common ground.</p>
+      <div class="table-scroll">
+        <table class="cmp">
+          <caption class="visually-hidden">Comparison of the current workspace against saved scenarios</caption>
+          <thead><tr><th scope="col">Measure</th>
+            ${cols.map(c => `<th scope="col" class="${c.live ? "is-live" : ""}">${escapeHtml(c.name)}</th>`).join("")}
+          </tr></thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>`;
+  }
+
+  $("scn-save").addEventListener("click", () => {
+    const res = JKW.saveScenario($("scn-name").value);
+    if (!res.ok) { scnMsg(res.error, "err"); return; }
+    $("scn-name").value = "";
+    renderScenarios();
+    scnMsg(`Saved "${res.scenario.name}".`, "ok");
+  });
 
   /* ---------- workspace export / import ---------- */
   const msg = (text, kind) => {

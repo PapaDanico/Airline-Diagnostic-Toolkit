@@ -18,7 +18,7 @@ const JK = {
     descriptor: "Aviation Advisory · Africa",
     email: "info@aviationhubkenya.org",
     location: "Nairobi, Kenya",
-    version: "v3.1 — End-to-End Aviation Advisory Platform"
+    version: "v3.2 — End-to-End Aviation Advisory Platform"
   },
 
   // Soft engagement-key gate for Toolboxes B/C/D (marketing gate, not security).

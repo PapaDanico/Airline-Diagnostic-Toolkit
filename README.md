@@ -1,4 +1,4 @@
-# JK & Associates — Aviation Advisory Platform (v3.1)
+# JK & Associates — Aviation Advisory Platform (v3.2)
 
 An end-to-end consultancy platform for **African aviation ventures**: operators holding an AOC, and
 investors building greenfield aviation projects in Kenya and across the continent.
@@ -31,7 +31,7 @@ footer.
 
 | File | Purpose |
 |------|---------|
-| `tools/venture-dashboard.html` | **Venture Control Room (V0)** — the venture file. Reads every build tool's saved state and derives one **Launch Readiness Index** (certification 40 / capital 25 / organisation 20 / structure 15), per-module progress and next action, a **critical-path Gantt** back-scheduled from the target certificate date, a sector-mismatch check, **workspace export / import** as a single JSON file, and a board-pack print view. |
+| `tools/venture-dashboard.html` | **Venture Control Room (V0)** — the venture file. Reads every build tool's saved state and derives one **Launch Readiness Index** (certification 40 / capital 25 / organisation 20 / structure 15), per-module progress and next action, a **critical-path Gantt** back-scheduled from the target certificate date, a sector-mismatch check, **scenarios** (named snapshots of the whole workspace, compared side by side and restorable), **workspace export / import** as a single JSON file, and a board-pack print view. |
 | `tools/certification-navigator.html` | **KCAA Certification Navigator (V1)** — the five-phase certification and approval process mapped across **six sectors**, with per-phase checklists, critical-path gates, required postholders, the document set, a weighted readiness meter, and a citation for every requirement. |
 | `tools/venture-builder.html` | **Greenfield Venture Builder (V2)** — sector CAPEX bands, capital-stack construction, funding-gap detection, lender advance-rate check, level-payment debt service, DSCR sensitivity across four scenarios, and revenue break-even. |
 | `tools/corporate-structure.html` | **Corporate Structure Designer (V3)** — HoldCo / SPV / OpCo archetypes with a **look-through effective-interest cascade**, ownership-and-control testing, offshore substance costing, and the governance / lender-conflict checks institutional diligence applies. |
@@ -103,8 +103,12 @@ Currently `unconfirmed`: `ato`, `sms`, `gh`.
   interest from the same saved models — two implementations would drift on exactly the numbers a
   lender and a regulator read.
 - `assets/js/venture-file.js` — `JKW` namespace: the venture profile, one reader per build tool,
-  the weighted Launch Readiness Index, the back-scheduled critical path, and workspace
-  export / import. **Derived, not published**: no tool writes a summary of itself; each reader
+  the weighted Launch Readiness Index, the back-scheduled critical path, scenarios, and workspace
+  export / import. Every reader takes a **store source** (`liveSource()` or `objSource(stores)`),
+  so a saved scenario is summarised by the same code that summarises the live workspace — there is
+  no second scoring path to drift from the first. A scenario never captures `SCEN_KEY` itself;
+  otherwise each save would embed all previous saves and the store would double in size every time.
+  **Derived, not published**: no tool writes a summary of itself; each reader
   opens that tool's existing `localStorage` record and computes the summary from raw state, so the
   tools stay standalone and there is no second copy of the truth. The coupling is one-way —
   `venture-file.js` knows the tools' store shapes; the tools do not know it exists.
@@ -196,4 +200,4 @@ address, ODPC registration, DPO) are marked `[in brackets]` and must be complete
 
 ---
 
-*v3.1 — End-to-End Aviation Advisory Platform · JK & Associates · Nairobi, Kenya.*
+*v3.2 — End-to-End Aviation Advisory Platform · JK & Associates · Nairobi, Kenya.*

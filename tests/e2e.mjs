@@ -452,6 +452,98 @@ assert(/&lt;img/.test(await page.$eval(".print-head .ph-meta", e => e.innerHTML)
   "a venture name is escaped before it reaches the printed header");
 assert(xssFired === false, "injected markup in the venture name does not execute");
 
+/* ─── 4c-quater. SCENARIOS ───
+   A scenario is a full copy of the workspace, so the failures that matter
+   are structural: does a saved scenario stay frozen when the live tools
+   move on, does restoring actually swap the workspace, and does saving
+   repeatedly grow without bound. */
+section("Venture Control Room — scenarios");
+
+await page.goto(CR);
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(400);
+
+// seed a known workspace, save it, then change the live one
+await page.evaluate(() => {
+  const sec = JKV.sector("aoc");
+  const checked = {};
+  JKV.phaseSpine.forEach(p => (sec.items[p.id] || []).forEach((_, i) => { checked[`aoc|${p.id}|${i}`] = true; }));
+  localStorage.setItem("jk_certnav_v3", JSON.stringify({ sector: "aoc", checked }));
+  localStorage.setItem("jk_venture_file_v3", JSON.stringify({ name: "Base case", sector: "aoc" }));
+});
+await page.reload(); await page.waitForTimeout(400);
+await page.fill("#scn-name", "Base — everything closed");
+await page.click("#scn-save"); await page.waitForTimeout(400);
+assert(await page.$$eval(".scn-row", r => r.length) === 2, "saved scenario appears alongside the live row");
+assert(/Saved/.test(await page.$eval("#scn-msg", e => e.textContent)), "save reports success");
+
+// now gut the live workspace — the saved scenario must not move
+await page.evaluate(() => localStorage.setItem("jk_certnav_v3", JSON.stringify({ sector: "aoc", checked: {} })));
+await page.reload(); await page.waitForTimeout(400);
+const idxs = await page.$$eval(".scn-idx", els => els.map(e => parseInt(e.textContent, 10)));
+assert(idxs[0] === 0, "live row drops to 0 after the workspace is emptied");
+assert(idxs[1] === 40, "the saved scenario stays frozen at 40 — a snapshot, not a live view");
+
+// compare surfaces the difference
+await page.click('[data-cmp]'); await page.waitForTimeout(400);
+assert(await page.$$eval(".cmp thead th", e => e.length) === 3, "comparison renders Measure + live + one scenario column");
+// ticking must not rebuild the list underneath the visitor's own checkbox
+assert(await page.evaluate(() => document.activeElement.matches("[data-cmp]")),
+  "focus stays on the checkbox after ticking (list is not re-rendered under it)");
+assert(await page.$$eval(".cmp td.differs", e => e.length) > 0, "differing rows are highlighted");
+const certRow = await page.$$eval(".cmp tbody tr", rows =>
+  rows.map(r => r.innerText.replace(/\s+/g, " ").trim()).find(t => /^Certification/.test(t)) || "");
+assert(/—/.test(certRow) && /100%/.test(certRow), `comparison shows live vs scenario certification (${certRow})`);
+
+// restoring swaps the workspace back
+page.once("dialog", d => d.accept());
+await page.click("[data-restore]"); await page.waitForTimeout(500);
+assert(await crIndex() === 40, "restoring a scenario brings the readiness index back to 40");
+assert(await page.$eval("#vf-name", e => e.value) === "Base case", "restore brings the venture profile back too");
+
+/* Saving captures every jk_/dn_ key. If the scenario store were captured
+   too, each save would embed all previous saves and the workspace would
+   double in size every time until the quota died. */
+const nesting = await page.evaluate(() => {
+  const sizes = [];
+  for (let i = 0; i < 3; i++) {
+    JKW.saveScenario("growth probe " + i, new Date(2026, 0, i + 1).toISOString());
+    sizes.push(localStorage.getItem(JKW.SCEN_KEY).length);
+  }
+  const nested = JKW.scenarios().some(s => Object.keys(s.stores).includes(JKW.SCEN_KEY));
+  return { sizes, nested };
+});
+assert(nesting.nested === false, "a scenario never contains the scenario store itself");
+const [s1, s2, s3] = nesting.sizes;
+assert((s3 - s2) < (s2 - s1) * 2, `scenario store grows linearly, not exponentially (${s1} → ${s2} → ${s3} bytes)`);
+
+// the cap is enforced rather than silently letting the quota blow
+const capped = await page.evaluate(() => {
+  let last = { ok: true };
+  for (let i = 0; i < 20 && last.ok; i++) last = JKW.saveScenario("filler " + i, new Date(2026, 1, i + 1).toISOString());
+  return { count: JKW.scenarios().length, err: last.error || "" };
+});
+assert(capped.count === 12, `scenario count capped at MAX_SCENARIOS (got ${capped.count})`);
+assert(/Delete one/.test(capped.err), "hitting the cap explains how to make room");
+
+// ids are unique even when two saves land in the same millisecond
+const unique = await page.evaluate(() => {
+  localStorage.removeItem(JKW.SCEN_KEY);
+  const iso = new Date(2026, 3, 1).toISOString();
+  for (let i = 0; i < 5; i++) JKW.saveScenario("same-ms " + i, iso);
+  const ids = JKW.scenarios().map(s => s.id);
+  return new Set(ids).size === ids.length;
+});
+assert(unique, "scenario ids stay unique when saves share a timestamp");
+
+// scenario names are text, not markup
+await page.evaluate(() => localStorage.removeItem(JKW.SCEN_KEY));
+await page.reload(); await page.waitForTimeout(400);
+await page.fill("#scn-name", '<img src=x onerror="window.__xssProbe()">');
+await page.click("#scn-save"); await page.waitForTimeout(500);
+assert(!/<img/i.test(await page.$eval("#scn-list", e => e.innerHTML)), "a scenario name is escaped in the list");
+assert(xssFired === false, "injected markup in a scenario name does not execute");
+
 /* ─── 4c-ter. REGULATORY INDEX ─── */
 section("Kenya regulatory index");
 await page.goto(base + "/regulations.html"); await page.waitForTimeout(450);
