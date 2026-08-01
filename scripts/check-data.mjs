@@ -144,6 +144,16 @@ for (const c of (JKG.cats || [])) {
   if (!JKG.terms.some(t => t.cat === c.id)) fail(`glossary category "${c.id}": no terms filed under it`);
 }
 
+/* the committed glossary markup must match the data model — see
+   scripts/build-glossary.mjs for why the page is pre-rendered at all */
+{
+  const html = readFileSync(new URL("../glossary.html", import.meta.url), "utf8");
+  const rendered = (html.match(/class="g-term"/g) || []).length;
+  if (rendered !== JKG.terms.length) {
+    fail(`glossary.html carries ${rendered} rendered terms but the data model has ${JKG.terms.length} — run: node scripts/build-glossary.mjs`);
+  }
+}
+
 /* ---------- report ---------- */
 if (!failures) {
   const totalItems = JKV.sectors.reduce((n, s) => n + JKV.totalItems(s), 0);

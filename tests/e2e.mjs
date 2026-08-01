@@ -4,7 +4,7 @@
 import { chromium } from "playwright";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const base = "file://" + ROOT;
@@ -565,17 +565,26 @@ assert(await page.$$eval("#sec-map .card", e => e.length) === 6, "all six sector
 section("Glossary");
 await page.goto(base + "/glossary.html"); await page.waitForTimeout(500);
 const gTotal = await page.evaluate(() => JKG.terms.length);
-assert(await page.$$eval(".g-term", e => e.length) === gTotal, `all ${gTotal} terms render`);
-assert(await page.$$eval(".g-group", e => e.length) === 6, "terms are grouped into six categories when browsing");
+assert(await page.$$eval(".g-term", e => e.length) === gTotal, `all ${gTotal} terms are in the markup`);
+// Read the file on disk: a runtime DOM check cannot distinguish markup
+// that shipped in the document from markup a script just created.
+{
+  const raw = readFileSync(ROOT + "/glossary.html", "utf8");
+  const inFile = (raw.match(/class="g-term"/g) || []).length;
+  assert(inFile === gTotal, `all ${gTotal} terms ship in the HTML itself, not built by JS at load (${inFile} found)`);
+  assert((raw.match(/class="seg" data-c=/g) || []).length === 7, "the category chips ship in the HTML too");
+}
+assert(await page.$$eval(".g-group:not([hidden])", e => e.length) === 6, "terms are grouped into six categories when browsing");
 
 // search flattens to one alphabetical list and narrows
 await page.fill("#g-q", "dscr"); await page.waitForTimeout(300);
-const dscrCount = await page.$$eval(".g-term", e => e.length);
+const dscrCount = await page.$$eval(".g-term:not([hidden])", e => e.length);
 assert(dscrCount > 0 && dscrCount < gTotal, `search narrows the corpus (${dscrCount} hits for "dscr")`);
-assert(await page.$$eval(".g-group", e => e.length) === 0, "search drops category headings in favour of one list");
+assert(await page.$eval("#g-body", e => e.classList.contains("is-searching")), "search mutes the category headings");
+assert(await page.$$eval(".g-term:not([hidden])", e => e.length) === dscrCount, "only matching terms stay visible");
 // full-text, not just term-name matching
 await page.fill("#g-q", "lenders"); await page.waitForTimeout(300);
-assert(await page.$$eval(".g-term", e => e.length) > 0, "search reaches definition text, not just term names");
+assert(await page.$$eval(".g-term:not([hidden])", e => e.length) > 0, "search reaches definition text, not just term names");
 
 await page.fill("#g-q", "zzzqqq"); await page.waitForTimeout(300);
 assert(!await page.$eval("#g-empty", e => e.hidden), "a no-match search shows the empty state");
@@ -584,7 +593,7 @@ await page.fill("#g-q", ""); await page.waitForTimeout(300);
 // category filter
 await page.click('#g-cats [data-c="finance"]'); await page.waitForTimeout(300);
 const finCount = await page.evaluate(() => JKG.byCat("finance").length);
-assert(await page.$$eval(".g-term", e => e.length) === finCount, `category filter shows only its ${finCount} terms`);
+assert(await page.$$eval(".g-term:not([hidden])", e => e.length) === finCount, `category filter shows only its ${finCount} terms`);
 
 /* A see-also chip can point at a term the current filter hides. Clicking
    it must clear the filter, or the jump lands on nothing. */
@@ -599,7 +608,7 @@ const crossRef = await page.evaluate(() => {
 assert(crossRef, `found a cross-category see-also to test (${crossRef ? crossRef.from + " → " + crossRef.to : "none"})`);
 if (crossRef) {
   await page.click(`[data-jump="${crossRef.to}"]`); await page.waitForTimeout(400);
-  assert(await page.$$eval(".g-term", e => e.length) === gTotal,
+  assert(await page.$$eval(".g-term:not([hidden])", e => e.length) === gTotal,
     "clicking a cross-category see-also clears the filter so the target is reachable");
   assert(await page.$eval('#g-cats [data-c="all"]', e => e.getAttribute("aria-pressed")) === "true",
     "the category control reflects the cleared filter");
@@ -608,7 +617,7 @@ if (crossRef) {
 // deep link by query string
 await page.goto(base + "/glossary.html?q=postholder"); await page.waitForTimeout(400);
 assert(await page.$eval("#g-q", e => e.value) === "postholder", "?q= pre-fills the search box");
-assert(await page.$$eval(".g-term", e => e.length) > 0, "?q= filters on load");
+assert(await page.$$eval(".g-term:not([hidden])", e => e.length) > 0, "?q= filters on load");
 
 section("FAQ");
 await page.goto(base + "/faq.html"); await page.waitForTimeout(500);

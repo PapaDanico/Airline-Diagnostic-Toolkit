@@ -107,6 +107,13 @@ Currently `unconfirmed`: `ato`, `sms`, `gh`.
 - `assets/js/data-glossary.js` — `JKG` namespace: 111 glossary terms across six categories, each with a
   definition and, where it earns one, a "why it matters" note. Cross-references and citation keys are
   validated by `scripts/check-data.mjs`, because a dead see-also renders as a chip that goes nowhere.
+
+  **`glossary.html` is generated from it, not rendered from it in the browser.** Run
+  `node scripts/build-glossary.mjs` after editing the data; CI runs `--check` and fails on drift.
+  The page originally rendered client-side and that cost **0.40 of cumulative layout shift** on every
+  load — four times the threshold Google calls "good" — and left non-JS crawlers looking at a page
+  with no terms on it. Pre-rendering is committed to the repo, so there is still no deploy-time build
+  step. `faq.html` is authored as static markup for the same reasons.
 - `assets/js/venture-file.js` — `JKW` namespace: the venture profile, one reader per build tool,
   the weighted Launch Readiness Index, the back-scheduled critical path, scenarios, and workspace
   export / import. Every reader takes a **store source** (`liveSource()` or `objSource(stores)`),
