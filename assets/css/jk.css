@@ -434,6 +434,25 @@ button.phase:focus-visible { outline: 2px solid var(--accent); outline-offset: 3
 .footer a:hover { color: var(--jk-amber); }
 .footer .cols { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 32px; }
 .footer .ver { margin-top: 28px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.12); font-size: .77rem; color: #9a8c85; display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+
+/* The Learn strip — injected into every footer by mountFooterLearn().
+   A band rather than a fifth column, so it lands identically on the
+   four-column footers and the single-line ones without either layout
+   having to know about it. */
+.footer-learn { margin-top: 30px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.12); }
+.footer-learn h4 { margin: 0 0 .9rem; color: var(--jk-amber); }
+.footer-learn .fl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.footer-learn .fl-grid > * { min-width: 0; }
+.footer-learn .fl-item {
+  display: block; padding: 12px 14px; border: 1px solid rgba(255,255,255,.14); border-radius: var(--radius-sm);
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.footer-learn a.fl-item:hover { border-color: var(--jk-amber); background: rgba(255,255,255,.05); text-decoration: none; }
+.footer-learn .fl-item b { display: block; color: #fff; font-size: .92rem; font-weight: 600; margin-bottom: .12rem; }
+.footer-learn a.fl-item:hover b { color: var(--jk-amber); }
+.footer-learn .fl-item small { display: block; font-size: .76rem; line-height: 1.45; color: #9a8c85; }
+.footer-learn .fl-item.is-here { border-style: dashed; opacity: .72; }
+@media print { .footer-learn { display: none; } }
 .footer p { font-size: .89rem; margin-bottom: .45rem; }
 /* the mark on dark surfaces uses the pre-lightened artwork, not a filter —
    brightness(0) invert(1) would flatten the gradient to a white silhouette

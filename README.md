@@ -1,4 +1,4 @@
-# JK & Associates — Aviation Advisory Platform (v3.2)
+# JK & Associates — Aviation Advisory Platform (v3.3)
 
 An end-to-end consultancy platform for **African aviation ventures**: operators holding an AOC, and
 investors building greenfield aviation projects in Kenya and across the continent.
@@ -53,6 +53,8 @@ footer.
 ### Shared
 
 `index.html` (two-door landing) · `tools/index.html` (explorer, grouped by track) · `how-it-works.html` ·
+`tutorial.html` (step-by-step walkthrough, both tracks) · `faq.html` (38 questions, with FAQPage structured data) ·
+`glossary.html` (111 terms, searchable, cross-referenced) ·
 `regulations.html` (Kenya regulatory index — every instrument, its Legal Notice, source and verification status) ·
 `methodology.html` · `partners.html` · `embed.html` · `privacy.html` / `terms.html` · `404.html`
 
@@ -102,6 +104,9 @@ Currently `unconfirmed`: `ato`, `sms`, `gh`.
   rather than in the tools that own them because the Control Room re-derives DSCR and effective
   interest from the same saved models — two implementations would drift on exactly the numbers a
   lender and a regulator read.
+- `assets/js/data-glossary.js` — `JKG` namespace: 111 glossary terms across six categories, each with a
+  definition and, where it earns one, a "why it matters" note. Cross-references and citation keys are
+  validated by `scripts/check-data.mjs`, because a dead see-also renders as a chip that goes nowhere.
 - `assets/js/venture-file.js` — `JKW` namespace: the venture profile, one reader per build tool,
   the weighted Launch Readiness Index, the back-scheduled critical path, scenarios, and workspace
   export / import. Every reader takes a **store source** (`liveSource()` or `objSource(stores)`),
@@ -200,4 +205,4 @@ address, ODPC registration, DPO) are marked `[in brackets]` and must be complete
 
 ---
 
-*v3.2 — End-to-End Aviation Advisory Platform · JK & Associates · Nairobi, Kenya.*
+*v3.3 — End-to-End Aviation Advisory Platform · JK & Associates · Nairobi, Kenya.*

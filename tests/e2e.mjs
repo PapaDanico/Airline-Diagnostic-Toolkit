@@ -561,6 +561,110 @@ assert(uasRows.some(t => /L\.N\. 40\/2026/.test(t)), "the UAS filter surfaces th
 assert(!uasRows.some(t => /L\.N\. 102\/2026/.test(t)), "the UAS filter excludes the aerodrome regulations");
 assert(await page.$$eval("#sec-map .card", e => e.length) === 6, "all six sectors mapped to their instruments");
 
+/* ─── 4c-quinquies. LEARN SECTION — glossary, FAQ, tutorial ─── */
+section("Glossary");
+await page.goto(base + "/glossary.html"); await page.waitForTimeout(500);
+const gTotal = await page.evaluate(() => JKG.terms.length);
+assert(await page.$$eval(".g-term", e => e.length) === gTotal, `all ${gTotal} terms render`);
+assert(await page.$$eval(".g-group", e => e.length) === 6, "terms are grouped into six categories when browsing");
+
+// search flattens to one alphabetical list and narrows
+await page.fill("#g-q", "dscr"); await page.waitForTimeout(300);
+const dscrCount = await page.$$eval(".g-term", e => e.length);
+assert(dscrCount > 0 && dscrCount < gTotal, `search narrows the corpus (${dscrCount} hits for "dscr")`);
+assert(await page.$$eval(".g-group", e => e.length) === 0, "search drops category headings in favour of one list");
+// full-text, not just term-name matching
+await page.fill("#g-q", "lenders"); await page.waitForTimeout(300);
+assert(await page.$$eval(".g-term", e => e.length) > 0, "search reaches definition text, not just term names");
+
+await page.fill("#g-q", "zzzqqq"); await page.waitForTimeout(300);
+assert(!await page.$eval("#g-empty", e => e.hidden), "a no-match search shows the empty state");
+await page.fill("#g-q", ""); await page.waitForTimeout(300);
+
+// category filter
+await page.click('#g-cats [data-c="finance"]'); await page.waitForTimeout(300);
+const finCount = await page.evaluate(() => JKG.byCat("finance").length);
+assert(await page.$$eval(".g-term", e => e.length) === finCount, `category filter shows only its ${finCount} terms`);
+
+/* A see-also chip can point at a term the current filter hides. Clicking
+   it must clear the filter, or the jump lands on nothing. */
+const crossRef = await page.evaluate(() => {
+  const shown = JKG.byCat("finance");
+  for (const t of shown) for (const s of (t.see || [])) {
+    const target = JKG.find(s);
+    if (target && target.cat !== "finance") return { from: t.t, to: s };
+  }
+  return null;
+});
+assert(crossRef, `found a cross-category see-also to test (${crossRef ? crossRef.from + " → " + crossRef.to : "none"})`);
+if (crossRef) {
+  await page.click(`[data-jump="${crossRef.to}"]`); await page.waitForTimeout(400);
+  assert(await page.$$eval(".g-term", e => e.length) === gTotal,
+    "clicking a cross-category see-also clears the filter so the target is reachable");
+  assert(await page.$eval('#g-cats [data-c="all"]', e => e.getAttribute("aria-pressed")) === "true",
+    "the category control reflects the cleared filter");
+}
+
+// deep link by query string
+await page.goto(base + "/glossary.html?q=postholder"); await page.waitForTimeout(400);
+assert(await page.$eval("#g-q", e => e.value) === "postholder", "?q= pre-fills the search box");
+assert(await page.$$eval(".g-term", e => e.length) > 0, "?q= filters on load");
+
+section("FAQ");
+await page.goto(base + "/faq.html"); await page.waitForTimeout(500);
+const qCount = await page.$$eval(".qa", e => e.length);
+assert(qCount >= 30, `FAQ carries a substantial answer set (${qCount} questions)`);
+assert(await page.$$eval(".faq-sec", e => e.length) === 7, "questions are grouped into seven sections");
+assert(await page.$$eval("#faq-toc a", e => e.length) === 7, "contents rail lists every section");
+
+// accordion semantics
+assert(await page.$$eval(".qa .a", els => els.every(e => e.hidden)), "answers start collapsed");
+assert(await page.$$eval(".qa h3 button", els => els.every(b => b.getAttribute("aria-expanded") === "false")),
+  "every disclosure button reports aria-expanded=false initially");
+await page.click(".qa h3 button"); await page.waitForTimeout(200);
+assert(!await page.$eval(".qa .a", e => e.hidden), "clicking a question reveals its answer");
+assert(await page.$eval(".qa h3 button", b => b.getAttribute("aria-expanded")) === "true", "aria-expanded flips to true");
+assert(await page.$eval(".qa .a", e => e.getAttribute("role")) === "region", "the answer panel is exposed as a region");
+
+await page.click("#expand-all"); await page.waitForTimeout(250);
+assert(await page.$$eval(".qa .a", els => els.every(e => !e.hidden)), "expand-all opens every answer");
+await page.click("#collapse-all"); await page.waitForTimeout(250);
+assert(await page.$$eval(".qa .a", els => els.every(e => e.hidden)), "collapse-all closes every answer");
+
+// a deep link to a collapsed answer must open it, not land on a closed accordion
+await page.goto(base + "/faq.html#a-privacy-0"); await page.waitForTimeout(500);
+assert(!await page.$eval("#a-privacy-0", e => e.hidden), "a deep link opens the answer it points at");
+
+// structured data is generated from the same array that renders the page
+const ld = await page.evaluate(() => {
+  const el = document.querySelector('script[type="application/ld+json"]');
+  return el ? JSON.parse(el.textContent) : null;
+});
+assert(ld && ld["@type"] === "FAQPage", "FAQPage structured data is emitted");
+assert(ld.mainEntity.length === qCount, `structured data covers every question (${ld.mainEntity.length}/${qCount})`);
+assert(ld.mainEntity.every(q => q.acceptedAnswer.text.length > 0 && !/</.test(q.acceptedAnswer.text)),
+  "structured-data answers are plain text with markup stripped");
+
+section("Tutorial");
+await page.goto(base + "/tutorial.html"); await page.waitForTimeout(400);
+assert(await page.$$eval("#build .step", e => e.length) === 6, "build track has six steps");
+assert(await page.$$eval("#operate .step", e => e.length) === 4, "operate track has four steps");
+assert(await page.$$eval(".step .out", e => e.length) === 10, "every one of the ten steps states what you get out of it");
+assert(await page.$$eval(".pitfall", e => e.length) >= 4, "steps carry the common-mistake warnings");
+
+section("Footer learn strip");
+for (const pg of ["index.html", "diagnostic.html", "tools/index.html", "regulations.html", "tools/venture-dashboard.html"]) {
+  await page.goto(base + "/" + pg); await page.waitForTimeout(350);
+  const n = await page.$$eval(".footer-learn .fl-item", e => e.length);
+  assert(n === 4, `${pg}: learn strip injected with all four links (${n})`);
+}
+// a page must not link to itself in its own footer
+await page.goto(base + "/glossary.html"); await page.waitForTimeout(400);
+assert(await page.$$eval(".footer-learn .fl-item.is-here", e => e.length) === 1,
+  "the current page renders as non-navigating in the learn strip");
+assert(await page.$$eval('.footer-learn a[href="glossary.html"]', e => e.length) === 0,
+  "glossary.html does not link to itself");
+
 /* ─── 4d. HOMEPAGE — scorecard radar preview (Operate-track section) ─── */
 section("Homepage — scorecard radar preview");
 await page.goto(base + "/index.html"); await page.waitForTimeout(400);

@@ -141,6 +141,45 @@ function buildNav() {
   return out.join("\n");
 }
 
+/* ---- the "Learn" strip in every footer ----
+   The reference material — tutorial, FAQ, glossary, regulatory index —
+   is only useful if it is reachable from wherever someone gets stuck,
+   which is rarely the home page. Injecting it centrally rather than
+   hand-editing twenty-three footers means the set cannot drift page to
+   page, which is exactly what happened to the primary nav before it was
+   centralised. Rendered above the copyright line on every page that has
+   a footer at all, whatever shape that footer takes. */
+const LEARN_LINKS = [
+  { file: "tutorial.html",    label: "Tutorial",     hint: "From idea to board pack, in order" },
+  { file: "faq.html",         label: "FAQ",          hint: "Straight answers, including the awkward ones" },
+  { file: "glossary.html",    label: "Glossary",     hint: "The vocabulary, and what goes wrong around it" },
+  { file: "regulations.html", label: "Regulations",  hint: "Every instrument, with its verification status" }
+];
+
+function mountFooterLearn() {
+  const footer = document.querySelector(".footer .wrap");
+  if (!footer || footer.querySelector(".footer-learn")) return;
+  const root = location.pathname.includes("/tools/") ? "../" : "";
+  const here = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+
+  const links = LEARN_LINKS.map(l => {
+    // never link a page to itself — a self-referential link in a footer
+    // reads as a broken one
+    if (!root && here === l.file) {
+      return `<span class="fl-item is-here" aria-current="page"><b>${l.label}</b><small>${l.hint}</small></span>`;
+    }
+    return `<a class="fl-item" href="${root}${l.file}" data-keep-partner><b>${l.label}</b><small>${l.hint}</small></a>`;
+  }).join("");
+
+  const el = document.createElement("div");
+  el.className = "footer-learn";
+  el.innerHTML = `<h4>Learn the ground</h4><div class="fl-grid">${links}</div>`;
+
+  // sits above the copyright line where one exists, else at the end
+  const ver = footer.querySelector(".ver");
+  if (ver) footer.insertBefore(el, ver); else footer.appendChild(el);
+}
+
 /* ---- nav (mobile toggle) + brand/footer injection ---- */
 function mountChrome() {
   // [data-logo] takes the standard mark; [data-logo="light"] takes the
@@ -171,6 +210,7 @@ function mountChrome() {
     });
     document.addEventListener("keydown", e => { if (e.key === "Escape") setOpen(false); });
   }
+  mountFooterLearn();
   document.querySelectorAll("[data-year]").forEach(el => el.textContent = new Date().getFullYear());
   document.querySelectorAll("[data-version]").forEach(el => el.textContent = JK.brand.version);
   document.querySelectorAll("[data-email]").forEach(el => {

@@ -14,7 +14,9 @@ const pages = ["index.html", "diagnostic.html", "results.html", "demo-results.ht
   // build-track tools (v3.0)
   "tools/certification-navigator.html", "tools/venture-builder.html", "tools/corporate-structure.html", "tools/organogram-planner.html",
   // venture file + public reference (v3.1)
-  "tools/venture-dashboard.html", "regulations.html"];
+  "tools/venture-dashboard.html", "regulations.html",
+  // learn section (v3.3)
+  "faq.html", "tutorial.html", "glossary.html"];
 // Google Fonts is loaded from a CDN; in offline/sandbox CI that request can
 // fail with a cert/network error that is irrelevant to the page itself.
 const IGNORE = /ERR_CERT_AUTHORITY_INVALID|ERR_(NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION)|fonts\.googleapis|fonts\.gstatic/;
