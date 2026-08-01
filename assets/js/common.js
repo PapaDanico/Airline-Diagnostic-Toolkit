@@ -18,8 +18,8 @@ const ASSET_BASE = (function () {
    variant is a pre-lightened render that preserves the oxblood→amber
    gradient. brightness(0) invert(1) would flatten the phoenix into a
    white silhouette, which is precisely the thing worth keeping. */
-const JK_LOGO       = `<img class="logo" src="${ASSET_BASE}assets/img/jk-badge.png" alt="JK &amp; Associates" width="42" height="42">`;
-const JK_LOGO_LIGHT = `<img class="logo" src="${ASSET_BASE}assets/img/jk-badge-light.png" alt="JK &amp; Associates" width="42" height="42">`;
+const JK_LOGO       = `<img class="logo" src="${ASSET_BASE}assets/img/jk-badge.png" alt="JK &amp; Associates" width="42" height="42" decoding="async">`;
+const JK_LOGO_LIGHT = `<img class="logo" src="${ASSET_BASE}assets/img/jk-badge-light.png" alt="JK &amp; Associates" width="42" height="42" decoding="async" loading="lazy">`;
 
 /* ---- partner / white-label handling (?partner=<KEY>) ----
    No-op unless ?partner= matches a key registered in JK.partners
@@ -494,7 +494,7 @@ function citeChips(keys) {
    detached from their source; the header is what makes them traceable. */
 function mountPrintHead(toolName, subtitle) {
   const html =
-    `<img src="${ASSET_BASE}assets/img/jk-logo-full.png" alt="JK &amp; Associates">
+    `<img src="${ASSET_BASE}assets/img/jk-logo-full.png" width="522" height="400" loading="lazy" decoding="async" alt="JK &amp; Associates">
      <div class="ph-meta"><strong>${escapeHtml(toolName)}</strong><br>
        ${subtitle ? escapeHtml(subtitle) + "<br>" : ""}
        Prepared ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
