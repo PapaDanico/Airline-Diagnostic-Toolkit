@@ -62,11 +62,11 @@ footer.
 
 | id | Sector | Primary instrument |
 |---|---|---|
-| `aoc`  | Airline — Air Operator Certificate | Air Operator Certification & Administration Regs 2025 (**L.N. 42/2026**) + Air Service Licence |
-| `ato`  | Approved Training Organisation & simulator hub | ATO Regs + Personnel Licensing Regs 2025 (**L.N. 50/2026**) + FSTD qualification |
+| `aoc`  | Airline — Air Operator Certificate | Air Operator Certification & Administration Regs 2025 (**L.N. 42/2026**) + Air Service Licence (**L.N. 22/2026**) |
+| `ato`  | Approved Training Organisation & simulator hub | ATO Regs 2018 (**L.N. 93/2018**, in force) + Personnel Licensing Regs 2025 (**L.N. 50/2026**) |
 | `amo`  | Approved Maintenance Organisation | AMO Regs 2025 (**L.N. 20/2026**) |
 | `gha`  | Ground handling & FBO | Civil Aviation Act + aerodrome / air-service instruments |
-| `aero` | Aerodrome / airport | Aerodromes Design & Operations Regs 2025 (**L.N. 102/2026**) |
+| `aero` | Aerodrome / airport | Aerodrome Certification (**L.N. 41/2026**) + Design & Operations (**L.N. 102/2026**) |
 | `uas`  | UAS / RPAS operator & training organisation | UAS Regs 2025 (**L.N. 40/2026**) |
 
 ## Regulatory citations — read this before editing `data-ventures.js`
@@ -86,7 +86,15 @@ that quietly asserts a wrong Legal Notice number is worse than one that shows it
 `scripts/check-data.mjs` enforces that every citation has a status and that every citation key
 referenced by a checklist item actually resolves.
 
-Currently `unconfirmed`: `ato`, `sms`, `gh`.
+Currently `unconfirmed`: `atoNew` (2025 ATO Regulations — confirmed *not* gazetted; the in-force
+instrument is L.N. 93/2018) and `gh` (no dedicated ground-handling instrument found in the
+2025/2026 series).
+
+An August 2026 gazette sweep resolved `sms` to **L.N. 32/2026**, established that the 2025 ATO
+Regulations are still awaiting publication, and corrected `airsvc` from the superseded
+**L.N. 167/2018** to **L.N. 22/2026**. It also added five instruments the registry had been missing:
+commercial air transport operations (29/2026), airworthiness (37/2026), security (31/2026),
+fatigue management (90/2026) and aerodrome certification (41/2026).
 
 ## Shared assets
 

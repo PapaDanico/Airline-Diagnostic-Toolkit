@@ -46,6 +46,10 @@ cap table and **reproduces it exactly**:
 | L.N. 40/2026 | Civil Aviation (Unmanned Aircraft Systems) Regulations, 2025 |
 | L.N. 20/2026 | Civil Aviation (Approved Maintenance Organization) Regulations, 2025 |
 | L.N. 102/2026 | Civil Aviation (Aerodromes Design and Operations) Regulations, 2025 |
+| L.N. 41/2026 | Civil Aviation (Certification, Licensing and Registration of Aerodromes) Regulations, 2025 |
+| L.N. 32/2026 | Civil Aviation (Safety Management) Regulations |
+| L.N. 22/2026 | Civil Aviation (Licensing of Air Services) Regulations, 2025 — **supersedes L.N. 167/2018** |
+| L.N. 93/2018 | Civil Aviation (Approved Training Organizations) Regulations, 2018 — **the ATO instrument actually in force** |
 
 L.N. 42 governs **air operator** certification — an AOC, not an ATO. KASH is a training organisation;
 citing the AOC regulations as its certification basis is a category error that a KCAA reviewer, a
@@ -53,11 +57,19 @@ lender's counsel or a DFI diligence team would notice.
 
 Two further points on the same theme:
 
-1. **The ATO Regulations 2025 may not be gazetted at all.** KCAA has listed the Civil Aviation
-   (Approved Training Organisations) Regulations, 2025 among revised regulations *awaiting*
-   publication in the Kenya Gazette. If that remains the position, KASH's ATO certification proceeds
-   under the **extant** ATO regulations and `AC-ATO 001C`, not under a 2025 instrument. The brief and
-   the organogram both plan against "ATO Regs 2025" as though it were in force. **Confirm the current
+1. **The ATO Regulations 2025 are not gazetted.** *(Settled by a second gazette sweep on 1 August
+   2026 — this was flagged as an open question in the original review and is now a confirmed
+   finding.)* KCAA continues to list the Civil Aviation (Approved Training Organisations)
+   Regulations, 2025 among instruments *awaiting* publication in the Kenya Gazette. The instrument
+   **in force** is the Civil Aviation (Approved Training Organizations) Regulations, **2018 —
+   L.N. 93/2018**, read with `AC-ATO 001C`.
+
+   So KASH's ATO certification proceeds under L.N. 93/2018, not under any 2025 instrument. The brief
+   and the organogram both plan against "ATO Regs 2025" as though it were in force, which is wrong
+   twice over: wrong Legal Notice number, and wrong on whether the instrument exists yet.
+
+   This can change mid-application — when the 2025 Regulations are gazetted they will take a new
+   Legal Notice number and supersede L.N. 93/2018. **Confirm the current
    instrument with KCAA in writing before the compliance matrix is finalised** — it determines the
    entire Phase 2 submission.
 

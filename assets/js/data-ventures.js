@@ -29,7 +29,7 @@ const JKV = {
      CITATION REGISTRY
      --------------------------------------------------------- */
   CITE_META: {
-    verifiedOn: "2026-07-31",
+    verifiedOn: "2026-08-01",
     note: "Kenya's 2025 civil aviation regulations were gazetted through 2026, so a regulation titled \"…Regulations, 2025\" carries a 2026 Legal Notice number. Always cite both.",
     sources: [
       { label: "Kenya Law — civil aviation legal notices", url: "https://new.kenyalaw.org/" },
@@ -52,12 +52,20 @@ const JKV = {
     instr:    { s:"verified",    ref:"L.N. 49/2026",  long:"Civil Aviation (Instruments, Equipment and Flight Documents) Regulations, 2025", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/49/eng@2026-03-25" },
     dgr:      { s:"verified",    ref:"L.N. 51/2026",  long:"Civil Aviation (Safe Transport of Dangerous Goods by Air) Regulations, 2025", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/51/eng@2026-03-25" },
     ais:      { s:"verified",    ref:"L.N. 45/2026",  long:"Civil Aviation (Aeronautical Information Service) Regulations, 2025", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/45/eng@2026-03-25" },
-    airsvc:   { s:"verified",    ref:"L.N. 167/2018", long:"Civil Aviation (Licensing of Air Services) Regulations, 2018", url:"https://new.kenyalaw.org/akn/ke/act/ln/2018/167/eng@2018-07-20" },
+    airsvc:   { s:"verified",    ref:"L.N. 22/2026",  long:"Civil Aviation (Licensing of Air Services) Regulations, 2025 — supersedes the 2018 Regulations (L.N. 167/2018) that this toolkit previously cited", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/22/eng@2026-03-03" },
 
     // ---- not confirmed against the gazette record ----
-    ato:      { s:"unconfirmed", ref:"ATO Regs 2025", long:"Civil Aviation (Approved Training Organisations) Regulations, 2025 — KCAA has listed this instrument among revised regulations awaiting Kenya Gazette publication. Confirm gazettement and Legal Notice number before relying on it; until then the extant ATO regulations and AC-ATO 001C govern.", url:"https://www.kcaa.or.ke/published-regs-2025" },
-    sms:      { s:"unconfirmed", ref:"SMS Regs 2025", long:"Civil Aviation (Safety Management) Regulations, 2025 — Legal Notice number not confirmed from public record at the verification date. ICAO Annex 19 and Doc 9859 remain the substantive standard.", url:"https://www.kcaa.or.ke/published-regs-2025" },
-    gh:       { s:"unconfirmed", ref:"Ground handling", long:"Ground-handling service provision is licensed under the Civil Aviation Act and associated air-service/aerodrome instruments; confirm the current licensing instrument and fee schedule with KCAA directly.", url:"https://www.kcaa.or.ke/" },
+    ato:      { s:"verified",    ref:"L.N. 93/2018",  long:"Civil Aviation (Approved Training Organizations) Regulations, 2018 — THE INSTRUMENT CURRENTLY IN FORCE. The 2025 revision is among the instruments KCAA lists as still awaiting Kenya Gazette publication, so plan against this one and AC-ATO 001C. Re-check before submission: when the 2025 Regulations are gazetted they will carry a new Legal Notice number and supersede this.", url:"https://new.kenyalaw.org/akn/ke/act/ln/2018/93/eng@2018-05-04" },
+    atoNew:   { s:"unconfirmed", ref:"ATO Regs 2025 (pending)", long:"Civil Aviation (Approved Training Organisations) Regulations, 2025 — listed by KCAA among revised regulations at an advanced stage awaiting Kenya Gazette publication. Not in force at the verification date and carries no Legal Notice number yet.", url:"https://www.kcaa.or.ke/published-regs-2025" },
+    sms:      { s:"verified",    ref:"L.N. 32/2026",  long:"Civil Aviation (Safety Management) Regulations — gazetted 3 March 2026 and titled \"…Regulations, 2026\" on the Kenya Law record, unlike its sister instruments which kept a 2025 title. ICAO Annex 19 and Doc 9859 remain the substantive standard behind it.", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/32/eng@2026-03-03" },
+    gh:       { s:"unconfirmed", ref:"Ground handling", long:"No dedicated ground-handling instrument was found in the 2025/2026 gazette series. Provision is licensed across the Civil Aviation Act, the Licensing of Air Services Regulations (L.N. 22/2026) and the aerodrome instruments (L.N. 41/2026, L.N. 102/2026). Confirm the applicable licensing route, categories and fee schedule with KCAA in writing before building a compliance matrix.", url:"https://www.kcaa.or.ke/" },
+
+    // ---- found during the August 2026 gazette sweep; previously missing ----
+    cat:      { s:"verified",    ref:"L.N. 29/2026",  long:"Civil Aviation (Operation of Aircraft for Commercial Air Transport — Aeroplanes) Regulations, 2025 — the operating rules an AOC holder flies to, distinct from the certification rules in L.N. 42/2026", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/29/eng@2026-03-03" },
+    airworth: { s:"verified",    ref:"L.N. 37/2026",  long:"Civil Aviation (Airworthiness) Regulations, 2025", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/37/eng@2026-03-06" },
+    security: { s:"verified",    ref:"L.N. 31/2026",  long:"Civil Aviation (Security) Regulations, 2025", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/31/eng@2026-03-03" },
+    fatigue:  { s:"verified",    ref:"L.N. 90/2026",  long:"Civil Aviation (Fatigue Management) Regulations, 2025", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/90/eng@2026-05-22" },
+    aerocert: { s:"verified",    ref:"L.N. 41/2026",  long:"Civil Aviation (Certification, Licensing and Registration of Aerodromes) Regulations, 2025 — the certification instrument for an aerodrome, distinct from the design and operations standards in L.N. 102/2026", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/41/eng@2026-03-06" },
 
     // ---- advisory circulars / guidance (not law, but the working documents) ----
     ac5phase: { s:"verified",    ref:"CAA-O-GEN003C", long:"The Five Phase Certification and Approval Process (KCAA)", url:"https://www.kcaa.or.ke/published-regs-2025" },
@@ -110,7 +118,7 @@ const JKV = {
       short:"Airline / AOC",
       blurb:"Scheduled, charter, ACMI or cargo air transport. The AOC plus an Air Service Licence.",
       regLine:"AOC Regs 2025 + Air Service Licence",
-      cites:["aoc","airsvc","act","acOps001","sms","dgr","instr"],
+      cites:["aoc","cat","airsvc","act","acOps001","sms","airworth","security","fatigue","dgr","instr"],
       leadMonths:[12,24], leadNote:"12–24 months from pre-application to certificate for a first-time applicant with financing already in place.",
       postholders:[
         {r:"Accountable Manager", kcaa:true, note:"Corporate authority and financial control over the operation. Non-delegable."},
@@ -161,7 +169,7 @@ const JKV = {
           {t:"Training programmes evaluated & approved", d:"Initial, recurrent, conversion, CRM, DG and security training.", c:["aoc","doc9868"], crit:true},
           {t:"SMS manual and safety policy accepted", d:"Hazard identification, risk management, safety assurance, promotion — with named accountabilities.", c:["sms","annex19"], crit:true},
           {t:"Maintenance programme & CAME accepted", d:"Including reliability programme and the maintenance contract chain.", c:["aoc","amo"], crit:true},
-          {t:"Security programme accepted", d:"Aligned to the National Civil Aviation Security Programme.", c:["act"], crit:false},
+          {t:"Security programme accepted", d:"Aligned to the National Civil Aviation Security Programme.", c:["security","act"], crit:false},
           {t:"Personnel qualifications verified", d:"Licences, ratings, medicals and currency for all nominated postholders and initial crew.", c:["pel"], crit:true},
           {t:"Third-party agreements evidenced", d:"Ground handling, maintenance, training, catering, fuel — signed, not draft.", c:["aoc"], crit:false},
           {t:"All Phase 3 findings closed", d:"THE GATE. On-site activity is not scheduled while findings remain open.", c:["ac5phase"], crit:true}
@@ -190,10 +198,10 @@ const JKV = {
       id:"ato", icon:"🎓", name:"Approved Training Organisation & Simulator Hub",
       short:"ATO / Training",
       blurb:"Flight school, type-rating or simulator training centre, including FSTD qualification.",
-      regLine:"ATO Regs + PEL Regs + FSTD qualification",
-      cites:["ato","pel","acAto001","doc9868","sms"],
+      regLine:"ATO Regs 2018 (L.N. 93/2018) + PEL Regs 2025 (L.N. 50/2026)",
+      cites:["ato","atoNew","pel","acAto001","doc9868","sms"],
       leadMonths:[10,20], leadNote:"10–20 months. Device procurement and installation, not paperwork, is usually the binding constraint.",
-      warn:"The Civil Aviation (Approved Training Organisations) Regulations, 2025 could not be confirmed as gazetted at the verification date. Plan against the extant ATO regulations and AC-ATO 001C, and confirm the current instrument with KCAA before submission.",
+      warn:"The 2025 ATO Regulations are NOT yet gazetted — KCAA lists them among instruments still awaiting Kenya Gazette publication. The instrument in force is the Civil Aviation (Approved Training Organizations) Regulations, 2018 (L.N. 93/2018), read with AC-ATO 001C. Plan against those, and re-check before submission: gazettement will bring a new Legal Notice number and supersede them.",
       postholders:[
         {r:"Accountable Manager", kcaa:true, note:"Must demonstrate financial adequacy to the Authority. Non-transferable — KCAA accepts the person."},
         {r:"Head of Training (HT)", kcaa:true, note:"Personally responsible to the Authority for training quality, instructor standardisation, approved-course management and manual technical content."},
@@ -221,7 +229,7 @@ const JKV = {
       items:{
         pre:[
           {t:"Statement of intent & scope of training sought", d:"Which licences, ratings and courses; which devices; which regulatory basis.", c:["acAto001"], crit:true},
-          {t:"Confirm the applicable ATO instrument with KCAA", d:"Establish in writing whether the 2025 ATO Regulations are in force or the extant regulations govern. This determines your entire compliance matrix.", c:["ato"], crit:true},
+          {t:"Confirm the applicable ATO instrument with KCAA", d:"L.N. 93/2018 is in force and the 2025 revision is still awaiting gazettement — but that can change mid-application. Get the position in writing at pre-application, because it determines your entire compliance matrix.", c:["ato","atoNew"], crit:true},
           {t:"Site secured with tenure evidence", d:"Lease or title, plus zoning/planning consent. SEZ or technopolis siting adds a licensing track of its own.", c:["acAto001"], crit:true},
           {t:"Accountable Manager & Head of Training identified", d:"HT acceptance requires evidence of course management and training integration, not only instructional hours.", c:["pel"], crit:true},
           {t:"Pre-application meeting held", d:"Agree the certification team and Schedule of Events.", c:["ac5phase"], crit:true}
@@ -267,7 +275,7 @@ const JKV = {
       short:"AMO / MRO",
       blurb:"Line, base or component maintenance. Certification is scoped to a capability list.",
       regLine:"AMO Regs 2025 (L.N. 20/2026)",
-      cites:["amo","acAws006","sms","act"],
+      cites:["amo","airworth","acAws006","sms","act"],
       leadMonths:[9,18], leadNote:"9–18 months. Scope discipline is decisive — a narrow initial capability list certifies far faster than an ambitious one.",
       postholders:[
         {r:"Accountable Manager", kcaa:true},
@@ -340,7 +348,7 @@ const JKV = {
       short:"Ground handling / FBO",
       blurb:"Ramp, passenger and cargo handling, or a fixed-base operation serving business aviation.",
       regLine:"Air services licensing + aerodrome access",
-      cites:["gh","act","aerodrome","dgr","airsvc"],
+      cites:["gh","act","aerodrome","aerocert","security","dgr","airsvc"],
       leadMonths:[6,14], leadNote:"6–14 months. The binding constraint is usually the aerodrome operator's concession, not the regulator.",
       warn:"Ground-handling licensing sits across the Civil Aviation Act and aerodrome/air-service instruments rather than in one dedicated regulation. Confirm the current licensing instrument, categories and fee schedule directly with KCAA before building a compliance matrix.",
       postholders:[
@@ -410,8 +418,8 @@ const JKV = {
       id:"aero", icon:"🛫", name:"Aerodrome / Airport",
       short:"Aerodrome",
       blurb:"Certification or licensing of an aerodrome, including greenfield airstrips and private-use fields.",
-      regLine:"Aerodromes Design & Operations Regs 2025 (L.N. 102/2026)",
-      cites:["aerodrome","act","ais","ats","sms"],
+      regLine:"Aerodrome Certification (L.N. 41/2026) + Design & Operations (L.N. 102/2026)",
+      cites:["aerocert","aerodrome","act","ais","ats","sms"],
       leadMonths:[18,42], leadNote:"18–42 months. Land, environmental approval and physical works dominate; certification is the tail, not the dog.",
       postholders:[
         {r:"Accountable Manager / Aerodrome Operator", kcaa:true},

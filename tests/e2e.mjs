@@ -550,10 +550,14 @@ await page.goto(base + "/regulations.html"); await page.waitForTimeout(450);
 const regRows = await page.$$eval("#reg-body tr", r => r.length);
 assert(regRows === Object.keys(await page.evaluate(() => JKV.cites)).length,
   `every citation in the registry is indexed (${regRows} rows)`);
-assert(await page.$$eval("#reg-body .st-un", e => e.length) === 3,
-  "the three unconfirmed instruments are marked unconfirmed, not quietly asserted");
-assert(await page.$$eval("#unconfirmed .note", e => e.length) === 3,
+const unconfirmedCount = await page.evaluate(() =>
+  Object.values(JKV.cites).filter(c => c.s !== "verified").length);
+assert(await page.$$eval("#reg-body .st-un", e => e.length) === unconfirmedCount,
+  `every unconfirmed instrument is marked unconfirmed, not quietly asserted (${unconfirmedCount})`);
+assert(await page.$$eval("#unconfirmed .note", e => e.length) === unconfirmedCount,
   "each unconfirmed instrument gets its caveat spelled out in full");
+assert(unconfirmedCount > 0 && unconfirmedCount < 5,
+  `the unconfirmed set stays small and deliberate (${unconfirmedCount}) — if it grows, something has drifted`);
 await page.click('#filters [data-f="uas"]'); await page.waitForTimeout(300);
 const uasRows = await page.$$eval("#reg-body tr", rows => rows.map(r => r.innerText));
 assert(uasRows.length > 0 && uasRows.length < regRows, "filtering by sector narrows the index");
