@@ -517,12 +517,15 @@ body.has-partner .partner-logo { display: block; }
   transition: border-color var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease);
 }
 .pgate.is-open { border-color: var(--accent); box-shadow: var(--shadow); }
-.pgate > .pg-head {
+/* the phase title is an <h3> wrapping the disclosure button (the ARIA
+   accordion pattern), so these are descendant rather than child selectors */
+.pg-h { margin: 0; font: inherit; }
+.pgate .pg-head {
   width: 100%; display: flex; align-items: center; gap: 14px; padding: 16px 20px;
   background: none; border: 0; font: inherit; text-align: left; cursor: pointer;
 }
-.pgate > .pg-head:hover { background: var(--jk-parchment); }
-.pgate > .pg-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+.pgate .pg-head:hover { background: var(--jk-parchment); }
+.pgate .pg-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
 .pg-num {
   flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center;
   background: var(--jk-parchment-2); color: var(--jk-muted); font-weight: 700; font-size: .95rem;
@@ -537,8 +540,8 @@ body.has-partner .partner-logo { display: block; }
 .pgate.done .pg-meter { color: var(--jk-green); }
 .pg-body { padding: 4px 20px 20px 72px; border-top: 1px dashed var(--jk-line-2); }
 @media (max-width: 620px){ .pg-body { padding-left: 20px; } }
-.pg-body h5 { font-family: var(--sans); font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--jk-ember); margin: 1.1rem 0 .5rem; }
-.pg-body h5:first-child { margin-top: .8rem; }
+.pg-body h4 { font-family: var(--sans); font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--jk-ember); margin: 1.1rem 0 .5rem; font-weight: 700; }
+.pg-body h4:first-child { margin-top: .8rem; }
 
 /* checklist item */
 .chk { display: flex; gap: .7rem; align-items: flex-start; padding: .5rem .6rem; border-radius: var(--radius-sm); cursor: pointer; font-size: .89rem;
@@ -624,7 +627,7 @@ body.has-partner .partner-logo { display: block; }
 .entity.is-op   { border-color: var(--jk-amber);      border-top: 4px solid var(--jk-amber); }
 .entity.is-trust{ border-color: var(--jk-oxblood);    border-top: 4px solid var(--jk-oxblood); }
 .entity .e-jur { font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--jk-muted); }
-.entity h4 { font-family: var(--sans); font-size: 1.05rem; margin: .2rem 0 .5rem; }
+.entity h3 { font-family: var(--sans); font-size: 1.05rem; font-weight: 700; margin: .2rem 0 .5rem; letter-spacing: 0; }
 .entity .e-note { font-size: .8rem; color: var(--jk-muted); margin: 0; }
 /* Holder rows carry a flexible name field and a fixed percentage field;
    let them wrap rather than overflow on a narrow phone. */

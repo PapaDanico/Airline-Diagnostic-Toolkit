@@ -208,7 +208,7 @@
     const b = document.createElement("button");
     b.type = "button"; b.className = "sector"; b.dataset.arch = st.id;
     b.setAttribute("aria-pressed", "false");
-    b.innerHTML = `<h4>${st.name}</h4><p>${st.when}</p>
+    b.innerHTML = `<h4>${escapeHtml(st.name)}</h4><p>${escapeHtml(st.when)}</p>
       <div class="s-reg">${st.tiers.length} entit${st.tiers.length === 1 ? "y" : "ies"}</div>`;
     b.addEventListener("click", () => selectArch(st.id, true));
     ag.appendChild(b);
@@ -243,10 +243,10 @@
       const hs = state.holders[t.k] || [];
       const rows = hs.map((h, i) => `
         <div class="holder-row">
-          <input type="text" value="${h.n.replace(/"/g, "&quot;")}" data-tier="${t.k}" data-i="${i}" data-f="n"
-                 aria-label="Holder name" style="padding:.5rem .7rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.87rem">
+          <input type="text" value="${escapeHtml(h.n)}" data-tier="${t.k}" data-i="${i}" data-f="n"
+                 aria-label="Holder ${i + 1} name at ${escapeHtml(t.name)}" style="padding:.5rem .7rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.87rem">
           <input type="number" value="${h.p}" min="0" max="100" step="0.5" data-tier="${t.k}" data-i="${i}" data-f="p"
-                 aria-label="Percentage held" style="padding:.5rem .6rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.87rem;text-align:right">
+                 aria-label="Percentage held by holder ${i + 1} at ${escapeHtml(t.name)}" style="padding:.5rem .6rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.87rem;text-align:right">
           <span class="muted" style="font-size:.85rem">%</span>
         </div>`).join("");
       const sum = hs.reduce((a, h) => a + (+h.p || 0), 0);
@@ -255,7 +255,7 @@
       return `<div class="tier">
           <div class="entity is-${t.k}">
             <div class="e-jur">${t.jur}</div>
-            <h4>${t.name}</h4>
+            <h3>${escapeHtml(t.name)}</h3>
             <p class="e-note">${t.note}</p>
             <div style="margin-top:.8rem">${rows}${warn}</div>
           </div>
@@ -361,8 +361,9 @@
     const tb = $("lookthrough").querySelector("tbody");
     tb.innerHTML = entries.length ? entries.map(e => {
       const pos = e.total > 50 ? "Control" : e.total >= 25 ? "Significant minority" : e.total >= 10 ? "Minority" : "Small holding";
+      // e.n is visitor-typed — escape before it reaches innerHTML.
       return `<tr>
-        <td><b>${e.n}</b>${e.local ? ' <span class="tag dep">local</span>' : ""}</td>
+        <td><b>${escapeHtml(e.n)}</b>${e.local ? ' <span class="tag dep">local</span>' : ""}</td>
         <td class="num">${e.direct ? e.direct.toFixed(2) + "%" : "—"}</td>
         <td class="num">${e.indirect ? e.indirect.toFixed(2) + "%" : "—"}</td>
         <td class="num"><b>${e.total.toFixed(2)}%</b></td>

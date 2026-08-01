@@ -279,7 +279,22 @@
   const store = toolStore("venture");
   let state = store.load();
   const $ = id => document.getElementById(id);
-  const num = id => { const v = parseFloat($(id).value); return isFinite(v) ? v : 0; };
+
+  /* Sane bounds per field. The min/max attributes constrain the spinner,
+     not typing or paste — and a negative interest rate or negative revenue
+     produces a confident, wrong answer, which is worse than a rejected one.
+     A negative EBITDA margin is deliberately allowed: loss-making is a real
+     scenario the model should be able to express. */
+  const BOUNDS = {
+    "f-equity": [0, 1e12], "f-invest": [0, 1e12], "f-sub": [0, 1e12],
+    "f-grant":  [0, 1e12], "f-debt":   [0, 1e12], "f-ltv":  [0, 100],
+    "d-rate":   [0, 40],   "d-term":   [0, 50],   "d-rev":  [0, 1e12],
+    "d-margin": [-100, 95], "d-cov":   [0, 5]
+  };
+  const num = id => {
+    const b = BOUNDS[id] || [-Infinity, Infinity];
+    return clampNum(parseFloat($(id).value), b[0], b[1]);
+  };
 
   /* ---------- sector selection ---------- */
   const seg = $("sector-seg");
@@ -398,22 +413,32 @@
       { n: "Base",         f: 1.00 },
       { n: "Optimistic",   f: 1.25 }
     ];
+    // Debt with no repayment term is an incomplete input, not an absence of
+    // debt. Reporting it as "No debt" told the visitor the opposite of what
+    // was wrong with their model.
+    const noTerm = debt > 0 && term <= 0;
     const tb = $("sens").querySelector("tbody");
     let baseDscr = null;
     tb.innerHTML = scen.map(sc => {
       const r = rev * sc.f;
       const ebitda = r * (margin / 100);
-      const dscr = ds > 0 ? ebitda / ds : null;
+      // With no revenue assumption there is nothing to divide, so report
+      // "—" rather than a 0.00x that reads as a computed result sitting
+      // next to a revenue column showing "—".
+      const dscr = (ds > 0 && rev > 0) ? ebitda / ds : null;
       if (sc.f === 1) baseDscr = dscr;
       const ok = dscr === null ? "" : dscr >= cov ? "rag-green" : dscr >= 1 ? "rag-amber" : "rag-red";
-      const label = dscr === null ? "No debt" : dscr >= cov ? "Above floor" : dscr >= 1 ? "Below floor" : "Cannot service";
+      const label = noTerm ? "Set a repayment term"
+        : ds <= 0 ? "No debt"
+        : rev <= 0 ? "Add a revenue assumption"
+        : dscr >= cov ? "Above floor" : dscr >= 1 ? "Below floor" : "Cannot service";
       return `<tr>
         <td><b>${sc.n}</b></td>
         <td class="num">${rev ? fmtMoney(r) : "—"}</td>
         <td class="num">${rev ? fmtMoney(ebitda) : "—"}</td>
         <td class="num">${ds ? fmtMoney(ds) : "—"}</td>
-        <td class="num"><b>${dscr === null ? "—" : dscr.toFixed(2) + "×"}</b></td>
-        <td><span class="rag ${ok}">${ok ? '<span class="dot"></span>' : ""}${label}</span></td>
+        <td class="num"><b>${fmtRatio(dscr)}</b></td>
+        <td><span class="rag ${noTerm ? "rag-amber" : ok}">${(noTerm || ok) ? '<span class="dot"></span>' : ""}${label}</span></td>
       </tr>`;
     }).join("");
 
@@ -436,19 +461,20 @@
     // rail
     $("r-capex").textContent = fmtMoney(total);
     $("r-gap").textContent = gap > 0 ? fmtMoney(gap) : "None";
-    $("r-dscr").textContent = baseDscr === null ? "—" : baseDscr.toFixed(2) + "×";
+    $("r-dscr").innerHTML = noTerm ? "—" : fmtRatio(baseDscr);
     $("r-lead").textContent = `${s.leadMonths[0]}–${s.leadMonths[1]}`;
 
     const gapKpi = $("r-gap").parentElement;
     gapKpi.className = "kpi " + (gap > 0 ? "is-red" : "is-green");
     const dscrKpi = $("r-dscr").parentElement;
-    dscrKpi.className = "kpi " + (baseDscr === null ? "" : baseDscr >= cov ? "is-green" : baseDscr >= 1 ? "is-amber" : "is-red");
+    dscrKpi.className = "kpi " + (noTerm ? "is-amber" : baseDscr === null ? "" : baseDscr >= cov ? "is-green" : baseDscr >= 1 ? "is-amber" : "is-red");
 
     let v;
-    if (!rev) v = { c: "note", t: "Add a revenue assumption", d: "The capital side is sized. Enter steady-state revenue to test whether the venture can carry its own debt." };
+    if (noTerm) v = { c: "note warn", t: "Repayment term missing", d: `You have ${fmtMoney(debt)} of senior debt but no repayment term, so debt service cannot be computed. Set a term to test the covenant.` };
+    else if (!rev) v = { c: "note", t: "Add a revenue assumption", d: "The capital side is sized. Enter steady-state revenue to test whether the venture can carry its own debt." };
     else if (gap > 0) v = { c: "note warn", t: "Not yet fundable", d: `A ${fmtMoney(gap)} gap has to close before this is financeable.` };
     else if (baseDscr !== null && baseDscr < 1) v = { c: "note warn", t: "Cannot service the debt", d: "Base-case EBITDA does not cover debt service. Reduce leverage, extend the term, or revisit the revenue case." };
-    else if (baseDscr !== null && baseDscr < cov) v = { c: "note warn", t: "Below covenant", d: `Base case is ${baseDscr.toFixed(2)}× against a ${cov.toFixed(2)}× floor. Expect the lender to cut the facility or demand more equity.` };
+    else if (baseDscr !== null && baseDscr < cov) v = { c: "note warn", t: "Below covenant", d: `Base case is ${fmtRatio(baseDscr)} against a ${cov.toFixed(2)}× floor. Expect the lender to cut the facility or demand more equity.` };
     else v = { c: "note ok", t: "Coherent first-pass model", d: "Capital covered and covenant held at base case. The next test is whether the revenue assumption survives scrutiny." };
     $("verdict").innerHTML = `<div class="${v.c}" style="margin:0"><b>${v.t}</b>${v.d}</div>`;
 
@@ -457,7 +483,7 @@
       `Total capital requirement: ${fmtMoney(total)} (fixed ${fmtMoney(capex)} + working capital ${fmtMoney(wc)})\n` +
       `Funding: equity ${fmtMoney(equity + invest)}, sub-debt ${fmtMoney(sub)}, grant ${fmtMoney(grant)}, senior debt ${fmtMoney(debt)}\n` +
       `Funding gap: ${gap > 0 ? fmtMoney(gap) : "none"}\n` +
-      `Base-case DSCR: ${baseDscr === null ? "n/a" : baseDscr.toFixed(2) + "x"} against a ${cov.toFixed(2)}x covenant\n\n` +
+      `Base-case DSCR: ${noTerm ? "n/a (no repayment term set)" : baseDscr === null ? "n/a" : baseDscr.toFixed(2) + "x"} against a ${cov.toFixed(2)}x covenant\n\n` +
       `I would like this model pressure-tested.`;
     const href = toolMailto("Venture", s.short + " venture model", body);
     $("talk").href = href; $("cta-mail").href = href;

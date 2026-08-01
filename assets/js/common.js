@@ -407,17 +407,63 @@ function toolStore(key) {
   };
 }
 
+/* ---- HTML escaping ----
+   Anything a visitor types — a shareholder name, a postholder name —
+   must pass through this before it reaches innerHTML. These tools run
+   with no backend and no session to steal, but the state persists in
+   localStorage and the output is designed to be printed and handed to a
+   lender or counsel, so injected markup would survive into the artefact.
+   Escape at the sink, every time, without exception. */
+function escapeHtml(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
 /* ---- money formatting ----
    Compact for headline figures (USD 8.4M), grouped for tables.
    Always explicit about the unit — an unlabelled number in a capital
-   model is how people mistake thousands for millions. */
+   model is how people mistake thousands for millions. Scales through
+   B and T so a fat-fingered extra zero reads as "USD 1.00T", not as
+   the nonsense "USD 1000000.0M". */
 function fmtMoney(v, unit) {
   unit = unit || "USD";
   if (!isFinite(v)) return "—";
   const abs = Math.abs(v);
-  if (abs >= 1e6) return `${unit} ${(v / 1e6).toFixed(abs >= 1e7 ? 1 : 2)}M`;
-  if (abs >= 1e3) return `${unit} ${Math.round(v / 1e3)}K`;
-  return `${unit} ${Math.round(v)}`;
+  const TIERS = [
+    { div: 1e12, suf: "T" }, { div: 1e9, suf: "B" },
+    { div: 1e6,  suf: "M" }, { div: 1e3, suf: "K" }, { div: 1, suf: "" }
+  ];
+  const dpFor = t => (t.suf === "K" || t.suf === "") ? 0
+                   : (t.suf === "M" && abs >= 1e7) ? 1 : 2;
+  let i = TIERS.findIndex(t => abs >= t.div);
+  if (i < 0) i = TIERS.length - 1;
+  // Rounding can push the mantissa up to 1000 — 999,949 formats as "1000K"
+  // if you stop here. Promote a tier whenever that happens, so the figure
+  // always reads with one to three leading digits. Tuning the thresholds
+  // instead would need a different constant per decimal precision.
+  while (i > 0 && Math.abs(+(v / TIERS[i].div).toFixed(dpFor(TIERS[i]))) >= 1000) i--;
+  const t = TIERS[i];
+  return `${unit} ${(v / t.div).toFixed(dpFor(t))}${t.suf}`;
+}
+
+/* ---- ratio formatting ----
+   A coverage ratio in the thousands is arithmetically true and
+   practically meaningless; showing "1107249.62x" implies a precision
+   the model does not have. Anything past 100x is reported as ">100x". */
+function fmtRatio(v) {
+  if (v === null || v === undefined || !isFinite(v)) return "—";
+  if (v > 100) return "&gt;100×";
+  if (v < -100) return "&lt;−100×";
+  return v.toFixed(2) + "×";
+}
+
+/* ---- clamp a numeric field to a sane range ----
+   min/max attributes constrain the spinner, not typing or paste. A
+   negative interest rate or negative revenue silently produces a
+   confident, wrong answer, which is worse than a rejected input. */
+function clampNum(v, lo, hi) {
+  if (!isFinite(v)) return lo;
+  return Math.min(hi, Math.max(lo, v));
 }
 function fmtNum(v, dp) {
   if (!isFinite(v)) return "—";
@@ -433,11 +479,10 @@ function citeChip(key) {
   const c = (window.JKV && JKV.cite(key)) || null;
   if (!c) return "";
   const cls = c.s === "verified" ? "cite" : "cite unverified";
-  const title = c.long.replace(/"/g, "&quot;");
   const inner = c.url
-    ? `<a href="${c.url}" target="_blank" rel="noopener noreferrer">${c.ref}</a>`
-    : c.ref;
-  return `<span class="${cls}" title="${title}">${inner}</span>`;
+    ? `<a href="${escapeHtml(c.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.ref)}</a>`
+    : escapeHtml(c.ref);
+  return `<span class="${cls}" title="${escapeHtml(c.long)}">${inner}</span>`;
 }
 function citeChips(keys) {
   return (keys || []).map(citeChip).join("");
@@ -448,18 +493,24 @@ function citeChips(keys) {
    tool name and the date it was produced. Board packs get circulated
    detached from their source; the header is what makes them traceable. */
 function mountPrintHead(toolName, subtitle) {
-  if (document.querySelector(".print-head")) return;
-  const base = ASSET_BASE;
-  const el = document.createElement("div");
-  el.className = "print-head";
-  el.innerHTML =
-    `<img src="${base}assets/img/jk-logo-full.png" alt="JK &amp; Associates">
-     <div class="ph-meta"><strong>${toolName}</strong><br>
-       ${subtitle ? subtitle + "<br>" : ""}
+  const html =
+    `<img src="${ASSET_BASE}assets/img/jk-logo-full.png" alt="JK &amp; Associates">
+     <div class="ph-meta"><strong>${escapeHtml(toolName)}</strong><br>
+       ${subtitle ? escapeHtml(subtitle) + "<br>" : ""}
        Prepared ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
-       · JK &amp; Associates · ${JK.brand.email}</div>`;
-  const main = document.querySelector("main") || document.body;
-  main.insertBefore(el, main.firstChild);
+       · JK &amp; Associates · ${escapeHtml(JK.brand.email)}</div>`;
+  // Rewrite in place rather than bailing out when a header already exists —
+  // these tools call this again on every sector change, and an early return
+  // would leave a printed AOC pack captioned with whichever sector happened
+  // to be selected first.
+  let el = document.querySelector(".print-head");
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "print-head";
+    const main = document.querySelector("main") || document.body;
+    main.insertBefore(el, main.firstChild);
+  }
+  el.innerHTML = html;
 }
 
 /* ---- tagged mailto for a tool enquiry ----
@@ -487,5 +538,6 @@ if (typeof window !== "undefined") {
   Object.assign(window, { STORE_KEY, JK_LOGO, JK_LOGO_LIGHT, applyPartner, mountChrome,
     saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel,
     wireToolEnquiryForm, sessionGet, sessionSet,
-    toolStore, fmtMoney, fmtNum, citeChip, citeChips, mountPrintHead, toolMailto, wireDisclosure });
+    toolStore, fmtMoney, fmtNum, fmtRatio, clampNum, escapeHtml,
+    citeChip, citeChips, mountPrintHead, toolMailto, wireDisclosure });
 }

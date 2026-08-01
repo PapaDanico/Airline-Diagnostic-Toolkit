@@ -266,16 +266,16 @@
       }).join("");
 
       wrap.innerHTML =
-        `<button type="button" class="pg-head" aria-expanded="false">
+        `<h3 class="pg-h"><button type="button" class="pg-head" aria-expanded="false">
            <span class="pg-num">${p.n}</span>
            <span class="pg-title"><b>${p.t}</b><span>${p.d}</span></span>
            <span class="pg-meter" data-meter>0/${items.length}</span>
-         </button>
+         </button></h3>
          <div class="pg-body" hidden>
            <div class="note"><b>What the Authority does</b>${p.auth}</div>
-           <h5>Gate to clear</h5>
+           <h4>Gate to clear</h4>
            <p style="font-size:.88rem;margin:0 0 .6rem">${p.gate}</p>
-           <h5>Your checklist</h5>
+           <h4>Your checklist</h4>
            ${rows}
          </div>`;
 

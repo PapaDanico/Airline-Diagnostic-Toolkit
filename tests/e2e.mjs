@@ -190,6 +190,70 @@ await page.evaluate(() => {
 await page.reload(); await page.waitForTimeout(300);
 assert(await page.$(".resume-banner") === null, "no resume banner when fully answered");
 
+/* ─── 4c-bis. VENTURE TOOLS — injection, clamping, formatting ───
+   These three defects were found by audit, not by a user, and each one
+   fails silently: markup in a shareholder name executes, a negative
+   interest rate returns a confident wrong DSCR, and a fat-fingered zero
+   renders "USD 1000000.0M". Lock all three down. */
+section("Venture tools — input safety & numeric hygiene");
+
+// -- shareholder names must never reach innerHTML unescaped --
+await page.goto(base + "/tools/corporate-structure.html");
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(400);
+await page.click('[data-arch="holdco"]'); await page.waitForTimeout(300);
+let xssFired = false;
+await page.exposeFunction("__xssProbe", () => { xssFired = true; });
+await (await page.$$('#tree input[type="text"]'))[0]
+  .fill('<img src=x onerror="window.__xssProbe()">');
+await page.waitForTimeout(600);
+assert(!/<img/i.test(await page.$eval("#lookthrough tbody", e => e.innerHTML)),
+  "holder name is escaped in the look-through table");
+assert(xssFired === false, "injected markup in a holder name does not execute");
+
+// -- look-through cascade reproduces a known three-tier cap table --
+await page.click('[data-arch="threetier"]'); await page.waitForTimeout(400);
+const lt = await page.$$eval("#lookthrough tbody tr", rows =>
+  rows.map(r => r.innerText.replace(/\s+/g, " ").trim()));
+assert(/61\.6[0-9]%/.test(lt[0]), "founder effective interest resolves to 61.6% (20% direct + 41.6% via chain)");
+assert(/27\.75%/.test(lt[1] || ""), "investor vehicle resolves to 27.75%");
+assert(/100\.00%/.test(await page.$eval("#lookthrough tfoot", e => e.innerText)), "chain resolves to exactly 100%");
+
+// -- numeric clamping + honest labelling in the venture builder --
+await page.goto(base + "/tools/venture-builder.html");
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(500);
+await page.fill("#f-debt", "1000000"); await page.fill("#d-rev", "1000000");
+await page.fill("#d-margin", "22"); await page.fill("#d-term", "0");
+await page.waitForTimeout(350);
+assert(/Set a repayment term/.test(await page.$eval("#sens tbody", e => e.innerText)),
+  "debt with no term reports the missing term, not 'No debt'");
+
+await page.fill("#d-term", "7"); await page.fill("#d-rate", "-5");
+await page.waitForTimeout(350);
+assert(await page.$eval("#sens tbody", e => !/-?\d*\.\d+×/.test(e.innerText) || !/NaN/.test(e.innerText)),
+  "negative interest rate does not produce NaN");
+assert(!/NaN|Infinity/.test(await page.$eval("#main", e => e.innerText)),
+  "no NaN or Infinity leaks into the rendered model");
+
+await page.fill("#d-rate", "9"); await page.fill("#d-rev", "999999999999");
+await page.waitForTimeout(350);
+const bigTxt = await page.$eval("#sens tbody", e => e.innerText);
+assert(!/USD \d{4,}/.test(bigTxt), "large figures roll into B/T rather than printing a 4-digit mantissa");
+assert(/>100×/.test(await page.$eval("#r-dscr", e => e.textContent)) ||
+       /\d+\.\d\d×/.test(await page.$eval("#r-dscr", e => e.textContent)),
+  "absurd coverage ratios are reported as >100x, not to two decimals");
+
+// -- print header must track the selected sector, not the first one --
+await page.goto(base + "/tools/certification-navigator.html");
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(400);
+await page.click('[data-sector="aoc"]'); await page.waitForTimeout(300);
+await page.click('[data-sector="uas"]'); await page.waitForTimeout(400);
+assert(/UAS|RPAS/i.test(await page.$eval(".print-head", e => e.innerText)),
+  "print header follows the current sector after switching");
+assert(await page.$$eval(".print-head", e => e.length) === 1, "exactly one print header is mounted");
+
 /* ─── 4d. HOMEPAGE — scorecard radar preview (Operate-track section) ─── */
 section("Homepage — scorecard radar preview");
 await page.goto(base + "/index.html"); await page.waitForTimeout(400);
