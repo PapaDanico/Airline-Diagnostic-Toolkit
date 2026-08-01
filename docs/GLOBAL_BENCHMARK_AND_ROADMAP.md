@@ -103,7 +103,7 @@ backend. Our user has no certificate yet.
 
 Read down the rows for what a visitor can actually do, unpaid, on the public site.
 
-| | JK v3.0 | JK v3.1 | Group A (data) | Group B (advisory) | Group C (boutique) | Group D (compliance SW) |
+| | JK v3.0 (before) | JK v3.2 (now) | Group A (data) | Group B (advisory) | Group C (boutique) | Group D (compliance SW) |
 |---|---|---|---|---|---|---|
 | Free, no-signup interactive tooling | ✅ 11 tools | ✅ 12 tools | ✗ (paywalled) | ✗ | ✗ | ✗ (trial only) |
 | Kenya / KCAA-specific requirement detail | ✅ 167 items | ✅ | ✗ | partial | partial | ✗ |
@@ -111,7 +111,7 @@ Read down the rows for what a visitor can actually do, unpaid, on the public sit
 | Cross-tool single view of one venture | ✗ | ✅ | ✅ | n/a | n/a | ✅ |
 | Composite readiness index | per tool | ✅ platform-wide | ✗ | ✗ | ✗ | partial |
 | Critical-path / Gantt scheduling | ✗ | ✅ | ✗ | ✅ (internal) | ✅ (internal) | ✅ |
-| Scenario save + compare | ✗ | ✗ | ✅ | ✅ | ✗ | partial |
+| Scenario save + compare | ✗ | ✅ up to 12, side by side | ✅ | ✅ | ✗ | partial |
 | Data export the customer keeps | print only | ✅ JSON + print | ✅ CSV/API | ✗ | ✗ | ✅ |
 | Multi-user collaboration | ✗ | file hand-off | ✅ | n/a | n/a | ✅ |
 | Peer benchmark bands | operate track only | operate track only | ✅ | ✅ | ✗ | ✗ |
@@ -153,7 +153,7 @@ put a cap table into someone else's SaaS.
 
 ---
 
-## 5. What shipped in v3.1
+## 5. What shipped in v3.1 and v3.2
 
 Ordered by the lag it closes.
 
@@ -196,8 +196,27 @@ a regulator read. The existing e2e assertion that the cascade reproduces the
 known three-tier cap table (founder 61.63%, investor 27.75%, chain totalling
 100.00%) now covers the shared implementation.
 
-**Test coverage** rose from 207 to 238 e2e assertions; the page audit covers 23
-pages, clean.
+### v3.2 — scenarios
+
+**Scenarios** (`JKW.scenarios` / `tools/venture-dashboard.html`). A named,
+timestamped copy of the whole workspace, savable, comparable side by side
+against the live one with differing rows highlighted, and restorable over it.
+Up to twelve, entirely in `localStorage`.
+
+The enabling change was making every reader take a **store source** —
+`liveSource()` or `objSource(stores)` — so a saved scenario is summarised by the
+same code that summarises the live workspace. A second set of readers would have
+drifted, and the drift would have surfaced as two different readiness scores for
+identical data.
+
+Two failure modes are closed by construction rather than by care: a scenario
+never captures the scenario store (otherwise each save embeds all previous
+saves and the workspace doubles every time), and restoring clears the live keys
+first (otherwise a store present now but absent from the scenario survives and
+blends two workspaces into a third that never existed). Both are tested.
+
+**Test coverage** rose from 207 to 255 e2e assertions across the two releases;
+the page audit covers 23 pages, clean.
 
 ---
 
