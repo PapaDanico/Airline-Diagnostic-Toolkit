@@ -5,6 +5,7 @@
      1. data.js          — the operating-carrier Health Scorecard
      2. data-ventures.js — the greenfield sectors, KCAA certification
                            pathways, capital models and citations
+     3. data-glossary.js — the term corpus behind /glossary.html
 
    The venture checks matter more than they look: a broken citation key
    renders an empty chip, and a sector missing a phase renders an empty
@@ -18,6 +19,7 @@ const load = (file, name) => {
 
 const JK  = load("data.js", "JK");
 const JKV = load("data-ventures.js", "JKV");
+const JKG = load("data-glossary.js", "JKG");
 
 let failures = 0;
 const fail = (m) => { console.error("FAIL: " + m); failures++; process.exitCode = 1; };
@@ -117,6 +119,41 @@ for (const st of (JKV.structures || [])) {
   if (!st.tiers?.length) fail(`structure "${st.id}": no tiers`);
 }
 
+/* ---------- 3. glossary ----------
+   A "see also" pointing at a term that does not exist renders as a dead
+   chip, and a term filed under an unknown category disappears from the
+   page entirely — both fail silently in the browser, which is exactly
+   the class of defect this script exists to catch. */
+const gCats = new Set((JKG.cats || []).map(c => c.id));
+if (!JKG.terms?.length) fail("glossary: no terms");
+const seen = new Set();
+for (const t of (JKG.terms || [])) {
+  if (!t.t) { fail("glossary: a term has no name"); continue; }
+  if (seen.has(t.t)) fail(`glossary "${t.t}": duplicate term`);
+  seen.add(t.t);
+  if (!gCats.has(t.cat)) fail(`glossary "${t.t}": unknown category "${t.cat}"`);
+  if (!t.d || t.d.length < 40) fail(`glossary "${t.t}": definition missing or too thin`);
+  if (t.cite && !JKV.cites[t.cite]) fail(`glossary "${t.t}": citation key "${t.cite}" does not resolve`);
+}
+for (const t of (JKG.terms || [])) {
+  for (const ref of (t.see || [])) {
+    if (!seen.has(ref)) fail(`glossary "${t.t}": see-also "${ref}" is not a term`);
+  }
+}
+for (const c of (JKG.cats || [])) {
+  if (!JKG.terms.some(t => t.cat === c.id)) fail(`glossary category "${c.id}": no terms filed under it`);
+}
+
+/* the committed glossary markup must match the data model — see
+   scripts/build-glossary.mjs for why the page is pre-rendered at all */
+{
+  const html = readFileSync(new URL("../glossary.html", import.meta.url), "utf8");
+  const rendered = (html.match(/class="g-term"/g) || []).length;
+  if (rendered !== JKG.terms.length) {
+    fail(`glossary.html carries ${rendered} rendered terms but the data model has ${JKG.terms.length} — run: node scripts/build-glossary.mjs`);
+  }
+}
+
 /* ---------- report ---------- */
 if (!failures) {
   const totalItems = JKV.sectors.reduce((n, s) => n + JKV.totalItems(s), 0);
@@ -124,6 +161,7 @@ if (!failures) {
   console.log(`data OK — scorecard: 8 domains, weights = 100, 40 questions, all scales 5-point`);
   console.log(`         ventures: ${JKV.sectors.length} sectors, 5 phases, ${totalItems} checklist items, ` +
               `${Object.keys(JKV.cites).length} citations`);
+  console.log(`         glossary: ${JKG.terms.length} terms across ${JKG.cats.length} categories, all cross-references resolve`);
   if (unconfirmed.length) {
     console.log(`         note: ${unconfirmed.length} citation(s) flagged unconfirmed and rendered with a "?" chip: ${unconfirmed.join(", ")}`);
   }

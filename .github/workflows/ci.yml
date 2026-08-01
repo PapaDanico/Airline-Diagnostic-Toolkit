@@ -28,6 +28,12 @@ jobs:
       - name: Data-model integrity
         run: node scripts/check-data.mjs
 
+      # glossary.html is pre-rendered from data-glossary.js and committed,
+      # so the two can drift. Editing the data without rebuilding would
+      # ship a page that silently disagrees with its own source of truth.
+      - name: Generated glossary is in sync
+        run: node scripts/build-glossary.mjs --check
+
       - name: HTML sanity
         run: |
           for f in *.html tools/*.html; do

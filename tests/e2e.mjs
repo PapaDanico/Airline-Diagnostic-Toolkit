@@ -4,7 +4,7 @@
 import { chromium } from "playwright";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const base = "file://" + ROOT;
@@ -452,6 +452,98 @@ assert(/&lt;img/.test(await page.$eval(".print-head .ph-meta", e => e.innerHTML)
   "a venture name is escaped before it reaches the printed header");
 assert(xssFired === false, "injected markup in the venture name does not execute");
 
+/* ─── 4c-quater. SCENARIOS ───
+   A scenario is a full copy of the workspace, so the failures that matter
+   are structural: does a saved scenario stay frozen when the live tools
+   move on, does restoring actually swap the workspace, and does saving
+   repeatedly grow without bound. */
+section("Venture Control Room — scenarios");
+
+await page.goto(CR);
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(400);
+
+// seed a known workspace, save it, then change the live one
+await page.evaluate(() => {
+  const sec = JKV.sector("aoc");
+  const checked = {};
+  JKV.phaseSpine.forEach(p => (sec.items[p.id] || []).forEach((_, i) => { checked[`aoc|${p.id}|${i}`] = true; }));
+  localStorage.setItem("jk_certnav_v3", JSON.stringify({ sector: "aoc", checked }));
+  localStorage.setItem("jk_venture_file_v3", JSON.stringify({ name: "Base case", sector: "aoc" }));
+});
+await page.reload(); await page.waitForTimeout(400);
+await page.fill("#scn-name", "Base — everything closed");
+await page.click("#scn-save"); await page.waitForTimeout(400);
+assert(await page.$$eval(".scn-row", r => r.length) === 2, "saved scenario appears alongside the live row");
+assert(/Saved/.test(await page.$eval("#scn-msg", e => e.textContent)), "save reports success");
+
+// now gut the live workspace — the saved scenario must not move
+await page.evaluate(() => localStorage.setItem("jk_certnav_v3", JSON.stringify({ sector: "aoc", checked: {} })));
+await page.reload(); await page.waitForTimeout(400);
+const idxs = await page.$$eval(".scn-idx", els => els.map(e => parseInt(e.textContent, 10)));
+assert(idxs[0] === 0, "live row drops to 0 after the workspace is emptied");
+assert(idxs[1] === 40, "the saved scenario stays frozen at 40 — a snapshot, not a live view");
+
+// compare surfaces the difference
+await page.click('[data-cmp]'); await page.waitForTimeout(400);
+assert(await page.$$eval(".cmp thead th", e => e.length) === 3, "comparison renders Measure + live + one scenario column");
+// ticking must not rebuild the list underneath the visitor's own checkbox
+assert(await page.evaluate(() => document.activeElement.matches("[data-cmp]")),
+  "focus stays on the checkbox after ticking (list is not re-rendered under it)");
+assert(await page.$$eval(".cmp td.differs", e => e.length) > 0, "differing rows are highlighted");
+const certRow = await page.$$eval(".cmp tbody tr", rows =>
+  rows.map(r => r.innerText.replace(/\s+/g, " ").trim()).find(t => /^Certification/.test(t)) || "");
+assert(/—/.test(certRow) && /100%/.test(certRow), `comparison shows live vs scenario certification (${certRow})`);
+
+// restoring swaps the workspace back
+page.once("dialog", d => d.accept());
+await page.click("[data-restore]"); await page.waitForTimeout(500);
+assert(await crIndex() === 40, "restoring a scenario brings the readiness index back to 40");
+assert(await page.$eval("#vf-name", e => e.value) === "Base case", "restore brings the venture profile back too");
+
+/* Saving captures every jk_/dn_ key. If the scenario store were captured
+   too, each save would embed all previous saves and the workspace would
+   double in size every time until the quota died. */
+const nesting = await page.evaluate(() => {
+  const sizes = [];
+  for (let i = 0; i < 3; i++) {
+    JKW.saveScenario("growth probe " + i, new Date(2026, 0, i + 1).toISOString());
+    sizes.push(localStorage.getItem(JKW.SCEN_KEY).length);
+  }
+  const nested = JKW.scenarios().some(s => Object.keys(s.stores).includes(JKW.SCEN_KEY));
+  return { sizes, nested };
+});
+assert(nesting.nested === false, "a scenario never contains the scenario store itself");
+const [s1, s2, s3] = nesting.sizes;
+assert((s3 - s2) < (s2 - s1) * 2, `scenario store grows linearly, not exponentially (${s1} → ${s2} → ${s3} bytes)`);
+
+// the cap is enforced rather than silently letting the quota blow
+const capped = await page.evaluate(() => {
+  let last = { ok: true };
+  for (let i = 0; i < 20 && last.ok; i++) last = JKW.saveScenario("filler " + i, new Date(2026, 1, i + 1).toISOString());
+  return { count: JKW.scenarios().length, err: last.error || "" };
+});
+assert(capped.count === 12, `scenario count capped at MAX_SCENARIOS (got ${capped.count})`);
+assert(/Delete one/.test(capped.err), "hitting the cap explains how to make room");
+
+// ids are unique even when two saves land in the same millisecond
+const unique = await page.evaluate(() => {
+  localStorage.removeItem(JKW.SCEN_KEY);
+  const iso = new Date(2026, 3, 1).toISOString();
+  for (let i = 0; i < 5; i++) JKW.saveScenario("same-ms " + i, iso);
+  const ids = JKW.scenarios().map(s => s.id);
+  return new Set(ids).size === ids.length;
+});
+assert(unique, "scenario ids stay unique when saves share a timestamp");
+
+// scenario names are text, not markup
+await page.evaluate(() => localStorage.removeItem(JKW.SCEN_KEY));
+await page.reload(); await page.waitForTimeout(400);
+await page.fill("#scn-name", '<img src=x onerror="window.__xssProbe()">');
+await page.click("#scn-save"); await page.waitForTimeout(500);
+assert(!/<img/i.test(await page.$eval("#scn-list", e => e.innerHTML)), "a scenario name is escaped in the list");
+assert(xssFired === false, "injected markup in a scenario name does not execute");
+
 /* ─── 4c-ter. REGULATORY INDEX ─── */
 section("Kenya regulatory index");
 await page.goto(base + "/regulations.html"); await page.waitForTimeout(450);
@@ -468,6 +560,119 @@ assert(uasRows.length > 0 && uasRows.length < regRows, "filtering by sector narr
 assert(uasRows.some(t => /L\.N\. 40\/2026/.test(t)), "the UAS filter surfaces the UAS regulations");
 assert(!uasRows.some(t => /L\.N\. 102\/2026/.test(t)), "the UAS filter excludes the aerodrome regulations");
 assert(await page.$$eval("#sec-map .card", e => e.length) === 6, "all six sectors mapped to their instruments");
+
+/* ─── 4c-quinquies. LEARN SECTION — glossary, FAQ, tutorial ─── */
+section("Glossary");
+await page.goto(base + "/glossary.html"); await page.waitForTimeout(500);
+const gTotal = await page.evaluate(() => JKG.terms.length);
+assert(await page.$$eval(".g-term", e => e.length) === gTotal, `all ${gTotal} terms are in the markup`);
+// Read the file on disk: a runtime DOM check cannot distinguish markup
+// that shipped in the document from markup a script just created.
+{
+  const raw = readFileSync(ROOT + "/glossary.html", "utf8");
+  const inFile = (raw.match(/class="g-term"/g) || []).length;
+  assert(inFile === gTotal, `all ${gTotal} terms ship in the HTML itself, not built by JS at load (${inFile} found)`);
+  assert((raw.match(/class="seg" data-c=/g) || []).length === 7, "the category chips ship in the HTML too");
+}
+assert(await page.$$eval(".g-group:not([hidden])", e => e.length) === 6, "terms are grouped into six categories when browsing");
+
+// search flattens to one alphabetical list and narrows
+await page.fill("#g-q", "dscr"); await page.waitForTimeout(300);
+const dscrCount = await page.$$eval(".g-term:not([hidden])", e => e.length);
+assert(dscrCount > 0 && dscrCount < gTotal, `search narrows the corpus (${dscrCount} hits for "dscr")`);
+assert(await page.$eval("#g-body", e => e.classList.contains("is-searching")), "search mutes the category headings");
+assert(await page.$$eval(".g-term:not([hidden])", e => e.length) === dscrCount, "only matching terms stay visible");
+// full-text, not just term-name matching
+await page.fill("#g-q", "lenders"); await page.waitForTimeout(300);
+assert(await page.$$eval(".g-term:not([hidden])", e => e.length) > 0, "search reaches definition text, not just term names");
+
+await page.fill("#g-q", "zzzqqq"); await page.waitForTimeout(300);
+assert(!await page.$eval("#g-empty", e => e.hidden), "a no-match search shows the empty state");
+await page.fill("#g-q", ""); await page.waitForTimeout(300);
+
+// category filter
+await page.click('#g-cats [data-c="finance"]'); await page.waitForTimeout(300);
+const finCount = await page.evaluate(() => JKG.byCat("finance").length);
+assert(await page.$$eval(".g-term:not([hidden])", e => e.length) === finCount, `category filter shows only its ${finCount} terms`);
+
+/* A see-also chip can point at a term the current filter hides. Clicking
+   it must clear the filter, or the jump lands on nothing. */
+const crossRef = await page.evaluate(() => {
+  const shown = JKG.byCat("finance");
+  for (const t of shown) for (const s of (t.see || [])) {
+    const target = JKG.find(s);
+    if (target && target.cat !== "finance") return { from: t.t, to: s };
+  }
+  return null;
+});
+assert(crossRef, `found a cross-category see-also to test (${crossRef ? crossRef.from + " → " + crossRef.to : "none"})`);
+if (crossRef) {
+  await page.click(`[data-jump="${crossRef.to}"]`); await page.waitForTimeout(400);
+  assert(await page.$$eval(".g-term:not([hidden])", e => e.length) === gTotal,
+    "clicking a cross-category see-also clears the filter so the target is reachable");
+  assert(await page.$eval('#g-cats [data-c="all"]', e => e.getAttribute("aria-pressed")) === "true",
+    "the category control reflects the cleared filter");
+}
+
+// deep link by query string
+await page.goto(base + "/glossary.html?q=postholder"); await page.waitForTimeout(400);
+assert(await page.$eval("#g-q", e => e.value) === "postholder", "?q= pre-fills the search box");
+assert(await page.$$eval(".g-term:not([hidden])", e => e.length) > 0, "?q= filters on load");
+
+section("FAQ");
+await page.goto(base + "/faq.html"); await page.waitForTimeout(500);
+const qCount = await page.$$eval(".qa", e => e.length);
+assert(qCount >= 30, `FAQ carries a substantial answer set (${qCount} questions)`);
+assert(await page.$$eval(".faq-sec", e => e.length) === 7, "questions are grouped into seven sections");
+assert(await page.$$eval("#faq-toc a", e => e.length) === 7, "contents rail lists every section");
+
+// accordion semantics
+assert(await page.$$eval(".qa .a", els => els.every(e => e.hidden)), "answers start collapsed");
+assert(await page.$$eval(".qa h3 button", els => els.every(b => b.getAttribute("aria-expanded") === "false")),
+  "every disclosure button reports aria-expanded=false initially");
+await page.click(".qa h3 button"); await page.waitForTimeout(200);
+assert(!await page.$eval(".qa .a", e => e.hidden), "clicking a question reveals its answer");
+assert(await page.$eval(".qa h3 button", b => b.getAttribute("aria-expanded")) === "true", "aria-expanded flips to true");
+assert(await page.$eval(".qa .a", e => e.getAttribute("role")) === "region", "the answer panel is exposed as a region");
+
+await page.click("#expand-all"); await page.waitForTimeout(250);
+assert(await page.$$eval(".qa .a", els => els.every(e => !e.hidden)), "expand-all opens every answer");
+await page.click("#collapse-all"); await page.waitForTimeout(250);
+assert(await page.$$eval(".qa .a", els => els.every(e => e.hidden)), "collapse-all closes every answer");
+
+// a deep link to a collapsed answer must open it, not land on a closed accordion
+await page.goto(base + "/faq.html#a-privacy-0"); await page.waitForTimeout(500);
+assert(!await page.$eval("#a-privacy-0", e => e.hidden), "a deep link opens the answer it points at");
+
+// structured data is generated from the same array that renders the page
+const ld = await page.evaluate(() => {
+  const el = document.querySelector('script[type="application/ld+json"]');
+  return el ? JSON.parse(el.textContent) : null;
+});
+assert(ld && ld["@type"] === "FAQPage", "FAQPage structured data is emitted");
+assert(ld.mainEntity.length === qCount, `structured data covers every question (${ld.mainEntity.length}/${qCount})`);
+assert(ld.mainEntity.every(q => q.acceptedAnswer.text.length > 0 && !/</.test(q.acceptedAnswer.text)),
+  "structured-data answers are plain text with markup stripped");
+
+section("Tutorial");
+await page.goto(base + "/tutorial.html"); await page.waitForTimeout(400);
+assert(await page.$$eval("#build .step", e => e.length) === 6, "build track has six steps");
+assert(await page.$$eval("#operate .step", e => e.length) === 4, "operate track has four steps");
+assert(await page.$$eval(".step .out", e => e.length) === 10, "every one of the ten steps states what you get out of it");
+assert(await page.$$eval(".pitfall", e => e.length) >= 4, "steps carry the common-mistake warnings");
+
+section("Footer learn strip");
+for (const pg of ["index.html", "diagnostic.html", "tools/index.html", "regulations.html", "tools/venture-dashboard.html"]) {
+  await page.goto(base + "/" + pg); await page.waitForTimeout(350);
+  const n = await page.$$eval(".footer-learn .fl-item", e => e.length);
+  assert(n === 4, `${pg}: learn strip injected with all four links (${n})`);
+}
+// a page must not link to itself in its own footer
+await page.goto(base + "/glossary.html"); await page.waitForTimeout(400);
+assert(await page.$$eval(".footer-learn .fl-item.is-here", e => e.length) === 1,
+  "the current page renders as non-navigating in the learn strip");
+assert(await page.$$eval('.footer-learn a[href="glossary.html"]', e => e.length) === 0,
+  "glossary.html does not link to itself");
 
 /* ─── 4d. HOMEPAGE — scorecard radar preview (Operate-track section) ─── */
 section("Homepage — scorecard radar preview");

@@ -26,6 +26,12 @@
 const JKW = {
 
   PROFILE_KEY: "jk_venture_file_v3",
+  SCEN_KEY: "jk_scenarios_v3",
+
+  /* Most scenarios a workspace will hold. localStorage is a few megabytes
+     and each scenario is a full copy of the workspace, so the cap is
+     about keeping the quota comfortable rather than about the UI. */
+  MAX_SCENARIOS: 12,
 
   /* Keys the platform owns. Both prefixes are live: the venture-track
      tools were built as jk_*, and the original operating-track tools
@@ -54,6 +60,24 @@ const JKW = {
     try { return localStorage.getItem(key) !== null; } catch { return false; }
   },
 
+  /* ---------- store sources ----------
+     A reader should not care whether it is looking at the live workspace
+     or at a snapshot taken three weeks ago. Both are just "something you
+     can ask for a store by key", so every reader takes a source and the
+     scenario comparison falls out for free rather than needing a second
+     set of readers that would drift from the first. */
+  liveSource() {
+    const self = this;
+    return { get: k => self.read(k), has: k => self.exists(k) };
+  },
+  objSource(stores) {
+    stores = stores || {};
+    return {
+      get: k => (stores[k] && typeof stores[k] === "object") ? stores[k] : {},
+      has: k => Object.prototype.hasOwnProperty.call(stores, k)
+    };
+  },
+
   /* ---------- the venture profile ---------- */
   profile() {
     const p = this.read(this.PROFILE_KEY);
@@ -77,8 +101,9 @@ const JKW = {
      ============================================================ */
 
   /* ---- 1. KCAA Certification Navigator ---- */
-  certnav(prof) {
-    const st = this.read("jk_certnav_v3");
+  certnav(prof, src) {
+    src = src || this.liveSource();
+    const st = src.get("jk_certnav_v3");
     const sec = JKV.sector(st.sector || prof.sector);
     const base = { id: "certnav", name: "KCAA Certification Navigator", icon: "🧭",
                    href: "certification-navigator.html", sector: sec ? sec.id : null };
@@ -112,12 +137,13 @@ const JKW = {
   },
 
   /* ---- 2. Greenfield Venture Builder ---- */
-  venture(prof) {
-    const st = this.read("jk_venture_v3");
+  venture(prof, src) {
+    src = src || this.liveSource();
+    const st = src.get("jk_venture_v3");
     const sec = JKV.sector(st.sector || prof.sector);
     const base = { id: "venture", name: "Greenfield Venture Builder", icon: "📊",
                    href: "venture-builder.html", sector: sec ? sec.id : null };
-    const touched = this.exists("jk_venture_v3") && !!st.capex;
+    const touched = src.has("jk_venture_v3") && !!st.capex;
     if (!sec || !touched) return Object.assign(base, { started: false, pct: 0, rag: "idle",
       headline: "Not started", next: "Size the capital requirement and test the funding stack.", facts: [] });
 
@@ -168,8 +194,9 @@ const JKW = {
   },
 
   /* ---- 3. Corporate Structure Designer ---- */
-  structure(prof) {
-    const st = this.read("jk_structure_v3");
+  structure(prof, src) {
+    src = src || this.liveSource();
+    const st = src.get("jk_structure_v3");
     const arch = JKV.structures.find(s => s.id === st.arch);
     const secId = st.sector || prof.sector;
     const sec = JKV.sector(secId);
@@ -212,8 +239,9 @@ const JKW = {
   },
 
   /* ---- 4. Organogram & Postholder Planner ---- */
-  organogram(prof) {
-    const st = this.read("jk_organogram_v3");
+  organogram(prof, src) {
+    src = src || this.liveSource();
+    const st = src.get("jk_organogram_v3");
     const sec = JKV.sector(st.sector || prof.sector);
     const base = { id: "organogram", name: "Organogram & Postholder Planner", icon: "👥",
                    href: "organogram-planner.html", sector: sec ? sec.id : null };
@@ -264,9 +292,11 @@ const JKW = {
   },
 
   /* ---------- the whole picture ---------- */
-  modules(prof) {
+  modules(prof, src) {
     prof = prof || this.profile();
-    return [this.certnav(prof), this.venture(prof), this.organogram(prof), this.structure(prof)];
+    src = src || this.liveSource();
+    return [this.certnav(prof, src), this.venture(prof, src),
+            this.organogram(prof, src), this.structure(prof, src)];
   },
 
   /* Weighted composite. Untouched modules count as zero rather than
@@ -337,6 +367,156 @@ const JKW = {
       late: startHi < today,
       tight: startHi >= today && startLo < today,
       slipMonths: startHi < today ? (today.getFullYear() - startHi.getFullYear()) * 12 + (today.getMonth() - startHi.getMonth()) : 0
+    };
+  },
+
+  /* ============================================================
+     SCENARIOS
+
+     Every tool holds exactly one model, so answering "what if we lease
+     three instead of two" meant destroying the answer you already had.
+     A scenario is a named, timestamped copy of the whole workspace —
+     every store, plus the profile — that can be compared against the
+     live one and restored over it.
+
+     Because the readers take a source, a saved scenario is summarised
+     by the same code that summarises the live workspace. There is no
+     second scoring path to drift from the first.
+     ============================================================ */
+
+  scenarios() {
+    const raw = this.read(this.SCEN_KEY);
+    const list = Array.isArray(raw.list) ? raw.list : [];
+    // newest first, and defensive about anything hand-edited or imported
+    return list.filter(s => s && s.id && s.stores)
+               .sort((a, b) => String(b.savedAt || "").localeCompare(String(a.savedAt || "")));
+  },
+
+  writeScenarios(list) {
+    try {
+      localStorage.setItem(this.SCEN_KEY, JSON.stringify({ list }));
+      return { ok: true };
+    } catch (e) {
+      // A full quota is the one failure a visitor can actually act on,
+      // so it is reported rather than swallowed like the other writes.
+      return { ok: false, error: "There is no room left in this browser's storage. Delete a scenario and try again." };
+    }
+  },
+
+  /* Capture the live workspace. The scenario store is deliberately
+     excluded from what gets captured — a scenario containing every
+     previous scenario would double in size on each save until the
+     quota died. */
+  captureStores() {
+    const stores = {};
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!this.KEY_RE.test(k) || k === this.SCEN_KEY) continue;
+        try { stores[k] = JSON.parse(localStorage.getItem(k)); } catch { /* skip non-JSON flags */ }
+      }
+    } catch {}
+    return stores;
+  },
+
+  saveScenario(name, nowIso) {
+    const list = this.scenarios();
+    if (list.length >= this.MAX_SCENARIOS) {
+      return { ok: false, error: `You can keep ${this.MAX_SCENARIOS} scenarios. Delete one to save another.` };
+    }
+    const clean = String(name || "").trim().slice(0, 60) || "Untitled scenario";
+    const scn = {
+      // Date.now() alone collided when two saves landed in the same
+      // millisecond during testing; the suffix makes the id unique.
+      id: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      name: clean,
+      savedAt: nowIso || new Date().toISOString(),
+      profile: this.profile(),
+      stores: this.captureStores()
+    };
+    const res = this.writeScenarios([scn].concat(list));
+    return res.ok ? { ok: true, scenario: scn } : res;
+  },
+
+  deleteScenario(id) {
+    return this.writeScenarios(this.scenarios().filter(s => s.id !== id));
+  },
+
+  renameScenario(id, name) {
+    const list = this.scenarios().map(s =>
+      s.id === id ? Object.assign({}, s, { name: String(name || "").trim().slice(0, 60) || s.name }) : s);
+    return this.writeScenarios(list);
+  },
+
+  /* Restoring overwrites the live workspace, which is destructive — so
+     the caller is expected to confirm, and the scenario store itself is
+     never touched, meaning the scenario you restored from survives and
+     you can still get back. */
+  restoreScenario(id) {
+    const scn = this.scenarios().find(s => s.id === id);
+    if (!scn) return { ok: false, error: "That scenario no longer exists." };
+    let written = 0;
+    try {
+      // clear the current workspace first, or stores present now but
+      // absent from the scenario would survive and blend the two
+      const stale = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (this.KEY_RE.test(k) && k !== this.SCEN_KEY) stale.push(k);
+      }
+      stale.forEach(k => { try { localStorage.removeItem(k); } catch {} });
+      Object.keys(scn.stores || {}).forEach(k => {
+        if (!this.KEY_RE.test(k) || k === this.SCEN_KEY) return;
+        try { localStorage.setItem(k, JSON.stringify(scn.stores[k])); written++; } catch {}
+      });
+    } catch { return { ok: false, error: "Could not write to this browser's storage." }; }
+    return { ok: true, written, scenario: scn };
+  },
+
+  /* An ISO date is a storage format, not a reading format — "2028-04-01"
+     sitting in a column beside "USD 6.66M" reads as machine output. */
+  fmtTarget(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso + "T00:00:00");
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  },
+
+  /* One row of comparable figures, from a source. Used for both the
+     live workspace and every saved scenario, so the columns are
+     guaranteed to mean the same thing. */
+  summarise(prof, src) {
+    const mods = this.modules(prof, src);
+    const r = this.readiness(mods);
+    const ven = mods.find(m => m.id === "venture");
+    const org = mods.find(m => m.id === "organogram");
+    const str = mods.find(m => m.id === "structure");
+    const cert = mods.find(m => m.id === "certnav");
+    const gate = cert.facts.find(f => f.k === "Gate items closed");
+    const local = str.facts.find(f => f.k === "Local effective interest");
+    const checks = str.facts.find(f => f.k === "Governance checks");
+    return {
+      profile: prof, modules: mods, readiness: r,
+      rows: {
+        index:    { label: "Launch Readiness Index", v: String(r.index), rag: r.index >= 75 ? "green" : r.index >= 45 ? "amber" : "red" },
+        band:     { label: "Band", v: r.band.t },
+        sector:   { label: "Sector", v: (JKV.sector(prof.sector) || {}).short || "—" },
+        target:   { label: "Target certificate date", v: this.fmtTarget(prof.target) },
+        certnav:  { label: "Certification", v: cert.started ? cert.pct + "%" : "—" },
+        gate:     { label: "Gate items closed", v: gate ? gate.v : "—" },
+        capital:  { label: "Capital requirement", v: ven.capital ? fmtMoney(ven.capital.total) : "—" },
+        gap:      { label: "Funding gap", v: ven.capital ? (ven.capital.gap > 0 ? fmtMoney(ven.capital.gap) : "None") : "—",
+                    rag: ven.capital ? (ven.capital.gap > 0 ? "red" : "green") : null },
+        dscr:     { label: "Base-case DSCR", v: ven.capital && ven.capital.dscr !== null ? fmtRatio(ven.capital.dscr) : "—",
+                    rag: ven.capital && ven.capital.dscr !== null
+                         ? (ven.capital.dscr >= ven.capital.cov ? "green" : ven.capital.dscr >= 1 ? "amber" : "red") : null },
+        posts:    { label: "Accepted posts named", v: org.postsTotal ? `${org.named}/${org.postsTotal}` : "—" },
+        spof:     { label: "Posts without cover", v: org.postsTotal ? String(org.spof) : "—",
+                    rag: org.postsTotal ? (org.spof === 0 ? "green" : "amber") : null },
+        arch:     { label: "Structure", v: str.started ? str.headline : "—" },
+        local:    { label: "Local effective interest", v: local ? local.v : "—" },
+        checks:   { label: "Governance checks", v: checks ? checks.v : "—" }
+      }
     };
   },
 
