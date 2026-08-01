@@ -312,6 +312,163 @@ assert(/UAS|RPAS/i.test(await page.$eval(".print-head", e => e.innerText)),
   "print header follows the current sector after switching");
 assert(await page.$$eval(".print-head", e => e.length) === 1, "exactly one print header is mounted");
 
+/* ─── 4c-bis. VENTURE CONTROL ROOM ───
+   The dashboard derives its numbers from the other tools' saved state
+   rather than from anything it stores itself, so the tests that matter
+   are the ones that seed a store and assert the composite moves by the
+   documented weight. Each stage below adds one module and checks the
+   index lands exactly where the published weighting says it should:
+   certification 40, capital 25, organisation 20, structure 15. */
+section("Venture Control Room — cross-tool readiness");
+
+const CR = base + "/tools/venture-dashboard.html";
+const crIndex = () => page.$eval("#ring-val", e => Number(e.textContent));
+
+await page.goto(CR);
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(450);
+assert(await crIndex() === 0, "empty workspace reads 0 on the readiness index");
+assert(/Concept/.test(await page.$eval("#ring-band", e => e.textContent)), "empty workspace is banded 'Concept'");
+assert(await page.$$eval(".mod", e => e.length) === 4, "four build modules rendered");
+assert(await page.$$eval(".mod .m-pct", e => e.every(x => x.textContent.trim() === "—")),
+  "an untouched module shows '—', not a red 0%");
+assert(/Set a target certificate date/.test(await page.$eval("#cp-host", e => e.innerText)),
+  "critical path asks for a target date before drawing one");
+
+// -- certification only: 40 of 100 --
+await page.evaluate(() => {
+  const sec = JKV.sector("aoc");
+  const checked = {};
+  JKV.phaseSpine.forEach(p => (sec.items[p.id] || []).forEach((_, i) => { checked[`aoc|${p.id}|${i}`] = true; }));
+  localStorage.setItem("jk_certnav_v3", JSON.stringify({ sector: "aoc", checked }));
+  localStorage.setItem("jk_venture_file_v3", JSON.stringify({ name: "Rift Valley Air", sector: "aoc" }));
+});
+await page.reload(); await page.waitForTimeout(450);
+assert(await crIndex() === 40, "a complete certification plan alone scores exactly its 40-point weight");
+const gateTxt = await page.$eval("#k-gate", e => e.textContent);
+assert(/^(\d+)\/\1$/.test(gateTxt), `every AOC gate item counted closed (${gateTxt})`);
+
+// -- + organisation: 60 --
+await page.evaluate(() => {
+  const sec = JKV.sector("aoc");
+  const people = {};
+  sec.postholders.forEach((p, i) => { if (p.kcaa) people[`aoc|${i}`] = { n: "Named Person", dep: "Named Deputy" }; });
+  localStorage.setItem("jk_organogram_v3", JSON.stringify({ sector: "aoc", people, dept: {} }));
+});
+await page.reload(); await page.waitForTimeout(450);
+assert(await crIndex() === 60, "adding a fully named, fully deputised organisation adds exactly 20");
+assert(!/vacant/i.test(await page.$eval("#mods", e => e.innerText)), "no post reported vacant once all are named");
+
+// -- + capital: 85 --
+await page.evaluate(() => {
+  localStorage.setItem("jk_venture_v3", JSON.stringify({
+    sector: "aoc", capexSector: "aoc",
+    capex: { 0: 1000000, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+    "f-equity": "1000000", "f-debt": "0", "d-rev": "500000", "d-margin": "20", "d-cov": "1.25"
+  }));
+});
+await page.reload(); await page.waitForTimeout(450);
+assert(await crIndex() === 85, "a sized, fully funded, unlevered model adds exactly 25");
+assert(/None/.test(await page.$eval("#k-gap", e => e.textContent)), "no funding gap reported when the stack covers the requirement");
+
+// -- + structure: 100 --
+await page.evaluate(() => {
+  const checks = {};
+  JKV.structureChecks.forEach(c => { checks[c.id] = true; });
+  localStorage.setItem("jk_structure_v3", JSON.stringify({
+    arch: "holdco", archFor: "holdco", sector: "aoc", checks,
+    holders: { hold: [{ n: "Founders", p: 60, local: true }, { n: "Investors", p: 40 }],
+               op:   [{ n: "HoldCo", p: 100, chain: "hold" }] }
+  }));
+});
+await page.reload(); await page.waitForTimeout(450);
+assert(await crIndex() === 100, "a resolved chain with every governance check closed completes the index");
+assert(/Application complete/.test(await page.$eval("#ring-band", e => e.textContent)), "a full workspace is banded 'Application complete'");
+
+// -- a tool left on another sector is called out, not silently averaged --
+await page.evaluate(() => {
+  const st = JSON.parse(localStorage.getItem("jk_structure_v3"));
+  st.sector = "uas";
+  localStorage.setItem("jk_structure_v3", JSON.stringify(st));
+});
+await page.reload(); await page.waitForTimeout(450);
+assert(/different sector/i.test(await page.$eval("#vf-mismatch", e => e.innerText)),
+  "a module pointing at another sector raises a visible mismatch warning");
+await page.evaluate(() => {
+  const st = JSON.parse(localStorage.getItem("jk_structure_v3"));
+  st.sector = "aoc";
+  localStorage.setItem("jk_structure_v3", JSON.stringify(st));
+});
+
+/* Back-scheduling is the whole point of the critical path: a date that
+   cannot be met must say so, because the failure mode this replaces is
+   an investor committee discovering it eighteen months in. */
+await page.reload(); await page.waitForTimeout(300);
+// Dates are derived from today rather than written literally, so the
+// assertions do not quietly become true (or false) with the calendar.
+const monthsOut = m => page.evaluate(n => {
+  const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + n);
+  return d.toISOString().slice(0, 10);
+}, m);
+await page.fill("#vf-target", await monthsOut(72)); await page.waitForTimeout(400);
+assert(await page.$$eval(".cp-row", e => e.length) === 5, "five phases drawn on the critical path");
+assert(/still reachable/i.test(await page.$eval("#cp-host", e => e.innerText)), "a target six years out reads as reachable");
+await page.fill("#vf-target", await monthsOut(3)); await page.waitForTimeout(400);
+assert(/already slipped/i.test(await page.$eval("#cp-host", e => e.innerText)),
+  "a target inside the 12–24 month AOC lead band is reported as already slipped");
+
+// -- workspace portability round-trips --
+const trip = await page.evaluate(() => {
+  const before = JKW.exportObject();
+  const certBefore = JSON.stringify(JKW.read("jk_certnav_v3"));
+  localStorage.clear();
+  const emptied = JKW.readiness(JKW.modules(JKW.profile())).index;
+  const res = JKW.importObject(before);
+  return { emptied, res, restored: JSON.stringify(JKW.read("jk_certnav_v3")) === certBefore,
+           name: JKW.profile().name };
+});
+assert(trip.emptied === 0, "clearing storage genuinely empties the workspace");
+assert(trip.res.ok && trip.res.written >= 4, `import restores every store (${trip.res.written} written)`);
+assert(trip.restored, "an exported store round-trips byte-for-byte through import");
+assert(trip.name === "Rift Valley Air", "the venture profile survives the round trip");
+
+// -- import refuses anything that is not ours --
+const rejects = await page.evaluate(() => [
+  JKW.importObject({ stores: { jk_certnav_v3: {} } }).ok,
+  JKW.importObject({ _type: "jk-venture-file" }).ok,
+  JKW.importObject({ _type: "jk-venture-file", stores: { "evil_key": { a: 1 } } }).ok,
+  JKW.importObject(null).ok
+]);
+assert(rejects.every(r => r === false), "import rejects a foreign envelope, a missing payload and out-of-namespace keys");
+
+// -- a venture name is text, not markup --
+await page.reload(); await page.waitForTimeout(400);
+await page.fill("#vf-name", '<img src=x onerror="window.__xssProbe()">');
+await page.waitForTimeout(500);
+// .ph-meta, not .print-head: the header legitimately contains the JK
+// wordmark <img>, so the assertion has to look at the caption alone.
+assert(/&lt;img/.test(await page.$eval(".print-head .ph-meta", e => e.innerHTML)) &&
+       !/<img/i.test(await page.$eval(".print-head .ph-meta", e => e.innerHTML)),
+  "a venture name is escaped before it reaches the printed header");
+assert(xssFired === false, "injected markup in the venture name does not execute");
+
+/* ─── 4c-ter. REGULATORY INDEX ─── */
+section("Kenya regulatory index");
+await page.goto(base + "/regulations.html"); await page.waitForTimeout(450);
+const regRows = await page.$$eval("#reg-body tr", r => r.length);
+assert(regRows === Object.keys(await page.evaluate(() => JKV.cites)).length,
+  `every citation in the registry is indexed (${regRows} rows)`);
+assert(await page.$$eval("#reg-body .st-un", e => e.length) === 3,
+  "the three unconfirmed instruments are marked unconfirmed, not quietly asserted");
+assert(await page.$$eval("#unconfirmed .note", e => e.length) === 3,
+  "each unconfirmed instrument gets its caveat spelled out in full");
+await page.click('#filters [data-f="uas"]'); await page.waitForTimeout(300);
+const uasRows = await page.$$eval("#reg-body tr", rows => rows.map(r => r.innerText));
+assert(uasRows.length > 0 && uasRows.length < regRows, "filtering by sector narrows the index");
+assert(uasRows.some(t => /L\.N\. 40\/2026/.test(t)), "the UAS filter surfaces the UAS regulations");
+assert(!uasRows.some(t => /L\.N\. 102\/2026/.test(t)), "the UAS filter excludes the aerodrome regulations");
+assert(await page.$$eval("#sec-map .card", e => e.length) === 6, "all six sectors mapped to their instruments");
+
 /* ─── 4d. HOMEPAGE — scorecard radar preview (Operate-track section) ─── */
 section("Homepage — scorecard radar preview");
 await page.goto(base + "/index.html"); await page.waitForTimeout(400);

@@ -349,13 +349,8 @@
   const FIELDS = ["f-equity","f-invest","f-sub","f-grant","f-debt","f-ltv","d-rate","d-term","d-rev","d-margin","d-cov"];
   FIELDS.forEach(id => $(id).addEventListener("input", () => { state[id] = $(id).value; recompute(); }));
 
-  /* ---------- level annual debt service ---------- */
-  function annualDebtService(principal, ratePct, years) {
-    if (principal <= 0 || years <= 0) return 0;
-    const r = ratePct / 100;
-    if (r === 0) return principal / years;
-    return principal * r / (1 - Math.pow(1 + r, -years));
-  }
+  /* Debt service comes from common.js — the Venture Control Room re-derives
+     the same DSCR from this saved model, and two implementations would drift. */
 
   /* ---------- main recompute ---------- */
   function recompute() {

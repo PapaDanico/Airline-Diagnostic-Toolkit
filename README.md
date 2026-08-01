@@ -1,4 +1,4 @@
-# JK & Associates — Aviation Advisory Platform (v3.0)
+# JK & Associates — Aviation Advisory Platform (v3.1)
 
 An end-to-end consultancy platform for **African aviation ventures**: operators holding an AOC, and
 investors building greenfield aviation projects in Kenya and across the continent.
@@ -31,6 +31,7 @@ footer.
 
 | File | Purpose |
 |------|---------|
+| `tools/venture-dashboard.html` | **Venture Control Room (V0)** — the venture file. Reads every build tool's saved state and derives one **Launch Readiness Index** (certification 40 / capital 25 / organisation 20 / structure 15), per-module progress and next action, a **critical-path Gantt** back-scheduled from the target certificate date, a sector-mismatch check, **workspace export / import** as a single JSON file, and a board-pack print view. |
 | `tools/certification-navigator.html` | **KCAA Certification Navigator (V1)** — the five-phase certification and approval process mapped across **six sectors**, with per-phase checklists, critical-path gates, required postholders, the document set, a weighted readiness meter, and a citation for every requirement. |
 | `tools/venture-builder.html` | **Greenfield Venture Builder (V2)** — sector CAPEX bands, capital-stack construction, funding-gap detection, lender advance-rate check, level-payment debt service, DSCR sensitivity across four scenarios, and revenue break-even. |
 | `tools/corporate-structure.html` | **Corporate Structure Designer (V3)** — HoldCo / SPV / OpCo archetypes with a **look-through effective-interest cascade**, ownership-and-control testing, offshore substance costing, and the governance / lender-conflict checks institutional diligence applies. |
@@ -52,6 +53,7 @@ footer.
 ### Shared
 
 `index.html` (two-door landing) · `tools/index.html` (explorer, grouped by track) · `how-it-works.html` ·
+`regulations.html` (Kenya regulatory index — every instrument, its Legal Notice, source and verification status) ·
 `methodology.html` · `partners.html` · `embed.html` · `privacy.html` / `terms.html` · `404.html`
 
 ## Sectors covered (Build track)
@@ -96,7 +98,16 @@ Currently `unconfirmed`: `ato`, `sms`, `gh`.
   governance checks, org scaffold, headcount ramps, market context.
 - `assets/js/common.js` — partner/white-label handling, canonical nav, storage, scoring engine,
   radar, and the venture-track helpers (`toolStore`, `fmtMoney`, `citeChip`, `mountPrintHead`,
-  `toolMailto`, `wireDisclosure`).
+  `toolMailto`, `wireDisclosure`, `annualDebtService`, `lookThrough`). The last two live here
+  rather than in the tools that own them because the Control Room re-derives DSCR and effective
+  interest from the same saved models — two implementations would drift on exactly the numbers a
+  lender and a regulator read.
+- `assets/js/venture-file.js` — `JKW` namespace: the venture profile, one reader per build tool,
+  the weighted Launch Readiness Index, the back-scheduled critical path, and workspace
+  export / import. **Derived, not published**: no tool writes a summary of itself; each reader
+  opens that tool's existing `localStorage` record and computes the summary from raw state, so the
+  tools stay standalone and there is no second copy of the truth. The coupling is one-way —
+  `venture-file.js` knows the tools' store shapes; the tools do not know it exists.
 - `assets/img/` — `jk-badge.png` / `jk-badge-light.png` (nav, footer, favicon),
   `jk-logo-full.png` / `jk-logo-full-light.png` (hero lockup), `og-card.png` (1200×630).
   The `-light` variants are **pre-lightened renders**, not CSS filters — `brightness(0) invert(1)`
@@ -185,4 +196,4 @@ address, ODPC registration, DPO) are marked `[in brackets]` and must be complete
 
 ---
 
-*v3.0 — End-to-End Aviation Advisory Platform · JK & Associates · Nairobi, Kenya.*
+*v3.1 — End-to-End Aviation Advisory Platform · JK & Associates · Nairobi, Kenya.*
