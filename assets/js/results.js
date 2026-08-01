@@ -1,5 +1,5 @@
 /* ============================================================
-   DN CONSULTANCY — Results page logic
+   JK & ASSOCIATES — Results page logic
    Strategic gap report: health index, domain gap table, radar,
    "Next Steps: From Diagnosis to Solution" prescriber, and the
    DN-Engagement-Key-gated Toolboxes B/C/D.
@@ -55,7 +55,7 @@
   const ring = document.getElementById("index-ring");
   ring.style.setProperty("--p", s.index);
   ring.style.setProperty("--ring-color",
-    s.index < 45 ? "var(--dn-red)" : s.index < 65 ? "var(--dn-amber)" : "var(--dn-gold)");
+    s.index < 45 ? "var(--jk-red)" : s.index < 65 ? "var(--jk-amber)" : "var(--jk-amber)");
   document.getElementById("index-val").textContent = s.index;
   document.getElementById("index-band").textContent = v.band;
   document.getElementById("index-band").style.color = v.color;
@@ -80,7 +80,7 @@
       <td>${d.weight}%</td>
       <td class="barcell"><div class="bar"><i class="fill-${d.rag}" style="width:${d.pct}%"></i></div></td>
       <td><strong>${d.pct}%</strong></td>
-      <td><span class="rag rag-${d.rag}"><span class="dot"></span>${DN.ragLabel(d.pct)}</span></td>`;
+      <td><span class="rag rag-${d.rag}"><span class="dot"></span>${JK.ragLabel(d.pct)}</span></td>`;
     tbody.appendChild(tr);
   });
 
@@ -94,15 +94,15 @@
   list.forEach(d => {
     const div = document.createElement("div");
     div.className = "rx";
-    const fuel = d.fuelLink ? `<div class="dn-tool"><a href="tools/fuel-optimizer.html${partnerQS}">→ Get a quick estimate with our free Fuel Contract Optimizer Lite</a></div>` : "";
-    const cask = d.caskLink ? `<div class="dn-tool"><a href="tools/cask-calculator.html${partnerQS}">→ Check your unit cost with our free CASK Benchmarking Calculator</a></div>` : "";
-    const canvas = d.canvasLink ? `<div class="dn-tool"><a href="tools/operating-model-canvas.html${partnerQS}">→ Map the whole business with our free Operating Model Canvas</a></div>` : "";
+    const fuel = d.fuelLink ? `<div class="jk-tool"><a href="tools/fuel-optimizer.html${partnerQS}">→ Get a quick estimate with our free Fuel Contract Optimizer Lite</a></div>` : "";
+    const cask = d.caskLink ? `<div class="jk-tool"><a href="tools/cask-calculator.html${partnerQS}">→ Check your unit cost with our free CASK Benchmarking Calculator</a></div>` : "";
+    const canvas = d.canvasLink ? `<div class="jk-tool"><a href="tools/operating-model-canvas.html${partnerQS}">→ Map the whole business with our free Operating Model Canvas</a></div>` : "";
     const std = d.standard ? `<div class="std">Aligns to recognised standard: <strong>${d.standard}</strong></div>` : "";
     div.innerHTML = `
-      <h4>${d.name} — ${d.pct}% <span class="rag rag-${d.rag}" style="font-size:.8rem"><span class="dot"></span>${DN.ragLabel(d.pct)}</span></h4>
+      <h4>${d.name} — ${d.pct}% <span class="rag rag-${d.rag}" style="font-size:.8rem"><span class="dot"></span>${JK.ragLabel(d.pct)}</span></h4>
       <div class="cat">${d.rxCategory}</div>
       ${std}
-      <div class="dn-tool">DN diagnostic that goes deeper: ${d.dnTool}</div>
+      <div class="jk-tool">JK diagnostic that goes deeper: ${d.jkTool}</div>
       ${cask}
       ${canvas}
       ${fuel}`;
@@ -115,14 +115,14 @@
   topGaps.forEach(d => {
     /* matchAll over the whole string: secondary refs after ";" don't carry
        the "DN " prefix, so the old /^DN\s+([A-Z]\d)/ anchor missed them */
-    if (d.dnTool) {
-      for (const m of d.dnTool.matchAll(/\b([A-Z]\d)\b/g)) relevantTools.add(m[1]);
+    if (d.jkTool) {
+      for (const m of d.jkTool.matchAll(/\b([A-Z]\d)\b/g)) relevantTools.add(m[1]);
     }
   });
   if (relevantTools.size > 0) {
     const recHost = document.createElement("div");
-    recHost.className = "dn-rec-panel";
-    recHost.style.cssText = "margin-bottom:2rem;padding:1.4rem;background:var(--dn-steel-lt);border-radius:var(--radius);border-left:4px solid var(--accent)";
+    recHost.className = "jk-rec-panel";
+    recHost.style.cssText = "margin-bottom:2rem;padding:1.4rem;background:var(--jk-sand-lt);border-radius:var(--radius);border-left:4px solid var(--accent)";
     recHost.innerHTML = `<p class="eyebrow" style="margin-top:0">Quick wins for your top gaps</p>
       <p style="margin:0.5rem 0;font-weight:600">Based on your ${topGaps.map(d => d.name).join(", ")} scores, these tools will give you quick insights:</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:1rem" id="rec-tools"></div>`;
@@ -131,19 +131,19 @@
     const toolboxSection = lockedGrid && lockedGrid.closest("section");
     if (toolboxSection) toolboxSection.parentElement.insertBefore(recHost, toolboxSection);
     const recToolsHost = document.getElementById("rec-tools");
-    DN.toolboxes.forEach(tb => {
+    JK.toolboxes.forEach(tb => {
       tb.tools.forEach(t => {
         if (relevantTools.has(t.ref)) {
           const c = document.createElement("div");
-          c.style.cssText = "padding:0.8rem;background:var(--dn-white);border-radius:var(--radius-sm);font-size:0.85rem";
-          c.innerHTML = `<div style="font-weight:700;color:var(--accent);margin-bottom:0.3rem">${t.ref}</div><div style="color:var(--dn-dark);line-height:1.4">${t.n}</div>`;
+          c.style.cssText = "padding:0.8rem;background:var(--jk-white);border-radius:var(--radius-sm);font-size:0.85rem";
+          c.innerHTML = `<div style="font-weight:700;color:var(--accent);margin-bottom:0.3rem">${t.ref}</div><div style="color:var(--jk-ink);line-height:1.4">${t.n}</div>`;
           recToolsHost.appendChild(c);
         }
       });
     });
   }
 
-  /* ---- locked Toolboxes B/C/D (DN Engagement Key gate) ---- */
+  /* ---- locked Toolboxes B/C/D (JK Engagement Key gate) ---- */
   renderToolboxes();
   const unlocked = sessionGet("dn_unlocked") === "1";
   if (unlocked) setUnlocked(true);
@@ -151,11 +151,11 @@
   document.getElementById("key-apply").addEventListener("click", () => {
     const val = document.getElementById("key-input").value.trim();
     const msg = document.getElementById("key-msg");
-    if (val.toUpperCase() === DN.engagementKey) {
+    if (val.toUpperCase() === JK.engagementKey) {
       sessionSet("dn_unlocked", "1"); setUnlocked(true);
       msg.textContent = "Unlocked — full toolbox previews enabled."; msg.className = "keymsg rag-green";
     } else {
-      msg.innerHTML = `Invalid key. <a href="mailto:${DN.brand.email}?subject=DN%20Engagement%20Key%20request">Request your DN Engagement Key →</a>`;
+      msg.innerHTML = `Invalid key. <a href="mailto:${JK.brand.email}?subject=JK%20Engagement%20Key%20request">Request your JK Engagement Key →</a>`;
       msg.className = "keymsg rag-amber";
     }
   });
@@ -177,29 +177,29 @@
         title: "B1 — Route Profitability Diagnostic",
         subtitle: "Sample Route P&L & Break-Even Analysis Output",
         content: `
-          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+          <div style="background:var(--jk-parchment,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
             <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: Route Performance Breakdown</p>
             <table style="width:100%;font-size:0.84rem;border-collapse:collapse;background:#fff">
-              <thead><tr style="background:var(--dn-steel-lt);text-align:left"><th style="padding:6px">Route</th><th>ASK (k)</th><th>LF (%)</th><th>Contribution</th><th>Break-Even LF</th><th>Status</th></tr></thead>
+              <thead><tr style="background:var(--jk-sand-lt);text-align:left"><th style="padding:6px">Route</th><th>ASK (k)</th><th>LF (%)</th><th>Contribution</th><th>Break-Even LF</th><th>Status</th></tr></thead>
               <tbody>
-                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">NBO – MBA</td><td>1,240</td><td>78.4%</td><td style="color:var(--dn-green)">+$14,200/mo</td><td>62.0%</td><td><span style="color:var(--dn-green)">● Profitable</span></td></tr>
-                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">NBO – EBB</td><td>2,100</td><td>61.2%</td><td style="color:var(--dn-red)">-$8,400/mo</td><td>68.5%</td><td><span style="color:var(--dn-red)">● Deficit</span></td></tr>
-                <tr><td style="padding:6px">NBO – JNB</td><td>5,800</td><td>71.0%</td><td style="color:var(--dn-green)">+$42,100/mo</td><td>65.0%</td><td><span style="color:var(--dn-green)">● Profitable</span></td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">NBO – MBA</td><td>1,240</td><td>78.4%</td><td style="color:var(--jk-green)">+$14,200/mo</td><td>62.0%</td><td><span style="color:var(--jk-green)">● Profitable</span></td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">NBO – EBB</td><td>2,100</td><td>61.2%</td><td style="color:var(--jk-red)">-$8,400/mo</td><td>68.5%</td><td><span style="color:var(--jk-red)">● Deficit</span></td></tr>
+                <tr><td style="padding:6px">NBO – JNB</td><td>5,800</td><td>71.0%</td><td style="color:var(--jk-green)">+$42,100/mo</td><td>65.0%</td><td><span style="color:var(--jk-green)">● Profitable</span></td></tr>
               </tbody>
             </table>
           </div>
-          <p style="font-size:0.88rem;color:#555">Quantifies route contribution margin, direct operating costs, and revenue break-even point for every sector in your network during Phase 2 of a DN engagement.</p>`
+          <p style="font-size:0.88rem;color:#555">Quantifies route contribution margin, direct operating costs, and revenue break-even point for every sector in your network during Phase 2 of a JK engagement.</p>`
       },
       "B2": {
         title: "B2 — Staff Cost Efficiency Analyser",
         subtitle: "Sample Crew Efficiency & Headcount Benchmarking Output",
         content: `
-          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+          <div style="background:var(--jk-parchment,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
             <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: Labour Ratio & Crew Utilization Audit</p>
             <div style="font-size:0.85rem;line-height:1.6">
               <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Flight Deck Crew Ratio</span><b>5.4 crews / aircraft (Peer Benchmark: 4.8)</b></div>
-              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Cabin Crew Monthly Utilization</span><b style="color:var(--dn-amber)">62 block hrs/mo (DN Target: 75 hrs)</b></div>
-              <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Identified Annual Labour Efficiency Gain</span><b style="color:var(--dn-green)">$240,000 / year</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Cabin Crew Monthly Utilization</span><b style="color:var(--jk-amber)">62 block hrs/mo (JK target: 75 hrs)</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Identified Annual Labour Efficiency Gain</span><b style="color:var(--jk-green)">$240,000 / year</b></div>
             </div>
           </div>
           <p style="font-size:0.88rem;color:#555">Audits crew pairing efficiency, roster productivity, and staff-to-aircraft ratios across all operational departments.</p>`
@@ -208,11 +208,11 @@
         title: "B3 — Fleet Utilisation & Turn-Time Audit",
         subtitle: "Sample Maintenance Breakdown & Fleet Availability Output",
         content: `
-          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+          <div style="background:var(--jk-parchment,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
             <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: Fleet Utilization & Maintenance Cost Audit</p>
             <div style="font-size:0.85rem;line-height:1.6">
               <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Average Daily Block Hours</span><b>6.2 hrs/day (Target: 8.5 hrs)</b></div>
-              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Ground Turnaround Time (Turn-Time)</span><b style="color:var(--dn-amber)">68 mins (Benchmark: 45 mins)</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Ground Turnaround Time (Turn-Time)</span><b style="color:var(--jk-amber)">68 mins (Benchmark: 45 mins)</b></div>
               <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Direct Maintenance Cost / Block Hr</span><b>$1,280 (Peer Average: $1,050)</b></div>
             </div>
           </div>
@@ -222,12 +222,12 @@
         title: "B4 — Safety Culture Maturity Assessment",
         subtitle: "Sample ICAO SMS 5-Level Maturity Audit & Compliance Report",
         content: `
-          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+          <div style="background:var(--jk-parchment,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
             <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: SMS Maturity Matrix (ICAO Annex 19)</p>
             <div style="font-size:0.85rem;line-height:1.6">
-              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Level 1 & 2 (Reactive Safety Management)</span><b style="color:var(--dn-green)">100% Compliant</b></div>
-              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Level 3 (Proactive Hazard Identification)</span><b style="color:var(--dn-amber)">65% Compliant</b></div>
-              <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Level 4 & 5 (Predictive & Continuous Improvement)</span><b style="color:var(--dn-red)">25% Compliant (Priority Gap)</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Level 1 & 2 (Reactive Safety Management)</span><b style="color:var(--jk-green)">100% Compliant</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Level 3 (Proactive Hazard Identification)</span><b style="color:var(--jk-amber)">65% Compliant</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Level 4 & 5 (Predictive & Continuous Improvement)</span><b style="color:var(--jk-red)">25% Compliant (Priority Gap)</b></div>
             </div>
           </div>
           <p style="font-size:0.88rem;color:#555">Evaluates safety reporting culture, KCAA/ICAO finding closure rates, and predictive hazard analytics readiness.</p>`
@@ -236,11 +236,11 @@
         title: "B5 — Revenue Mix Diagnostic",
         subtitle: "Sample Ancillary & Yield Diversification Gap Output",
         content: `
-          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+          <div style="background:var(--jk-parchment,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
             <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: Ancillary & Distribution Yield Breakdown</p>
             <div style="font-size:0.85rem;line-height:1.6">
               <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Ancillary Revenue per Pax</span><b>$5.80 (IATA Regional Benchmark: $18.50)</b></div>
-              <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Direct Web/App Distribution Share</span><b style="color:var(--dn-amber)">28% (Target: ≥ 55%)</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Direct Web/App Distribution Share</span><b style="color:var(--jk-amber)">28% (Target: ≥ 55%)</b></div>
             </div>
           </div>
           <p style="font-size:0.88rem;color:#555">Uncovers unbundled merchandising, belly-cargo monetization, and direct distribution margin opportunities.</p>`
@@ -249,7 +249,7 @@
         title: "C1 — 90-Day Sprint Template",
         subtitle: "Sample Transformation Roadmap & Execution Charter",
         content: `
-          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+          <div style="background:var(--jk-parchment,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
             <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: 90-Day Sprint Milestones & Targets</p>
             <ul style="font-size:0.85rem;margin:0;padding-left:18px;line-height:1.6">
               <li><b>Days 1–30:</b> Quick wins (Fuel tankering policy, turn-time standardization, AOG escalation).</li>
@@ -263,7 +263,7 @@
         title: "C3 — Board Presentation Template",
         subtitle: "Sample Executive Findings & Board Presentation Deck",
         content: `
-          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+          <div style="background:var(--jk-parchment,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
             <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: 8-Slide Board Structure</p>
             <div style="font-size:0.84rem;color:#333;line-height:1.5">
               1. Executive Health Baseline · 2. Sized Financial & Operational Gaps · 3. Route Contribution Heatmap · 4. CASK Disadvantage Sizing · 5. 90-Day Sprint Plan & Budgets · 6. KPI Governance Matrix.
@@ -275,11 +275,11 @@
         title: "D1 — AOC Startup Readiness Checklist",
         subtitle: "Sample 30-Item Regulatory Compliance Tracker",
         content: `
-          <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+          <div style="background:var(--jk-parchment,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
             <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Sample Output: 5-Phase AOC Certification Tracker</p>
             <div style="font-size:0.85rem;line-height:1.6">
-              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Phase 1 & 2 (Pre-Application & Formal Application)</span><b style="color:var(--dn-green)">Complete</b></div>
-              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Phase 3 (Document Evaluation & Manuals)</span><b style="color:var(--dn-amber)">In Progress (82%)</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Phase 1 & 2 (Pre-Application & Formal Application)</span><b style="color:var(--jk-green)">Complete</b></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #ddd"><span>Phase 3 (Document Evaluation & Manuals)</span><b style="color:var(--jk-amber)">In Progress (82%)</b></div>
               <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Phase 4 & 5 (Demonstration Flights & Certification)</span><b>Scheduled</b></div>
             </div>
           </div>
@@ -291,9 +291,9 @@
       title: `${ref} — ${name}`,
       subtitle: `Sample Output & Deliverable Framework (Toolbox ${box})`,
       content: `
-        <div style="background:var(--dn-fog,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
+        <div style="background:var(--jk-parchment,#F4F4F2);padding:14px;border-radius:8px;margin-bottom:1rem">
           <p style="margin:0 0 8px;font-weight:600;font-size:0.9rem">Toolbox ${box} Deliverable Preview</p>
-          <p style="font-size:0.85rem;margin:0">Full standardized analytical model and report output deployed during a DN Consultancy engagement.</p>
+          <p style="font-size:0.85rem;margin:0">Full standardized analytical model and report output deployed during a JK & Associates engagement.</p>
         </div>`
     };
 
@@ -308,10 +308,10 @@
         <button id="modal-close" aria-label="Close preview" style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666">&times;</button>
         <span class="eyebrow" style="margin-top:0">Phase 2–5 Deliverable Preview · Toolbox ${box}</span>
         <h2 id="modal-title" style="margin:0.2rem 0 0.4rem;font-size:1.35rem;font-family:var(--sans);font-weight:700">${data.title}</h2>
-        <p style="color:var(--dn-steel);font-weight:600;margin:0 0 1rem;font-size:0.92rem">${data.subtitle}</p>
+        <p style="color:var(--jk-terracotta);font-weight:600;margin:0 0 1rem;font-size:0.92rem">${data.subtitle}</p>
         ${data.content}
         <div style="margin-top:1.4rem;padding-top:1rem;border-top:1px solid #eee;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
-          <span style="font-size:0.82rem;color:#666">Deployed during Phase 2–5 of a DN engagement</span>
+          <span style="font-size:0.82rem;color:#666">Deployed during Phase 2–5 of a JK engagement</span>
           <button id="modal-req-btn" class="btn btn-gold" style="font-size:0.88rem;padding:0.6rem 1.1rem">Request Engagement Brief →</button>
         </div>
       </div>`;
@@ -345,7 +345,7 @@
       "A4": "tools/operating-model-canvas.html",
       "A5": "tools/training-tna.html"
     };
-    DN.toolboxes.forEach(tb => {
+    JK.toolboxes.forEach(tb => {
       tb.tools.forEach(t => {
         const c = document.createElement(toolLinks[t.ref] ? "a" : "div");
         c.className = "toolcard" + (tb.locked ? " locked" : " unlocked");
@@ -358,7 +358,7 @@
         /* preview modal only makes sense for locked (paid-engagement) tools —
            Toolbox A (A1-A5) is already free and one click away from the real
            thing, so showing "Preview Sample Output" there is redundant and,
-           worse, pops a generic "deployed during a DN engagement" modal
+           worse, pops a generic "deployed during a JK engagement" modal
            that's simply false for a tool the visitor can use right now */
         const previewBtn = tb.locked
           ? `<button class="btn-preview-trigger" style="margin-top:0.6rem;background:rgba(74,127,165,.1);border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:0.3rem 0.65rem;font-size:0.78rem;font-weight:600;cursor:pointer">🔍 Preview Sample Output</button>`
@@ -505,12 +505,12 @@
         });
         if (!resp.ok) throw new Error(resp.status);
         msg.textContent = "✓ Sent — your Executive Brief & 90-Day Roadmap will arrive in your inbox.";
-        msg.style.color = "var(--dn-green)";
+        msg.style.color = "var(--jk-green)";
         submitBtn.textContent = "✓ Executive Brief Requested";
         sessionSet("dn_report_sent", "1");
       } catch {
-        msg.innerHTML = `Could not send — email us at <a href="mailto:${DN.brand.email}">${DN.brand.email}</a>`;
-        msg.style.color = "var(--dn-red)";
+        msg.innerHTML = `Could not send — email us at <a href="mailto:${JK.brand.email}">${JK.brand.email}</a>`;
+        msg.style.color = "var(--jk-red)";
         submitBtn.disabled = false;
         submitBtn.textContent = "Send Executive Brief & Roadmap (PDF) →";
       }
@@ -521,12 +521,12 @@
   const bookEmailBtn = document.getElementById("book-email-btn");
   if (bookEmailBtn) {
     const gapSummary = sorted.slice(0, 3).map(d => `${d.name} (${d.pct}%)`).join(", ");
-    bookEmailBtn.href = `mailto:${DN.brand.email}` +
-      `?subject=${encodeURIComponent("DN Engagement — following my health scorecard")}` +
+    bookEmailBtn.href = `mailto:${JK.brand.email}` +
+      `?subject=${encodeURIComponent("JK Engagement — following my health scorecard")}` +
       `&body=${encodeURIComponent(
         `Hello,\n\nI have just completed the Airline Health Scorecard.\n\n` +
         `Health Index: ${s.index}/100\nTop gaps: ${gapSummary}\n\n` +
-        `I would like to discuss how a DN engagement could help us close these gaps.\n\n` +
+        `I would like to discuss how a JK engagement could help us close these gaps.\n\n` +
         `Full report: ${shareURL}`
       )}`;
   }
@@ -550,7 +550,7 @@
       && sessionGet("dn_capture_nudged") !== "1") {
     const nudge = document.createElement("div");
     nudge.id = "capture-nudge";
-    nudge.style.cssText = "position:fixed;left:0;right:0;bottom:-90px;z-index:60;background:var(--dn-dark,#1F3044);color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;box-shadow:0 -6px 24px rgba(0,0,0,.25);transition:bottom .35s ease";
+    nudge.style.cssText = "position:fixed;left:0;right:0;bottom:-90px;z-index:60;background:var(--jk-ink,#1F3044);color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;box-shadow:0 -6px 24px rgba(0,0,0,.25);transition:bottom .35s ease";
     nudge.innerHTML = `<span style="font-size:.95rem">📧 Want this report in your inbox, with benchmark notes?</span>
       <button id="nudge-go" class="btn btn-gold" style="padding:.5rem 1rem">Email me my report</button>
       <button id="nudge-x" aria-label="Dismiss" style="background:none;border:0;color:#fff;font-size:1.2rem;cursor:pointer;opacity:.7">✕</button>`;
@@ -616,18 +616,18 @@
         headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: body.toString() });
       if (!resp.ok) throw new Error(resp.status);
       dbForm.style.display = "none";
-      msg.textContent = "✓ Request received — a DN consultant will confirm your slot within 24 hours.";
-      msg.style.color = "var(--dn-green)";
+      msg.textContent = "✓ Request received — a JK consultant will confirm your slot within 24 hours.";
+      msg.style.color = "var(--jk-green)";
     } catch {
-      msg.innerHTML = `Could not send — email us at <a href="mailto:${DN.brand.email}">${DN.brand.email}</a>`;
-      msg.style.color = "var(--dn-red)";
+      msg.innerHTML = `Could not send — email us at <a href="mailto:${JK.brand.email}">${JK.brand.email}</a>`;
+      msg.style.color = "var(--jk-red)";
       btn.disabled = false; btn.textContent = "Request my debrief →";
     }
   });
 
   /* ---- data-as-of stamp ---- */
   const asofEl = document.getElementById("bench-asof");
-  if (asofEl && DN.benchmarkMeta) asofEl.textContent = DN.benchmarkMeta.asOf;
+  if (asofEl && JK.benchmarkMeta) asofEl.textContent = JK.benchmarkMeta.asOf;
 
   /* ---- optional CSV calibration (all client-side) ----
      4 figures in, 3 derived metrics out, compared against the regional
@@ -639,7 +639,7 @@
   const csvIn = document.getElementById("csv-file");
   if (csvIn) csvIn.addEventListener("change", () => {
     const out = document.getElementById("calib-out");
-    const fail = m => { out.innerHTML = `<p style="color:var(--dn-red)">${m}</p>`; };
+    const fail = m => { out.innerHTML = `<p style="color:var(--jk-red)">${m}</p>`; };
     const f = csvIn.files[0];
     if (!f) return;
     const rd = new FileReader();
@@ -659,13 +659,13 @@
       const cmp = (val, bench, higherIsGood, note) => {
         const diff = val - bench;
         const good = higherIsGood ? diff > 0 : diff < 0;
-        const col = Math.abs(diff) < 3 ? "var(--dn-amber)" : good ? "var(--dn-green)" : "var(--dn-red)";
+        const col = Math.abs(diff) < 3 ? "var(--jk-amber)" : good ? "var(--jk-green)" : "var(--jk-red)";
         return `<span style="color:${col};font-weight:600">${diff > 0 ? "+" : ""}${diff.toFixed(1)} pts vs ${note}</span>`;
       };
       out.innerHTML = `
         <div class="guarantee" style="align-items:flex-start">
           <div style="width:100%">
-            <p class="eyebrow" style="margin-top:0">Data-calibrated view <span style="background:var(--dn-green);color:#fff;border-radius:999px;padding:1px 10px;font-size:.72rem;margin-left:6px">✓ computed from your figures</span></p>
+            <p class="eyebrow" style="margin-top:0">Data-calibrated view <span style="background:var(--jk-green);color:#fff;border-radius:999px;padding:1px 10px;font-size:.72rem;margin-left:6px">✓ computed from your figures</span></p>
             <table style="width:100%;border-collapse:collapse;font-size:.94rem">
               <tr><td style="padding:6px 0"><b>Passenger load factor</b></td><td>${lf.toFixed(1)}%</td>
                   <td>${cmp(lf, 74.5, true, "the 74.5% African average (AFRAA 2024)")}</td></tr>
@@ -692,7 +692,7 @@
    Serialises the 40 answers (0-4 per question, 'x' if unanswered) into a
    compact base64 string so results can be shared via URL (?s=...). */
 function encodeAnswers(answers) {
-  return btoa(DN.domains.map(d =>
+  return btoa(JK.domains.map(d =>
     d.questions.map((_, qi) => {
       const v = (answers[d.id] || [])[qi];
       return Number.isInteger(v) ? String(v) : "x";
@@ -703,11 +703,11 @@ function encodeAnswers(answers) {
 function decodeSharedAnswers(encoded) {
   try {
     const str = atob(encoded);
-    const expected = DN.domains.reduce((n, d) => n + d.questions.length, 0);
+    const expected = JK.domains.reduce((n, d) => n + d.questions.length, 0);
     if (str.length !== expected || !/^[0-4x]+$/.test(str)) return null;
     let pos = 0;
     const out = {};
-    for (const d of DN.domains) {
+    for (const d of JK.domains) {
       out[d.id] = d.questions.map(() => {
         const c = str[pos++];
         return c === "x" ? undefined : parseInt(c, 10);

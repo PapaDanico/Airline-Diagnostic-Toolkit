@@ -1,4 +1,4 @@
-/* End-to-end behaviour tests for the DN Airline Diagnostic Toolkit.
+/* End-to-end behaviour tests for the JK & Associates aviation advisory platform.
    Runs the real pages in headless Chromium and asserts the core flows.
    Exits non-zero on any failure so CI fails loudly. Run: node tests/e2e.mjs */
 import { chromium } from "playwright";
@@ -57,7 +57,7 @@ assert(await page.$eval("#see-results", b => b.disabled), "see-results disabled 
 // Fill all 40 questions via localStorage and reload
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
   saveAnswers(ans);
 });
 await page.reload(); await page.waitForTimeout(300);
@@ -122,7 +122,7 @@ section("Results page — share URL round-trip");
 const shareURL = await page.evaluate(() => {
   // replicate results.js encodeAnswers logic
   const answers = loadAnswers();
-  const encoded = btoa(DN.domains.map(d =>
+  const encoded = btoa(JK.domains.map(d =>
     d.questions.map((_, qi) => {
       const v = (answers[d.id] || [])[qi];
       return Number.isInteger(v) ? String(v) : "x";
@@ -133,7 +133,7 @@ const shareURL = await page.evaluate(() => {
 assert(shareURL.includes("?s="), "share URL contains ?s= param");
 
 // Clear localStorage and load the share URL
-await page.evaluate(() => localStorage.removeItem("dn_airline_scorecard_v2"));
+await page.evaluate(() => localStorage.removeItem("jk_airline_scorecard_v3"));
 const fileShareURL = shareURL.replace(base + "/results.html", base + "/results.html");
 await page.goto(fileShareURL); await page.waitForTimeout(600);
 
@@ -154,7 +154,7 @@ assert(captureSectionDisplay === "none", "email capture section hidden in shared
 section("Results page — corrupt ?s= param handling");
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
   saveAnswers(ans);
 });
 // right length, but characters outside 0-4/x — must be rejected by decode
@@ -168,7 +168,7 @@ assert(await page.$eval("#email-capture-section", el => getComputedStyle(el).dis
 section("Diagnostic page — resume banner");
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach((d, i) => { ans[d.id] = i < 4 ? [1, 2, 3, 2, 4] : []; });
+  JK.domains.forEach((d, i) => { ans[d.id] = i < 4 ? [1, 2, 3, 2, 4] : []; });
   saveAnswers(ans);
   localStorage.setItem("dn_onboarded", "1"); // keep onboarding overlay from blocking clicks
 });
@@ -178,29 +178,29 @@ assert(/20 of 40/.test(await page.$eval(".resume-banner", e => e.textContent)), 
 await page.click("#resume-jump"); await page.waitForTimeout(300);
 assert(await page.$(".resume-banner") === null, "resume banner dismissed after jump");
 // no banner when nothing answered
-await page.evaluate(() => localStorage.removeItem("dn_airline_scorecard_v2"));
+await page.evaluate(() => localStorage.removeItem("jk_airline_scorecard_v3"));
 await page.reload(); await page.waitForTimeout(300);
 assert(await page.$(".resume-banner") === null, "no resume banner with zero answers");
 // no banner when everything answered
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
   saveAnswers(ans);
 });
 await page.reload(); await page.waitForTimeout(300);
 assert(await page.$(".resume-banner") === null, "no resume banner when fully answered");
 
-/* ─── 4d. HOMEPAGE — hero radar preview ─── */
-section("Homepage — hero radar preview");
+/* ─── 4d. HOMEPAGE — scorecard radar preview (Operate-track section) ─── */
+section("Homepage — scorecard radar preview");
 await page.goto(base + "/index.html"); await page.waitForTimeout(400);
-assert(await page.$eval("#hero-radar", s => s.querySelectorAll("polygon").length) >= 5, "hero radar renders rings + data polygon");
-assert(await page.$eval("#hero-radar", s => s.querySelectorAll("text").length) === 8, "hero radar labels all 8 domains");
+assert(await page.$eval("#hero-radar", s => s.querySelectorAll("polygon").length) >= 5, "scorecard radar renders rings + data polygon");
+assert(await page.$eval("#hero-radar", s => s.querySelectorAll("text").length) === 8, "scorecard radar labels all 8 domains");
 
 /* ─── 4e. RESULTS — scroll-triggered capture nudge ─── */
 section("Results page — capture nudge");
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
   saveAnswers(ans);
   sessionStorage.removeItem("dn_capture_nudged");
   sessionStorage.removeItem("dn_report_sent");
@@ -239,7 +239,7 @@ assert(await page.$("#hero-radar .radar-overlay") !== null, "dashed benchmark ov
 section("Results page — CSV calibration");
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
   saveAnswers(ans);
   sessionStorage.setItem("dn_capture_nudged", "1");
 });
@@ -312,7 +312,7 @@ assert(/middle third/.test(posTxt), "positioning terciles rendered (74.2% LF →
 assert(/indicative terciles/.test(posTxt), "positioning labelled as indicative");
 await page.goto(base + "/index.html"); await page.waitForTimeout(400);
 assert(await page.$$eval("#results-in-practice .card", e => e.length) === 3, "3 indicative composite vignettes on homepage");
-assert(/not attributable to any single airline/i.test(await page.$eval("#results-in-practice", e => e.textContent)), "privacy disclaimer present");
+assert(/not attributable to any single (airline|client)/i.test(await page.$eval("#results-in-practice", e => e.textContent)), "privacy disclaimer present");
 await page.goto(base + "/partners.html"); await page.waitForTimeout(400);
 assert(/mailto:/.test(await page.$eval("[data-partner-mailto]", a => a.href)), "partner CTA mailto pre-filled");
 assert(/partner=YOURNAME/.test(await page.$eval("section", e => e.textContent)), "partner link mechanics explained");
@@ -322,14 +322,14 @@ section("Results page — engagement key gate");
 // Reload with valid localStorage
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
   saveAnswers(ans);
 });
 await page.goto(base + "/results.html"); await page.waitForTimeout(500);
 
 await page.fill("#key-input", "wrong-key"); await page.click("#key-apply"); await page.waitForTimeout(150);
 assert(/Invalid/i.test(await page.$eval("#key-msg", e => e.textContent)), "wrong key rejected");
-await page.fill("#key-input", "dn-engage-2026"); await page.click("#key-apply"); await page.waitForTimeout(150);
+await page.fill("#key-input", "jk-engage-2026"); await page.click("#key-apply"); await page.waitForTimeout(150);
 assert(/Unlocked/i.test(await page.$eval("#key-msg", e => e.textContent)), "correct key (lowercase) unlocks");
 assert(await page.$$eval(".toolcard.unlocked", e => e.length) > 0, "toolcards unlock after valid key");
 
@@ -356,7 +356,7 @@ assert(await page.$("#tool-preview-modal") === null, "Escape key closes the prev
 
 /* ─── 6. RESULTS — empty state ─── */
 section("Results page — empty state");
-await page.evaluate(() => localStorage.removeItem("dn_airline_scorecard_v2"));
+await page.evaluate(() => localStorage.removeItem("jk_airline_scorecard_v3"));
 await page.goto(base + "/results.html"); await page.waitForTimeout(300);
 assert(await page.$eval("#empty", e => getComputedStyle(e).display !== "none"), "empty state shown when no answers");
 assert(await page.$eval("#report", e => getComputedStyle(e).display === "none"), "report hidden in empty state");
@@ -536,7 +536,7 @@ for (const pg of ["index.html", "diagnostic.html", "results.html", "tools/traini
   if (pg === "results.html") {
     await page.evaluate(() => {
       const ans = {};
-      DN.domains.forEach(d => { ans[d.id] = [2, 2, 2, 2, 2]; });
+      JK.domains.forEach(d => { ans[d.id] = [2, 2, 2, 2, 2]; });
       saveAnswers(ans);
     });
   }

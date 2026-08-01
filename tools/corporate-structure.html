@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Design the holding structure for an African aviation venture: HoldCo / SPV / OpCo layering, look-through effective interest, ownership-and-control tests, lender conflict mitigation and governance. Free and private.">
+<link rel="canonical" href="https://jkassociates.netlify.app/tools/corporate-structure.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JK & Associates">
+<meta property="og:title" content="Corporate Structure Designer — JK & Associates">
+<meta property="og:description" content="HoldCo / SPV / OpCo layering with look-through economics, control tests and lender-conflict checks.">
+<meta property="og:url" content="https://jkassociates.netlify.app/tools/corporate-structure.html">
+<meta property="og:image" content="https://jkassociates.netlify.app/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Corporate Structure Designer — JK & Associates">
+<meta name="twitter:description" content="Model the chain, see who really owns what.">
+<meta name="twitter:image" content="https://jkassociates.netlify.app/assets/img/og-card.png">
+<title>Corporate Structure Designer | JK &amp; Associates</title>
+<link rel="icon" type="image/png" href="../assets/img/jk-badge.png">
+<link rel="apple-touch-icon" href="../assets/img/jk-badge.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/jk.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner>
+      <span data-logo></span>
+      <span>JK &amp; Associates<small>Corporate Structure</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="nav-links"></div>
+  </div>
+</nav>
+
+<main id="main">
+
+<header class="tool-head">
+  <div class="wrap">
+    <p class="ref">Tool V3 · Free</p>
+    <h1>Corporate Structure Designer</h1>
+    <p class="lead">Who owns what, through which jurisdiction, with what voting power — and whether that survives an aviation regulator's ownership-and-control test. Model the chain, see the look-through economics, and get the governance checks that institutional lenders will apply to you.</p>
+  </div>
+</header>
+
+<section style="padding-top:40px">
+  <div class="wrap">
+    <p class="eyebrow">Step 1</p>
+    <h2 style="margin-bottom:.4rem">Pick a structure archetype</h2>
+    <p class="muted" style="max-width:700px">Complexity is a cost, not a virtue. Take the simplest structure that satisfies your funders and your regulator.</p>
+    <div class="sector-grid" id="arch-grid" style="margin-top:1.4rem" role="group" aria-label="Select a structure"></div>
+    <div class="field" style="max-width:340px;margin-top:1.6rem">
+      <label for="sector">Operating sector (drives the control test)</label>
+      <select id="sector"></select>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="tool-layout">
+      <div>
+        <p class="eyebrow">Step 2</p>
+        <h2 style="margin-bottom:.4rem">The chain</h2>
+        <p class="muted" style="max-width:640px">Set the shareholding at each tier. Percentages within a tier should total 100%.</p>
+        <div class="entity-tree" id="tree" style="margin-top:1.4rem"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 3</p>
+        <h2 style="margin-bottom:.4rem">Look-through economics</h2>
+        <p class="muted" style="max-width:640px">Effective interest is the product of the chain, not the register at any one tier. This is the table a regulator, a lender and a tax authority each reconstruct for themselves.</p>
+        <div class="card card-flat" style="margin-top:1.2rem">
+          <div class="table-scroll">
+            <table class="dtable" id="lookthrough">
+              <thead><tr><th>Party</th><th class="num">Direct at OpCo</th><th class="num">Indirect via chain</th><th class="num">Total effective</th><th>Position</th></tr></thead>
+              <tbody></tbody>
+              <tfoot></tfoot>
+            </table>
+          </div>
+          <div id="control-note" style="margin-top:1rem"></div>
+        </div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 4</p>
+        <h2 style="margin-bottom:.4rem">Governance &amp; lender checks</h2>
+        <p class="muted" style="max-width:640px">The failure modes that show up in diligence on African aviation structures. Tick what you have addressed.</p>
+        <div id="checks" style="margin-top:1.2rem"></div>
+      </div>
+
+      <aside class="rail">
+        <div class="result-panel">
+          <p class="eyebrow" style="color:var(--jk-amber)">Structure summary</p>
+          <div class="kpis" style="grid-template-columns:1fr 1fr">
+            <div class="kpi"><div class="kv" id="r-local">—</div><div class="kl">Local effective interest</div></div>
+            <div class="kpi"><div class="kv" id="r-tiers">—</div><div class="kl">Entities in chain</div></div>
+            <div class="kpi"><div class="kv" id="r-checks">0/0</div><div class="kl">Governance checks</div></div>
+            <div class="kpi"><div class="kv" id="r-sub">—</div><div class="kl">Offshore substance cost</div></div>
+          </div>
+          <div id="verdict" style="margin-top:1.1rem"></div>
+          <div style="margin-top:1.2rem;display:flex;flex-direction:column;gap:.5rem">
+            <button class="btn btn-amber" id="print" style="justify-content:center">Print / save as PDF</button>
+            <a class="btn btn-ghost-lt" id="talk" href="#" style="justify-content:center">Review this structure with us</a>
+          </div>
+        </div>
+        <div class="note no-print" style="margin-top:1rem;font-size:.82rem">
+          <b>Next steps</b>
+          <a href="venture-builder.html" data-keep-partner>Size the capital stack →</a><br>
+          <a href="organogram-planner.html" data-keep-partner>Plan the organisation →</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="sources">
+  <div class="wrap">
+    <h3 style="font-size:1.1rem">Assumptions and limits</h3>
+    <p class="muted" style="font-size:.86rem;max-width:780px">
+      Governance checks are drawn from institutional project-finance practice and from patterns that recur in African aviation transactions. Offshore substance costs are indicative annual running estimates per entity for a licensed management company, resident directors, local banking and audited local accounts.
+    </p>
+    <p class="disclaimer" style="max-width:780px">
+      This tool is a structuring aid, not legal, tax or regulatory advice, and no lawyer-client or adviser relationship arises from using it. Ownership-and-control tests, beneficial-ownership disclosure, tax residence, treaty access and substance requirements are jurisdiction-specific and change frequently. Take qualified legal and tax advice in every relevant jurisdiction before incorporating anything.
+    </p>
+  </div>
+</section>
+
+<section class="band-ember no-print">
+  <div class="wrap" style="text-align:center">
+    <h2>Structure is cheap to get right and expensive to unwind.</h2>
+    <p style="max-width:660px;margin:0 auto 1.4rem">Restructuring after a lender is in, or after a certificate has issued against a particular ownership chain, costs an order of magnitude more than designing it correctly at the start.</p>
+    <a class="btn btn-amber btn-lg" id="cta-mail" href="#">Talk to us about your structure</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer no-print">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <a class="brand" href="../index.html" style="color:#fff" data-keep-partner><span data-logo="light"></span><span style="color:#fff">JK &amp; Associates</span></a>
+        <p style="margin-top:1rem;max-width:320px;font-size:.9rem">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
+      </div>
+      <div>
+        <h4>Build a venture</h4>
+        <p><a href="certification-navigator.html" data-keep-partner>Certification Navigator</a></p>
+        <p><a href="venture-builder.html" data-keep-partner>Venture Builder</a></p>
+        <p><a href="corporate-structure.html" data-keep-partner>Corporate Structure</a></p>
+        <p><a href="organogram-planner.html" data-keep-partner>Organogram Planner</a></p>
+      </div>
+      <div>
+        <h4>Operate an airline</h4>
+        <p><a href="../diagnostic.html" data-keep-partner>Health Scorecard</a></p>
+        <p><a href="cask-calculator.html" data-keep-partner>CASK Calculator</a></p>
+        <p><a href="operating-model-canvas.html" data-keep-partner>Operating Model Canvas</a></p>
+        <p><a href="fuel-optimizer.html" data-keep-partner>Fuel Optimizer</a></p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p><a data-email></a></p>
+        <p>Nairobi, Kenya</p>
+        <h4 style="margin-top:1.2rem">Legal</h4>
+        <p><a href="../privacy.html">Privacy Notice</a></p>
+        <p><a href="../terms.html">Terms of Use</a></p>
+      </div>
+    </div>
+    <div class="ver">
+      <span>&copy; <span data-year></span> JK &amp; Associates · Shaping Africa's Future, Together.</span>
+      <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../methodology.html">Methodology</a> · <span data-version></span></span>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/data-ventures.js"></script>
+<script src="../assets/js/common.js"></script>
+<script>
+(function () {
+  applyPartner(); mountChrome();
+  mountPrintHead("Corporate Structure Designer");
+
+  const store = toolStore("structure");
+  let state = store.load();
+  state.holders = state.holders || {};
+  state.checks  = state.checks  || {};
+  const $ = id => document.getElementById(id);
+
+  const SUBSTANCE_PER_ENTITY = 32500;  // indicative USD/yr mid-point
+
+  /* Default shareholding per tier, per archetype. Parties are labelled by
+     role rather than by name so the model reads as a template. */
+  const DEFAULTS = {
+    simple:    { op:    [{n:"Local founders", p:100, local:true}] },
+    holdco:    { hold:  [{n:"Founders", p:60, local:true}, {n:"Investors", p:40, local:false}],
+                 op:    [{n:"HoldCo", p:100, chain:"hold"}] },
+    threetier: { trust: [{n:"Founder", p:100, local:true}],
+                 hold:  [{n:"Founder trust", p:60, chain:"trust"}, {n:"Investor vehicle", p:40, local:false}],
+                 spv:   [{n:"HoldCo", p:92.5, chain:"hold"}, {n:"Lender", p:7.5, local:false}],
+                 op:    [{n:"SPV", p:75, chain:"spv"}, {n:"Founder trust (direct)", p:20, chain:"trust", direct:true}, {n:"Management", p:5, local:true}] }
+  };
+
+  /* ---------- archetype picker ---------- */
+  const ag = $("arch-grid");
+  JKV.structures.forEach(st => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "sector"; b.dataset.arch = st.id;
+    b.setAttribute("aria-pressed", "false");
+    b.innerHTML = `<h4>${st.name}</h4><p>${st.when}</p>
+      <div class="s-reg">${st.tiers.length} entit${st.tiers.length === 1 ? "y" : "ies"}</div>`;
+    b.addEventListener("click", () => selectArch(st.id, true));
+    ag.appendChild(b);
+  });
+
+  /* ---------- sector select ---------- */
+  const sel = $("sector");
+  JKV.sectors.forEach(s => {
+    const o = document.createElement("option");
+    o.value = s.id; o.textContent = s.name; sel.appendChild(o);
+  });
+  sel.addEventListener("change", () => { state.sector = sel.value; recompute(); });
+
+  function selectArch(id, reset) {
+    const st = JKV.structures.find(s => s.id === id);
+    if (!st) return;
+    state.arch = id;
+    if (reset || state.archFor !== id) {
+      state.archFor = id;
+      state.holders = JSON.parse(JSON.stringify(DEFAULTS[id] || {}));
+    }
+    ag.querySelectorAll(".sector").forEach(el => el.setAttribute("aria-pressed", String(el.dataset.arch === id)));
+    renderTree(st);
+    renderChecks();
+    recompute();
+  }
+
+  /* ---------- tree ---------- */
+  function renderTree(st) {
+    const host = $("tree");
+    host.innerHTML = st.tiers.map(t => {
+      const hs = state.holders[t.k] || [];
+      const rows = hs.map((h, i) => `
+        <div class="holder-row">
+          <input type="text" value="${h.n.replace(/"/g, "&quot;")}" data-tier="${t.k}" data-i="${i}" data-f="n"
+                 aria-label="Holder name" style="padding:.5rem .7rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.87rem">
+          <input type="number" value="${h.p}" min="0" max="100" step="0.5" data-tier="${t.k}" data-i="${i}" data-f="p"
+                 aria-label="Percentage held" style="padding:.5rem .6rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.87rem;text-align:right">
+          <span class="muted" style="font-size:.85rem">%</span>
+        </div>`).join("");
+      const sum = hs.reduce((a, h) => a + (+h.p || 0), 0);
+      const warn = Math.abs(sum - 100) > 0.5
+        ? `<p class="muted" style="font-size:.78rem;color:var(--jk-red-dk);margin:.3rem 0 0">Holdings total ${sum.toFixed(1)}% — should be 100%.</p>` : "";
+      return `<div class="tier">
+          <div class="entity is-${t.k}">
+            <div class="e-jur">${t.jur}</div>
+            <h4>${t.name}</h4>
+            <p class="e-note">${t.note}</p>
+            <div style="margin-top:.8rem">${rows}${warn}</div>
+          </div>
+        </div>`;
+    }).join("");
+
+    host.querySelectorAll("input").forEach(inp => {
+      inp.addEventListener("input", () => {
+        const { tier, i, f } = inp.dataset;
+        const h = state.holders[tier][+i];
+        h[f] = f === "p" ? (parseFloat(inp.value) || 0) : inp.value;
+        recompute();
+      });
+    });
+  }
+
+  /* ---------- governance checks ---------- */
+  function renderChecks() {
+    const sec = state.sector || "aoc";
+    const list = JKV.structureChecks.filter(c => c.sectors.includes("*") || c.sectors.includes(sec));
+    $("checks").innerHTML = list.map(c => {
+      const on = !!state.checks[c.id];
+      return `<label class="chk${on ? " done" : ""}" data-c="${c.id}" style="border:1px solid var(--jk-line);margin-bottom:8px">
+          <input type="checkbox" ${on ? "checked" : ""}>
+          <span class="chk-t"><b>${c.t}</b><small>${c.d}</small></span>
+        </label>`;
+    }).join("");
+    $("checks").querySelectorAll("input").forEach(inp => {
+      inp.addEventListener("change", () => {
+        const lab = inp.closest(".chk");
+        const id = lab.dataset.c;
+        if (inp.checked) state.checks[id] = true; else delete state.checks[id];
+        lab.classList.toggle("done", inp.checked);
+        recompute();
+      });
+    });
+  }
+
+  /* ---------- look-through ----------
+     Walks each OpCo holding back up the chain, multiplying percentages.
+     A party appearing both directly at OpCo and through the chain (the
+     classic founder-trust pattern) has its two paths summed — which is
+     exactly the number a regulator reconstructs and applicants routinely
+     get wrong by reading only the OpCo register. */
+  function lookThrough() {
+    const parties = {};   // name -> { direct, indirect, local }
+    const add = (name, amount, isDirect, local) => {
+      const k = name.trim() || "Unnamed";
+      parties[k] = parties[k] || { direct: 0, indirect: 0, local: false };
+      parties[k][isDirect ? "direct" : "indirect"] += amount;
+      if (local) parties[k].local = true;
+    };
+
+    /* Resolve a tier into leaf parties, scaled by `share`.
+       The same tier can legitimately be reached by several different paths
+       with different shares (the founder-trust pattern reaches the trust
+       both directly from OpCo and up through HoldCo), so the guard has to
+       be per-path, not global — a visited *set* would silently drop the
+       second path and understate the founder's interest. `path` carries the
+       chain walked so far and only blocks a genuine cycle. */
+    function resolve(tierKey, share, isDirect, path) {
+      if (share <= 0) return;
+      if (path.includes(tierKey)) return;            // genuine cycle — stop
+      const next = path.concat(tierKey);
+      (state.holders[tierKey] || []).forEach(h => {
+        const frac = (+h.p || 0) / 100;
+        if (frac <= 0) return;
+        if (h.chain && state.holders[h.chain]) {
+          resolve(h.chain, share * frac, isDirect, next);
+        } else {
+          add(h.n, share * frac * 100, isDirect, h.local);
+        }
+      });
+    }
+
+    // OpCo holdings are the root
+    (state.holders.op || []).forEach(h => {
+      const frac = (+h.p || 0) / 100;
+      if (frac <= 0) return;
+      if (h.chain && state.holders[h.chain]) {
+        // a stake the founder holds at OpCo through their own named vehicle
+        // is still a DIRECT OpCo interest; everything else is indirect.
+        resolve(h.chain, frac, !!h.direct, ["op"]);
+      } else {
+        add(h.n, frac * 100, true, h.local);
+      }
+    });
+    return parties;
+  }
+
+  /* ---------- recompute ---------- */
+  function recompute() {
+    const st = JKV.structures.find(s => s.id === state.arch);
+    if (!st) return;
+    state.sector = state.sector || sel.value;
+    sel.value = state.sector;
+
+    const parties = lookThrough();
+    const entries = Object.entries(parties)
+      .map(([n, v]) => ({ n, ...v, total: v.direct + v.indirect }))
+      .sort((a, b) => b.total - a.total);
+
+    const tb = $("lookthrough").querySelector("tbody");
+    tb.innerHTML = entries.length ? entries.map(e => {
+      const pos = e.total > 50 ? "Control" : e.total >= 25 ? "Significant minority" : e.total >= 10 ? "Minority" : "Small holding";
+      return `<tr>
+        <td><b>${e.n}</b>${e.local ? ' <span class="tag dep">local</span>' : ""}</td>
+        <td class="num">${e.direct ? e.direct.toFixed(2) + "%" : "—"}</td>
+        <td class="num">${e.indirect ? e.indirect.toFixed(2) + "%" : "—"}</td>
+        <td class="num"><b>${e.total.toFixed(2)}%</b></td>
+        <td>${pos}</td></tr>`;
+    }).join("") : `<tr><td colspan="5" class="muted">Set shareholdings above.</td></tr>`;
+
+    const grand = entries.reduce((a, e) => a + e.total, 0);
+    $("lookthrough").querySelector("tfoot").innerHTML =
+      `<tr><td>Total</td><td class="num"></td><td class="num"></td><td class="num">${grand.toFixed(2)}%</td><td></td></tr>`;
+
+    const localPct = entries.filter(e => e.local).reduce((a, e) => a + e.total, 0);
+
+    // ownership-and-control test note
+    const sec = JKV.sector(state.sector);
+    const needsControl = state.sector === "aoc";
+    let cn = "";
+    if (Math.abs(grand - 100) > 1) {
+      cn = `<div class="note warn"><b>Chain does not resolve to 100%</b>Effective interests total ${grand.toFixed(2)}%. Check that each tier's holdings sum to 100 before reading anything else from this table.</div>`;
+    } else if (needsControl && localPct < 50) {
+      cn = `<div class="note warn"><b>Ownership-and-control exposure</b>Local effective interest is ${localPct.toFixed(1)}%. Air-service licensing commonly requires substantial ownership and effective control by nationals. A structure can satisfy company law and still fail the aviation test — confirm the current threshold and how the Authority measures it before you incorporate.</div>`;
+    } else if (needsControl) {
+      cn = `<div class="note ok"><b>Local effective interest ${localPct.toFixed(1)}%</b>Above a simple majority. Confirm how the Authority measures "effective control" — voting rights, board composition and veto rights matter alongside the economics.</div>`;
+    } else {
+      cn = `<div class="note"><b>Local effective interest ${localPct.toFixed(1)}%</b>${sec ? sec.short : "This sector"} does not carry the air-service ownership-and-control test, but a meaningful local stake still helps with beneficial-ownership disclosure and any preferential tax status.</div>`;
+    }
+    $("control-note").innerHTML = cn;
+
+    // pros/cons of the archetype
+    const offshore = st.tiers.filter(t => /offshore/i.test(t.jur)).length;
+    const checksList = JKV.structureChecks.filter(c => c.sectors.includes("*") || c.sectors.includes(state.sector));
+    const done = checksList.filter(c => state.checks[c.id]).length;
+
+    $("r-local").textContent  = localPct.toFixed(1) + "%";
+    $("r-tiers").textContent  = st.tiers.length;
+    $("r-checks").textContent = `${done}/${checksList.length}`;
+    $("r-sub").textContent    = offshore ? fmtMoney(offshore * SUBSTANCE_PER_ENTITY) + "/yr" : "None";
+
+    const ck = $("r-checks").parentElement;
+    ck.className = "kpi " + (done === checksList.length ? "is-green" : done >= checksList.length / 2 ? "is-amber" : "is-red");
+
+    let v;
+    if (Math.abs(grand - 100) > 1) v = { c: "note warn", t: "Chain incomplete", d: "Fix the tier holdings before drawing conclusions." };
+    else if (done < checksList.length / 2) v = { c: "note warn", t: "Governance gaps open", d: `${checksList.length - done} of ${checksList.length} checks unaddressed. These are the questions diligence asks first.` };
+    else if (needsControl && localPct < 50) v = { c: "note warn", t: "Control test at risk", d: "Resolve the ownership-and-control position before incorporating." };
+    else v = { c: "note ok", t: "Coherent structure", d: `${st.name}. ${offshore ? "Budget substance from incorporation, not as a retrofit." : "No offshore substance burden."}` };
+    $("verdict").innerHTML = `<div class="${v.c}" style="margin:0"><b>${v.t}</b>${v.d}</div>`;
+
+    const body =
+      `Archetype: ${st.name}\n` +
+      `Operating sector: ${sec ? sec.name : state.sector}\n` +
+      `Local effective interest: ${localPct.toFixed(1)}%\n` +
+      `Entities in chain: ${st.tiers.length} (${offshore} offshore)\n` +
+      `Governance checks addressed: ${done}/${checksList.length}\n\n` +
+      entries.map(e => `  ${e.n}: ${e.total.toFixed(2)}% (direct ${e.direct.toFixed(2)}%, indirect ${e.indirect.toFixed(2)}%)`).join("\n") +
+      `\n\nI would like this structure reviewed.`;
+    const href = toolMailto("Structure", st.name, body);
+    $("talk").href = href; $("cta-mail").href = href;
+
+    store.save(state);
+  }
+
+  $("print").addEventListener("click", () => window.print());
+
+  /* ---------- restore ---------- */
+  state.sector = state.sector || "aoc";
+  sel.value = state.sector;
+  selectArch(state.arch || "holdco", false);
+})();
+</script>
+</body>
+</html>

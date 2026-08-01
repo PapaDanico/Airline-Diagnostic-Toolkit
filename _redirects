@@ -1,4 +1,8 @@
-# DN Consultancy — Static & Clean Routing Rules
+# JK & Associates — Static & Clean Routing Rules
+/certify                /tools/certification-navigator.html 301
+/venture                /tools/venture-builder.html        301
+/structure              /tools/corporate-structure.html    301
+/org                    /tools/organogram-planner.html     301
 /scorecard              /diagnostic.html                   301
 /results                /results.html                      301
 /cask                   /tools/cask-calculator.html        301
@@ -8,6 +12,10 @@
 /mro                    /tools/mro-readiness.html          301
 /tna                    /tools/training-tna.html           301
 
+/tools/certification-navigator /tools/certification-navigator.html 200
+/tools/venture-builder  /tools/venture-builder.html        200
+/tools/corporate-structure /tools/corporate-structure.html 200
+/tools/organogram-planner /tools/organogram-planner.html   200
 /tools/cask-calculator  /tools/cask-calculator.html        200
 /tools/fuel-optimizer   /tools/fuel-optimizer.html         200
 /tools/operating-model-canvas /tools/operating-model-canvas.html 200
