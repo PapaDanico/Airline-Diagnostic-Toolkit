@@ -45,7 +45,7 @@
   <div class="wrap">
     <p class="eyebrow">Legal</p>
     <h1 style="margin:0">Privacy Notice</h1>
-    <p class="muted">Last updated 29 May 2026 · Aligned with the Data Protection Act, 2019 (Kenya)</p>
+    <p class="muted">Last updated 1 August 2026 · Aligned with the Data Protection Act, 2019 (Kenya)</p>
   </div>
 </header>
 
@@ -92,10 +92,19 @@
     </ul>
 
     <h2 id="approach">2. How the tools handle your data</h2>
-    <p>The Airline Health Scorecard, CASK Benchmarking Calculator, Operating Model Canvas, 48-Hour Data Request and
-      Fuel Contract Optimizer Lite are <strong>client-side tools</strong>. They run as code in your browser. Any
-      values you enter are processed on your device and, where you would otherwise lose them on refresh, are saved
-      to your browser's <strong>local storage</strong> (see section 5).</p>
+    <p><strong>Every tool on this site is a client-side tool.</strong> They run as code in your browser. Any values you
+      enter are processed on your device and, where you would otherwise lose them on refresh, are saved to your
+      browser's <strong>local storage</strong> (see section 5). This applies without exception to all of them:</p>
+    <ul>
+      <li><strong>Venture tools:</strong> Venture Control Room, KCAA Certification Navigator, Greenfield Venture Builder,
+        Corporate Structure Designer, and Organogram &amp; Postholder Planner.</li>
+      <li><strong>Operating-carrier tools:</strong> Airline Health Scorecard, CASK Benchmarking Calculator, Operating Model
+        Canvas, Fuel Contract Optimizer Lite, Training Needs Analysis, MRO &amp; Technical Readiness Diagnostic, and the
+        48-Hour Data Request.</li>
+    </ul>
+    <p>This matters most for the tools where you type things about real people and real money — the names of proposed
+      shareholders in the Corporate Structure Designer, the names of proposed postholders in the Organogram Planner, and
+      your capital and funding assumptions in the Venture Builder. Those never leave your device.</p>
     <ul>
       <li>Your inputs are <strong>not transmitted</strong> to JK or to any server. There is no database, no account, and no upload.</li>
       <li>We use <strong>no cookies</strong>, no analytics, no advertising or tracking technologies, and no social-media pixels.</li>
@@ -109,10 +118,12 @@
       send that email, we receive your email address, your name (if you include it) and whatever you choose to write
       — which may include information about your airline. You decide what to share.</p>
     <h3>(b) Technical data handled by our service providers</h3>
-    <p>As with any website, when your browser loads our pages our hosting/content-delivery providers and our web-font
-      provider automatically process limited technical data — such as your IP address, the page requested, browser
-      type and timestamp — to deliver the page and keep it secure. We do not use this data to identify you and we do
-      not build profiles from it. See sections 6 and 7.</p>
+    <p>As with any website, when your browser loads our pages our hosting/content-delivery provider automatically
+      processes limited technical data — such as your IP address, the page requested, browser type and timestamp —
+      to deliver the page and keep it secure. We do not use this data to identify you and we do not build profiles
+      from it. See sections 6 and 7.</p>
+    <p>Our typefaces are served from this same domain, so loading a page discloses your IP address only to our
+      hosting provider and to no one else.</p>
 
     <h2 id="basis">4. Purposes and lawful bases</h2>
     <p>Under section 30 of the Act we process personal data only where we have a lawful basis:</p>
@@ -125,28 +136,42 @@
     <p>Where we rely on consent, you may withdraw it at any time by contacting us; this does not affect processing already carried out.</p>
 
     <h2 id="storage">5. Local storage on your device</h2>
-    <p>To make the tools usable, your browser stores your entries under keys such as <code>dn_airline_scorecard_v2</code>,
-      <code>dn_operating_model_canvas_v1</code> and <code>dn_data_request_v1</code>. This is <em>local storage</em>, not a
+    <p>To make the tools usable, your browser stores your entries under keys beginning <code>jk_</code> or <code>dn_</code>
+      — for example <code>jk_airline_scorecard_v3</code>, <code>jk_structure_v3</code>, <code>jk_organogram_v3</code>,
+      <code>jk_venture_file_v3</code> and <code>dn_operating_model_canvas_v1</code>. This is <em>local storage</em>, not a
       cookie: it stays in your browser, is not sent in network requests, and is not visible to us. You remain in control:</p>
     <ul>
       <li>Use the "Reset" / "Clear" buttons in the tools, or</li>
       <li>Clear your browser's site data for this domain, or</li>
       <li>Use a private/incognito window, which discards it when you close the window.</li>
     </ul>
+    <h3>Exporting your workspace</h3>
+    <p>The Venture Control Room can export everything the tools have saved — the whole workspace, including any names and
+      financial assumptions you entered — into a single <code>.json</code> file that your browser downloads to your device.
+      We do not receive that file and it is not uploaded anywhere. Two things follow, and you should weigh both:</p>
+    <ul>
+      <li>The file is a <strong>plain, readable copy</strong> of your inputs. Treat it with the same care as any other
+        confidential document — it is only as protected as wherever you save it.</li>
+      <li>Once <em>you</em> send it to someone — a colleague, a lender, an adviser — it is outside our design and outside
+        our control. Nothing in this notice can protect data you have chosen to forward.</li>
+    </ul>
+    <p>Importing a workspace file replaces what the tools currently hold on that device. The import runs entirely in your
+      browser and reads only keys belonging to this site.</p>
 
     <h2 id="recipients">6. Who else is involved (processors &amp; third parties)</h2>
     <p>We keep third parties to the minimum needed to serve a static website:</p>
     <ul>
       <li><strong>Hosting / content delivery:</strong> Netlify and/or Vercel host the static files and serve them over HTTPS.</li>
-      <li><strong>Web fonts:</strong> typefaces are loaded from <strong>Google Fonts</strong> (Google LLC). When fonts load, your
-        IP address is necessarily disclosed to Google as the font host. We set a strict referrer policy to limit what is shared.</li>
+      <li><strong>Web fonts: none.</strong> Our typefaces are <strong>self-hosted</strong> on this domain. Earlier versions of
+        this site loaded them from Google Fonts, which disclosed your IP address to Google on every page view; that is no
+        longer the case, and no third-party font, script, analytics or advertising service is loaded anywhere on this site.</li>
       <li><strong>Email:</strong> if you email us, our email provider processes that message so we can read and reply.</li>
     </ul>
     <p>These providers act as our processors or as independent controllers of the technical data described above. We do not
       sell or rent personal data, and we do not share your tool inputs with anyone because we never receive them.</p>
 
     <h2 id="transfers">7. International data transfers</h2>
-    <p>Our hosting, content-delivery and web-font providers operate infrastructure outside Kenya, including in the United States
+    <p>Our hosting and content-delivery providers operate infrastructure outside Kenya, including in the United States
       and other countries. Consequently, loading the site, and any email you send us, may involve transferring the limited data
       described above outside Kenya. In line with sections 48 and 49 of the Act, such transfers are made in reliance on the
       providers' own data-protection commitments and appropriate safeguards. If you would like more detail on a specific
