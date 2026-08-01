@@ -1,9 +1,9 @@
 /* ============================================================
-   DN CONSULTANCY — shared client-side helpers (v2.0)
+   JK & ASSOCIATES — shared client-side helpers (v2.0)
    No network calls. All state in localStorage on this device.
    ============================================================ */
 
-const STORE_KEY = "dn_airline_scorecard_v2";
+const STORE_KEY = "jk_airline_scorecard_v3";
 
 /* ---- asset base ----
    Resolved from common.js's own URL so logo/image paths work whether the
@@ -13,18 +13,21 @@ const ASSET_BASE = (function () {
   return s ? s.replace(/assets\/js\/common\.js(\?.*)?$/, "") : "";
 })();
 
-/* ---- official DN Consultancy badge (circular D/N emblem) ----
-   Transparent-background PNG; on dark surfaces the footer applies
-   .logo-invert (brightness(0) invert(1)) to render it white. */
-const DN_LOGO = `<img class="logo" src="${ASSET_BASE}assets/img/dn-badge.png" alt="DN Consultancy" width="40" height="40">`;
+/* ---- official JK & Associates mark (the phoenix in the Adinkra ring) ----
+   Two artworks, not one artwork plus a CSS filter: the dark-surface
+   variant is a pre-lightened render that preserves the oxblood→amber
+   gradient. brightness(0) invert(1) would flatten the phoenix into a
+   white silhouette, which is precisely the thing worth keeping. */
+const JK_LOGO       = `<img class="logo" src="${ASSET_BASE}assets/img/jk-badge.png" alt="JK &amp; Associates" width="42" height="42" decoding="async">`;
+const JK_LOGO_LIGHT = `<img class="logo" src="${ASSET_BASE}assets/img/jk-badge-light.png" alt="JK &amp; Associates" width="42" height="42" decoding="async" loading="lazy">`;
 
 /* ---- partner / white-label handling (?partner=<KEY>) ----
-   No-op unless ?partner= matches a key registered in DN.partners
-   (empty by default — this is a DN Consultancy product). */
+   No-op unless ?partner= matches a key registered in JK.partners
+   (empty by default — this is a JK & Associates product). */
 function applyPartner() {
   const p = activePartnerKey();
   if (!p) return null;
-  const cfg = DN.partners[p.toUpperCase()];
+  const cfg = JK.partners[p.toUpperCase()];
   document.body.classList.add("has-partner", "partner-" + p.toLowerCase());
   document.documentElement.style.setProperty("--accent", cfg.accent);
   document.documentElement.style.setProperty("--accent-deep", cfg.accentDeep);
@@ -36,12 +39,12 @@ function applyPartner() {
 }
 
 /* ---- resolve the active white-label partner from ?partner= ----
-   Returns the URL key only if it maps to a registered DN.partners entry,
+   Returns the URL key only if it maps to a registered JK.partners entry,
    else null — so a bogus ?partner= never leaks into navigation. */
 function activePartnerKey() {
   const p = new URLSearchParams(location.search).get("partner");
   if (!p) return null;
-  return (window.DN && DN.partners[p.toUpperCase()]) ? p : null;
+  return (window.JK && JK.partners[p.toUpperCase()]) ? p : null;
 }
 
 /* ---- preserve ?partner= across internal navigation ----
@@ -66,39 +69,83 @@ function keepPartnerParam(scope, p) {
    different links/order per page, self-referential entries, and stray
    one-off links). Path-aware for root vs /tools/ pages; the current page
    is marked and rendered non-navigating. */
+/* The platform serves two audiences with different journeys, so the
+   tools menu is grouped rather than flat: BUILD (greenfield venture) and
+   OPERATE (existing carrier). The grouping is the information
+   architecture made visible — a visitor should never have to guess which
+   half of the practice a tool belongs to. */
+const TOOL_MENU = [
+  { group: "Build a venture", items: [
+    { file: "tools/certification-navigator.html", label: "KCAA Certification Navigator" },
+    { file: "tools/venture-builder.html",         label: "Greenfield Venture Builder" },
+    { file: "tools/corporate-structure.html",     label: "Corporate Structure Designer" },
+    { file: "tools/organogram-planner.html",      label: "Organogram & Postholder Planner" }
+  ]},
+  { group: "Operate an airline", items: [
+    { file: "diagnostic.html",                    label: "Airline Health Scorecard" },
+    { file: "tools/cask-calculator.html",         label: "CASK Benchmarking Calculator" },
+    { file: "tools/operating-model-canvas.html",  label: "Operating Model Canvas" },
+    { file: "tools/fuel-optimizer.html",          label: "Fuel Contract Optimizer" },
+    { file: "tools/training-tna.html",            label: "Training Needs Analysis" },
+    { file: "tools/mro-readiness.html",           label: "MRO Readiness Assessment" },
+    { file: "tools/data-request.html",            label: "48-Hour Data Request" }
+  ]}
+];
+
 function buildNav() {
   const inTools = location.pathname.includes("/tools/");
   const root = inTools ? "../" : "";
   const here = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  // path of the current page relative to the site root, so menu entries can
+  // be matched against their canonical `file` values from either directory.
+  const herePath = (inTools ? "tools/" : "") + here;
+
   const items = [
     { file: "index.html",        href: root + "index.html",        label: "Home" },
     { file: "how-it-works.html", href: root + "how-it-works.html", label: "How It Works" },
-    // "Free Tools" points at the tools explorer (tools/index.html)
-    { file: inTools ? "index.html" : "tools/index.html",
-      href: inTools ? "index.html" : "tools/index.html", label: "Free Tools", tools: true },
     { file: "methodology.html",  href: root + "methodology.html",  label: "Methodology" }
   ];
-  const links = items.map(it => {
-    // Exact current page → non-navigating label (no link to the page you're on).
-    const onPage = it.tools ? (inTools && here === "index.html")
-                            : (!inTools && here === it.file);
-    if (onPage) return `<span class="nav-current" aria-current="page">${it.label}</span>`;
-    // "Free Tools" on an individual tool page → mark the section but keep it a
-    // live link back to the explorer, so deep visitors still see "you are here"
-    // without losing the way back.
-    const inSection = it.tools && inTools;
-    const attrs = inSection ? ' class="nav-section" aria-current="location"' : "";
-    return `<a href="${it.href}"${attrs} data-keep-partner>${it.label}</a>`;
-  });
-  // primary CTA — omit as a link on the scorecard page itself
-  const onScorecard = here === "diagnostic.html";
-  if (!onScorecard) links.push(`<a class="btn btn-primary" href="${root}diagnostic.html" data-keep-partner>Start the scorecard</a>`);
-  return links.join("\n");
+  const link = it => {
+    if (herePath === it.file) return `<span class="nav-current" aria-current="page">${it.label}</span>`;
+    return `<a href="${it.href}" data-keep-partner>${it.label}</a>`;
+  };
+
+  const out = [link(items[0]), link(items[1])];
+
+  // grouped tools dropdown
+  const onExplorer = herePath === "tools/index.html";
+  const explorerHref = root + "tools/index.html";
+  const groups = TOOL_MENU.map(g => {
+    const rows = g.items.map(t => {
+      const href = root + t.file;
+      if (herePath === t.file) return `<span class="nav-current" aria-current="page" style="display:block;padding:.55rem .7rem">${t.label}</span>`;
+      return `<a href="${href}" data-keep-partner>${t.label}</a>`;
+    }).join("");
+    return `<div class="dd-head">${g.group}</div>${rows}`;
+  }).join("");
+  const topLabel = onExplorer
+    ? `<span class="nav-current" aria-current="page">Free Tools ▾</span>`
+    : `<a href="${explorerHref}"${inTools ? ' class="nav-section" aria-current="location"' : ""} data-keep-partner>Free Tools ▾</a>`;
+  out.push(`<div class="dropdown">${topLabel}<div class="dropdown-menu">${groups}
+    <div class="dd-head">All</div><a href="${explorerHref}" data-keep-partner>Browse every tool →</a></div></div>`);
+
+  out.push(link(items[2]));
+
+  // primary CTA — the venture path is the wider front door, but do not
+  // link to a page the visitor is already standing on.
+  if (herePath !== "tools/certification-navigator.html") {
+    out.push(`<a class="btn btn-primary" href="${root}tools/certification-navigator.html" data-keep-partner>Start free</a>`);
+  }
+  return out.join("\n");
 }
 
 /* ---- nav (mobile toggle) + brand/footer injection ---- */
 function mountChrome() {
-  document.querySelectorAll("[data-logo]").forEach(el => el.innerHTML = DN_LOGO);
+  // [data-logo] takes the standard mark; [data-logo="light"] takes the
+  // dark-surface render (footer, ink hero).
+  document.querySelectorAll("[data-logo]").forEach(el => {
+    el.innerHTML = el.getAttribute("data-logo") === "light" ? JK_LOGO_LIGHT : JK_LOGO;
+  });
   const toggle = document.querySelector(".nav-toggle");
   const navLinks = document.querySelector(".nav-links");
   if (navLinks) {
@@ -123,19 +170,19 @@ function mountChrome() {
     document.addEventListener("keydown", e => { if (e.key === "Escape") setOpen(false); });
   }
   document.querySelectorAll("[data-year]").forEach(el => el.textContent = new Date().getFullYear());
-  document.querySelectorAll("[data-version]").forEach(el => el.textContent = DN.brand.version);
+  document.querySelectorAll("[data-version]").forEach(el => el.textContent = JK.brand.version);
   document.querySelectorAll("[data-email]").forEach(el => {
-    el.textContent = DN.brand.email;
-    if (el.tagName === "A") el.href = "mailto:" + DN.brand.email;
+    el.textContent = JK.brand.email;
+    if (el.tagName === "A") el.href = "mailto:" + JK.brand.email;
   });
   // Plain, selectable address (for visitors with no configured mail client).
-  document.querySelectorAll("[data-email-plain]").forEach(el => { el.textContent = DN.brand.email; });
+  document.querySelectorAll("[data-email-plain]").forEach(el => { el.textContent = JK.brand.email; });
   // "Copy email" buttons — robust fallback when mailto: links do nothing.
   document.querySelectorAll("[data-copy-email]").forEach(btn => {
     btn.addEventListener("click", async () => {
       const original = btn.textContent;
-      try { await navigator.clipboard.writeText(DN.brand.email); btn.textContent = "Copied ✓"; }
-      catch { btn.textContent = DN.brand.email; }
+      try { await navigator.clipboard.writeText(JK.brand.email); btn.textContent = "Copied ✓"; }
+      catch { btn.textContent = JK.brand.email; }
       setTimeout(() => { btn.textContent = original; }, 1600);
     });
   });
@@ -144,11 +191,11 @@ function mountChrome() {
   window.copyEmail = async (btn) => {
     const original = btn.textContent;
     try {
-      await navigator.clipboard.writeText(DN.brand.email);
+      await navigator.clipboard.writeText(JK.brand.email);
       btn.textContent = "Copied ✓";
-      btn.style.color = "var(--dn-green)";
+      btn.style.color = "var(--jk-green)";
     } catch {
-      btn.textContent = DN.brand.email;
+      btn.textContent = JK.brand.email;
     }
     setTimeout(() => {
       btn.textContent = original;
@@ -178,11 +225,11 @@ function sessionSet(key, value) { try { sessionStorage.setItem(key, value); } ca
 function computeScores(answers) {
   let weighted = 0, wsum = 0, answeredAll = true;
   const calib = answers._calibration || {};
-  const weights = (window.DN && DN.getAdjustedWeights)
-    ? DN.getAdjustedWeights(calib.fleetType, calib.opModel)
+  const weights = (window.JK && JK.getAdjustedWeights)
+    ? JK.getAdjustedWeights(calib.fleetType, calib.opModel)
     : {};
 
-  const domains = DN.domains.map(d => {
+  const domains = JK.domains.map(d => {
     const weight = weights[d.id] !== undefined ? weights[d.id] : d.weight;
     const arr = answers[d.id] || [];
     const answered = arr.filter(v => Number.isInteger(v)).length;
@@ -192,7 +239,7 @@ function computeScores(answers) {
     const pct = answered ? Math.round((sum / (answered * 4)) * 100) : 0;
     weighted += pct * weight; wsum += weight;
     return { id: d.id, name: d.name, weight, pct, answered, total,
-             rag: DN.rag(pct), blurb: d.blurb, rxCategory: d.rxCategory, dnTool: d.dnTool, fuelLink: d.fuelLink,
+             rag: JK.rag(pct), blurb: d.blurb, rxCategory: d.rxCategory, jkTool: d.jkTool, fuelLink: d.fuelLink,
              benchmark: d.benchmark, benchmarkSrc: d.benchmarkSrc, standard: d.standard,
              caskLink: d.caskLink, canvasLink: d.canvasLink };
   });
@@ -200,13 +247,13 @@ function computeScores(answers) {
 }
 
 function indexVerdict(idx) {
-  if (idx < 45) return { band: "Turnaround required", color: "var(--dn-red)",
+  if (idx < 45) return { band: "Turnaround required", color: "var(--jk-red)",
     text: "Multiple foundational gaps. A structured 90-day intervention is warranted before further investment in software." };
-  if (idx < 65) return { band: "Material gaps to close", color: "var(--dn-amber)",
+  if (idx < 65) return { band: "Material gaps to close", color: "var(--jk-amber)",
     text: "Solid in parts, but priority gaps are eroding performance. Targeted fixes can unlock value quickly." };
-  if (idx < 80) return { band: "Competitive, with upside", color: "var(--dn-green)",
+  if (idx < 80) return { band: "Competitive, with upside", color: "var(--jk-green)",
     text: "A healthy operation. Focused optimisation in the weaker domains will sharpen the cost and revenue edge." };
-  return { band: "Best-in-class trajectory", color: "var(--dn-green)",
+  return { band: "Best-in-class trajectory", color: "var(--jk-green)",
     text: "Strong across the board. The opportunity is to defend the lead and institutionalise the discipline." };
 }
 
@@ -235,7 +282,7 @@ function drawRadar(svg, domains, overlay) {
   [0.25, 0.5, 0.75, 1].forEach(f => {
     const poly = document.createElementNS(ns, "polygon");
     poly.setAttribute("points", domains.map((_, i) => pt(i, r * f).join(",")).join(" "));
-    poly.setAttribute("fill", "none"); poly.setAttribute("stroke", "#D6E4F0"); poly.setAttribute("stroke-width", "1");
+    poly.setAttribute("fill", "none"); poly.setAttribute("stroke", "#EADCC9"); poly.setAttribute("stroke-width", "1");
     svg.appendChild(poly);
   });
   // axes + labels
@@ -243,7 +290,7 @@ function drawRadar(svg, domains, overlay) {
     const [x, y] = pt(i, r);
     const line = document.createElementNS(ns, "line");
     line.setAttribute("x1", cx); line.setAttribute("y1", cy); line.setAttribute("x2", x); line.setAttribute("y2", y);
-    line.setAttribute("stroke", "#D6E4F0"); svg.appendChild(line);
+    line.setAttribute("stroke", "#EADCC9"); svg.appendChild(line);
 
     const [lx, ly] = pt(i, r + labelGap);
     const anchor = lx < cx - 5 ? "end" : lx > cx + 5 ? "start" : "middle";
@@ -253,7 +300,7 @@ function drawRadar(svg, domains, overlay) {
     tx.setAttribute("y", ly - (lines.length - 1) * 5.5); // vertically centre the block
     tx.setAttribute("text-anchor", anchor);
     tx.setAttribute("dominant-baseline", "middle");
-    tx.setAttribute("font-size", "10"); tx.setAttribute("font-family", "DM Sans, sans-serif"); tx.setAttribute("fill", "#6B7280");
+    tx.setAttribute("font-size", "10"); tx.setAttribute("font-family", "DM Sans, sans-serif"); tx.setAttribute("fill", "#6E625C");
     lines.forEach((ln, j) => {
       const ts = document.createElementNS(ns, "tspan");
       ts.setAttribute("x", lx); if (j) ts.setAttribute("dy", "11");
@@ -266,7 +313,7 @@ function drawRadar(svg, domains, overlay) {
   if (overlay) {
     const op = document.createElementNS(ns, "polygon");
     op.setAttribute("points", overlay.map((pct, i) => pt(i, r * pct / 100).join(",")).join(" "));
-    op.setAttribute("fill", "none"); op.setAttribute("stroke", "#C9A227");
+    op.setAttribute("fill", "none"); op.setAttribute("stroke", "#E08A34");
     op.setAttribute("stroke-width", "2"); op.setAttribute("stroke-dasharray", "5 4");
     op.setAttribute("class", "radar-overlay");
     svg.appendChild(op);
@@ -274,13 +321,13 @@ function drawRadar(svg, domains, overlay) {
   // data polygon
   const poly = document.createElementNS(ns, "polygon");
   poly.setAttribute("points", domains.map((d, i) => pt(i, r * d.pct / 100).join(",")).join(" "));
-  poly.setAttribute("fill", "rgba(74,127,165,.28)"); poly.setAttribute("stroke", "#4A7FA5"); poly.setAttribute("stroke-width", "2");
+  poly.setAttribute("fill", "rgba(196,85,31,.26)"); poly.setAttribute("stroke", "#9E3116"); poly.setAttribute("stroke-width", "2");
   svg.appendChild(poly);
   domains.forEach((d, i) => {
     const [x, y] = pt(i, r * d.pct / 100);
     const dot = document.createElementNS(ns, "circle");
     dot.setAttribute("cx", x); dot.setAttribute("cy", y); dot.setAttribute("r", "3.2");
-    dot.setAttribute("fill", d.pct < 45 ? "#C0392B" : d.pct < 65 ? "#D4AC0D" : "#1E8449");
+    dot.setAttribute("fill", d.pct < 45 ? "#C62828" : d.pct < 65 ? "#B87503" : "#1E7A4A");
     svg.appendChild(dot);
   });
 }
@@ -330,22 +377,167 @@ function wireToolEnquiryForm(formId, toolName, opts) {
       form.style.display = "none";
       if (msg) {
         msg.innerHTML = opts.downloadUrl
-          ? `✓ Received — a DN consultant will follow up within 24 hours. <a href="${opts.downloadUrl}" download>Download your copy of the ${opts.downloadName || "spec"} now →</a>`
-          : "✓ Received — a DN consultant will follow up within 24 hours.";
-        msg.style.color = "var(--dn-green)";
+          ? `✓ Received — a JK consultant will follow up within 24 hours. <a href="${opts.downloadUrl}" download>Download your copy of the ${opts.downloadName || "spec"} now →</a>`
+          : "✓ Received — a JK consultant will follow up within 24 hours.";
+        msg.style.color = "var(--jk-green)";
       }
     } catch {
       if (msg) {
-        msg.innerHTML = `Could not send — email us at <a href="mailto:${DN.brand.email}">${DN.brand.email}</a>`;
-        msg.style.color = "var(--dn-red)";
+        msg.innerHTML = `Could not send — email us at <a href="mailto:${JK.brand.email}">${JK.brand.email}</a>`;
+        msg.style.color = "var(--jk-red)";
       }
       btn.disabled = false; btn.textContent = "Try again →";
     }
   });
 }
 
+/* ============================================================
+   VENTURE-TRACK SHARED HELPERS
+   Used by the certification, venture, structure and organogram tools.
+   Everything below is pure client-side; nothing leaves the device.
+   ============================================================ */
+
+/* ---- namespaced per-tool storage that can never throw ---- */
+function toolStore(key) {
+  const k = "jk_" + key + "_v3";
+  return {
+    load() { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch { return {}; } },
+    save(obj) { try { localStorage.setItem(k, JSON.stringify(obj)); } catch {} },
+    clear() { try { localStorage.removeItem(k); } catch {} }
+  };
+}
+
+/* ---- HTML escaping ----
+   Anything a visitor types — a shareholder name, a postholder name —
+   must pass through this before it reaches innerHTML. These tools run
+   with no backend and no session to steal, but the state persists in
+   localStorage and the output is designed to be printed and handed to a
+   lender or counsel, so injected markup would survive into the artefact.
+   Escape at the sink, every time, without exception. */
+function escapeHtml(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ---- money formatting ----
+   Compact for headline figures (USD 8.4M), grouped for tables.
+   Always explicit about the unit — an unlabelled number in a capital
+   model is how people mistake thousands for millions. Scales through
+   B and T so a fat-fingered extra zero reads as "USD 1.00T", not as
+   the nonsense "USD 1000000.0M". */
+function fmtMoney(v, unit) {
+  unit = unit || "USD";
+  if (!isFinite(v)) return "—";
+  const abs = Math.abs(v);
+  const TIERS = [
+    { div: 1e12, suf: "T" }, { div: 1e9, suf: "B" },
+    { div: 1e6,  suf: "M" }, { div: 1e3, suf: "K" }, { div: 1, suf: "" }
+  ];
+  const dpFor = t => (t.suf === "K" || t.suf === "") ? 0
+                   : (t.suf === "M" && abs >= 1e7) ? 1 : 2;
+  let i = TIERS.findIndex(t => abs >= t.div);
+  if (i < 0) i = TIERS.length - 1;
+  // Rounding can push the mantissa up to 1000 — 999,949 formats as "1000K"
+  // if you stop here. Promote a tier whenever that happens, so the figure
+  // always reads with one to three leading digits. Tuning the thresholds
+  // instead would need a different constant per decimal precision.
+  while (i > 0 && Math.abs(+(v / TIERS[i].div).toFixed(dpFor(TIERS[i]))) >= 1000) i--;
+  const t = TIERS[i];
+  return `${unit} ${(v / t.div).toFixed(dpFor(t))}${t.suf}`;
+}
+
+/* ---- ratio formatting ----
+   A coverage ratio in the thousands is arithmetically true and
+   practically meaningless; showing "1107249.62x" implies a precision
+   the model does not have. Anything past 100x is reported as ">100x". */
+function fmtRatio(v) {
+  if (v === null || v === undefined || !isFinite(v)) return "—";
+  if (v > 100) return "&gt;100×";
+  if (v < -100) return "&lt;−100×";
+  return v.toFixed(2) + "×";
+}
+
+/* ---- clamp a numeric field to a sane range ----
+   min/max attributes constrain the spinner, not typing or paste. A
+   negative interest rate or negative revenue silently produces a
+   confident, wrong answer, which is worse than a rejected input. */
+function clampNum(v, lo, hi) {
+  if (!isFinite(v)) return lo;
+  return Math.min(hi, Math.max(lo, v));
+}
+function fmtNum(v, dp) {
+  if (!isFinite(v)) return "—";
+  return v.toLocaleString("en-GB", { minimumFractionDigits: dp || 0, maximumFractionDigits: dp || 0 });
+}
+
+/* ---- regulatory citation chip ----
+   Renders a citation with its verification state made visible. An
+   "unconfirmed" citation gets a distinct chip and its caveat as the
+   tooltip — a compliance tool that silently asserts a wrong Legal
+   Notice number is more dangerous than one that shows its working. */
+function citeChip(key) {
+  const c = (window.JKV && JKV.cite(key)) || null;
+  if (!c) return "";
+  const cls = c.s === "verified" ? "cite" : "cite unverified";
+  const inner = c.url
+    ? `<a href="${escapeHtml(c.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.ref)}</a>`
+    : escapeHtml(c.ref);
+  return `<span class="${cls}" title="${escapeHtml(c.long)}">${inner}</span>`;
+}
+function citeChips(keys) {
+  return (keys || []).map(citeChip).join("");
+}
+
+/* ---- branded print header ----
+   Injected once per tool page so a printed pack carries the mark, the
+   tool name and the date it was produced. Board packs get circulated
+   detached from their source; the header is what makes them traceable. */
+function mountPrintHead(toolName, subtitle) {
+  const html =
+    `<img src="${ASSET_BASE}assets/img/jk-logo-full.png" width="522" height="400" loading="lazy" decoding="async" alt="JK &amp; Associates">
+     <div class="ph-meta"><strong>${escapeHtml(toolName)}</strong><br>
+       ${subtitle ? escapeHtml(subtitle) + "<br>" : ""}
+       Prepared ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+       · JK &amp; Associates · ${escapeHtml(JK.brand.email)}</div>`;
+  // Rewrite in place rather than bailing out when a header already exists —
+  // these tools call this again on every sector change, and an early return
+  // would leave a printed AOC pack captioned with whichever sector happened
+  // to be selected first.
+  let el = document.querySelector(".print-head");
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "print-head";
+    const main = document.querySelector("main") || document.body;
+    main.insertBefore(el, main.firstChild);
+  }
+  el.innerHTML = html;
+}
+
+/* ---- tagged mailto for a tool enquiry ----
+   The site collects no analytics by design, so the subject tag is the
+   only lead-attribution signal there is. Keep the tags stable. */
+function toolMailto(tag, subject, body) {
+  return `mailto:${JK.brand.email}` +
+    `?subject=${encodeURIComponent(`[JK · ${tag}] ${subject}`)}` +
+    `&body=${encodeURIComponent(body || "")}`;
+}
+
+/* ---- accessible collapse/expand for a disclosure button ---- */
+function wireDisclosure(btn, panel, onToggle) {
+  if (!btn || !panel) return;
+  btn.setAttribute("aria-expanded", String(!panel.hidden));
+  btn.addEventListener("click", () => {
+    const open = panel.hidden;
+    panel.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+    if (onToggle) onToggle(open);
+  });
+}
+
 if (typeof window !== "undefined") {
-  Object.assign(window, { STORE_KEY, DN_LOGO, applyPartner, mountChrome,
+  Object.assign(window, { STORE_KEY, JK_LOGO, JK_LOGO_LIGHT, applyPartner, mountChrome,
     saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel,
-    wireToolEnquiryForm, sessionGet, sessionSet });
+    wireToolEnquiryForm, sessionGet, sessionSet,
+    toolStore, fmtMoney, fmtNum, fmtRatio, clampNum, escapeHtml,
+    citeChip, citeChips, mountPrintHead, toolMailto, wireDisclosure });
 }

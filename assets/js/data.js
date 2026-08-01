@@ -1,28 +1,34 @@
 /* ============================================================
-   DN CONSULTANCY — Airline Health Scorecard (Tool A1)
+   JK & ASSOCIATES — Airline Health Scorecard (Tool A1)
    Data model: 8 domains × 5 questions = 40, weighted health index.
    All scoring is client-side. Each option carries a 0–4 score
    (0 = absent, 4 = best-practice). Domain % = avg(scores)/4*100.
    Health index = Σ(domain% × weight).
+
+   This file carries the OPERATING-CARRIER track. The greenfield /
+   investor track (sectors, KCAA certification pathways, capital
+   models, corporate structure, organograms) lives in data-ventures.js.
    ============================================================ */
 
-const DN = {
+const JK = {
   brand: {
-    name: "DN Consultancy",
+    name: "JK & Associates",
+    short: "JK",
     tagline: "Shaping Africa's Future, Together.",
+    descriptor: "Aviation Advisory · Africa",
     email: "info@aviationhubkenya.org",
     location: "Nairobi, Kenya",
-    version: "v2.0 — Strategic Diagnostic & Point Solutions"
+    version: "v3.0 — End-to-End Aviation Advisory Platform"
   },
 
-  // Soft "DN Engagement Key" gate for Toolboxes B/C/D (marketing gate, not security).
-  engagementKey: "DN-ENGAGE-2026",
+  // Soft engagement-key gate for Toolboxes B/C/D (marketing gate, not security).
+  engagementKey: "JK-ENGAGE-2026",
 
-  // Partner white-label registry. Empty by default — this is a DN
-  // Consultancy product. To co-brand for a real partner, add an entry
+  // Partner white-label registry. Empty by default — this is a JK &
+  // Associates product. To co-brand for a real partner, add an entry
   // keyed by the ?partner= value (matched case-insensitively), e.g.:
   //   EXAMPLE: { label: "Example Assoc.", accent: "#0E6B3A", accentDeep: "#0a4f2b",
-  //              cobrand: "Powered by DN Consultancy, in collaboration with Example Assoc.",
+  //              cobrand: "Powered by JK & Associates, in collaboration with Example Assoc.",
   //              logo: "assets/partner-example.png" }
   // Then whitelist their domain in _headers (frame-ancestors) before go-live.
   partners: {},
@@ -94,7 +100,7 @@ const DN = {
       id: "safety", name: "Safety & SMS Maturity", weight: 18,
       blurb: "ICAO SMS maturity, reporting culture, regulatory standing and safety-data analysis.",
       rxCategory: "Aviation SMS platforms and flight-data analysis (FDM/FOQA) tooling; independent safety-culture and SMS maturity assessment.",
-      dnTool: "DN B4 — Safety Culture Maturity Assessment (ICAO SMS 5-level)",
+      jkTool: "JK B4 — Safety Culture Maturity Assessment (ICAO SMS 5-level)",
       benchmark: "64 African airlines are IOSA-registered; IOSA carriers average 0.92 vs 1.70 accidents per million flights, and IOSA is a condition of AFRAA & IATA membership.",
       benchmarkSrc: "IATA 2024 Safety Report",
       standard: "IOSA · ICAO SMS (Annex 19)",
@@ -115,15 +121,15 @@ const DN = {
       id: "ops", name: "Operational Reliability", weight: 14,
       blurb: "On-time performance, dispatch reliability, turnaround and disruption (IROPS) management.",
       rxCategory: "OCC / IROPS management systems, OTP and turn-time analytics, and movement-control tooling.",
-      dnTool: "DN B3 — Fleet Utilisation & Turn-Time Audit; C4 — KPI Governance Framework",
+      jkTool: "JK B3 — Fleet Utilisation & Turn-Time Audit; C4 — KPI Governance Framework",
       benchmark: "Best-practice on-time performance (departures within 15 min) sits around 80–82%, with technical dispatch reliability ≥ 98.5%.",
       benchmarkSrc: "Industry planning target",
       standard: "IATA GADM operational data",
       questions: [
         { t: "What is your on-time performance (departures within 15 min)?",
-          o: ["< 65%","65–72%","72–78%","78–82%","≥ 82% (DN target)"] },
+          o: ["< 65%","65–72%","72–78%","78–82%","≥ 82% (JK target)"] },
         { t: "What is your technical dispatch reliability?",
-          o: ["< 95%","95–96.5%","96.5–98%","98–98.5%","≥ 98.5% (DN target)"] },
+          o: ["< 95%","95–96.5%","96.5–98%","98–98.5%","≥ 98.5% (JK target)"] },
         { t: "How is aircraft turnaround managed?",
           o: ["No standard times","Informal","Standard turn times defined","Actively monitored vs target","Optimised + continuously improved"] },
         { t: "What is your OCC / IROPS disruption-handling capability?",
@@ -136,13 +142,13 @@ const DN = {
       id: "fleet", name: "Fleet & Network Planning", weight: 12,
       blurb: "Aircraft utilisation, route economics, fleet-network fit and planning horizon.",
       rxCategory: "Network and schedule planning tools and route-profitability / connectivity optimisers.",
-      dnTool: "DN B1 — Route Profitability Diagnostic; D2 — Airport Viability; D3 — Codeshare Mapper",
+      jkTool: "JK B1 — Route Profitability Diagnostic; D2 — Airport Viability; D3 — Codeshare Mapper",
       benchmark: "AFRAA members flew 209bn ASKs and 144.7bn RPKs in 2024, with traffic up 13.2% year-on-year — capacity is growing, so fleet-network fit is decisive.",
       benchmarkSrc: "AFRAA Q4 2024 report",
       standard: "Network & fleet-planning best practice",
       questions: [
         { t: "What is your average aircraft utilisation (block hours per day)?",
-          o: ["< 5","5–6.5","6.5–7.5","7.5–8.5","≥ 8.5 (DN target)"] },
+          o: ["< 5","5–6.5","6.5–7.5","7.5–8.5","≥ 8.5 (JK target)"] },
         { t: "How rigorously do you assess route profitability?",
           o: ["Not assessed","Revenue only","Basic route P&L","Route P&L with break-even load factor","Full contribution + network value"] },
         { t: "How well does your fleet fit your network (right-gauging)?",
@@ -157,7 +163,7 @@ const DN = {
       id: "cost", name: "Cost & Fuel Efficiency", weight: 14,
       blurb: "Unit cost (CASK) position, fuel as a share of cost, procurement and cost discipline.",
       rxCategory: "Fuel-efficiency and tankering tools, MRO/maintenance cost systems, and procurement/cost-analytics platforms.",
-      dnTool: "DN A2 — CASK Benchmarking Calculator; D4 — Fuel Procurement Optimisation",
+      jkTool: "JK A2 — CASK Benchmarking Calculator; D4 — Fuel Procurement Optimisation",
       benchmark: "Fuel is ~40% of operating cost for African carriers vs ~25% globally, and African unit costs run close to double the rest of the world.",
       benchmarkSrc: "IATA, Cost Disadvantage of African Airlines, 2025",
       standard: "IATA Airline Cost Management Group (ACMG)",
@@ -165,9 +171,9 @@ const DN = {
       caskLink: true,
       questions: [
         { t: "Where does your unit cost (CASK, USD per seat-km) sit?",
-          o: ["> 0.13","0.11–0.13","0.09–0.11","0.08–0.09","< 0.08 (DN target ≤ 0.09)"] },
+          o: ["> 0.13","0.11–0.13","0.09–0.11","0.08–0.09","< 0.08 (JK target ≤ 0.09)"] },
         { t: "What share of operating cost is fuel?",
-          o: ["> 38%","34–38%","32–34%","30–32%","< 30% (DN target ≤ 32%)"] },
+          o: ["> 38%","34–38%","32–34%","30–32%","< 30% (JK target ≤ 32%)"] },
         { t: "How developed is your fuel-efficiency programme?",
           o: ["None","Awareness only","Some initiatives","Structured fuel programme","Continuous (tankering, APU, flight-path)"] },
         { t: "How do you procure fuel and major contracts?",
@@ -180,14 +186,14 @@ const DN = {
       id: "revenue", name: "Revenue & Yield Management", weight: 13,
       blurb: "Load factor, RM capability, pricing discipline, demand forecasting and yield vs market.",
       rxCategory: "Revenue management systems with demand forecasting and dynamic-pricing capability.",
-      dnTool: "DN B5 — Revenue Mix Diagnostic; B1 — Route Profitability",
+      jkTool: "JK B5 — Revenue Mix Diagnostic; B1 — Route Profitability",
       benchmark: "African airlines averaged a 74.5% passenger load factor in 2024 — a regional record, but still the world's lowest, vs ~83.5% globally.",
       benchmarkSrc: "AFRAA / IATA, 2024",
       standard: "IATA revenue benchmarking",
       fuelLink: false,
       questions: [
         { t: "What is your passenger load factor?",
-          o: ["< 60%","60–68%","68–71%","71–75%","≥ 75% (DN target ≥ 72%)"] },
+          o: ["< 60%","60–68%","68–71%","71–75%","≥ 75% (JK target ≥ 72%)"] },
         { t: "What revenue-management capability do you have?",
           o: ["None","Manual","Basic class control","RMS with forecasting","Advanced with dynamic pricing"] },
         { t: "How disciplined is your pricing?",
@@ -202,13 +208,13 @@ const DN = {
       id: "commercial", name: "Commercial & Ancillary", weight: 10,
       blurb: "Ancillary revenue, distribution mix, loyalty/CRM, cargo and digital experience.",
       rxCategory: "Ancillary merchandising engines, NDC/distribution platforms, loyalty/CRM, and cargo revenue management.",
-      dnTool: "DN B5 — Revenue Mix Diagnostic",
+      jkTool: "JK B5 — Revenue Mix Diagnostic",
       benchmark: "Leading carriers earn $20+ in ancillary revenue per passenger; many African carriers remain in single digits.",
       benchmarkSrc: "Industry range",
       standard: "IATA NDC / airline retailing",
       questions: [
         { t: "What is your ancillary revenue per passenger (USD)?",
-          o: ["< 5","5–8","8–12","12–22","≥ 22 (DN target)"] },
+          o: ["< 5","5–8","8–12","12–22","≥ 22 (JK target)"] },
         { t: "How developed is your distribution mix?",
           o: ["GSA / manual","Single channel","Web + OTA","Multi-channel","NDC + optimised direct"] },
         { t: "What loyalty / CRM capability exists?",
@@ -223,7 +229,7 @@ const DN = {
       id: "people", name: "People & Organisation", weight: 9,
       blurb: "Staffing ratios, turnover, training currency, structure and leadership capacity.",
       rxCategory: "Training-management / LMS systems, competency-based training tools, and workforce-planning solutions.",
-      dnTool: "DN A5 — Training Needs Analysis; B2 — Staff Cost Efficiency Analyser",
+      jkTool: "JK A5 — Training Needs Analysis; B2 — Staff Cost Efficiency Analyser",
       benchmark: "Lean, well-run carriers target staff turnover under ~15% and benchmark headcount per aircraft against peer fleets.",
       benchmarkSrc: "Industry planning target",
       standard: "Competency-based training (ICAO/IATA)",
@@ -231,7 +237,7 @@ const DN = {
         { t: "How do staffing ratios compare to benchmark (per aircraft)?",
           o: ["Severely off","Off benchmark","Near benchmark","At benchmark","Optimised"] },
         { t: "What is your staff turnover?",
-          o: ["> 25%","20–25%","15–20%","10–15%","< 10% (DN target ≤ 15%)"] },
+          o: ["> 25%","20–25%","15–20%","10–15%","< 10% (JK target ≤ 15%)"] },
         { t: "How is training currency and needs managed?",
           o: ["Gaps / expired items","Reactive","Tracked","TNA-driven","Competency-based, continuous"] },
         { t: "How clear is org structure and accountability?",
@@ -244,7 +250,7 @@ const DN = {
       id: "finance", name: "Financial Health & Strategy", weight: 10,
       blurb: "Profitability, liquidity, business planning, board governance and strategic execution.",
       rxCategory: "Financial-planning & analysis (FP&A) and board-reporting / KPI-governance tooling.",
-      dnTool: "DN C1 — 90-Day Sprint; C3 — Board Presentation; C4 — KPI Governance; A4 — Operating Model Canvas",
+      jkTool: "JK C1 — 90-Day Sprint; C3 — Board Presentation; C4 — KPI Governance; A4 — Operating Model Canvas",
       canvasLink: true,
       benchmark: "African airlines posted a net margin of only ~1% in 2024 — roughly $1.20 profit per passenger — the thinnest of any region.",
       benchmarkSrc: "IATA, 2024",
@@ -268,30 +274,39 @@ const DN = {
   rag(p){ if (p < 45) return "red"; if (p < 65) return "amber"; return "green"; },
   ragLabel(p){ if (p < 45) return "Critical gap"; if (p < 65) return "Needs attention"; return "Strong"; },
 
-  // Full 14-tool catalogue (A free / B,C,D gated)
+  // Full tool catalogue.
+  //   A — free entry diagnostics for an OPERATING carrier
+  //   V — free venture tools for a GREENFIELD project (any of the six sectors)
+  //   B/C/D — deployed inside a JK engagement
   toolboxes: [
-    { box:"A", locked:false, title:"Entry Diagnostic", tools:[
+    { box:"A", locked:false, title:"Entry Diagnostic", track:"operate", tools:[
       {ref:"A1", n:"Airline Health Scorecard", d:"40 questions, 8 domains, weighted health index (this tool)."},
       {ref:"A2", n:"CASK Benchmarking Calculator", d:"Cost efficiency vs African and LCC benchmarks."},
       {ref:"A3", n:"48-Hour Data Request", d:"28-item structured priority data pack."},
       {ref:"A4", n:"Operating Model Canvas", d:"9-panel airline model on one page."},
       {ref:"A5", n:"Training Needs Analysis", d:"Competency-gap assessment, 4 staff groups."} ]},
-    { box:"B", locked:true, title:"Deep Diagnostic", tools:[
+    { box:"V", locked:false, title:"Venture & Greenfield", track:"build", tools:[
+      {ref:"V1", n:"KCAA Certification Navigator", d:"The five-phase certification path for six sectors, gate by gate."},
+      {ref:"V2", n:"Greenfield Venture Builder", d:"CAPEX, capital stack, debt sizing, DSCR and break-even."},
+      {ref:"V3", n:"Corporate Structure Designer", d:"HoldCo / SPV / OpCo layering with look-through economics."},
+      {ref:"V4", n:"Organogram & Postholder Planner", d:"Required postholders, org tree and headcount ramp."} ]},
+    { box:"B", locked:true, title:"Deep Diagnostic", track:"operate", tools:[
       {ref:"B1", n:"Route Profitability Diagnostic", d:"Fast P&L with break-even load factor per route."},
       {ref:"B2", n:"Staff Cost Efficiency Analyser", d:"Labour-ratio benchmarking across all staff groups."},
       {ref:"B3", n:"Fleet Utilisation & Turn-Time Audit", d:"Block hours, AOG and turnaround analysis."},
       {ref:"B4", n:"Safety Culture Maturity Assessment", d:"ICAO SMS 5-level scoring framework."},
       {ref:"B5", n:"Revenue Mix Diagnostic", d:"Diversification gap vs IATA Africa benchmarks."} ]},
-    { box:"C", locked:true, title:"Recommendations & Delivery", tools:[
+    { box:"C", locked:true, title:"Recommendations & Delivery", track:"operate", tools:[
       {ref:"C1", n:"90-Day Sprint Template", d:"3 financial targets, 5 ops fixes, 2 commercial initiatives."},
       {ref:"C2", n:"Quick Win Identifier", d:"Impact × effort priority matrix."},
       {ref:"C3", n:"Board Presentation Template", d:"8-slide board-structure findings deck."},
       {ref:"C4", n:"KPI Governance Framework", d:"12-KPI monthly management report."} ]},
-    { box:"D", locked:true, title:"Sector-Specific", tools:[
-      {ref:"D1", n:"AOC Startup Readiness Checklist", d:"30-item KCAA application tracker."},
+    { box:"D", locked:true, title:"Transaction & Sector", track:"build", tools:[
+      {ref:"D1", n:"Investment Memorandum Builder", d:"Investor-grade IM from your venture model."},
       {ref:"D2", n:"African Airport Viability Scorecard", d:"45-criteria Go / No-Go assessment."},
       {ref:"D3", n:"Codeshare & Interline Mapper", d:"Partner evaluation framework."},
-      {ref:"D4", n:"Fuel Procurement Optimisation", d:"Tender template + hedge-trigger framework."} ]}
+      {ref:"D4", n:"Fuel Procurement Optimisation", d:"Tender template + hedge-trigger framework."},
+      {ref:"D5", n:"Manuals & Compliance Library", d:"Ops, Training, Safety and Quality manual scaffolds."} ]}
   ],
 
   benchmarkMeta: {
@@ -324,4 +339,8 @@ const DN = {
 };
 
 // expose for non-module use
-if (typeof window !== "undefined") window.DN = DN;
+if (typeof window !== "undefined") {
+  window.JK = JK;
+  // legacy alias — older embeds/bookmarklets referencing DN keep working
+  window.DN = JK;
+}

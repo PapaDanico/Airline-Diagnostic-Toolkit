@@ -1,4 +1,4 @@
-# Netlify configuration — DN Airline Diagnostic Toolkit (static site)
+# Netlify configuration — JK & Associates aviation advisory platform (static site)
 [build]
   publish = "."
   # No build step: vanilla HTML/CSS/JS, served as-is.

@@ -1,4 +1,4 @@
-/* End-to-end behaviour tests for the DN Airline Diagnostic Toolkit.
+/* End-to-end behaviour tests for the JK & Associates aviation advisory platform.
    Runs the real pages in headless Chromium and asserts the core flows.
    Exits non-zero on any failure so CI fails loudly. Run: node tests/e2e.mjs */
 import { chromium } from "playwright";
@@ -57,7 +57,7 @@ assert(await page.$eval("#see-results", b => b.disabled), "see-results disabled 
 // Fill all 40 questions via localStorage and reload
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
   saveAnswers(ans);
 });
 await page.reload(); await page.waitForTimeout(300);
@@ -122,7 +122,7 @@ section("Results page — share URL round-trip");
 const shareURL = await page.evaluate(() => {
   // replicate results.js encodeAnswers logic
   const answers = loadAnswers();
-  const encoded = btoa(DN.domains.map(d =>
+  const encoded = btoa(JK.domains.map(d =>
     d.questions.map((_, qi) => {
       const v = (answers[d.id] || [])[qi];
       return Number.isInteger(v) ? String(v) : "x";
@@ -133,7 +133,7 @@ const shareURL = await page.evaluate(() => {
 assert(shareURL.includes("?s="), "share URL contains ?s= param");
 
 // Clear localStorage and load the share URL
-await page.evaluate(() => localStorage.removeItem("dn_airline_scorecard_v2"));
+await page.evaluate(() => localStorage.removeItem("jk_airline_scorecard_v3"));
 const fileShareURL = shareURL.replace(base + "/results.html", base + "/results.html");
 await page.goto(fileShareURL); await page.waitForTimeout(600);
 
@@ -154,7 +154,7 @@ assert(captureSectionDisplay === "none", "email capture section hidden in shared
 section("Results page — corrupt ?s= param handling");
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
   saveAnswers(ans);
 });
 // right length, but characters outside 0-4/x — must be rejected by decode
@@ -168,7 +168,7 @@ assert(await page.$eval("#email-capture-section", el => getComputedStyle(el).dis
 section("Diagnostic page — resume banner");
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach((d, i) => { ans[d.id] = i < 4 ? [1, 2, 3, 2, 4] : []; });
+  JK.domains.forEach((d, i) => { ans[d.id] = i < 4 ? [1, 2, 3, 2, 4] : []; });
   saveAnswers(ans);
   localStorage.setItem("dn_onboarded", "1"); // keep onboarding overlay from blocking clicks
 });
@@ -178,29 +178,93 @@ assert(/20 of 40/.test(await page.$eval(".resume-banner", e => e.textContent)), 
 await page.click("#resume-jump"); await page.waitForTimeout(300);
 assert(await page.$(".resume-banner") === null, "resume banner dismissed after jump");
 // no banner when nothing answered
-await page.evaluate(() => localStorage.removeItem("dn_airline_scorecard_v2"));
+await page.evaluate(() => localStorage.removeItem("jk_airline_scorecard_v3"));
 await page.reload(); await page.waitForTimeout(300);
 assert(await page.$(".resume-banner") === null, "no resume banner with zero answers");
 // no banner when everything answered
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
   saveAnswers(ans);
 });
 await page.reload(); await page.waitForTimeout(300);
 assert(await page.$(".resume-banner") === null, "no resume banner when fully answered");
 
-/* ─── 4d. HOMEPAGE — hero radar preview ─── */
-section("Homepage — hero radar preview");
+/* ─── 4c-bis. VENTURE TOOLS — injection, clamping, formatting ───
+   These three defects were found by audit, not by a user, and each one
+   fails silently: markup in a shareholder name executes, a negative
+   interest rate returns a confident wrong DSCR, and a fat-fingered zero
+   renders "USD 1000000.0M". Lock all three down. */
+section("Venture tools — input safety & numeric hygiene");
+
+// -- shareholder names must never reach innerHTML unescaped --
+await page.goto(base + "/tools/corporate-structure.html");
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(400);
+await page.click('[data-arch="holdco"]'); await page.waitForTimeout(300);
+let xssFired = false;
+await page.exposeFunction("__xssProbe", () => { xssFired = true; });
+await (await page.$$('#tree input[type="text"]'))[0]
+  .fill('<img src=x onerror="window.__xssProbe()">');
+await page.waitForTimeout(600);
+assert(!/<img/i.test(await page.$eval("#lookthrough tbody", e => e.innerHTML)),
+  "holder name is escaped in the look-through table");
+assert(xssFired === false, "injected markup in a holder name does not execute");
+
+// -- look-through cascade reproduces a known three-tier cap table --
+await page.click('[data-arch="threetier"]'); await page.waitForTimeout(400);
+const lt = await page.$$eval("#lookthrough tbody tr", rows =>
+  rows.map(r => r.innerText.replace(/\s+/g, " ").trim()));
+assert(/61\.6[0-9]%/.test(lt[0]), "founder effective interest resolves to 61.6% (20% direct + 41.6% via chain)");
+assert(/27\.75%/.test(lt[1] || ""), "investor vehicle resolves to 27.75%");
+assert(/100\.00%/.test(await page.$eval("#lookthrough tfoot", e => e.innerText)), "chain resolves to exactly 100%");
+
+// -- numeric clamping + honest labelling in the venture builder --
+await page.goto(base + "/tools/venture-builder.html");
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(500);
+await page.fill("#f-debt", "1000000"); await page.fill("#d-rev", "1000000");
+await page.fill("#d-margin", "22"); await page.fill("#d-term", "0");
+await page.waitForTimeout(350);
+assert(/Set a repayment term/.test(await page.$eval("#sens tbody", e => e.innerText)),
+  "debt with no term reports the missing term, not 'No debt'");
+
+await page.fill("#d-term", "7"); await page.fill("#d-rate", "-5");
+await page.waitForTimeout(350);
+assert(await page.$eval("#sens tbody", e => !/-?\d*\.\d+×/.test(e.innerText) || !/NaN/.test(e.innerText)),
+  "negative interest rate does not produce NaN");
+assert(!/NaN|Infinity/.test(await page.$eval("#main", e => e.innerText)),
+  "no NaN or Infinity leaks into the rendered model");
+
+await page.fill("#d-rate", "9"); await page.fill("#d-rev", "999999999999");
+await page.waitForTimeout(350);
+const bigTxt = await page.$eval("#sens tbody", e => e.innerText);
+assert(!/USD \d{4,}/.test(bigTxt), "large figures roll into B/T rather than printing a 4-digit mantissa");
+assert(/>100×/.test(await page.$eval("#r-dscr", e => e.textContent)) ||
+       /\d+\.\d\d×/.test(await page.$eval("#r-dscr", e => e.textContent)),
+  "absurd coverage ratios are reported as >100x, not to two decimals");
+
+// -- print header must track the selected sector, not the first one --
+await page.goto(base + "/tools/certification-navigator.html");
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(400);
+await page.click('[data-sector="aoc"]'); await page.waitForTimeout(300);
+await page.click('[data-sector="uas"]'); await page.waitForTimeout(400);
+assert(/UAS|RPAS/i.test(await page.$eval(".print-head", e => e.innerText)),
+  "print header follows the current sector after switching");
+assert(await page.$$eval(".print-head", e => e.length) === 1, "exactly one print header is mounted");
+
+/* ─── 4d. HOMEPAGE — scorecard radar preview (Operate-track section) ─── */
+section("Homepage — scorecard radar preview");
 await page.goto(base + "/index.html"); await page.waitForTimeout(400);
-assert(await page.$eval("#hero-radar", s => s.querySelectorAll("polygon").length) >= 5, "hero radar renders rings + data polygon");
-assert(await page.$eval("#hero-radar", s => s.querySelectorAll("text").length) === 8, "hero radar labels all 8 domains");
+assert(await page.$eval("#hero-radar", s => s.querySelectorAll("polygon").length) >= 5, "scorecard radar renders rings + data polygon");
+assert(await page.$eval("#hero-radar", s => s.querySelectorAll("text").length) === 8, "scorecard radar labels all 8 domains");
 
 /* ─── 4e. RESULTS — scroll-triggered capture nudge ─── */
 section("Results page — capture nudge");
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
   saveAnswers(ans);
   sessionStorage.removeItem("dn_capture_nudged");
   sessionStorage.removeItem("dn_report_sent");
@@ -239,7 +303,7 @@ assert(await page.$("#hero-radar .radar-overlay") !== null, "dashed benchmark ov
 section("Results page — CSV calibration");
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
   saveAnswers(ans);
   sessionStorage.setItem("dn_capture_nudged", "1");
 });
@@ -312,7 +376,7 @@ assert(/middle third/.test(posTxt), "positioning terciles rendered (74.2% LF →
 assert(/indicative terciles/.test(posTxt), "positioning labelled as indicative");
 await page.goto(base + "/index.html"); await page.waitForTimeout(400);
 assert(await page.$$eval("#results-in-practice .card", e => e.length) === 3, "3 indicative composite vignettes on homepage");
-assert(/not attributable to any single airline/i.test(await page.$eval("#results-in-practice", e => e.textContent)), "privacy disclaimer present");
+assert(/not attributable to any single (airline|client)/i.test(await page.$eval("#results-in-practice", e => e.textContent)), "privacy disclaimer present");
 await page.goto(base + "/partners.html"); await page.waitForTimeout(400);
 assert(/mailto:/.test(await page.$eval("[data-partner-mailto]", a => a.href)), "partner CTA mailto pre-filled");
 assert(/partner=YOURNAME/.test(await page.$eval("section", e => e.textContent)), "partner link mechanics explained");
@@ -322,14 +386,14 @@ section("Results page — engagement key gate");
 // Reload with valid localStorage
 await page.evaluate(() => {
   const ans = {};
-  DN.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
   saveAnswers(ans);
 });
 await page.goto(base + "/results.html"); await page.waitForTimeout(500);
 
 await page.fill("#key-input", "wrong-key"); await page.click("#key-apply"); await page.waitForTimeout(150);
 assert(/Invalid/i.test(await page.$eval("#key-msg", e => e.textContent)), "wrong key rejected");
-await page.fill("#key-input", "dn-engage-2026"); await page.click("#key-apply"); await page.waitForTimeout(150);
+await page.fill("#key-input", "jk-engage-2026"); await page.click("#key-apply"); await page.waitForTimeout(150);
 assert(/Unlocked/i.test(await page.$eval("#key-msg", e => e.textContent)), "correct key (lowercase) unlocks");
 assert(await page.$$eval(".toolcard.unlocked", e => e.length) > 0, "toolcards unlock after valid key");
 
@@ -356,7 +420,7 @@ assert(await page.$("#tool-preview-modal") === null, "Escape key closes the prev
 
 /* ─── 6. RESULTS — empty state ─── */
 section("Results page — empty state");
-await page.evaluate(() => localStorage.removeItem("dn_airline_scorecard_v2"));
+await page.evaluate(() => localStorage.removeItem("jk_airline_scorecard_v3"));
 await page.goto(base + "/results.html"); await page.waitForTimeout(300);
 assert(await page.$eval("#empty", e => getComputedStyle(e).display !== "none"), "empty state shown when no answers");
 assert(await page.$eval("#report", e => getComputedStyle(e).display === "none"), "report hidden in empty state");
@@ -536,7 +600,7 @@ for (const pg of ["index.html", "diagnostic.html", "results.html", "tools/traini
   if (pg === "results.html") {
     await page.evaluate(() => {
       const ans = {};
-      DN.domains.forEach(d => { ans[d.id] = [2, 2, 2, 2, 2]; });
+      JK.domains.forEach(d => { ans[d.id] = [2, 2, 2, 2, 2]; });
       saveAnswers(ans);
     });
   }

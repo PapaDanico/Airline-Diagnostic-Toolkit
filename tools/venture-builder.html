@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Size a greenfield African aviation venture: CAPEX by sector, capital stack, senior debt sizing, DSCR sensitivity and break-even. Free, private, runs entirely in your browser.">
+<link rel="canonical" href="https://jkassociates.enterprises/tools/venture-builder.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JK & Associates">
+<meta property="og:title" content="Greenfield Venture Builder — JK & Associates">
+<meta property="og:description" content="CAPEX, capital stack, debt sizing, DSCR and break-even for African aviation ventures.">
+<meta property="og:url" content="https://jkassociates.enterprises/tools/venture-builder.html">
+<meta property="og:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Greenfield Venture Builder — JK & Associates">
+<meta name="twitter:description" content="Size the capital, test the covenant, find the break-even.">
+<meta name="twitter:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<title>Greenfield Venture Builder | JK &amp; Associates</title>
+<link rel="icon" type="image/png" href="../assets/img/jk-badge.png">
+<link rel="apple-touch-icon" href="../assets/img/jk-badge.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/jk.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner>
+      <span data-logo></span>
+      <span>JK &amp; Associates<small>Venture Builder</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="nav-links"></div>
+  </div>
+</nav>
+
+<main id="main">
+
+<header class="tool-head">
+  <div class="wrap">
+    <p class="ref">Tool V2 · Free</p>
+    <h1>Greenfield Venture Builder</h1>
+    <p class="lead">Size the capital requirement, build the stack, sanity-test the covenant and find the break-even — before you commission a feasibility study. African aviation earns roughly <strong>$1.3 of net profit per passenger against $7.9 globally</strong>; a venture that only works on optimistic assumptions does not work.</p>
+  </div>
+</header>
+
+<section style="padding-top:40px">
+  <div class="wrap">
+    <p class="eyebrow">Step 1</p>
+    <h2 style="margin-bottom:.4rem">What are you building?</h2>
+    <p class="muted" style="max-width:680px">Each sector carries a different capital shape. Selecting one loads indicative planning ranges you can then override with your own numbers.</p>
+    <div class="segmented" id="sector-seg" style="margin-top:1.2rem" role="group" aria-label="Select a sector"></div>
+    <p class="muted" id="sector-note" style="font-size:.86rem;margin-top:1rem;max-width:720px"></p>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="tool-layout">
+      <div>
+
+        <!-- CAPEX -->
+        <p class="eyebrow">Step 2</p>
+        <h2 style="margin-bottom:.4rem">Capital requirement</h2>
+        <p class="muted" style="max-width:640px">Ranges are indicative planning figures, not quotations. Move each slider to your own estimate as soon as you have one — every line defaults to the mid-point.</p>
+
+        <div class="card card-flat" style="margin-top:1.2rem">
+          <div id="capex-lines"></div>
+          <div class="flex between items-center" style="border-top:2px solid var(--jk-line-2);margin-top:1rem;padding-top:1rem">
+            <b>Total capital requirement</b>
+            <b class="tnum" id="capex-total" style="font-size:1.25rem;font-family:var(--serif)">—</b>
+          </div>
+          <p class="muted" style="font-size:.8rem;margin:.6rem 0 0">
+            Split shown below as fixed CAPEX vs working capital — lenders size term debt against the former, not the latter.
+          </p>
+          <button class="btn btn-ghost btn-sm" id="reset-capex" style="margin-top:.9rem">Reset to sector mid-points</button>
+        </div>
+
+        <!-- FUNDING -->
+        <p class="eyebrow" style="margin-top:2.6rem">Step 3</p>
+        <h2 style="margin-bottom:.4rem">How it gets funded</h2>
+        <p class="muted" style="max-width:640px">Set what you can actually raise. The tool shows the gap rather than silently balancing the stack for you — a funding gap you can see is a funding gap you can close.</p>
+
+        <div class="card card-flat" style="margin-top:1.2rem">
+          <div class="field-row">
+            <div class="field">
+              <label for="f-equity">Founder / sponsor equity</label>
+              <input type="number" id="f-equity" min="0" step="10000" value="0">
+              <p class="hint">Permanent capital injected at financial close.</p>
+            </div>
+            <div class="field">
+              <label for="f-invest">Third-party equity</label>
+              <input type="number" id="f-invest" min="0" step="10000" value="0">
+              <p class="hint">Strategic or financial investors taking shares.</p>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="f-sub">Subordinated / shareholder loan</label>
+              <input type="number" id="f-sub" min="0" step="10000" value="0">
+              <p class="hint">Junior to senior debt. Only counts as equity for covenant purposes if an intercreditor deed says so.</p>
+            </div>
+            <div class="field">
+              <label for="f-grant">Grant / concessional funding</label>
+              <input type="number" id="f-grant" min="0" step="10000" value="0">
+              <p class="hint">Development finance, SEZ incentive or public co-funding.</p>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="f-debt">Senior debt drawn</label>
+              <input type="number" id="f-debt" min="0" step="10000" value="0">
+              <p class="hint">The facility you expect to draw.</p>
+            </div>
+            <div class="field">
+              <label for="f-ltv">Maximum lender advance rate (%)</label>
+              <input type="number" id="f-ltv" min="0" max="100" step="1" value="70">
+              <p class="hint">Applied to fixed CAPEX. Lenders rarely fund working capital with term debt.</p>
+            </div>
+          </div>
+          <div class="stack" id="stack"></div>
+          <div id="gap-note"></div>
+        </div>
+
+        <!-- DEBT SERVICE -->
+        <p class="eyebrow" style="margin-top:2.6rem">Step 4</p>
+        <h2 style="margin-bottom:.4rem">Can it carry the debt?</h2>
+        <p class="muted" style="max-width:640px">Debt Service Coverage Ratio is the number a credit committee actually decides on. Most African project facilities require 1.20×–1.30×; below 1.00× the venture cannot pay its own debt from operations.</p>
+
+        <div class="card card-flat" style="margin-top:1.2rem">
+          <div class="field-row">
+            <div class="field">
+              <label for="d-rate">Interest rate (% p.a.)</label>
+              <input type="number" id="d-rate" min="0" max="40" step="0.25" value="9">
+            </div>
+            <div class="field">
+              <label for="d-term">Repayment term (years)</label>
+              <input type="number" id="d-term" min="1" max="25" step="1" value="7">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="d-rev">Steady-state annual revenue</label>
+              <input type="number" id="d-rev" min="0" step="50000" value="0">
+              <p class="hint">Year 2–3, once the ramp is complete.</p>
+            </div>
+            <div class="field">
+              <label for="d-margin">EBITDA margin (%)</label>
+              <input type="number" id="d-margin" min="-50" max="80" step="1" value="22">
+              <p class="hint">Cash operating margin before interest, tax and depreciation.</p>
+            </div>
+          </div>
+          <div class="field">
+            <label for="d-cov">Covenant floor (×)</label>
+            <input type="number" id="d-cov" min="1" max="3" step="0.05" value="1.25" style="max-width:200px">
+            <p class="hint">The minimum DSCR your facility will require.</p>
+          </div>
+
+          <h4 style="font-family:var(--sans);font-size:.98rem;margin:1.4rem 0 .5rem">Sensitivity</h4>
+          <div class="table-scroll">
+            <table class="dtable" id="sens">
+              <thead><tr><th>Scenario</th><th class="num">Revenue</th><th class="num">EBITDA</th><th class="num">Debt service</th><th class="num">DSCR</th><th>Covenant</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="muted" style="font-size:.8rem;margin-top:.8rem">
+            Debt service is a level annual payment (principal + interest) over the term. Real facilities add fees, principal holidays and step-ups — this is a first-pass sanity check, not a bankable model.
+          </p>
+        </div>
+
+        <!-- BREAK-EVEN -->
+        <p class="eyebrow" style="margin-top:2.6rem">Step 5</p>
+        <h2 style="margin-bottom:.4rem">Break-even</h2>
+        <div class="card card-flat" style="margin-top:1.2rem">
+          <div class="kpis" id="be-kpis"></div>
+          <p class="muted" style="font-size:.84rem;margin:1.1rem 0 0" id="be-note"></p>
+        </div>
+
+      </div>
+
+      <!-- RAIL -->
+      <aside class="rail">
+        <div class="result-panel">
+          <p class="eyebrow" style="color:var(--jk-amber)">Venture summary</p>
+          <div class="kpis" style="grid-template-columns:1fr 1fr">
+            <div class="kpi"><div class="kv" id="r-capex">—</div><div class="kl">Total capital</div></div>
+            <div class="kpi"><div class="kv" id="r-gap">—</div><div class="kl">Funding gap</div></div>
+            <div class="kpi"><div class="kv" id="r-dscr">—</div><div class="kl">DSCR, base</div></div>
+            <div class="kpi"><div class="kv" id="r-lead">—</div><div class="kl">Months to certificate</div></div>
+          </div>
+          <div id="verdict" style="margin-top:1.1rem"></div>
+          <div style="margin-top:1.2rem;display:flex;flex-direction:column;gap:.5rem">
+            <button class="btn btn-amber" id="print" style="justify-content:center">Print / save as PDF</button>
+            <a class="btn btn-ghost-lt" id="talk" href="#" style="justify-content:center">Pressure-test this model</a>
+          </div>
+        </div>
+        <div class="note no-print" style="margin-top:1rem;font-size:.82rem">
+          <b>Next steps</b>
+          <a href="certification-navigator.html" data-keep-partner>Map the certification path →</a><br>
+          <a href="corporate-structure.html" data-keep-partner>Design the holding structure →</a><br>
+          <a href="organogram-planner.html" data-keep-partner>Plan the organisation →</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="sources">
+  <div class="wrap">
+    <h3 style="font-size:1.1rem">Assumptions and limits</h3>
+    <p class="muted" style="font-size:.86rem;max-width:780px">
+      Capital ranges are JK &amp; Associates planning bands built from African greenfield project experience and published sector data; they are deliberately wide because the binding variables — aircraft or device class, lease versus purchase, hangar versus line-only, site and tenure — move the answer by an order of magnitude. Market context figures are drawn from IATA's December 2025 industry outlook for 2026 and AFRAA reporting.
+    </p>
+    <p class="disclaimer" style="max-width:780px">
+      This tool is a planning aid, not investment advice, a valuation, or a substitute for a bankable financial model, and nothing here is an offer or recommendation to invest. Figures are indicative and unaudited. Obtain independent financial, tax and legal advice before committing capital.
+    </p>
+  </div>
+</section>
+
+<section class="band-ember no-print">
+  <div class="wrap" style="text-align:center">
+    <h2>A model that survives diligence looks different from this.</h2>
+    <p style="max-width:660px;margin:0 auto 1.4rem">This sizes the opportunity. Turning it into something a lender or a development finance institution will underwrite means real device and aircraft pricing, a defensible demand case, and a covenant structure that holds under stress.</p>
+    <a class="btn btn-amber btn-lg" id="cta-mail" href="#">Build the bankable model with us</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer no-print">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <a class="brand" href="../index.html" style="color:#fff" data-keep-partner><span data-logo="light"></span><span style="color:#fff">JK &amp; Associates</span></a>
+        <p style="margin-top:1rem;max-width:320px;font-size:.9rem">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
+      </div>
+      <div>
+        <h4>Build a venture</h4>
+        <p><a href="certification-navigator.html" data-keep-partner>Certification Navigator</a></p>
+        <p><a href="venture-builder.html" data-keep-partner>Venture Builder</a></p>
+        <p><a href="corporate-structure.html" data-keep-partner>Corporate Structure</a></p>
+        <p><a href="organogram-planner.html" data-keep-partner>Organogram Planner</a></p>
+      </div>
+      <div>
+        <h4>Operate an airline</h4>
+        <p><a href="../diagnostic.html" data-keep-partner>Health Scorecard</a></p>
+        <p><a href="cask-calculator.html" data-keep-partner>CASK Calculator</a></p>
+        <p><a href="operating-model-canvas.html" data-keep-partner>Operating Model Canvas</a></p>
+        <p><a href="fuel-optimizer.html" data-keep-partner>Fuel Optimizer</a></p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p><a data-email></a></p>
+        <p>Nairobi, Kenya</p>
+        <h4 style="margin-top:1.2rem">Legal</h4>
+        <p><a href="../privacy.html">Privacy Notice</a></p>
+        <p><a href="../terms.html">Terms of Use</a></p>
+      </div>
+    </div>
+    <div class="ver">
+      <span>&copy; <span data-year></span> JK &amp; Associates · Shaping Africa's Future, Together.</span>
+      <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../methodology.html">Methodology</a> · <span data-version></span></span>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/data-ventures.js"></script>
+<script src="../assets/js/common.js"></script>
+<script>
+(function () {
+  applyPartner(); mountChrome();
+  mountPrintHead("Greenfield Venture Builder");
+
+  const store = toolStore("venture");
+  let state = store.load();
+  const $ = id => document.getElementById(id);
+
+  /* Sane bounds per field. The min/max attributes constrain the spinner,
+     not typing or paste — and a negative interest rate or negative revenue
+     produces a confident, wrong answer, which is worse than a rejected one.
+     A negative EBITDA margin is deliberately allowed: loss-making is a real
+     scenario the model should be able to express. */
+  const BOUNDS = {
+    "f-equity": [0, 1e12], "f-invest": [0, 1e12], "f-sub": [0, 1e12],
+    "f-grant":  [0, 1e12], "f-debt":   [0, 1e12], "f-ltv":  [0, 100],
+    "d-rate":   [0, 40],   "d-term":   [0, 50],   "d-rev":  [0, 1e12],
+    "d-margin": [-100, 95], "d-cov":   [0, 5]
+  };
+  const num = id => {
+    const b = BOUNDS[id] || [-Infinity, Infinity];
+    return clampNum(parseFloat($(id).value), b[0], b[1]);
+  };
+
+  /* ---------- sector selection ---------- */
+  const seg = $("sector-seg");
+  JKV.sectors.forEach(s => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "seg"; b.dataset.sector = s.id;
+    b.setAttribute("aria-pressed", "false");
+    b.textContent = `${s.icon} ${s.short}`;
+    b.addEventListener("click", () => selectSector(s.id, true));
+    seg.appendChild(b);
+  });
+
+  function selectSector(id, resetLines) {
+    const s = JKV.sector(id);
+    if (!s) return;
+    state.sector = id;
+    if (resetLines || !state.capex || state.capexSector !== id) {
+      state.capex = {}; state.capexSector = id;
+      s.capital.lines.forEach((l, i) => { state.capex[i] = Math.round((l.lo + l.hi) / 2); });
+    }
+    seg.querySelectorAll(".seg").forEach(el => el.setAttribute("aria-pressed", String(el.dataset.sector === id)));
+    $("sector-note").innerHTML = `<b>${s.name}.</b> ${s.capital.note} ${s.leadNote}`;
+    renderCapex(s);
+    recompute();
+  }
+
+  /* ---------- CAPEX lines ---------- */
+  function renderCapex(s) {
+    const host = $("capex-lines");
+    host.innerHTML = s.capital.lines.map((l, i) => `
+      <div class="field" style="margin-bottom:14px">
+        <label for="cx-${i}" style="display:flex;justify-content:space-between;gap:1rem;align-items:baseline">
+          <span>${l.k}${l.cat === "wc" ? ' <span class="tag" style="vertical-align:middle">working capital</span>' : ""}</span>
+          <b class="tnum" data-out="${i}" style="font-family:var(--serif);font-size:1.05rem;white-space:nowrap">—</b>
+        </label>
+        <input type="range" id="cx-${i}" min="${l.lo}" max="${l.hi}" step="${Math.max(1000, Math.round((l.hi - l.lo) / 100))}"
+               value="${state.capex[i]}" style="width:100%;accent-color:var(--accent);padding:0;border:0;background:none"
+               aria-describedby="cxh-${i}">
+        <p class="hint" id="cxh-${i}">Planning band ${fmtMoney(l.lo)} – ${fmtMoney(l.hi)}</p>
+      </div>`).join("");
+
+    s.capital.lines.forEach((l, i) => {
+      const el = $("cx-" + i);
+      el.addEventListener("input", () => { state.capex[i] = parseFloat(el.value); recompute(); });
+    });
+  }
+
+  $("reset-capex").addEventListener("click", () => selectSector(state.sector, true));
+
+  /* ---------- funding + persistence ---------- */
+  const FIELDS = ["f-equity","f-invest","f-sub","f-grant","f-debt","f-ltv","d-rate","d-term","d-rev","d-margin","d-cov"];
+  FIELDS.forEach(id => $(id).addEventListener("input", () => { state[id] = $(id).value; recompute(); }));
+
+  /* ---------- level annual debt service ---------- */
+  function annualDebtService(principal, ratePct, years) {
+    if (principal <= 0 || years <= 0) return 0;
+    const r = ratePct / 100;
+    if (r === 0) return principal / years;
+    return principal * r / (1 - Math.pow(1 + r, -years));
+  }
+
+  /* ---------- main recompute ---------- */
+  function recompute() {
+    const s = JKV.sector(state.sector);
+    if (!s) return;
+
+    // capex split
+    let capex = 0, wc = 0;
+    s.capital.lines.forEach((l, i) => {
+      const v = state.capex[i] || 0;
+      const out = document.querySelector(`[data-out="${i}"]`);
+      if (out) out.textContent = fmtMoney(v);
+      if (l.cat === "wc") wc += v; else capex += v;
+    });
+    const total = capex + wc;
+    $("capex-total").textContent = fmtMoney(total);
+
+    // funding
+    const equity = num("f-equity"), invest = num("f-invest"), sub = num("f-sub"),
+          grant = num("f-grant"), debt = num("f-debt"), ltv = num("f-ltv");
+    const funded = equity + invest + sub + grant + debt;
+    const gap = Math.max(0, total - funded);
+    const surplus = Math.max(0, funded - total);
+
+    const maxDebt = capex * (ltv / 100);
+    const rows = [
+      { l: "Senior debt",   v: debt,   c: "sb-debt"   },
+      { l: "Sponsor equity",v: equity, c: "sb-equity" },
+      { l: "Third-party equity", v: invest, c: "sb-equity" },
+      { l: "Subordinated",  v: sub,    c: "sb-sub"    },
+      { l: "Grant",         v: grant,  c: "sb-grant"  }
+    ].filter(r => r.v > 0);
+    if (gap > 0) rows.push({ l: "UNFUNDED GAP", v: gap, c: "sb-gap" });
+    const denom = Math.max(total, funded, 1);
+    $("stack").innerHTML = rows.length
+      ? rows.map(r => `<div class="stack-row">
+            <span class="sl">${r.l}</span>
+            <span class="stack-bar ${r.c}"><i style="width:${(r.v / denom * 100).toFixed(1)}%"></i></span>
+            <span class="sv">${fmtMoney(r.v)}</span>
+          </div>`).join("")
+      : `<p class="muted" style="font-size:.86rem;margin:.6rem 0 0">Enter your funding sources above to see the stack.</p>`;
+
+    // gap / advance-rate notes
+    const notes = [];
+    if (gap > 0) notes.push(`<div class="note warn"><b>Funding gap of ${fmtMoney(gap)}</b>The stack does not cover the capital requirement. Close it before committing to a Schedule of Events — certification burns cash on a fixed clock.</div>`);
+    else if (surplus > 0) notes.push(`<div class="note ok"><b>Headroom of ${fmtMoney(surplus)}</b>Funded above requirement. Contingency of 10–15% on fixed CAPEX is normal for a first-time greenfield build.</div>`);
+    if (debt > maxDebt && capex > 0) notes.push(`<div class="note warn"><b>Debt above the advance rate</b>At ${ltv}% of fixed CAPEX a lender would size at about ${fmtMoney(maxDebt)}. You are assuming ${fmtMoney(debt)} — either raise more equity or expect the facility to be cut.</div>`);
+    $("gap-note").innerHTML = notes.join("");
+
+    // DSCR
+    const rate = num("d-rate"), term = num("d-term"), rev = num("d-rev"), margin = num("d-margin"), cov = num("d-cov");
+    const ds = annualDebtService(debt, rate, term);
+    const scen = [
+      { n: "Stress",       f: 0.60 },
+      { n: "Conservative", f: 0.80 },
+      { n: "Base",         f: 1.00 },
+      { n: "Optimistic",   f: 1.25 }
+    ];
+    // Debt with no repayment term is an incomplete input, not an absence of
+    // debt. Reporting it as "No debt" told the visitor the opposite of what
+    // was wrong with their model.
+    const noTerm = debt > 0 && term <= 0;
+    const tb = $("sens").querySelector("tbody");
+    let baseDscr = null;
+    tb.innerHTML = scen.map(sc => {
+      const r = rev * sc.f;
+      const ebitda = r * (margin / 100);
+      // With no revenue assumption there is nothing to divide, so report
+      // "—" rather than a 0.00x that reads as a computed result sitting
+      // next to a revenue column showing "—".
+      const dscr = (ds > 0 && rev > 0) ? ebitda / ds : null;
+      if (sc.f === 1) baseDscr = dscr;
+      const ok = dscr === null ? "" : dscr >= cov ? "rag-green" : dscr >= 1 ? "rag-amber" : "rag-red";
+      const label = noTerm ? "Set a repayment term"
+        : ds <= 0 ? "No debt"
+        : rev <= 0 ? "Add a revenue assumption"
+        : dscr >= cov ? "Above floor" : dscr >= 1 ? "Below floor" : "Cannot service";
+      return `<tr>
+        <td><b>${sc.n}</b></td>
+        <td class="num">${rev ? fmtMoney(r) : "—"}</td>
+        <td class="num">${rev ? fmtMoney(ebitda) : "—"}</td>
+        <td class="num">${ds ? fmtMoney(ds) : "—"}</td>
+        <td class="num"><b>${fmtRatio(dscr)}</b></td>
+        <td><span class="rag ${noTerm ? "rag-amber" : ok}">${(noTerm || ok) ? '<span class="dot"></span>' : ""}${label}</span></td>
+      </tr>`;
+    }).join("");
+
+    // break-even
+    const ebitdaBase = rev * (margin / 100);
+    const beRev = margin > 0 ? ds / (margin / 100) : null;         // revenue needed to hit DSCR 1.00
+    const beCov = margin > 0 ? (ds * cov) / (margin / 100) : null; // revenue needed to hit the covenant
+    const payback = ebitdaBase > 0 ? total / ebitdaBase : null;
+    $("be-kpis").innerHTML = `
+      <div class="kpi ${beRev && rev >= beRev ? "is-green" : "is-red"}">
+        <div class="kv">${beRev ? fmtMoney(beRev) : "—"}</div><div class="kl">Revenue to service debt</div></div>
+      <div class="kpi ${beCov && rev >= beCov ? "is-green" : "is-amber"}">
+        <div class="kv">${beCov ? fmtMoney(beCov) : "—"}</div><div class="kl">Revenue to meet covenant</div></div>
+      <div class="kpi"><div class="kv">${payback ? payback.toFixed(1) + " yr" : "—"}</div><div class="kl">Capital payback on EBITDA</div></div>
+      <div class="kpi"><div class="kv">${rev ? fmtMoney(ebitdaBase) : "—"}</div><div class="kl">EBITDA at base case</div></div>`;
+    $("be-note").textContent = margin <= 0
+      ? "Set a positive EBITDA margin to compute break-even."
+      : `At a ${margin}% EBITDA margin you need ${fmtMoney(beCov)} of annual revenue to hold a ${cov.toFixed(2)}× covenant. Payback is measured on EBITDA before tax and reinvestment, so treat it as a floor, not a forecast.`;
+
+    // rail
+    $("r-capex").textContent = fmtMoney(total);
+    $("r-gap").textContent = gap > 0 ? fmtMoney(gap) : "None";
+    $("r-dscr").innerHTML = noTerm ? "—" : fmtRatio(baseDscr);
+    $("r-lead").textContent = `${s.leadMonths[0]}–${s.leadMonths[1]}`;
+
+    const gapKpi = $("r-gap").parentElement;
+    gapKpi.className = "kpi " + (gap > 0 ? "is-red" : "is-green");
+    const dscrKpi = $("r-dscr").parentElement;
+    dscrKpi.className = "kpi " + (noTerm ? "is-amber" : baseDscr === null ? "" : baseDscr >= cov ? "is-green" : baseDscr >= 1 ? "is-amber" : "is-red");
+
+    let v;
+    if (noTerm) v = { c: "note warn", t: "Repayment term missing", d: `You have ${fmtMoney(debt)} of senior debt but no repayment term, so debt service cannot be computed. Set a term to test the covenant.` };
+    else if (!rev) v = { c: "note", t: "Add a revenue assumption", d: "The capital side is sized. Enter steady-state revenue to test whether the venture can carry its own debt." };
+    else if (gap > 0) v = { c: "note warn", t: "Not yet fundable", d: `A ${fmtMoney(gap)} gap has to close before this is financeable.` };
+    else if (baseDscr !== null && baseDscr < 1) v = { c: "note warn", t: "Cannot service the debt", d: "Base-case EBITDA does not cover debt service. Reduce leverage, extend the term, or revisit the revenue case." };
+    else if (baseDscr !== null && baseDscr < cov) v = { c: "note warn", t: "Below covenant", d: `Base case is ${fmtRatio(baseDscr)} against a ${cov.toFixed(2)}× floor. Expect the lender to cut the facility or demand more equity.` };
+    else v = { c: "note ok", t: "Coherent first-pass model", d: "Capital covered and covenant held at base case. The next test is whether the revenue assumption survives scrutiny." };
+    $("verdict").innerHTML = `<div class="${v.c}" style="margin:0"><b>${v.t}</b>${v.d}</div>`;
+
+    const body =
+      `Sector: ${s.name}\n` +
+      `Total capital requirement: ${fmtMoney(total)} (fixed ${fmtMoney(capex)} + working capital ${fmtMoney(wc)})\n` +
+      `Funding: equity ${fmtMoney(equity + invest)}, sub-debt ${fmtMoney(sub)}, grant ${fmtMoney(grant)}, senior debt ${fmtMoney(debt)}\n` +
+      `Funding gap: ${gap > 0 ? fmtMoney(gap) : "none"}\n` +
+      `Base-case DSCR: ${noTerm ? "n/a (no repayment term set)" : baseDscr === null ? "n/a" : baseDscr.toFixed(2) + "x"} against a ${cov.toFixed(2)}x covenant\n\n` +
+      `I would like this model pressure-tested.`;
+    const href = toolMailto("Venture", s.short + " venture model", body);
+    $("talk").href = href; $("cta-mail").href = href;
+
+    store.save(state);
+  }
+
+  $("print").addEventListener("click", () => window.print());
+
+  /* ---------- restore ---------- */
+  FIELDS.forEach(id => { if (state[id] !== undefined) $(id).value = state[id]; });
+  const fromUrl = new URLSearchParams(location.search).get("sector");
+  selectSector((fromUrl && JKV.sector(fromUrl)) ? fromUrl : (state.sector || "aoc"), false);
+})();
+</script>
+</body>
+</html>

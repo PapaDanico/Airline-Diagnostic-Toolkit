@@ -1,5 +1,5 @@
 /* ============================================================
-   DN CONSULTANCY — Scorecard page logic (A1)
+   JK & ASSOCIATES — Scorecard page logic (A1)
    Renders 8 domains × 5 questions, persists to localStorage,
    tracks progress, routes to results.
    ============================================================ */
@@ -7,7 +7,7 @@
 (function () {
   const answers = loadAnswers();
   const host = document.getElementById("domains");
-  const total = DN.domains.reduce((a, d) => a + d.questions.length, 0);
+  const total = JK.domains.reduce((a, d) => a + d.questions.length, 0);
 
   /* first-time onboarding overlay — wrapped in try/catch so a Safari
      private-browsing SecurityError doesn't abort the IIFE */
@@ -32,7 +32,7 @@
 
   /* resume banner — shown when a previous visit left the diagnostic
      part-answered; jumps to the first unanswered question */
-  const preAnswered = DN.domains.reduce((a, d) =>
+  const preAnswered = JK.domains.reduce((a, d) =>
     a + (answers[d.id] || []).filter(v => Number.isInteger(v)).length, 0);
   if (preAnswered > 0 && preAnswered < total) {
     const bar = document.createElement("div");
@@ -58,7 +58,7 @@
   
   const calibCard = document.createElement("div");
   calibCard.className = "calibration-card";
-  calibCard.style.cssText = "background:#fff;border-radius:12px;padding:22px 26px;margin-bottom:1.8rem;border:1px solid var(--dn-steel-lt,#D6E4F0);box-shadow:var(--shadow,0 4px 12px rgba(0,0,0,.05))";
+  calibCard.style.cssText = "background:#fff;border-radius:12px;padding:22px 26px;margin-bottom:1.8rem;border:1px solid var(--jk-sand-lt,#D6E4F0);box-shadow:var(--shadow,0 4px 12px rgba(0,0,0,.05))";
   calibCard.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem">
       <span style="font-size:1.2rem">🎯</span>
@@ -105,8 +105,8 @@
       badge.textContent = "";
     }
 
-    const currentWeights = DN.getAdjustedWeights(f, m);
-    DN.domains.forEach(d => {
+    const currentWeights = JK.getAdjustedWeights(f, m);
+    JK.domains.forEach(d => {
       const wEl = document.querySelector(`[data-domain-weight="${d.id}"]`);
       if (wEl) {
         wEl.textContent = `weight ${currentWeights[d.id] !== undefined ? currentWeights[d.id] : d.weight}%`;
@@ -116,7 +116,7 @@
 
   calibCard.querySelectorAll("select").forEach(s => s.addEventListener("change", updateCalibrationUI));
 
-  DN.domains.forEach((d, di) => {
+  JK.domains.forEach((d, di) => {
     if (!answers[d.id]) answers[d.id] = [];
     const block = document.createElement("section");
     block.className = "domain";
@@ -154,7 +154,7 @@
   });
 
   function answeredCount() {
-    return DN.domains.reduce((a, d) =>
+    return JK.domains.reduce((a, d) =>
       a + (answers[d.id] || []).filter(v => Number.isInteger(v)).length, 0);
   }
 

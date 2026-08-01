@@ -4,31 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Sample Airline Health Scorecard report — see exactly what your strategic gap report looks like before you run the diagnostic.">
-<link rel="canonical" href="https://dnconsultancydiagnostictoolkit.netlify.app/demo-results.html">
+<link rel="canonical" href="https://jkassociates.enterprises/demo-results.html">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="DN Consultancy">
-<meta property="og:title" content="Sample Health Scorecard Report — DN Consultancy">
+<meta property="og:site_name" content="JK & Associates">
+<meta property="og:title" content="Sample Health Scorecard Report — JK & Associates">
 <meta property="og:description" content="See what your strategic gap report looks like: health index, benchmarked findings, radar chart, and next-step recommendations.">
-<meta property="og:url" content="https://dnconsultancydiagnostictoolkit.netlify.app/demo-results.html">
-<meta property="og:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
+<meta property="og:url" content="https://jkassociates.enterprises/demo-results.html">
+<meta property="og:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Sample Health Scorecard Report — DN Consultancy">
+<meta name="twitter:title" content="Sample Health Scorecard Report — JK & Associates">
 <meta name="twitter:description" content="See what your strategic gap report looks like before you run the diagnostic.">
-<meta name="twitter:image" content="https://dnconsultancydiagnostictoolkit.netlify.app/assets/img/og-card.png">
-<title>Sample Health Scorecard Report | DN Consultancy</title>
-<link rel="icon" type="image/png" href="assets/img/dn-badge.png">
-<link rel="apple-touch-icon" href="assets/img/dn-badge.png">
+<meta name="twitter:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<title>Sample Health Scorecard Report | JK & Associates</title>
+<link rel="icon" type="image/png" href="assets/img/jk-badge.png">
+<link rel="apple-touch-icon" href="assets/img/jk-badge.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/dn.css">
+<link rel="stylesheet" href="assets/css/jk.css">
 </head>
 <body>
 
 <nav class="nav">
   <div class="wrap">
-    <a class="brand" href="index.html"><span data-logo></span><span>DN Consultancy<small>Sample Report</small></span></a>
+    <a class="brand" href="index.html"><span data-logo></span><span>JK & Associates<small>Sample Report</small></span></a>
     <button class="nav-toggle" aria-label="Menu">&#9776;</button>
     <div class="nav-links">
       <a href="index.html">Home</a>
@@ -100,9 +100,9 @@
     <div class="wrap">
       <p class="eyebrow">Next steps · from diagnosis to solution</p>
       <h2>What to fix first</h2>
-      <p class="muted" style="max-width:720px">Based on your lowest-scoring domains, here are the solution <em>categories</em> worth exploring and the DN diagnostic that drills deeper into each. These are neutral, educational suggestions.</p>
+      <p class="muted" style="max-width:720px">Based on your lowest-scoring domains, here are the solution <em>categories</em> worth exploring and the JK diagnostic that drills deeper into each. These are neutral, educational suggestions.</p>
       <div id="rx" style="margin:1.4rem 0"></div>
-      <p class="disclaimer">DN Consultancy does not endorse or resell these third-party tools; they are listed as common options among African carriers. The right answer depends on your specific gaps — which is exactly what a deeper diagnostic establishes.</p>
+      <p class="disclaimer">JK & Associates does not endorse or resell these third-party tools; they are listed as common options among African carriers. The right answer depends on your specific gaps — which is exactly what a deeper diagnostic establishes.</p>
     </div>
   </section>
 
@@ -131,7 +131,7 @@
 
 <footer class="footer">
   <div class="wrap"><div class="ver" style="border:0">
-    <span>&copy; <span data-year></span> DN Consultancy · <a data-email></a></span>
+    <span>&copy; <span data-year></span> JK & Associates · <a data-email></a></span>
     <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <span data-version></span></span>
   </div></div>
 </footer>
@@ -159,14 +159,14 @@ const rxHost = document.getElementById("rx");
 sorted.filter(d => d.pct < 65).slice(0, 3).forEach(d => {
   const div = document.createElement("div");
   div.className = "rx";
-  const cask = d.caskLink ? `<div class="dn-tool"><a href="tools/cask-calculator.html">→ Check your unit cost with our free CASK Benchmarking Calculator</a></div>` : "";
-  const canvas = d.canvasLink ? `<div class="dn-tool"><a href="tools/operating-model-canvas.html">→ Map the whole business with our free Operating Model Canvas</a></div>` : "";
+  const cask = d.caskLink ? `<div class="jk-tool"><a href="tools/cask-calculator.html">→ Check your unit cost with our free CASK Benchmarking Calculator</a></div>` : "";
+  const canvas = d.canvasLink ? `<div class="jk-tool"><a href="tools/operating-model-canvas.html">→ Map the whole business with our free Operating Model Canvas</a></div>` : "";
   const std = d.standard ? `<div class="std">Aligns to recognised standard: <strong>${d.standard}</strong></div>` : "";
   div.innerHTML = `
-    <h4>${d.name} — ${d.pct}% <span class="rag rag-${d.rag}" style="font-size:.8rem"><span class="dot"></span>${DN.ragLabel(d.pct)}</span></h4>
+    <h4>${d.name} — ${d.pct}% <span class="rag rag-${d.rag}" style="font-size:.8rem"><span class="dot"></span>${JK.ragLabel(d.pct)}</span></h4>
     <div class="cat">${d.rxCategory}</div>
     ${std}
-    <div class="dn-tool">DN diagnostic that goes deeper: ${d.dnTool}</div>
+    <div class="jk-tool">JK diagnostic that goes deeper: ${d.jkTool}</div>
     ${cask}
     ${canvas}`;
   rxHost.appendChild(div);

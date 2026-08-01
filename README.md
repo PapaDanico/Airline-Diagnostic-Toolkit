@@ -1,50 +1,128 @@
-# DN Consultancy — Airline Diagnostic Toolkit (v2.0)
+# JK & Associates — Aviation Advisory Platform (v3.0)
 
-DN Consultancy's free, neutral **"first step"** in any African airline's digital-transformation
-journey: the **Airline Health Scorecard** (Tool A1) and supporting point solutions. A static,
-fully client-side web app — **no backend, no signup, no data ever leaves the visitor's browser** —
-deployable on **Netlify or Vercel** (config for both is in the repo).
+An end-to-end consultancy platform for **African aviation ventures**: operators holding an AOC, and
+investors building greenfield aviation projects in Kenya and across the continent.
 
-> **Privacy by design.** Every answer is stored only in the visitor's `localStorage`. There is no
-> API, no analytics, no AI call-home — so the "stays on your device / works offline" promise is
-> literally true. (An opt-in AI narrative could be added later behind explicit consent.)
+A static, fully client-side web app — **no backend, no signup, no data ever leaves the visitor's
+browser** — deployable on **Netlify or Vercel** (config for both is in the repo).
+
+> **Privacy by design.** Every answer, every name, every financial assumption is stored only in the
+> visitor's `localStorage`. There is no API, no analytics, no AI call-home — so the "stays on your
+> device / works offline" promise is literally true.
+
+*Shaping Africa's Future, Together.*
+
+---
+
+## The two tracks
+
+The platform serves two audiences whose problems are genuinely different, so the information
+architecture splits at the front door and stays split through the nav, the tool explorer and the
+footer.
+
+| Track | Audience | Entry point |
+|---|---|---|
+| **Build** | Investors and founders taking a greenfield aviation project from capital to certificate | `tools/certification-navigator.html` |
+| **Operate** | Carriers already flying, under cost / reliability / revenue / governance pressure | `diagnostic.html` |
 
 ## Pages
 
+### Build track (Toolbox V — free)
+
 | File | Purpose |
 |------|---------|
-| `index.html` | Landing — "First Step" narrative, trust strip, 5-phase engagement model, 14-tool spotlight, 3× ROI guarantee. |
-| `diagnostic.html` | **Airline Health Scorecard** — 40 questions × 8 weighted domains. Privacy panel, progress tracking, partner-aware, iframe-embeddable. |
-| `results.html` | **Strategic gap report** — weighted health index ring, weakest-first findings table with sourced industry benchmarks, radar profile, *"Next Steps: From Diagnosis to Solution"* prescriber, sources block, and DN-Engagement-Key-gated Toolboxes B/C/D. **"Print / save as PDF"** produces a board-ready one-page report. |
-| `tools/operating-model-canvas.html` | **Operating Model Canvas (Tool A4)** — 9-panel one-page airline operating model; auto-saves to `localStorage`, print / save-to-PDF, facilitated workshop gated behind a Contact CTA. |
-| `tools/cask-calculator.html` | **CASK Benchmarking Calculator (Tool A2)** — client-side unit-cost calculator; bands your CASK against DN's competitive target and African cost context, full benchmarking pack gated behind a Contact CTA. |
-| `tools/fuel-optimizer.html` | **Fuel Contract Optimizer Lite** — client-side savings estimator; full tool gated behind a Contact CTA. |
-| `tools/data-request.html` | **48-Hour Data Request (Tool A3)** — 28-item diagnostic-readiness checklist grouped by domain; readiness meter, auto-saves to `localStorage`, print / save-to-PDF. |
-| `embed.html` | Generic white-label embed sample (DN-only; the partner registry ships empty). |
-| `privacy.html` / `terms.html` | **Privacy Notice** (aligned with Kenya's Data Protection Act, 2019) and **Terms of Use** (governed by the laws of Kenya). Linked from every footer. A few legally-specific placeholders (registered entity/number, postal address, ODPC registration, DPO) are marked `[in brackets]` for DN to complete. |
+| `tools/certification-navigator.html` | **KCAA Certification Navigator (V1)** — the five-phase certification and approval process mapped across **six sectors**, with per-phase checklists, critical-path gates, required postholders, the document set, a weighted readiness meter, and a citation for every requirement. |
+| `tools/venture-builder.html` | **Greenfield Venture Builder (V2)** — sector CAPEX bands, capital-stack construction, funding-gap detection, lender advance-rate check, level-payment debt service, DSCR sensitivity across four scenarios, and revenue break-even. |
+| `tools/corporate-structure.html` | **Corporate Structure Designer (V3)** — HoldCo / SPV / OpCo archetypes with a **look-through effective-interest cascade**, ownership-and-control testing, offshore substance costing, and the governance / lender-conflict checks institutional diligence applies. |
+| `tools/organogram-planner.html` | **Organogram & Postholder Planner (V4)** — the posts a regulator must accept for each sector, holder and deputy assignment, single-point-of-failure detection, departmental scaffold and a launch→Y5 headcount ramp. |
+
+### Operate track (Toolbox A — free)
+
+| File | Purpose |
+|------|---------|
+| `diagnostic.html` | **Airline Health Scorecard (A1)** — 40 questions × 8 weighted domains. Privacy panel, progress tracking, partner-aware, iframe-embeddable. |
+| `results.html` | **Strategic gap report** — weighted health index ring, weakest-first findings table with sourced benchmarks, radar profile, prescriber, sources block, and Engagement-Key-gated Toolboxes B/C/D. Print produces a board-ready report. |
+| `tools/cask-calculator.html` | **CASK Benchmarking Calculator (A2)** — unit-cost calculator banded against JK's competitive target and African cost context. |
+| `tools/data-request.html` | **48-Hour Data Request (A3)** — 28-item diagnostic-readiness checklist with a readiness meter. |
+| `tools/operating-model-canvas.html` | **Operating Model Canvas (A4)** — 9-panel one-page airline operating model. |
+| `tools/training-tna.html` | **Training Needs Analysis (A5)** — competency-gap assessment across four staff groups. |
+| `tools/mro-readiness.html` | **MRO & Technical Readiness Diagnostic** — 20 questions for Chief Engineers and CAMO Managers. |
+| `tools/fuel-optimizer.html` | **Fuel Contract Optimizer Lite** — client-side savings estimator. |
+
+### Shared
+
+`index.html` (two-door landing) · `tools/index.html` (explorer, grouped by track) · `how-it-works.html` ·
+`methodology.html` · `partners.html` · `embed.html` · `privacy.html` / `terms.html` · `404.html`
+
+## Sectors covered (Build track)
+
+| id | Sector | Primary instrument |
+|---|---|---|
+| `aoc`  | Airline — Air Operator Certificate | Air Operator Certification & Administration Regs 2025 (**L.N. 42/2026**) + Air Service Licence |
+| `ato`  | Approved Training Organisation & simulator hub | ATO Regs + Personnel Licensing Regs 2025 (**L.N. 50/2026**) + FSTD qualification |
+| `amo`  | Approved Maintenance Organisation | AMO Regs 2025 (**L.N. 20/2026**) |
+| `gha`  | Ground handling & FBO | Civil Aviation Act + aerodrome / air-service instruments |
+| `aero` | Aerodrome / airport | Aerodromes Design & Operations Regs 2025 (**L.N. 102/2026**) |
+| `uas`  | UAS / RPAS operator & training organisation | UAS Regs 2025 (**L.N. 40/2026**) |
+
+## Regulatory citations — read this before editing `data-ventures.js`
+
+Kenya's 2025 civil aviation regulations were **gazetted through 2026**, so an instrument titled
+"…Regulations, **2025**" carries a **2026** Legal Notice number. Always cite both.
+
+Every citation in `JKV.cites` carries an explicit `status`:
+
+- `"verified"` — instrument and Legal Notice number confirmed against the Kenya Law gazette record
+  on `JKV.CITE_META.verifiedOn`.
+- `"unconfirmed"` — referenced in KCAA guidance and industry practice, but gazettement or L.N.
+  number could not be confirmed from public record. Renders with a visible `?` chip and a caveat.
+
+**Do not promote a citation to `verified` without re-checking the gazette.** A certification tool
+that quietly asserts a wrong Legal Notice number is worse than one that shows its working.
+`scripts/check-data.mjs` enforces that every citation has a status and that every citation key
+referenced by a checklist item actually resolves.
+
+Currently `unconfirmed`: `ato`, `sms`, `gh`.
 
 ## Shared assets
 
-- `assets/css/dn.css` — DN design system (charcoal/steel/gold palette, Cormorant Garamond + DM Sans), responsive + print stylesheet.
-- `assets/js/data.js` — domains, 40 questions, weights, sourced benchmarks, standards mapping, prescriber, 14-tool catalogue, partner registry (empty).
-- `assets/js/common.js` — partner/white-label handling, official DN badge logo, storage, scoring engine.
-- `assets/js/diagnostic.js` / `results.js` — page logic.
-- `assets/img/` — `dn-logo-full.png` (hero lockup), `dn-badge.png` (nav/footer mark + favicon), `og-card.png` (1200×630 social share card). All transparent-background PNGs.
+- `assets/css/jk.css` — JK design system. Palette sampled directly from the phoenix mark
+  (oxblood → terracotta → ember → amber → sand over warm ink and parchment), Cormorant Garamond +
+  DM Sans, full motion system, print stylesheet, reduced-motion support.
+- `assets/js/data.js` — `JK` namespace: brand, 8 domains, 40 questions, weights, sourced benchmarks,
+  standards mapping, prescriber, tool catalogue, partner registry.
+- `assets/js/data-ventures.js` — `JKV` namespace: citation registry, five-phase spine, six sectors
+  with per-phase checklists / postholders / manuals / capital models, structure archetypes,
+  governance checks, org scaffold, headcount ramps, market context.
+- `assets/js/common.js` — partner/white-label handling, canonical nav, storage, scoring engine,
+  radar, and the venture-track helpers (`toolStore`, `fmtMoney`, `citeChip`, `mountPrintHead`,
+  `toolMailto`, `wireDisclosure`).
+- `assets/img/` — `jk-badge.png` / `jk-badge-light.png` (nav, footer, favicon),
+  `jk-logo-full.png` / `jk-logo-full-light.png` (hero lockup), `og-card.png` (1200×630).
+  The `-light` variants are **pre-lightened renders**, not CSS filters — `brightness(0) invert(1)`
+  would flatten the phoenix gradient into a white silhouette.
 
-## Scoring
+## Scoring (Health Scorecard)
 
 8 domains, each weighted (Safety 18, Operations 14, Cost & Fuel 14, Revenue 13, Fleet & Network 12,
 Commercial 10, Financial 10, People 9 = 100%). Each question scores 0–4. Domain % = avg(scores)/4×100.
 **Health Index = Σ(domain % × weight)**. RAG bands: <45 critical, 45–64 attention, ≥65 strong.
 
+## Readiness (Certification Navigator)
+
+Overall readiness weights critical-path ("gate") items at **2×** non-gate items. Closing a gate item
+moves you materially closer to a certificate; closing a nice-to-have does not. A flat percentage
+would flatter a badly-sequenced applicant.
+
 ## White-label / embed
 
-This ships as a **DN Consultancy-only** product — `DN.partners` in `assets/js/data.js` is empty.
-The white-label engine is retained for a future real partner: add an entry keyed by a token, then
-append `?partner=<TOKEN>` to swap the accent colour, show the partner logo, and add a co-branding
-line. Framing is allowed only from whitelisted domains via `Content-Security-Policy: frame-ancestors`
-in `_headers` / `vercel.json` (**never** `*`). The **DN Engagement Key** that unlocks Toolbox B/C/D
-previews is set in `DN.engagementKey`.
+Ships as a **JK & Associates-only** product — `JK.partners` in `assets/js/data.js` is empty. To
+co-brand: add an entry keyed by a token, then append `?partner=<TOKEN>` to swap the accent colour,
+show the partner logo and add a co-branding line. Framing is allowed only from whitelisted domains
+via `Content-Security-Policy: frame-ancestors` in `_headers` / `vercel.json` (**never** `*`). The
+Engagement Key that unlocks Toolbox B/C/D previews is `JK.engagementKey`.
+
+`window.DN` remains aliased to `JK` so any older embed or bookmarklet keeps working.
 
 ## Run locally
 
@@ -53,52 +131,58 @@ python3 -m http.server 8080      # then open http://localhost:8080
 node scripts/check-data.mjs      # data-model integrity check (also run in CI)
 ```
 
-No build step. `netlify.toml` (Netlify) and `vercel.json` (Vercel) both publish the repo root as-is,
-with `/scorecard` and `/fuel` redirects and security headers (incl. scoped `frame-ancestors`).
+No build step. `netlify.toml` and `vercel.json` both publish the repo root as-is, with clean-URL
+redirects (`/certify`, `/venture`, `/structure`, `/org`, `/scorecard`, `/cask`, `/fuel`, …) and
+security headers including scoped `frame-ancestors`.
 
 ## Moving to a custom domain
 
-Canonical / Open Graph / Twitter URLs are absolute (crawlers need them), currently pointing at the
-netlify.app subdomain. To repoint everything to a custom domain in one idempotent command:
+Canonical / Open Graph / Twitter URLs are absolute (crawlers need them). To repoint everything —
+pages, sitemap and robots — in one idempotent command:
 
 ```bash
-node scripts/set-domain.mjs diagnostics.example.com   # or https://www.example.com
+node scripts/set-domain.mjs jkassociates.example.com   # e.g. a custom domain
 ```
 
 ## Lead signal (no analytics)
 
-The site collects no analytics by design. Each tool's contact CTA opens a `mailto:` with a tagged
-subject — `[DN Toolkit · CASK]`, `[DN Toolkit · Fuel]`, `[DN Toolkit · Canvas]`, `[DN Toolkit · Data]` —
-so inbound enquiries self-identify which tool converted the lead. Filter/label by subject in your inbox.
-For traffic volume, enable server-log analytics on Netlify or Cloudflare (no client script, no cookies).
+No analytics by design. Each tool's contact CTA opens a `mailto:` with a tagged subject —
+`[JK · Certification]`, `[JK · Venture]`, `[JK · Structure]`, `[JK · Organogram]`, `[JK Toolkit · CASK]`,
+`[JK Toolkit · Fuel]` — so inbound enquiries self-identify which tool converted the lead. Filter by
+subject in your inbox. For traffic volume, enable server-log analytics on Netlify or Cloudflare
+(no client script, no cookies).
 
 ## Testing
 
-Behaviour tests live in `tests/` with their own isolated toolchain (Playwright), kept out of the repo
-root so the static site stays build-free.
-
 ```bash
-cd tests && npm install && npx playwright install chromium
+cd tests && npm install
 node e2e.mjs     # core flows: diagnostic → results → key gate → empty state → CASK math → a11y
-node audit.mjs   # 10-page sweep: JS errors, h1, alt, dup IDs, broken links, overflow (desktop+mobile)
+node audit.mjs   # full-site sweep: JS errors, h1, alt, dup IDs, broken links, overflow (desktop+mobile)
 ```
+
+Chromium is pre-installed in the standard dev container under `/opt/pw-browsers`; the suites resolve
+it automatically and never download a browser.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every push/PR in two jobs:
-- **validate** — JS syntax (`node --check`), `vercel.json` validation, data-model integrity
-  (8 domains, weights = 100, 40 questions), HTML sanity.
-- **e2e** — installs Chromium and runs the `tests/` behaviour + audit suites against the real pages.
+`.github/workflows/ci.yml` runs on every push/PR:
+- **validate** — JS syntax, `vercel.json` validation, data-model integrity (scorecard **and**
+  venture model: sectors, phases, citation-key resolution, capital bounds, headcount monotonicity),
+  HTML sanity.
+- **e2e** — runs the `tests/` behaviour and audit suites against the real pages.
 
 ## SEO
 
-`sitemap.xml`, `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and JSON-LD
-(`Organization` + `WebApplication`) on the landing page. `set-domain.mjs` updates the sitemap and
-robots base URL alongside the page metadata.
+`sitemap.xml` (19 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
+JSON-LD (`Organization` + two `WebApplication` entries) on the landing page.
 
-## Brand & docs
+## Legal posture
 
-DN corporate identity applies throughout (see `docs/` Appendix B). `docs/` also holds the v2.0 review
-& project plan and the anonymised handover.
+Every venture-track tool carries an explicit scope disclaimer: planning aid, not legal / regulatory /
+investment advice, not affiliated with or endorsed by the Kenya Civil Aviation Authority. A few
+legally-specific placeholders in `privacy.html` / `terms.html` (registered entity/number, postal
+address, ODPC registration, DPO) are marked `[in brackets]` and must be completed before go-live.
 
-*v2.0 — Strategic Diagnostic & Point Solutions · DN Consultancy · Shaping Africa's Future, Together.*
+---
+
+*v3.0 — End-to-End Aviation Advisory Platform · JK & Associates · Nairobi, Kenya.*

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Plan the organisation behind an aviation certificate: required postholders by sector, reporting lines, deputy cover, single-point-of-failure detection and a headcount ramp from launch to year five. Free and private.">
+<link rel="canonical" href="https://jkassociates.enterprises/tools/organogram-planner.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JK & Associates">
+<meta property="og:title" content="Organogram & Postholder Planner — JK & Associates">
+<meta property="og:description" content="Required postholders, reporting lines, deputy cover and headcount ramp for a certificated aviation organisation.">
+<meta property="og:url" content="https://jkassociates.enterprises/tools/organogram-planner.html">
+<meta property="og:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Organogram & Postholder Planner — JK & Associates">
+<meta name="twitter:description" content="Who the regulator must accept, and who covers them when they are away.">
+<meta name="twitter:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<title>Organogram &amp; Postholder Planner | JK &amp; Associates</title>
+<link rel="icon" type="image/png" href="../assets/img/jk-badge.png">
+<link rel="apple-touch-icon" href="../assets/img/jk-badge.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/jk.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner>
+      <span data-logo></span>
+      <span>JK &amp; Associates<small>Organogram Planner</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="nav-links"></div>
+  </div>
+</nav>
+
+<main id="main">
+
+<header class="tool-head">
+  <div class="wrap">
+    <p class="ref">Tool V4 · Free</p>
+    <h1>Organogram &amp; Postholder Planner</h1>
+    <p class="lead">A certificate is issued to an organisation, not to a business plan. The Authority accepts named individuals into named posts — and a vacancy, an unaccepted nominee or an uncovered postholder stops certification regardless of how good the paperwork is.</p>
+  </div>
+</header>
+
+<section style="padding-top:40px">
+  <div class="wrap">
+    <p class="eyebrow">Step 1</p>
+    <h2 style="margin-bottom:.4rem">Which organisation are you staffing?</h2>
+    <div class="segmented" id="sector-seg" style="margin-top:1.2rem" role="group" aria-label="Select a sector"></div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="tool-layout">
+      <div>
+        <p class="eyebrow">Step 2</p>
+        <h2 style="margin-bottom:.4rem">Postholders the Authority must accept</h2>
+        <p class="muted" style="max-width:660px">Name the holder and their deputy. An unnamed post is a certification blocker; a named post with no deputy is a continuity risk the Authority and your lender will both ask about.</p>
+        <div id="postholders" style="margin-top:1.4rem"></div>
+
+        <div id="risk" style="margin-top:1.6rem"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 3</p>
+        <h2 style="margin-bottom:.4rem">Departmental scaffold</h2>
+        <p class="muted" style="max-width:660px">The supporting organisation beneath the accepted posts. Adjust headcount per department to match your operating model.</p>
+        <div id="scaffold" style="margin-top:1.4rem"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 4</p>
+        <h2 style="margin-bottom:.4rem">Headcount ramp</h2>
+        <div class="card card-flat" style="margin-top:1.2rem">
+          <div class="table-scroll">
+            <table class="dtable" id="ramp">
+              <thead><tr><th>Stage</th><th class="num">Headcount</th><th class="num">Growth</th><th>Notes</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="muted" style="font-size:.8rem;margin-top:.8rem">
+            Sector ramps are indicative planning figures for a small-to-mid greenfield entrant. Your own department totals above override the launch figure once they exceed it.
+          </p>
+        </div>
+      </div>
+
+      <aside class="rail">
+        <div class="result-panel">
+          <p class="eyebrow" style="color:var(--jk-amber)">Organisation readiness</p>
+          <div class="meter" style="margin-bottom:1rem">
+            <div class="meter-track"><i id="meter-fill" style="width:0%"></i></div>
+            <div class="meter-val" id="meter-val" style="color:#fff">0%</div>
+          </div>
+          <div class="kpis" style="grid-template-columns:1fr 1fr">
+            <div class="kpi"><div class="kv" id="k-named">0/0</div><div class="kl">Posts named</div></div>
+            <div class="kpi"><div class="kv" id="k-dep">0/0</div><div class="kl">Deputies named</div></div>
+            <div class="kpi"><div class="kv" id="k-head">—</div><div class="kl">Launch headcount</div></div>
+            <div class="kpi"><div class="kv" id="k-spof">—</div><div class="kl">Single points of failure</div></div>
+          </div>
+          <div id="verdict" style="margin-top:1.1rem"></div>
+          <div style="margin-top:1.2rem;display:flex;flex-direction:column;gap:.5rem">
+            <button class="btn btn-amber" id="print" style="justify-content:center">Print / save as PDF</button>
+            <a class="btn btn-ghost-lt" id="talk" href="#" style="justify-content:center">Review the organisation</a>
+            <button class="btn btn-ghost-lt" id="reset" style="justify-content:center;font-size:.85rem">Reset this sector</button>
+          </div>
+        </div>
+        <div class="note no-print" style="margin-top:1rem;font-size:.82rem">
+          <b>Next steps</b>
+          <a href="certification-navigator.html" data-keep-partner>Map the certification path →</a><br>
+          <a href="corporate-structure.html" data-keep-partner>Design the holding structure →</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="sources">
+  <div class="wrap">
+    <h3 style="font-size:1.1rem">Assumptions and limits</h3>
+    <p class="muted" style="font-size:.86rem;max-width:780px">
+      Postholder sets follow the posts an authority ordinarily requires for each organisation type under ICAO-derived frameworks; deputy and key-manager-absence expectations follow established European and ICAO guidance widely applied across African authorities. Names entered here stay in this browser and are never transmitted.
+    </p>
+    <p class="disclaimer" style="max-width:780px">
+      A planning aid, not regulatory advice. The definitive list of required posts, their acceptance criteria and any deputisation requirement is set by the applicable regulations and the Authority's advisory circulars for your specific application. Confirm before you nominate.
+    </p>
+  </div>
+</section>
+
+<section class="band-ember no-print">
+  <div class="wrap" style="text-align:center">
+    <h2>The people are the certificate.</h2>
+    <p style="max-width:660px;margin:0 auto 1.4rem">JK &amp; Associates writes the job descriptions, builds the acceptance submissions, prepares postholders for their regulator interviews, and structures the deputy cover that keeps a certificate alive when a key person leaves.</p>
+    <a class="btn btn-amber btn-lg" id="cta-mail" href="#">Talk to us about your organisation</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer no-print">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <a class="brand" href="../index.html" style="color:#fff" data-keep-partner><span data-logo="light"></span><span style="color:#fff">JK &amp; Associates</span></a>
+        <p style="margin-top:1rem;max-width:320px;font-size:.9rem">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
+      </div>
+      <div>
+        <h4>Build a venture</h4>
+        <p><a href="certification-navigator.html" data-keep-partner>Certification Navigator</a></p>
+        <p><a href="venture-builder.html" data-keep-partner>Venture Builder</a></p>
+        <p><a href="corporate-structure.html" data-keep-partner>Corporate Structure</a></p>
+        <p><a href="organogram-planner.html" data-keep-partner>Organogram Planner</a></p>
+      </div>
+      <div>
+        <h4>Operate an airline</h4>
+        <p><a href="../diagnostic.html" data-keep-partner>Health Scorecard</a></p>
+        <p><a href="cask-calculator.html" data-keep-partner>CASK Calculator</a></p>
+        <p><a href="operating-model-canvas.html" data-keep-partner>Operating Model Canvas</a></p>
+        <p><a href="fuel-optimizer.html" data-keep-partner>Fuel Optimizer</a></p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p><a data-email></a></p>
+        <p>Nairobi, Kenya</p>
+        <h4 style="margin-top:1.2rem">Legal</h4>
+        <p><a href="../privacy.html">Privacy Notice</a></p>
+        <p><a href="../terms.html">Terms of Use</a></p>
+      </div>
+    </div>
+    <div class="ver">
+      <span>&copy; <span data-year></span> JK &amp; Associates · Shaping Africa's Future, Together.</span>
+      <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../methodology.html">Methodology</a> · <span data-version></span></span>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/data-ventures.js"></script>
+<script src="../assets/js/common.js"></script>
+<script>
+(function () {
+  applyPartner(); mountChrome();
+
+  const store = toolStore("organogram");
+  let state = store.load();
+  state.people = state.people || {};   // "<sector>|<roleIndex>" -> { n, dep }
+  state.dept   = state.dept   || {};   // "<sector>|<deptIndex>" -> headcount
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+
+  /* ---------- sector picker ---------- */
+  const seg = $("sector-seg");
+  JKV.sectors.forEach(s => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "seg"; b.dataset.sector = s.id;
+    b.setAttribute("aria-pressed", "false");
+    b.textContent = `${s.icon} ${s.short}`;
+    b.addEventListener("click", () => select(s.id));
+    seg.appendChild(b);
+  });
+
+  function select(id) {
+    const s = JKV.sector(id);
+    if (!s) return;
+    state.sector = id;
+    seg.querySelectorAll(".seg").forEach(el => el.setAttribute("aria-pressed", String(el.dataset.sector === id)));
+    renderPostholders(s);
+    renderScaffold(s);
+    recompute();
+    mountPrintHead("Organogram &amp; Postholder Planner", s.name);
+    store.save(state);
+  }
+
+  /* ---------- postholders ---------- */
+  function renderPostholders(s) {
+    $("postholders").innerHTML = `<div class="org-row">` + s.postholders.map((p, i) => {
+      const k = `${s.id}|${i}`;
+      const rec = state.people[k] || {};
+      return `<div class="role ${p.kcaa ? "is-postholder" : ""}" data-role="${i}" data-kcaa="${p.kcaa ? 1 : 0}">
+          <b>${esc(p.r)}</b>
+          <div class="r-tags"></div>
+          ${p.note ? `<div class="r-rep" style="margin-top:.45rem">${esc(p.note)}</div>` : ""}
+          <div style="margin-top:.6rem;display:grid;gap:6px">
+            <input type="text" data-f="n" data-k="${k}" value="${esc(rec.n)}" placeholder="Holder name"
+              aria-label="Holder for ${esc(p.r)}"
+              style="width:100%;padding:.45rem .6rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.84rem">
+            <input type="text" data-f="dep" data-k="${k}" value="${esc(rec.dep)}" placeholder="Deputy / cover"
+              aria-label="Deputy for ${esc(p.r)}"
+              style="width:100%;padding:.45rem .6rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.84rem">
+          </div>
+        </div>`;
+    }).join("") + `</div>`;
+
+    $("postholders").querySelectorAll("input").forEach(inp => {
+      inp.addEventListener("input", () => {
+        const k = inp.dataset.k;
+        state.people[k] = state.people[k] || {};
+        state.people[k][inp.dataset.f] = inp.value;
+        store.save(state);
+        paintTags(inp.closest(".role"));
+        recompute();
+      });
+    });
+    $("postholders").querySelectorAll(".role").forEach(paintTags);
+  }
+
+  /* Update one card's status tags in place.
+     Re-rendering the whole list on input or blur would detach the very
+     node the visitor is typing into — tabbing from a holder field to its
+     deputy field would silently discard the edit. Mutating just the tag
+     row keeps focus and in-progress text intact. */
+  function paintTags(card) {
+    if (!card) return;
+    const s = JKV.sector(state.sector);
+    const i = +card.dataset.role;
+    const kcaa = card.dataset.kcaa === "1";
+    const rec = state.people[`${s.id}|${i}`] || {};
+    const hasN = !!(rec.n || "").trim(), hasD = !!(rec.dep || "").trim();
+    card.classList.toggle("is-vacant", !hasN);
+    card.querySelector(".r-tags").innerHTML =
+      (kcaa ? '<span class="tag kcaa">Regulator-accepted</span>' : '<span class="tag">Supporting</span>') +
+      (hasN ? "" : '<span class="tag gap">Vacant</span>') +
+      (kcaa && hasN && !hasD ? '<span class="tag gap">No deputy</span>' : "") +
+      (hasD ? '<span class="tag dep">Deputy named</span>' : "");
+  }
+
+  /* ---------- departmental scaffold ---------- */
+  function renderScaffold(s) {
+    $("scaffold").innerHTML = JKV.orgScaffold.map((d, i) => {
+      const k = `${s.id}|${i}`;
+      const n = state.dept[k] !== undefined ? state.dept[k] : defaultDept(s, i);
+      return `<div class="card card-flat" style="padding:18px 22px;margin-bottom:12px">
+          <div class="flex between items-center wrapf gap">
+            <div style="flex:1;min-width:200px">
+              <b style="font-family:var(--sans);font-size:.96rem">${esc(d.dep)}</b>
+              <div class="muted" style="font-size:.82rem;margin-top:.2rem">${d.roles.map(esc).join(" · ")}</div>
+            </div>
+            <div class="flex items-center" style="gap:.5rem">
+              <label class="muted" style="font-size:.8rem" for="dept-${i}">Headcount</label>
+              <input type="number" id="dept-${i}" min="0" max="500" step="1" value="${n}" data-d="${k}"
+                style="width:84px;padding:.45rem .6rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.86rem;text-align:right">
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+
+    $("scaffold").querySelectorAll("input").forEach(inp => {
+      inp.addEventListener("input", () => {
+        state.dept[inp.dataset.d] = parseInt(inp.value, 10) || 0;
+        store.save(state);
+        recompute();
+      });
+    });
+  }
+
+  /* Distribute the sector's launch headcount across departments with a
+     weighting that reflects where an aviation organisation actually carries
+     its people — operations and technical dominate, admin is thin. */
+  const DEPT_WEIGHT = [0.06, 0.09, 0.30, 0.20, 0.15, 0.09, 0.11];
+  function defaultDept(s, i) {
+    const total = (JKV.headcount[s.id] || {}).launch || 30;
+    return Math.max(1, Math.round(total * (DEPT_WEIGHT[i] || 0.1)));
+  }
+
+  /* ---------- recompute ---------- */
+  function recompute() {
+    const s = JKV.sector(state.sector);
+    if (!s) return;
+
+    const kcaaPosts = s.postholders.filter(p => p.kcaa);
+    let named = 0, deputised = 0, spof = 0;
+    const spofList = [];
+    s.postholders.forEach((p, i) => {
+      const rec = state.people[`${s.id}|${i}`] || {};
+      const hasN = !!(rec.n || "").trim(), hasD = !!(rec.dep || "").trim();
+      if (!p.kcaa) return;
+      if (hasN) named++;
+      if (hasD) deputised++;
+      if (hasN && !hasD) { spof++; spofList.push(p.r); }
+    });
+
+    // a post is "ready" when it is named; deputy cover counts half again
+    const denom = kcaaPosts.length * 1.5;
+    const pct = denom ? Math.round(((named + deputised * 0.5) / denom) * 100) : 0;
+    $("meter-fill").style.width = pct + "%";
+    $("meter-val").textContent = pct + "%";
+    $("k-named").textContent = `${named}/${kcaaPosts.length}`;
+    $("k-dep").textContent   = `${deputised}/${kcaaPosts.length}`;
+    $("k-spof").textContent  = spof;
+    $("k-spof").parentElement.className = "kpi " + (spof === 0 ? "is-green" : spof <= 2 ? "is-amber" : "is-red");
+    $("k-named").parentElement.className = "kpi " + (named === kcaaPosts.length ? "is-green" : "is-red");
+
+    // headcount
+    const deptTotal = JKV.orgScaffold.reduce((a, d, i) => {
+      const k = `${s.id}|${i}`;
+      return a + (state.dept[k] !== undefined ? state.dept[k] : defaultDept(s, i));
+    }, 0);
+    $("k-head").textContent = deptTotal;
+
+    const hc = JKV.headcount[s.id] || { launch: deptTotal, y3: deptTotal, y5: deptTotal };
+    const launch = Math.max(deptTotal, hc.launch);
+    const rows = [
+      { st: "Launch (Year 1)", n: launch, note: "Minimum viable establishment with every accepted post filled." },
+      { st: "Year 3",          n: Math.max(hc.y3, Math.round(launch * (hc.y3 / hc.launch))), note: "Scaled with utilisation; deputies substantive rather than nominal." },
+      { st: "Year 5",          n: Math.max(hc.y5, Math.round(launch * (hc.y5 / hc.launch))), note: "Steady state, with succession depth behind each accepted post." }
+    ];
+    let prev = null;
+    $("ramp").querySelector("tbody").innerHTML = rows.map(r => {
+      const g = prev ? `+${Math.round(((r.n - prev) / prev) * 100)}%` : "—";
+      prev = r.n;
+      return `<tr><td><b>${r.st}</b></td><td class="num">${r.n}</td><td class="num">${g}</td><td class="muted">${r.note}</td></tr>`;
+    }).join("");
+
+    // risk panel
+    $("risk").innerHTML = spofList.length
+      ? `<div class="note warn"><b>${spofList.length} accepted post${spofList.length > 1 ? "s" : ""} with no named cover</b>
+           ${spofList.map(esc).join(", ")}. Documented deputisation for every key manager is expected practice, and an
+           uncovered post becomes an operational stop the moment that person is unavailable. Where the post is one the
+           Authority accepts personally — an Accountable Manager or Head of Training — an unplanned departure can trigger
+           re-approval of the whole organisation.</div>`
+      : (named === kcaaPosts.length
+          ? `<div class="note ok"><b>Every accepted post is named and covered</b>Record the deputy arrangements in the relevant manual so they are visible to the Authority at surveillance.</div>`
+          : `<div class="note"><b>Name the remaining posts</b>${kcaaPosts.length - named} accepted post${kcaaPosts.length - named > 1 ? "s remain" : " remains"} vacant. Certification does not proceed on a vacant post.</div>`);
+
+    let v;
+    if (named < kcaaPosts.length) v = { c: "note warn", t: "Posts still vacant", d: `${kcaaPosts.length - named} of ${kcaaPosts.length} accepted posts unnamed.` };
+    else if (spof > 0) v = { c: "note warn", t: "Continuity risk", d: `${spof} named post${spof > 1 ? "s have" : " has"} no deputy.` };
+    else v = { c: "note ok", t: "Organisation complete", d: "Every accepted post named and covered. Prepare the acceptance submissions and interview packs." };
+    $("verdict").innerHTML = `<div class="${v.c}" style="margin:0"><b>${v.t}</b>${v.d}</div>`;
+
+    const body =
+      `Sector: ${s.name}\n` +
+      `Accepted posts named: ${named}/${kcaaPosts.length}\n` +
+      `Deputies named: ${deputised}/${kcaaPosts.length}\n` +
+      `Posts without cover: ${spof}${spofList.length ? " (" + spofList.join(", ") + ")" : ""}\n` +
+      `Planned launch headcount: ${launch}\n\n` +
+      `I would like this organisation design reviewed.`;
+    const href = toolMailto("Organogram", s.short + " organisation", body);
+    $("talk").href = href; $("cta-mail").href = href;
+  }
+
+  $("print").addEventListener("click", () => window.print());
+  $("reset").addEventListener("click", () => {
+    const s = JKV.sector(state.sector);
+    if (!s || !confirm(`Clear the organisation plan for ${s.short}?`)) return;
+    Object.keys(state.people).forEach(k => { if (k.startsWith(s.id + "|")) delete state.people[k]; });
+    Object.keys(state.dept).forEach(k => { if (k.startsWith(s.id + "|")) delete state.dept[k]; });
+    store.save(state);
+    select(s.id);
+  });
+
+  const fromUrl = new URLSearchParams(location.search).get("sector");
+  select((fromUrl && JKV.sector(fromUrl)) ? fromUrl : (state.sector || "aoc"));
+})();
+</script>
+</body>
+</html>
