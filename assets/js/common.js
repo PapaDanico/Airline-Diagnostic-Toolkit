@@ -290,7 +290,8 @@ function computeScores(answers) {
     weighted += pct * weight; wsum += weight;
     return { id: d.id, name: d.name, weight, pct, answered, total,
              rag: JK.rag(pct), blurb: d.blurb, rxCategory: d.rxCategory, jkTool: d.jkTool, fuelLink: d.fuelLink,
-             benchmark: d.benchmark, benchmarkSrc: d.benchmarkSrc, standard: d.standard,
+             benchmark: d.benchmark, benchmarkSrc: d.benchmarkSrc, benchmarkAsOf: d.benchmarkAsOf,
+             standard: d.standard,
              caskLink: d.caskLink, canvasLink: d.canvasLink };
   });
   return { domains, index: wsum ? Math.round(weighted / wsum) : 0, answeredAll, calibration: calib };

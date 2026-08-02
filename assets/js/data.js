@@ -102,8 +102,8 @@ const JK = {
       blurb: "ICAO SMS maturity, reporting culture, regulatory standing and safety-data analysis.",
       rxCategory: "Aviation SMS platforms and flight-data analysis (FDM/FOQA) tooling; independent safety-culture and SMS maturity assessment.",
       jkTool: "JK B4 — Safety Culture Maturity Assessment (ICAO SMS 5-level)",
-      benchmark: "64 African airlines are IOSA-registered; IOSA carriers average 0.92 vs 1.70 accidents per million flights, and IOSA is a condition of AFRAA & IATA membership.",
-      benchmarkSrc: "IATA 2024 Safety Report",
+      benchmark: "Carriers on the IOSA registry averaged 0.98 accidents per million flights in 2025 against 2.55 for non-IOSA operators. Africa's all-accident rate improved from 12.13 to 7.86 per million sectors — below its own five-year average, but still the highest of any region. IOSA registration is a condition of IATA membership.",
+      benchmarkSrc: "IATA 2025 Safety Report", benchmarkAsOf: "2025-12-31",
       standard: "IOSA · ICAO SMS (Annex 19)",
       questions: [
         { t: "How mature is your Safety Management System (SMS)?",
@@ -124,7 +124,7 @@ const JK = {
       rxCategory: "OCC / IROPS management systems, OTP and turn-time analytics, and movement-control tooling.",
       jkTool: "JK B3 — Fleet Utilisation & Turn-Time Audit; C4 — KPI Governance Framework",
       benchmark: "Best-practice on-time performance (departures within 15 min) sits around 80–82%, with technical dispatch reliability ≥ 98.5%.",
-      benchmarkSrc: "Industry planning target",
+      benchmarkSrc: "Industry planning target", benchmarkAsOf: null,
       standard: "IATA GADM operational data",
       questions: [
         { t: "What is your on-time performance (departures within 15 min)?",
@@ -144,8 +144,8 @@ const JK = {
       blurb: "Aircraft utilisation, route economics, fleet-network fit and planning horizon.",
       rxCategory: "Network and schedule planning tools and route-profitability / connectivity optimisers.",
       jkTool: "JK B1 — Route Profitability Diagnostic; D2 — Airport Viability; D3 — Codeshare Mapper",
-      benchmark: "AFRAA members flew 209bn ASKs and 144.7bn RPKs in 2024, with traffic up 13.2% year-on-year — capacity is growing, so fleet-network fit is decisive.",
-      benchmarkSrc: "AFRAA Q4 2024 report",
+      benchmark: "African carriers grew passenger traffic 7.8% in 2025, with AFRAA putting volumes at about 113 million passengers against 98 million in 2024. Demand is running ahead of the fleet, so fleet-network fit is what decides whether the growth is profitable.",
+      benchmarkSrc: "IATA / AFRAA, 2025", benchmarkAsOf: "2025-12-31",
       standard: "Network & fleet-planning best practice",
       questions: [
         { t: "What is your average aircraft utilisation (block hours per day)?",
@@ -166,7 +166,7 @@ const JK = {
       rxCategory: "Fuel-efficiency and tankering tools, MRO/maintenance cost systems, and procurement/cost-analytics platforms.",
       jkTool: "JK A2 — CASK Benchmarking Calculator; D4 — Fuel Procurement Optimisation",
       benchmark: "Fuel is ~40% of operating cost for African carriers vs ~25% globally, and African unit costs run close to double the rest of the world.",
-      benchmarkSrc: "IATA, Cost Disadvantage of African Airlines, 2025",
+      benchmarkSrc: "IATA, Cost Disadvantage of African Airlines, 2025", benchmarkAsOf: "2025-06-30",
       standard: "IATA Airline Cost Management Group (ACMG)",
       fuelLink: true,
       caskLink: true,
@@ -188,8 +188,8 @@ const JK = {
       blurb: "Load factor, RM capability, pricing discipline, demand forecasting and yield vs market.",
       rxCategory: "Revenue management systems with demand forecasting and dynamic-pricing capability.",
       jkTool: "JK B5 — Revenue Mix Diagnostic; B1 — Route Profitability",
-      benchmark: "African airlines averaged a 74.5% passenger load factor in 2024 — a regional record, but still the world's lowest, vs ~83.5% globally.",
-      benchmarkSrc: "AFRAA / IATA, 2024",
+      benchmark: "African airlines averaged a 74.9% passenger load factor in 2025 — up 0.9 points, and another regional record, but still the world's lowest against a global average near 84.6%. Roughly a quarter of every seat flown is carried empty.",
+      benchmarkSrc: "IATA / AFRAA, 2025", benchmarkAsOf: "2025-12-31",
       standard: "IATA revenue benchmarking",
       fuelLink: false,
       questions: [
@@ -211,7 +211,7 @@ const JK = {
       rxCategory: "Ancillary merchandising engines, NDC/distribution platforms, loyalty/CRM, and cargo revenue management.",
       jkTool: "JK B5 — Revenue Mix Diagnostic",
       benchmark: "Leading carriers earn $20+ in ancillary revenue per passenger; many African carriers remain in single digits.",
-      benchmarkSrc: "Industry range",
+      benchmarkSrc: "Industry range", benchmarkAsOf: null,
       standard: "IATA NDC / airline retailing",
       questions: [
         { t: "What is your ancillary revenue per passenger (USD)?",
@@ -232,7 +232,7 @@ const JK = {
       rxCategory: "Training-management / LMS systems, competency-based training tools, and workforce-planning solutions.",
       jkTool: "JK A5 — Training Needs Analysis; B2 — Staff Cost Efficiency Analyser",
       benchmark: "Lean, well-run carriers target staff turnover under ~15% and benchmark headcount per aircraft against peer fleets.",
-      benchmarkSrc: "Industry planning target",
+      benchmarkSrc: "Industry planning target", benchmarkAsOf: null,
       standard: "Competency-based training (ICAO/IATA)",
       questions: [
         { t: "How do staffing ratios compare to benchmark (per aircraft)?",
@@ -254,7 +254,7 @@ const JK = {
       jkTool: "JK C1 — 90-Day Sprint; C3 — Board Presentation; C4 — KPI Governance; A4 — Operating Model Canvas",
       canvasLink: true,
       benchmark: "African airlines posted a net margin of only ~1% in 2024 — roughly $1.20 profit per passenger — the thinnest of any region.",
-      benchmarkSrc: "IATA, 2024",
+      benchmarkSrc: "IATA, 2024", benchmarkAsOf: "2024-12-31",
       standard: "IATA Airline Performance Review (APR)",
       questions: [
         { t: "What is your operating profitability?",
@@ -310,14 +310,29 @@ const JK = {
       {ref:"D5", n:"Manuals & Compliance Library", d:"Ops, Training, Safety and Quality manual scaffolds."} ]}
   ],
 
-  benchmarkMeta: {
-    asOf: "Q4 2024 – mid-2025",
-    sources: [
-      "AFRAA Q4 2024 Airline Performance Update",
-      "IATA 2024 Safety Report",
-      "IATA, Cost Disadvantage of African Airlines (2025)",
-      "IATA GADM / ACMG operational and cost data"
-    ]
+  /* Derived from the domains rather than typed out beside them.
+
+     This was a hand-written list, and it had already drifted: it named
+     the AFRAA Q4 2024 update and the 2024 Safety Report after those
+     figures had been superseded, and it read "Q4 2024 – mid-2025" while
+     one domain was still quoting a mid-2024 number. A second, manual
+     copy of a fact is a second thing to forget. Now the page cannot
+     claim a currency the underlying benchmarks do not have: change a
+     benchmark, and the header follows on the next load.
+
+     `asOf` reports the OLDEST dated benchmark, not the newest. The
+     newest would flatter the page — a single fresh figure would let
+     seven stale ones sit under a current date. The oldest is the
+     honest answer to "how far back does any of this go". */
+  get benchmarkMeta() {
+    const dated = JK.domains.filter(d => d.benchmark && d.benchmarkAsOf);
+    const oldest = dated.map(d => d.benchmarkAsOf).sort()[0];
+    return {
+      asOf: oldest
+        ? new Date(oldest).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })
+        : "undated",
+      sources: [...new Set(dated.map(d => d.benchmarkSrc))].sort()
+    };
   },
 
   phases: [

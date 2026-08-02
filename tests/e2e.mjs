@@ -732,7 +732,42 @@ await page.evaluate(() => {
   sessionStorage.setItem("dn_capture_nudged", "1");
 });
 await page.goto(base + "/results.html"); await page.waitForTimeout(500);
-assert(/Q4 2024/.test(await page.$eval("#bench-asof", e => e.textContent)), "data-as-of stamp rendered from DN.benchmarkMeta");
+/* The stamp and the source list are derived from the benchmarks, so this
+   asserts they AGREE with the data rather than matching a literal. The
+   previous version pinned the string "Q4 2024"; it passed for as long as
+   nobody refreshed a figure, which is the opposite of what it was for. */
+{
+  const bench = await page.evaluate(() => {
+    const dated = JK.domains.filter(d => d.benchmark && d.benchmarkAsOf);
+    const oldest = dated.map(d => d.benchmarkAsOf).sort()[0];
+    return {
+      expected: new Date(oldest)
+        .toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }),
+      shown: document.getElementById("bench-asof").textContent.trim(),
+      srcText: document.getElementById("bench-sources").textContent,
+      gapText: document.getElementById("gap-body").textContent,
+      named: [...new Set(dated.map(d => d.benchmarkSrc))],
+      unattributed: JK.domains.filter(d => d.benchmark && !d.benchmarkAsOf).map(d => d.name)
+    };
+  });
+
+  assert(bench.shown === bench.expected,
+    `data-as-of stamp reports the oldest benchmark (${bench.expected}), got "${bench.shown}"`);
+  assert(bench.named.every(n => bench.srcText.includes(n)),
+    `every dated benchmark source is listed (${bench.named.length} sources)`);
+
+  // A benchmark with no publication behind it must not sit in the source
+  // list looking like one; it belongs in the "no published source" line.
+  assert(bench.srcText.includes("No published source"),
+    `${bench.unattributed.length} unattributed benchmarks are declared as such`);
+  assert(bench.unattributed.every(n => bench.srcText.includes(n)),
+    "each unattributed benchmark names the domain it belongs to");
+
+  // And the gap table must date the benchmark it prints beside the score.
+  assert(/as at \w+ \d{4}/.test(bench.gapText), "gap table dates its industry benchmarks");
+  assert(bench.gapText.includes("(no published source)"),
+    "gap table marks unsourced benchmarks inline, not just in the footer");
+}
 assert((await page.$eval("#csv-template", a => a.href)).startsWith("data:text/csv"), "CSV template is a data-URI download");
 // valid upload → calibrated view with computed metrics
 await page.setInputFiles("#csv-file", {
