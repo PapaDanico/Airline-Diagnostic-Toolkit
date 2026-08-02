@@ -253,8 +253,8 @@ const JK = {
       rxCategory: "Financial-planning & analysis (FP&A) and board-reporting / KPI-governance tooling.",
       jkTool: "JK C1 — 90-Day Sprint; C3 — Board Presentation; C4 — KPI Governance; A4 — Operating Model Canvas",
       canvasLink: true,
-      benchmark: "African airlines posted a net margin of only ~1% in 2024 — roughly $1.20 profit per passenger — the thinnest of any region.",
-      benchmarkSrc: "IATA, 2024", benchmarkAsOf: "2024-12-31",
+      benchmark: "African carriers are set to clear about $0.2 billion in 2025 on a net margin near 1.3% — roughly $1.30 of profit per passenger, the thinnest of any region, and IATA's December outlook has it thinning again in 2026. There is no margin here to absorb a bad quarter.",
+      benchmarkSrc: "IATA Global Outlook, December 2025", benchmarkAsOf: "2025-12-09",
       standard: "IATA Airline Performance Review (APR)",
       questions: [
         { t: "What is your operating profitability?",
