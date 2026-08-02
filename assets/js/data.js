@@ -17,7 +17,8 @@ const JK = {
     tagline: "Shaping Africa's Future, Together.",
     descriptor: "Aviation Advisory · Africa",
     email: "info@aviationhubkenya.org",
-    location: "Nairobi, Kenya",
+    // Shared with the sister practice, Kanda Logistics Advisory.
+    location: "2nd Avenue, Cargo Terminal, JKIA, Nairobi",
     version: "v3.3 — End-to-End Aviation Advisory Platform"
   },
 
