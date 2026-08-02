@@ -11,6 +11,8 @@
    renders an empty chip, and a sector missing a phase renders an empty
    gate — both fail silently in the browser. */
 import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const load = (file, name) => {
   const src = readFileSync(new URL(`../assets/js/${file}`, import.meta.url), "utf8");
@@ -144,13 +146,23 @@ for (const c of (JKG.cats || [])) {
   if (!JKG.terms.some(t => t.cat === c.id)) fail(`glossary category "${c.id}": no terms filed under it`);
 }
 
-/* the committed glossary markup must match the data model — see
-   scripts/build-glossary.mjs for why the page is pre-rendered at all */
+/* The committed glossary markup must match the data model — see
+   scripts/build-glossary.mjs for why the page is pre-rendered at all.
+
+   This delegates to that script rather than re-implementing a weaker
+   version of its comparison. A term-count check would have missed the
+   failure that actually happened: a citation chip embedded in the
+   generated HTML went stale when the citation registry changed, and the
+   count never moved. Running the real generator in --check mode is the
+   only comparison that catches content drift, and putting it here means
+   the one command anyone runs before pushing catches it. */
 {
-  const html = readFileSync(new URL("../glossary.html", import.meta.url), "utf8");
-  const rendered = (html.match(/class="g-term"/g) || []).length;
-  if (rendered !== JKG.terms.length) {
-    fail(`glossary.html carries ${rendered} rendered terms but the data model has ${JKG.terms.length} — run: node scripts/build-glossary.mjs`);
+  const r = spawnSync(process.execPath,
+    [fileURLToPath(new URL("build-glossary.mjs", import.meta.url)), "--check"],
+    { encoding: "utf8" });
+  if (r.status !== 0) {
+    fail("glossary.html is out of date with the data model — run: node scripts/build-glossary.mjs");
+    if (r.stderr) process.stderr.write(r.stderr);
   }
 }
 
