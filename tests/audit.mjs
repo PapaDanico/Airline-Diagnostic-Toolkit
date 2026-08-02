@@ -9,7 +9,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { createServer } from "node:http";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const pages = ["index.html", "diagnostic.html", "results.html", "demo-results.html", "embed.html", "privacy.html", "terms.html", "methodology.html", "partners.html", "how-it-works.html",
+const pages = ["index.html", "about.html", "diagnostic.html", "results.html", "demo-results.html", "embed.html", "privacy.html", "terms.html", "methodology.html", "partners.html", "how-it-works.html",
   "tools/index.html", "tools/mro-readiness.html", "tools/fuel-optimizer.html", "tools/cask-calculator.html", "tools/operating-model-canvas.html", "tools/data-request.html", "tools/training-tna.html",
   // build-track tools (v3.0)
   "tools/certification-navigator.html", "tools/venture-builder.html", "tools/corporate-structure.html", "tools/organogram-planner.html",

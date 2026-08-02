@@ -439,6 +439,16 @@ button.phase:focus-visible { outline: 2px solid var(--accent); outline-offset: 3
    A band rather than a fifth column, so it lands identically on the
    four-column footers and the single-line ones without either layout
    having to know about it. */
+/* ---- footer: about ----
+   Two sentences and a link. The long version restated the terms page,
+   the home page and the regulatory index; about.html carries it now. */
+.footer-about { margin-top: 30px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.12); }
+.footer-about h4 { margin: 0 0 .7rem; color: var(--jk-amber); }
+.footer-about p { font-size: .87rem; line-height: 1.65; color: #b3a69f; max-width: 66ch; margin-bottom: .5rem; }
+.footer-about .fa-more { display: inline-block; font-size: .87rem; color: var(--jk-amber); }
+.footer-about .fa-more[aria-current="page"] { color: #9a8c85; }
+@media print { .footer-about { display: none; } }
+
 .footer-learn { margin-top: 30px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.12); }
 .footer-learn h4 { margin: 0 0 .9rem; color: var(--jk-amber); }
 .footer-learn .fl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }

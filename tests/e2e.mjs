@@ -678,6 +678,62 @@ assert(await page.$$eval(".footer-learn .fl-item.is-here", e => e.length) === 1,
 assert(await page.$$eval('.footer-learn a[href="glossary.html"]', e => e.length) === 0,
   "glossary.html does not link to itself");
 
+/* ─── Footer about + About us page ───
+   The first version of the footer block put three paragraphs here and
+   most of it restated the terms page, the home page and the regulatory
+   index. These assertions pin the correction: the footer is a pointer,
+   and the claims that belong to other pages must not reappear in it. */
+section("Footer about");
+for (const pg of ["index.html", "diagnostic.html", "tools/cask-calculator.html", "glossary.html"]) {
+  await page.goto(base + "/" + pg); await page.waitForTimeout(350);
+  const st = await page.evaluate(() => {
+    const el = document.querySelector(".footer-about");
+    return {
+      present: !!el,
+      text: (el?.textContent || "").replace(/\s+/g, " ").trim(),
+      links: document.querySelectorAll('.footer-about a[href$="about.html"]').length,
+      // chrome must finish AFTER the footer mounts, or a throw in the
+      // footer silently takes the rest of the page with it
+      year: (document.querySelector("[data-year]")?.textContent || "").trim()
+    };
+  });
+  assert(st.present, `${pg}: about block injected`);
+  assert(st.text.length < 420, `${pg}: footer about is ${st.text.length} chars — meant to be a pointer`);
+  assert(st.links === 1, `${pg}: footer about links to about.html`);
+  assert(/^\d{4}$/.test(st.year), `${pg}: chrome finished after the footer mounted`);
+  for (const dupe of ["not affiliated", "no signup", "no sales call", "unconfirmed"]) {
+    assert(!st.text.toLowerCase().includes(dupe), `${pg}: footer restates "${dupe}" — that belongs to another page`);
+  }
+}
+
+section("About us page");
+await page.goto(base + "/about.html"); await page.waitForTimeout(450);
+{
+  const st = await page.evaluate(() => ({
+    h1: document.querySelectorAll("h1").length,
+    text: document.querySelector(".about").textContent.replace(/\s+/g, " "),
+    cover: [...document.querySelectorAll("#about-cover b")].map(b => Number(b.textContent.trim())),
+    open: JK.toolboxes.filter(b => !b.locked).reduce((n, b) => n + b.tools.length, 0),
+    domains: JK.domains.length,
+    sources: JK.benchmarkMeta.sources.length,
+    phases: JK.phases.length,
+    else: [...document.querySelectorAll(".about-else a")].map(a => a.getAttribute("href")),
+    selfLink: document.querySelectorAll('.footer-about a[href="about.html"]').length
+  }));
+  assert(st.h1 === 1, "about page has exactly one h1");
+  assert(/aviation management consultancy/i.test(st.text), "practice described");
+  assert(/not affiliated with, appointed by or endorsed by/i.test(st.text), "independence stated");
+  assert(/Kanda Logistics Advisory/.test(st.text), "sister practice named");
+  // the figures are read off the data model, so check them against it
+  assert(JSON.stringify(st.cover) === JSON.stringify([st.open, st.domains, st.sources, st.phases]),
+    `coverage figures ${JSON.stringify(st.cover)} match the data model`);
+  // it points at the pages that own the rest rather than summarising them
+  for (const f of ["methodology.html", "regulations.html", "privacy.html", "terms.html"]) {
+    assert(st.else.includes(f), `about page points at ${f}`);
+  }
+  assert(st.selfLink === 0, "about.html does not link to itself from its own footer");
+}
+
 /* ─── 4d. HOMEPAGE — scorecard radar preview (Operate-track section) ─── */
 section("Homepage — scorecard radar preview");
 await page.goto(base + "/index.html"); await page.waitForTimeout(400);

@@ -105,7 +105,8 @@ function buildNav() {
     { file: "index.html",        href: root + "index.html",        label: "Home" },
     { file: "how-it-works.html", href: root + "how-it-works.html", label: "How It Works" },
     { file: "regulations.html",  href: root + "regulations.html",  label: "Regulations" },
-    { file: "methodology.html",  href: root + "methodology.html",  label: "Methodology" }
+    { file: "methodology.html",  href: root + "methodology.html",  label: "Methodology" },
+    { file: "about.html",        href: root + "about.html",        label: "About" }
   ];
   const link = it => {
     if (herePath === it.file) return `<span class="nav-current" aria-current="page">${it.label}</span>`;
@@ -131,7 +132,7 @@ function buildNav() {
   out.push(`<div class="dropdown">${topLabel}<div class="dropdown-menu">${groups}
     <div class="dd-head">All</div><a href="${explorerHref}" data-keep-partner>Browse every tool →</a></div></div>`);
 
-  out.push(link(items[2]), link(items[3]));
+  out.push(link(items[2]), link(items[3]), link(items[4]));
 
   // primary CTA — the venture path is the wider front door, but do not
   // link to a page the visitor is already standing on.
@@ -155,6 +156,46 @@ const LEARN_LINKS = [
   { file: "glossary.html",    label: "Glossary",     hint: "The vocabulary, and what goes wrong around it" },
   { file: "regulations.html", label: "Regulations",  hint: "Every instrument, with its verification status" }
 ];
+
+/* ---- the "About" block in every footer ----
+   Two sentences and a link, injected centrally like the Learn strip.
+
+   The first draft put three paragraphs here and it was mostly other
+   pages' work restated: "not affiliated with the Kenya Civil Aviation
+   Authority" already appears in the terms, the glossary and the
+   regulatory index, "free, no signup, no sales call" on the home page,
+   the diagnostic and the FAQ, and "orientation, not advice" in five
+   places. A sixth copy adds nothing and guarantees that one day the
+   copies disagree — with the footer being the one nobody updates.
+
+   So this says the thing no other page says, and about.html carries the
+   rest. */
+function mountFooterAbout() {
+  const footer = document.querySelector(".footer .wrap");
+  if (!footer || footer.querySelector(".footer-about")) return;
+  const root = location.pathname.includes("/tools/") ? "../" : "";
+  const here = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+
+  const link = (!root && here === "about.html")
+    ? `<span class="fa-more" aria-current="page">Who we are, and how to work with us</span>`
+    : `<a class="fa-more" href="${root}about.html" data-keep-partner>Who we are, and how to work with us &rarr;</a>`;
+
+  const el = document.createElement("div");
+  el.className = "footer-about";
+  el.innerHTML =
+    `<h4>About JK &amp; Associates</h4>
+     <p>An aviation management consultancy based in Nairobi, Kenya, working with operators,
+        investors and greenfield ventures across the continent. Two tracks: taking a venture
+        through KCAA certification to an air operator certificate, and making an existing
+        carrier legible to itself.</p>
+     ${link}`;
+
+  const learn = footer.querySelector(".footer-learn");
+  const ver = footer.querySelector(".ver");
+  if (learn) footer.insertBefore(el, learn);
+  else if (ver) footer.insertBefore(el, ver);
+  else footer.appendChild(el);
+}
 
 function mountFooterLearn() {
   const footer = document.querySelector(".footer .wrap");
@@ -193,6 +234,20 @@ function mountChrome() {
     // render the canonical menu, replacing whatever static links the page shipped
     navLinks.innerHTML = buildNav();
   }
+  // Injected footer blocks are built BEFORE the partner sweep below, not
+  // after. They were mounted after it, so every data-keep-partner link
+  // inside them — the whole Learn strip — was created too late to be
+  // rewritten and quietly dropped the ?partner= a co-branded visitor
+  // arrived with. The sweep's own comment says it covers "the page
+  // body/footer", so the footer has to exist by the time it runs.
+  // Belt and braces after this exact failure: an About block that read a
+  // dataset the page had not loaded threw inside mountChrome, which took
+  // the nav, the scroll-reveal and the page's own scripts down with it.
+  // The footer is decoration; the page is not. A logged failure here
+  // costs a strip at the bottom, an unhandled one costs the site.
+  try { mountFooterAbout(); } catch (e) { console.error("footer about:", e); }
+  try { mountFooterLearn(); } catch (e) { console.error("footer learn:", e); }
+
   // Propagate ?partner= across every internal link in one pass — the generated
   // nav plus any data-keep-partner links in the page body/footer. Done here
   // (not in applyPartner) so the freshly-built nav is included, and gated on a
@@ -210,7 +265,6 @@ function mountChrome() {
     });
     document.addEventListener("keydown", e => { if (e.key === "Escape") setOpen(false); });
   }
-  mountFooterLearn();
   document.querySelectorAll("[data-year]").forEach(el => el.textContent = new Date().getFullYear());
   document.querySelectorAll("[data-version]").forEach(el => el.textContent = JK.brand.version);
   document.querySelectorAll("[data-email]").forEach(el => {
