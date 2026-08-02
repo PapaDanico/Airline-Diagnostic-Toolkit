@@ -156,6 +156,116 @@ const LEARN_LINKS = [
   { file: "regulations.html", label: "Regulations",  hint: "Every instrument, with its verification status" }
 ];
 
+/* ---- the "About" block in every footer ----
+   Same reasoning as the Learn strip, and the same mechanism: seventeen
+   pages carry a footer, and a paragraph maintained seventeen times is a
+   paragraph that disagrees with itself within a month.
+
+   The prose is fixed; the figures are not. Every number below is counted
+   off JK / JKV / JKG at render time, so a claim about scope cannot
+   outlive the thing it describes. An About section is the likeliest
+   block on any site to go stale, because it is the one nobody re-reads.
+
+   The limits are stated at the same size as the capabilities. This site
+   tells operators their certification is behind schedule and their
+   margin is the thinnest of any region; it does not then get to be shy
+   about what it is not. Not affiliated with KCAA, not regulatory advice,
+   and some citations remain unverified against the gazette — all three
+   are already in the terms, and all three belong where people actually
+   look. */
+/* Only JK (data.js) is loaded by every page. data-ventures.js is on the
+   venture pages and data-glossary.js only on the glossary, so a fact
+   that reads JKV or JKG has to be conditional — referencing an
+   unloaded global throws a ReferenceError, and because this runs inside
+   mountChrome that would take the nav, the reveal and every other page
+   script down with it. A footer block is not worth a broken page.
+
+   Facts are therefore built by availability, not assumed. Where a
+   dataset is absent the row is omitted rather than shown as zero: "0
+   glossary terms" is a false claim, and a missing row is merely a
+   quieter true one. */
+function aboutFacts() {
+  const has = name => typeof window[name] !== "undefined" && window[name];
+  const V = has("JKV"), G = has("JKG");
+  const facts = [];
+
+  const openTools = JK.toolboxes.filter(b => !b.locked).reduce((n, b) => n + b.tools.length, 0);
+  const allTools  = JK.toolboxes.reduce((n, b) => n + b.tools.length, 0);
+  const questions = JK.domains.reduce((n, d) => n + d.questions.length, 0);
+
+  facts.push(["Diagnostic tools", openTools, `open to everyone, ${allTools - openTools} more under engagement`]);
+  facts.push(["Health Scorecard", JK.domains.length, `weighted domains, ${questions} questions`]);
+
+  if (V) {
+    const items = V.sectors.reduce((n, s) => n + V.totalItems(s), 0);
+    facts.push(["Greenfield sectors", V.sectors.length,
+      `${V.phaseSpine.length} KCAA phases, ${items} checklist items`]);
+  }
+  if (G) {
+    facts.push(["Glossary", G.terms.length,
+      `terms across ${G.cats.length} categories`]);
+  } else if (V) {
+    facts.push(["Cited instruments", Object.keys(V.cites).length,
+      "each with a verification status"]);
+  }
+
+  const meta = JK.benchmarkMeta;
+  if (meta && facts.length < 4) {
+    facts.push(["Benchmarks", meta.sources.length,
+      `industry sources, oldest as at ${meta.asOf}`]);
+  }
+  return facts;
+}
+
+function mountFooterAbout() {
+  const footer = document.querySelector(".footer .wrap");
+  if (!footer || footer.querySelector(".footer-about")) return;
+  const root = location.pathname.includes("/tools/") ? "../" : "";
+  const here = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+
+  const facts = aboutFacts().map(([label, value, note]) =>
+    `<div><dt>${label}</dt><dd><b>${value}</b> <span>${note}</span></dd></div>`
+  ).join("");
+
+  // never link a page to itself
+  const more = (!root && here === "methodology.html")
+    ? `<span class="fa-more" aria-current="page">How every figure is arrived at</span>`
+    : `<a class="fa-more" href="${root}methodology.html" data-keep-partner>How every figure is arrived at, and its limits →</a>`;
+
+  const el = document.createElement("div");
+  el.className = "footer-about";
+  el.innerHTML =
+    `<h4>About JK &amp; Associates</h4>
+     <div class="fa-grid">
+       <div class="fa-prose">
+         <p>JK &amp; Associates is an aviation management consultancy based in Nairobi, Kenya, working
+            with operators, investors and greenfield ventures across the continent. The practice runs
+            two tracks: taking a venture through KCAA certification to an air operator certificate,
+            and making an existing carrier legible to itself — where the cost sits, where the margin
+            goes, and what a regulator or a lender will ask next.</p>
+         <p>The tools here are free and need no signup. Everything you enter is scored in this browser
+            and stays on this device; there are no accounts and no sales call attached. Work is framed
+            against the instruments that actually bind — KCARs 2025, ICAO Annexes 6 and 19, Doc 9868
+            for competency-based training, and IOSA — and every industry benchmark on the results page
+            carries the publication it came from and the date it was checked.</p>
+         <p class="fa-limits"><b>What this is not.</b> We are not affiliated with or endorsed by the
+            Kenya Civil Aviation Authority or any regulator, and nothing here is professional, legal,
+            financial or airworthiness advice. Regulatory content is orientation, never a substitute
+            for the gazetted instrument, and citations we mark <em>unconfirmed</em> could not be
+            verified against the public gazette record at the stated date. Outputs depend entirely on
+            figures you supply, which we do not audit.</p>
+         ${more}
+       </div>
+       <dl class="fa-facts">${facts}</dl>
+     </div>`;
+
+  const learn = footer.querySelector(".footer-learn");
+  const ver = footer.querySelector(".ver");
+  if (learn) footer.insertBefore(el, learn);
+  else if (ver) footer.insertBefore(el, ver);
+  else footer.appendChild(el);
+}
+
 function mountFooterLearn() {
   const footer = document.querySelector(".footer .wrap");
   if (!footer || footer.querySelector(".footer-learn")) return;
@@ -193,6 +303,20 @@ function mountChrome() {
     // render the canonical menu, replacing whatever static links the page shipped
     navLinks.innerHTML = buildNav();
   }
+  // Injected footer blocks are built BEFORE the partner sweep below, not
+  // after. They were mounted after it, so every data-keep-partner link
+  // inside them — the whole Learn strip — was created too late to be
+  // rewritten and quietly dropped the ?partner= a co-branded visitor
+  // arrived with. The sweep's own comment says it covers "the page
+  // body/footer", so the footer has to exist by the time it runs.
+  // Belt and braces after this exact failure: an About block that read a
+  // dataset the page had not loaded threw inside mountChrome, which took
+  // the nav, the scroll-reveal and the page's own scripts down with it.
+  // The footer is decoration; the page is not. A logged failure here
+  // costs a strip at the bottom, an unhandled one costs the site.
+  try { mountFooterAbout(); } catch (e) { console.error("footer about:", e); }
+  try { mountFooterLearn(); } catch (e) { console.error("footer learn:", e); }
+
   // Propagate ?partner= across every internal link in one pass — the generated
   // nav plus any data-keep-partner links in the page body/footer. Done here
   // (not in applyPartner) so the freshly-built nav is included, and gated on a
@@ -210,7 +334,6 @@ function mountChrome() {
     });
     document.addEventListener("keydown", e => { if (e.key === "Escape") setOpen(false); });
   }
-  mountFooterLearn();
   document.querySelectorAll("[data-year]").forEach(el => el.textContent = new Date().getFullYear());
   document.querySelectorAll("[data-version]").forEach(el => el.textContent = JK.brand.version);
   document.querySelectorAll("[data-email]").forEach(el => {

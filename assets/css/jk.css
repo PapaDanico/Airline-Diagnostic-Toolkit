@@ -439,6 +439,27 @@ button.phase:focus-visible { outline: 2px solid var(--accent); outline-offset: 3
    A band rather than a fifth column, so it lands identically on the
    four-column footers and the single-line ones without either layout
    having to know about it. */
+/* ---- footer: about ---- */
+.footer-about { margin-top: 30px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.12); }
+.footer-about h4 { margin: 0 0 .9rem; color: var(--jk-amber); }
+/* Prose takes the wider column. Leading with the figures would make the
+   headline "how much there is" when the claim is "what it is worth". */
+.footer-about .fa-grid { display: grid; grid-template-columns: minmax(0,1.7fr) minmax(0,1fr); gap: 26px; align-items: start; }
+.footer-about .fa-prose p { font-size: .87rem; line-height: 1.65; color: #b3a69f; margin-bottom: .7rem; max-width: 64ch; }
+/* Same size, same colour as the claims above. Setting the limits smaller
+   or dimmer would be a way of saying them without saying them. */
+.footer-about .fa-limits b { color: var(--jk-amber); font-weight: 700; }
+.footer-about .fa-limits em { font-style: italic; color: #cbbfb8; }
+.footer-about .fa-more { display: inline-block; margin-top: .25rem; font-size: .87rem; color: var(--jk-amber); }
+.footer-about .fa-more[aria-current="page"] { color: #9a8c85; }
+.footer-about .fa-facts { display: grid; gap: 14px; margin: 0; }
+.footer-about .fa-facts div { min-width: 0; }
+.footer-about .fa-facts dt { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: #9a8c85; margin-bottom: 2px; }
+.footer-about .fa-facts dd { margin: 0; font-size: .78rem; line-height: 1.45; color: #b3a69f; }
+.footer-about .fa-facts dd b { font-size: 1.35rem; font-weight: 700; color: #fff; margin-right: .35rem; }
+@media (max-width: 720px) { .footer-about .fa-grid { grid-template-columns: 1fr; } }
+@media print { .footer-about { display: none; } }
+
 .footer-learn { margin-top: 30px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.12); }
 .footer-learn h4 { margin: 0 0 .9rem; color: var(--jk-amber); }
 .footer-learn .fl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
