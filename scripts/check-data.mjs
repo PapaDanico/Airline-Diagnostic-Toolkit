@@ -42,6 +42,68 @@ for (const d of JK.domains) {
 if (weight !== 100) fail(`domain weights sum to ${weight} (expected 100)`);
 if (questions !== 40) fail(`total questions ${questions} (expected 40)`);
 
+/* ---------- 1b. benchmark provenance ----------
+
+   A domain benchmark is the only thing on the results page that tells an
+   operator whether 62% is good. That makes it a claim about the industry,
+   and a claim about the industry needs to say who made it and when.
+
+   Two different problems, handled two different ways:
+
+   Structure is a failure. A benchmark with no source, or a source with no
+   date, is a sentence the reader cannot check — it reads as authority
+   without being accountable to anything. That must not reach the browser,
+   so it stops the build.
+
+   Age is a warning. Aviation benchmarks are annual: AFRAA publishes each
+   Q4, IATA each mid-year. A figure two cycles old is not wrong, it is
+   superseded — and fixing it means going and reading the newer report,
+   which is research, not a code change. Failing CI for it would only
+   block work unrelated to the stale number. So it is reported loudly and
+   left for someone to act on.
+
+   The unattributed sources ("Industry planning target", "Industry range")
+   are the same category of problem one step further along: they have no
+   date because there is no publication to date them to. They are named
+   here rather than quietly deleted, because a benchmark an operator has
+   been reading for months should not vanish without someone deciding it
+   should. */
+const BENCHMARK_MAX_AGE_DAYS = 730; // two annual publication cycles
+const UNATTRIBUTED = /^Industry (planning target|range)$/;
+{
+  const before = failures;
+  let dated = 0;
+  const stale = [], undatable = [];
+  for (const d of JK.domains) {
+    if (!d.benchmark) continue;
+    if (!d.benchmarkSrc) { fail(`${d.id}: benchmark with no source`); continue; }
+    if (!("benchmarkAsOf" in d)) {
+      fail(`${d.id}: benchmark source "${d.benchmarkSrc}" carries no benchmarkAsOf — set a date, or null if it names no publication`);
+      continue;
+    }
+    if (d.benchmarkAsOf === null) {
+      if (!UNATTRIBUTED.test(d.benchmarkSrc)) {
+        fail(`${d.id}: source "${d.benchmarkSrc}" names a publication but has no date`);
+      } else {
+        undatable.push(d.id);
+      }
+      continue;
+    }
+    const age = Math.floor((Date.now() - new Date(d.benchmarkAsOf).getTime()) / 86400000);
+    if (Number.isNaN(age)) { fail(`${d.id}: unreadable benchmarkAsOf "${d.benchmarkAsOf}"`); continue; }
+    if (age < 0) { fail(`${d.id}: benchmarkAsOf "${d.benchmarkAsOf}" is in the future`); continue; }
+    dated += 1;
+    if (age > BENCHMARK_MAX_AGE_DAYS) stale.push(`${d.id} (${d.benchmarkSrc}, ${age}d)`);
+  }
+  if (failures === before) {
+    console.log(`benchmarks OK — ${dated} dated to a named publication, ${undatable.length} unattributed`);
+    if (undatable.length)
+      console.log(`         note: ${undatable.length} benchmark(s) cite no publication and cannot be dated: ${undatable.join(", ")}`);
+    if (stale.length)
+      console.log(`         WARN: ${stale.length} benchmark(s) older than ${BENCHMARK_MAX_AGE_DAYS} days — a newer edition has been published: ${stale.join(", ")}`);
+  }
+}
+
 /* brand strings must not carry the retired identity */
 const brandBlob = JSON.stringify(JK.brand);
 if (/DN Consultancy/.test(brandBlob)) fail("brand block still references the retired DN Consultancy identity");

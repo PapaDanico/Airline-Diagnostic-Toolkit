@@ -68,13 +68,32 @@
     document.getElementById("index-text")?.parentNode?.appendChild(calibEl);
   }
 
+  /* ---- benchmark attribution ----
+
+     A benchmark is what turns 62% from a number into a verdict, so the
+     reader is entitled to know how old the yardstick is. Month and year,
+     not a day: these are annual industry publications, and printing
+     "30 Jun 2024" would claim a precision the source does not have.
+
+     Where a benchmark cites no publication at all, that is said out loud
+     rather than dressed as a citation. "— Industry planning target" in
+     the same italic slot as "— IATA 2024 Safety Report" invites the
+     reader to treat the two as equally sourced. They are not. */
+  const benchAttribution = (d) => {
+    if (!d.benchmarkSrc) return "";
+    if (!d.benchmarkAsOf) return `— ${d.benchmarkSrc} (no published source)`;
+    const when = new Date(d.benchmarkAsOf)
+      .toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
+    return `— ${d.benchmarkSrc}, as at ${when}`;
+  };
+
   /* ---- gap table (sorted weakest-first to read like a findings page) ---- */
   const sorted = [...s.domains].sort((a, b) => a.pct - b.pct);
   const tbody = document.getElementById("gap-body");
   sorted.forEach(d => {
     const tr = document.createElement("tr");
     const bench = d.benchmark
-      ? `<div class="bench"><b>Industry:</b> ${d.benchmark} <span class="src">— ${d.benchmarkSrc}</span></div>` : "";
+      ? `<div class="bench"><b>Industry:</b> ${d.benchmark} <span class="src">${benchAttribution(d)}</span></div>` : "";
     tr.innerHTML = `
       <td><strong>${d.name}</strong><br><span class="muted" style="font-size:.82rem">${d.blurb}</span>${bench}</td>
       <td>${d.weight}%</td>
@@ -625,9 +644,31 @@
     }
   });
 
-  /* ---- data-as-of stamp ---- */
+  /* ---- source list and data-as-of stamp, both read off the benchmarks ---- */
+  const meta = JK.benchmarkMeta;
   const asofEl = document.getElementById("bench-asof");
-  if (asofEl && JK.benchmarkMeta) asofEl.textContent = JK.benchmarkMeta.asOf;
+  if (asofEl && meta) asofEl.textContent = meta.asOf;
+
+  const srcEl = document.getElementById("bench-sources");
+  if (srcEl && meta) {
+    srcEl.innerHTML = "";
+    meta.sources.forEach(name => {
+      const li = document.createElement("li");
+      // Which domains lean on this source. A reader checking a figure
+      // wants to know what it is holding up, not just that it was read.
+      const used = JK.domains.filter(d => d.benchmarkSrc === name).map(d => d.name);
+      li.textContent = `${name} — ${used.join(", ")}`;
+      srcEl.appendChild(li);
+    });
+    const unattributed = JK.domains.filter(d => d.benchmark && !d.benchmarkAsOf);
+    if (unattributed.length) {
+      const li = document.createElement("li");
+      li.className = "muted";
+      li.textContent = `No published source: ${unattributed.map(d => d.name).join(", ")} ` +
+        `— these benchmarks are planning targets, not measured industry figures.`;
+      srcEl.appendChild(li);
+    }
+  }
 
   /* ---- optional CSV calibration (all client-side) ----
      4 figures in, 3 derived metrics out, compared against the regional
