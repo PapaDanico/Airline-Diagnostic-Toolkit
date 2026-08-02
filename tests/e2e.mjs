@@ -678,59 +678,61 @@ assert(await page.$$eval(".footer-learn .fl-item.is-here", e => e.length) === 1,
 assert(await page.$$eval('.footer-learn a[href="glossary.html"]', e => e.length) === 0,
   "glossary.html does not link to itself");
 
-/* ─── Footer about ───
-   The regression that prompted these: the block read JKG on pages that
-   never load data-glossary.js, threw inside mountChrome, and took the
-   nav, the scroll-reveal and every page script down with it. So the
-   first assertion is not "the block rendered" but "the page still
-   works" — checked on the page with the FEWEST datasets loaded. */
+/* ─── Footer about + About us page ───
+   The first version of the footer block put three paragraphs here and
+   most of it restated the terms page, the home page and the regulatory
+   index. These assertions pin the correction: the footer is a pointer,
+   and the claims that belong to other pages must not reappear in it. */
 section("Footer about");
-for (const pg of ["index.html", "diagnostic.html", "tools/cask-calculator.html", "glossary.html", "tools/venture-dashboard.html"]) {
+for (const pg of ["index.html", "diagnostic.html", "tools/cask-calculator.html", "glossary.html"]) {
   await page.goto(base + "/" + pg); await page.waitForTimeout(350);
-  const state = await page.evaluate(() => ({
-    about: !!document.querySelector(".footer-about"),
-    facts: document.querySelectorAll(".footer-about .fa-facts div").length,
-    zero: [...document.querySelectorAll(".footer-about .fa-facts dd b")].some(b => b.textContent.trim() === "0"),
-    text: (document.querySelector(".footer-about")?.textContent || ""),
-    // The canary must be something mountChrome fills AFTER the footer
-    // mounts, or it survives the abort and proves nothing. The nav does
-    // not qualify — it is built earlier in the same function and stayed
-    // intact through the very regression this guards against.
-    year: (document.querySelector("[data-year]")?.textContent || "").trim(),
-    emailed: !!document.querySelector("a[data-email]")?.getAttribute("href")
-  }));
-  assert(state.about, `${pg}: about block injected`);
-  assert(state.facts >= 2 && state.facts <= 4, `${pg}: ${state.facts} fact rows (2-4 by dataset availability)`);
-  assert(!state.zero, `${pg}: no fact renders as 0 — a missing dataset omits its row rather than claiming none`);
-  assert(/^\d{4}$/.test(state.year) && state.emailed,
-    `${pg}: chrome finished after the footer — year and email hooks filled`);
-  // the limits must travel with the claims, on every page
-  assert(/What this is not/.test(state.text), `${pg}: limits paragraph present`);
-  assert(/not affiliated with or endorsed by/i.test(state.text), `${pg}: regulator non-affiliation stated`);
+  const st = await page.evaluate(() => {
+    const el = document.querySelector(".footer-about");
+    return {
+      present: !!el,
+      text: (el?.textContent || "").replace(/\s+/g, " ").trim(),
+      links: document.querySelectorAll('.footer-about a[href$="about.html"]').length,
+      // chrome must finish AFTER the footer mounts, or a throw in the
+      // footer silently takes the rest of the page with it
+      year: (document.querySelector("[data-year]")?.textContent || "").trim()
+    };
+  });
+  assert(st.present, `${pg}: about block injected`);
+  assert(st.text.length < 420, `${pg}: footer about is ${st.text.length} chars — meant to be a pointer`);
+  assert(st.links === 1, `${pg}: footer about links to about.html`);
+  assert(/^\d{4}$/.test(st.year), `${pg}: chrome finished after the footer mounted`);
+  for (const dupe of ["not affiliated", "no signup", "no sales call", "unconfirmed"]) {
+    assert(!st.text.toLowerCase().includes(dupe), `${pg}: footer restates "${dupe}" — that belongs to another page`);
+  }
 }
 
-// figures are counted off the data model, not typed into the markup
-await page.goto(base + "/glossary.html"); await page.waitForTimeout(400);
-const aboutTruth = await page.evaluate(() => {
-  const open = JK.toolboxes.filter(b => !b.locked).reduce((n, b) => n + b.tools.length, 0);
-  const rows = [...document.querySelectorAll(".footer-about .fa-facts div")].map(d => ({
-    label: d.querySelector("dt").textContent.trim(),
-    value: Number(d.querySelector("dd b").textContent.trim())
+section("About us page");
+await page.goto(base + "/about.html"); await page.waitForTimeout(450);
+{
+  const st = await page.evaluate(() => ({
+    h1: document.querySelectorAll("h1").length,
+    text: document.querySelector(".about").textContent.replace(/\s+/g, " "),
+    cover: [...document.querySelectorAll("#about-cover b")].map(b => Number(b.textContent.trim())),
+    open: JK.toolboxes.filter(b => !b.locked).reduce((n, b) => n + b.tools.length, 0),
+    domains: JK.domains.length,
+    sources: JK.benchmarkMeta.sources.length,
+    phases: JK.phases.length,
+    else: [...document.querySelectorAll(".about-else a")].map(a => a.getAttribute("href")),
+    selfLink: document.querySelectorAll('.footer-about a[href="about.html"]').length
   }));
-  const by = Object.fromEntries(rows.map(r => [r.label, r.value]));
-  return { open, domains: JK.domains.length, terms: JKG.terms.length, by };
-});
-assert(aboutTruth.by["Diagnostic tools"] === aboutTruth.open,
-  `open-tool count matches the registry (${aboutTruth.by["Diagnostic tools"]} vs ${aboutTruth.open})`);
-assert(aboutTruth.by["Health Scorecard"] === aboutTruth.domains,
-  "scorecard domain count matches the registry");
-assert(aboutTruth.by["Glossary"] === aboutTruth.terms,
-  `glossary term count matches the corpus (${aboutTruth.by["Glossary"]} vs ${aboutTruth.terms})`);
-
-// self-link suppression, same rule as the learn strip
-await page.goto(base + "/methodology.html"); await page.waitForTimeout(350);
-assert(await page.$$eval('.footer-about a[href="methodology.html"]', e => e.length) === 0,
-  "methodology.html does not link to itself from the about block");
+  assert(st.h1 === 1, "about page has exactly one h1");
+  assert(/aviation management consultancy/i.test(st.text), "practice described");
+  assert(/not affiliated with, appointed by or endorsed by/i.test(st.text), "independence stated");
+  assert(/Kanda Logistics Advisory/.test(st.text), "sister practice named");
+  // the figures are read off the data model, so check them against it
+  assert(JSON.stringify(st.cover) === JSON.stringify([st.open, st.domains, st.sources, st.phases]),
+    `coverage figures ${JSON.stringify(st.cover)} match the data model`);
+  // it points at the pages that own the rest rather than summarising them
+  for (const f of ["methodology.html", "regulations.html", "privacy.html", "terms.html"]) {
+    assert(st.else.includes(f), `about page points at ${f}`);
+  }
+  assert(st.selfLink === 0, "about.html does not link to itself from its own footer");
+}
 
 /* ─── 4d. HOMEPAGE — scorecard radar preview (Operate-track section) ─── */
 section("Homepage — scorecard radar preview");
