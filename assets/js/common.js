@@ -217,6 +217,10 @@ function mountChrome() {
     el.textContent = JK.brand.email;
     if (el.tagName === "A") el.href = "mailto:" + JK.brand.email;
   });
+  // The office address was hardcoded into twelve footers while
+  // JK.brand.location sat unread — the drift this file exists to prevent.
+  // One hook, one source.
+  document.querySelectorAll("[data-location]").forEach(el => { el.textContent = JK.brand.location; });
   // Plain, selectable address (for visitors with no configured mail client).
   document.querySelectorAll("[data-email-plain]").forEach(el => { el.textContent = JK.brand.email; });
   // "Copy email" buttons — robust fallback when mailto: links do nothing.
