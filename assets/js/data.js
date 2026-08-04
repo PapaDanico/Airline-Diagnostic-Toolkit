@@ -231,7 +231,7 @@ const JK = {
       blurb: "Staffing ratios, turnover, training currency, structure and leadership capacity.",
       rxCategory: "Training-management / LMS systems, competency-based training tools, and workforce-planning solutions.",
       jkTool: "JK A5 — Training Needs Analysis; B2 — Staff Cost Efficiency Analyser",
-      benchmark: "Labour has overtaken fuel as the industry's largest single cost component, at 28% of operating costs, on a total wage bill of $253 billion across a workforce of 3.33 million. Output per employee fell 0.4% as carriers carried more newly recruited staff. A payroll growing faster than the output it produces is the position this domain is testing for.",
+      benchmark: "Labour runs at 28% of industry operating costs — a wage bill of $253 billion across 3.33 million people — with wage growth outpacing inflation and output per employee down 0.4% as carriers absorbed newly recruited staff. Whether that 28% ranks above or below fuel depends on the jet fuel price: the same June 2026 revision put fuel at 31.4% of operating costs, against 25.7% in the December baseline. Labour is the share you can plan; fuel is the one that moves under you. A payroll growing faster than the output it produces is what this domain tests for.",
       benchmarkSrc: "IATA Global Outlook for Air Transport, June 2026", benchmarkAsOf: "2026-06-07", benchmarkCadence: "semiannual",
       standard: "Competency-based training (ICAO/IATA)",
       questions: [
