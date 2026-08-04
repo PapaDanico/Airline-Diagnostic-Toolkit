@@ -55,12 +55,25 @@ if (questions !== 40) fail(`total questions ${questions} (expected 40)`);
    without being accountable to anything. That must not reach the browser,
    so it stops the build.
 
-   Age is a warning. Aviation benchmarks are annual: AFRAA publishes each
-   Q4, IATA each mid-year. A figure two cycles old is not wrong, it is
+   Age is a warning. A figure two cycles old is not wrong, it is
    superseded — and fixing it means going and reading the newer report,
    which is research, not a code change. Failing CI for it would only
    block work unrelated to the stale number. So it is reported loudly and
    left for someone to act on.
+
+   TWO CYCLES OF WHAT, though. This was a single 730-day constant, which
+   assumed every source publishes once a year. IATA's Global Outlook does
+   not — it comes out each June and each December, and the June 2026
+   edition cut the African net margin forecast from 1.3% to 0.2% and
+   earnings per passenger from $1.30 to $0.40. A benchmark citing the
+   December edition was six months out of date, wrong by a factor of
+   three, and 548 days inside a threshold that saw nothing to report.
+
+   So the threshold is derived from the source's own cadence. `annual`
+   keeps 730 days. `semiannual` gets 365 — two IATA cycles, which is the
+   same rule, correctly applied. Cadence is required on every dated
+   benchmark: defaulting it would quietly reintroduce the assumption
+   that just failed.
 
    The unattributed sources ("Industry planning target", "Industry range")
    are the same category of problem one step further along: they have no
@@ -68,7 +81,8 @@ if (questions !== 40) fail(`total questions ${questions} (expected 40)`);
    here rather than quietly deleted, because a benchmark an operator has
    been reading for months should not vanish without someone deciding it
    should. */
-const BENCHMARK_MAX_AGE_DAYS = 730; // two annual publication cycles
+const CYCLE_DAYS = { annual: 365, semiannual: 182 };
+const CYCLES_BEFORE_STALE = 2;
 const UNATTRIBUTED = /^Industry (planning target|range)$/;
 {
   const before = failures;
@@ -89,18 +103,30 @@ const UNATTRIBUTED = /^Industry (planning target|range)$/;
       }
       continue;
     }
+    const cycle = CYCLE_DAYS[d.benchmarkCadence];
+    if (!cycle) {
+      fail(
+        `${d.id}: benchmarkCadence is "${d.benchmarkCadence ?? "missing"}" — set ` +
+        `${Object.keys(CYCLE_DAYS).map((c) => `"${c}"`).join(" or ")} so staleness ` +
+        `is measured against how often this source actually republishes`
+      );
+      continue;
+    }
     const age = Math.floor((Date.now() - new Date(d.benchmarkAsOf).getTime()) / 86400000);
     if (Number.isNaN(age)) { fail(`${d.id}: unreadable benchmarkAsOf "${d.benchmarkAsOf}"`); continue; }
     if (age < 0) { fail(`${d.id}: benchmarkAsOf "${d.benchmarkAsOf}" is in the future`); continue; }
     dated += 1;
-    if (age > BENCHMARK_MAX_AGE_DAYS) stale.push(`${d.id} (${d.benchmarkSrc}, ${age}d)`);
+    const limit = cycle * CYCLES_BEFORE_STALE;
+    if (age > limit) {
+      stale.push(`${d.id} (${d.benchmarkSrc}, ${age}d — ${d.benchmarkCadence}, limit ${limit}d)`);
+    }
   }
   if (failures === before) {
     console.log(`benchmarks OK — ${dated} dated to a named publication, ${undatable.length} unattributed`);
     if (undatable.length)
       console.log(`         note: ${undatable.length} benchmark(s) cite no publication and cannot be dated: ${undatable.join(", ")}`);
     if (stale.length)
-      console.log(`         WARN: ${stale.length} benchmark(s) older than ${BENCHMARK_MAX_AGE_DAYS} days — a newer edition has been published: ${stale.join(", ")}`);
+      console.log(`         WARN: ${stale.length} benchmark(s) past ${CYCLES_BEFORE_STALE} publication cycles — a newer edition exists: ${stale.join(", ")}`);
   }
 }
 
