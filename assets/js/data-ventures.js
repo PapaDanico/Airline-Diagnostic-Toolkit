@@ -29,7 +29,7 @@ const JKV = {
      CITATION REGISTRY
      --------------------------------------------------------- */
   CITE_META: {
-    verifiedOn: "2026-08-01",
+    verifiedOn: "2026-08-04",
     note: "Kenya's 2025 civil aviation regulations were gazetted through 2026, so a regulation titled \"…Regulations, 2025\" carries a 2026 Legal Notice number. Always cite both.",
     sources: [
       { label: "Kenya Law — civil aviation legal notices", url: "https://new.kenyalaw.org/" },
@@ -56,9 +56,9 @@ const JKV = {
 
     // ---- not confirmed against the gazette record ----
     ato:      { s:"verified",    ref:"L.N. 93/2018",  long:"Civil Aviation (Approved Training Organizations) Regulations, 2018 — THE INSTRUMENT CURRENTLY IN FORCE. The 2025 revision is among the instruments KCAA lists as still awaiting Kenya Gazette publication, so plan against this one and AC-ATO 001C. Re-check before submission: when the 2025 Regulations are gazetted they will carry a new Legal Notice number and supersede this.", url:"https://new.kenyalaw.org/akn/ke/act/ln/2018/93/eng@2018-05-04" },
-    atoNew:   { s:"unconfirmed", ref:"ATO Regs 2025 (pending)", long:"Civil Aviation (Approved Training Organisations) Regulations, 2025 — listed by KCAA among revised regulations at an advanced stage awaiting Kenya Gazette publication. Not in force at the verification date and carries no Legal Notice number yet.", url:"https://www.kcaa.or.ke/published-regs-2025" },
+    atoNew:   { s:"unconfirmed", ref:"ATO Regs 2025 (pending)", long:"Civil Aviation (Approved Training Organisations) Regulations, 2025 — still awaiting Kenya Gazette publication, re-checked 4 August 2026 and unchanged. What has changed is the company it keeps: twenty-nine of the revised regulations were gazetted across March–June 2026 (this toolkit cites sixteen of them by Legal Notice), and the ATO instrument is among the nine left behind. A revision that misses the wave carrying its own sister instruments is not days away. Plan against L.N. 93/2018 and expect no date.", url:"https://www.kcaa.or.ke/published-regs-2025" },
     sms:      { s:"verified",    ref:"L.N. 32/2026",  long:"Civil Aviation (Safety Management) Regulations — gazetted 3 March 2026 and titled \"…Regulations, 2026\" on the Kenya Law record, unlike its sister instruments which kept a 2025 title. ICAO Annex 19 and Doc 9859 remain the substantive standard behind it.", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/32/eng@2026-03-03" },
-    gh:       { s:"unconfirmed", ref:"Ground handling", long:"No dedicated ground-handling instrument was found in the 2025/2026 gazette series. Provision is licensed across the Civil Aviation Act, the Licensing of Air Services Regulations (L.N. 22/2026) and the aerodrome instruments (L.N. 41/2026, L.N. 102/2026). Confirm the applicable licensing route, categories and fee schedule with KCAA in writing before building a compliance matrix.", url:"https://www.kcaa.or.ke/" },
+    gh:       { s:"unconfirmed", ref:"Ground handling", long:"No dedicated ground-handling instrument exists. Re-checked 4 August 2026 against the full 2025/2026 gazette series and still absent — which after twenty-nine regulations were gazetted is better read as a deliberate gap than an oversight. Provision is licensed across the Civil Aviation Act, the Licensing of Air Services Regulations (L.N. 22/2026) and the aerodrome instruments (L.N. 41/2026, L.N. 102/2026). This entry will stay unconfirmed until KCAA answers in writing, because a licensing route assembled from three instruments by a consultant is not a licensing route: get the categories and fee schedule from them before building a compliance matrix.", url:"https://www.kcaa.or.ke/" },
 
     // ---- found during the August 2026 gazette sweep; previously missing ----
     cat:      { s:"verified",    ref:"L.N. 29/2026",  long:"Civil Aviation (Operation of Aircraft for Commercial Air Transport — Aeroplanes) Regulations, 2025 — the operating rules an AOC holder flies to, distinct from the certification rules in L.N. 42/2026", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/29/eng@2026-03-03" },
@@ -72,6 +72,8 @@ const JKV = {
     acOps001: { s:"verified",    ref:"CAA-AC-OPS001D", long:"Advisory Circular — Certification of an Air Operator (KCAA)", url:"https://www.kcaa.or.ke/sites/default/files/circulars/CAA-AC-OPS001D%20Cert%20of%20Air%20Operator.pdf" },
     acAws006: { s:"verified",    ref:"CAA-AC-AWS006D", long:"Advisory Circular — Certification of a Domestic/Local Maintenance Organisation (KCAA)", url:"https://www.kcaa.or.ke/sites/default/files/CAA-AC-AWS006D%20Certification%20of%20Domestic-Local%20Maintenance%20Organization.pdf" },
     acAto001: { s:"verified",    ref:"AC-ATO 001C",   long:"Advisory Circular — Certification of an Approved Training Organisation (KCAA)", url:"https://www.kcaa.or.ke/sites/default/files/publication/PEL/AC-ATO%20001C%20%20Certification%20of%20an%20Approved%20Training%20Organisation.pdf" },
+    acPel070: { s:"unconfirmed", ref:"CAA-AC-PEL070D", long:"Advisory Circular — Certification of a Prospective Training Organisation and Renewal of an Approved Training Organisation (KCAA, January 2026). Published under the PEL circular series and covering the same ground as AC-ATO 001C, which suggests it is the current working document — but the two have not been read side by side, so plan against both and ask KCAA which governs. Unconfirmed means the document was located, not read.", url:"https://www.kcaa.or.ke/sites/default/files/circulars/CAA-AC-PEL070D%20--%20CERTIFICATION%20OF%20PROSPECTIVE%20TRAINING%20ORGANISATION%20AND%20RENEWAL%20OF%20APPROVED%20TRAINING%20ORGANISATION%20--%20January%202026.pdf" },
+    acPel082: { s:"unconfirmed", ref:"CAA-AC-PEL082A", long:"Advisory Circular — Certification of a Foreign Approved Training Organisation (KCAA, January 2026). The route where the training partner is certificated abroad rather than in Kenya. Located but not read.", url:"https://www.kcaa.or.ke/sites/default/files/circulars/CAA-AC-PEL082A%20-%20Certification%20of%20a%20Foreign%20Approved%20Training%20Organisation%20(ATO)%20-%20January%202026_0.pdf" },
     annex19:  { s:"verified",    ref:"ICAO Annex 19", long:"ICAO Annex 19 — Safety Management (with Doc 9859, Safety Management Manual)", url:"https://www.icao.int/" },
     doc9868:  { s:"verified",    ref:"ICAO Doc 9868", long:"ICAO Doc 9868 — Procedures for Air Navigation Services: Training (PANS-TRG)", url:"https://www.icao.int/" }
   },
@@ -199,7 +201,7 @@ const JKV = {
       short:"ATO / Training",
       blurb:"Flight school, type-rating or simulator training centre, including FSTD qualification.",
       regLine:"ATO Regs 2018 (L.N. 93/2018) + PEL Regs 2025 (L.N. 50/2026)",
-      cites:["ato","atoNew","pel","acAto001","doc9868","sms"],
+      cites:["ato","atoNew","pel","acAto001","acPel070","acPel082","doc9868","sms"],
       leadMonths:[10,20], leadNote:"10–20 months. Device procurement and installation, not paperwork, is usually the binding constraint.",
       warn:"The 2025 ATO Regulations are NOT yet gazetted — KCAA lists them among instruments still awaiting Kenya Gazette publication. The instrument in force is the Civil Aviation (Approved Training Organizations) Regulations, 2018 (L.N. 93/2018), read with AC-ATO 001C. Plan against those, and re-check before submission: gazettement will bring a new Legal Notice number and supersede them.",
       postholders:[

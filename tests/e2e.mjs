@@ -812,17 +812,31 @@ await page.goto(base + "/results.html"); await page.waitForTimeout(500);
   assert(bench.named.every(n => bench.srcText.includes(n)),
     `every dated benchmark source is listed (${bench.named.length} sources)`);
 
-  // A benchmark with no publication behind it must not sit in the source
-  // list looking like one; it belongs in the "no published source" line.
-  assert(bench.srcText.includes("No published source"),
-    `${bench.unattributed.length} unattributed benchmarks are declared as such`);
-  assert(bench.unattributed.every(n => bench.srcText.includes(n)),
-    "each unattributed benchmark names the domain it belongs to");
+  /* A benchmark with no publication behind it must not sit in the source
+     list looking like one; it belongs in the "no published source" line.
+
+     Asserted BOTH WAYS, because these two assertions used to require that
+     unattributed benchmarks exist. Sourcing the last three turned a pair
+     of passing tests red — they were pinned to the defect rather than to
+     the rule about it. And a disclaimer for a gap that no longer exists is
+     its own defect: it tells a reader that some figure on the page is a
+     planning target when none is. */
+  if (bench.unattributed.length) {
+    assert(bench.srcText.includes("No published source"),
+      `${bench.unattributed.length} unattributed benchmarks are declared as such`);
+    assert(bench.unattributed.every(n => bench.srcText.includes(n)),
+      "each unattributed benchmark names the domain it belongs to");
+    assert(bench.gapText.includes("(no published source)"),
+      "gap table marks unsourced benchmarks inline, not just in the footer");
+  } else {
+    assert(!bench.srcText.includes("No published source"),
+      "every benchmark is sourced, so the footer must not claim otherwise");
+    assert(!bench.gapText.includes("(no published source)"),
+      "every benchmark is sourced, so the gap table must not mark one unsourced");
+  }
 
   // And the gap table must date the benchmark it prints beside the score.
   assert(/as at \w+ \d{4}/.test(bench.gapText), "gap table dates its industry benchmarks");
-  assert(bench.gapText.includes("(no published source)"),
-    "gap table marks unsourced benchmarks inline, not just in the footer");
 }
 assert((await page.$eval("#csv-template", a => a.href)).startsWith("data:text/csv"), "CSV template is a data-URI download");
 // valid upload → calibrated view with computed metrics
