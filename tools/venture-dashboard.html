@@ -447,11 +447,27 @@
   /* ---------- operating-track cross-link ---------- */
   function renderScorecard() {
     const sc = JKW.scorecard();
-    $("scorecard-x").innerHTML = sc
-      ? `<div class="note"><b>You also have an Airline Health Scorecard on this device — index ${sc.index}/100, "${escapeHtml(sc.verdict.band)}"</b>
-           That diagnostic measures an operating carrier, so it sits outside the Launch Readiness Index rather than inside it.
-           <a href="../results.html">Open the scorecard results →</a></div>`
-      : "";
+    /* An index is only shown for a finished scorecard.
+
+       results.html will not render a report until all forty questions
+       are answered, because each domain is scored against the questions
+       answered rather than the questions asked — so a partial scorecard
+       where the easy domains happen to be filled in reads far better
+       than the same carrier honestly assessed. This panel used to print
+       that number anyway, with a verdict band beside it, which meant
+       the two pages disagreed about whether the same data was fit to
+       show. scorecard() has always returned answeredAll; nothing read
+       it. */
+    $("scorecard-x").innerHTML = !sc
+      ? ""
+      : sc.answeredAll
+        ? `<div class="note"><b>You also have an Airline Health Scorecard on this device — index ${sc.index}/100, "${escapeHtml(sc.verdict.band)}"</b>
+             That diagnostic measures an operating carrier, so it sits outside the Launch Readiness Index rather than inside it.
+             <a href="../results.html">Open the scorecard results →</a></div>`
+        : `<div class="note"><b>You have an Airline Health Scorecard in progress on this device — ${sc.answered} of ${sc.total} questions answered.</b>
+             No index is shown until it is finished: each domain is scored against the questions you have answered, so a
+             part-completed scorecard flatters whichever domains you filled in first.
+             <a href="../diagnostic.html">Finish the scorecard →</a></div>`;
   }
 
   /* ---------- render ---------- */

@@ -130,6 +130,61 @@ const UNATTRIBUTED = /^Industry (planning target|range)$/;
   }
 }
 
+/* ---------- 1c. the calibration weight matrix ----------
+
+   getAdjustedWeights re-weights the entire health index according to
+   fleet type and operating model, and until now nothing tested it —
+   zero references in this file and zero in the e2e suite. It is the
+   most consequential arithmetic in the product: get a weight wrong and
+   every index the tool has ever produced is wrong, silently, with no
+   symptom a reader could notice.
+
+   It is correct today. These assertions are here so it stays that way,
+   and so the next person to add a fleet type finds out immediately if
+   their adjustment pushes a domain to zero or breaks the sum. */
+{
+  const before = failures;
+  const fleets = [null, ...JK.calibration.fleetTypes];
+  const models = [null, ...JK.calibration.operatingModels];
+  const domainIds = JK.domains.map(d => d.id).sort();
+  let combos = 0;
+
+  for (const f of fleets) {
+    for (const m of models) {
+      combos += 1;
+      const w = JK.getAdjustedWeights(f, m);
+      const label = `${f || "any fleet"} / ${m || "any model"}`;
+
+      const sum = Object.values(w).reduce((a, b) => a + b, 0);
+      if (sum !== 100) fail(`weights for ${label} sum to ${sum}, not 100`);
+
+      // Every domain must survive the adjustment. A domain weighted to
+      // zero is a domain the scorecard silently stops measuring.
+      const keys = Object.keys(w).sort();
+      if (keys.join() !== domainIds.join()) {
+        fail(`weights for ${label} cover ${keys.join()}, expected ${domainIds.join()}`);
+      }
+      for (const [k, v] of Object.entries(w)) {
+        if (!Number.isInteger(v)) fail(`${label}: ${k} weight ${v} is not a whole number`);
+        if (v <= 0) fail(`${label}: ${k} weighted to ${v} — the domain stops counting`);
+      }
+    }
+  }
+
+  /* The last key in the object absorbs all rounding residual, so which
+     domain that is depends on key order — an implementation detail
+     nobody would think to preserve while reordering a literal. Pinned
+     here so a reorder is a deliberate act rather than a surprise. */
+  const lastKey = Object.keys(JK.getAdjustedWeights(null, null)).pop();
+  if (lastKey !== "finance") {
+    fail(`the residual-absorbing key moved from "finance" to "${lastKey}" — reordering the weight object changes which domain carries rounding error`);
+  }
+
+  if (failures === before) {
+    console.log(`weights OK — ${combos} calibration combinations, all summing to 100 with every domain above zero`);
+  }
+}
+
 /* brand strings must not carry the retired identity */
 const brandBlob = JSON.stringify(JK.brand);
 if (/DN Consultancy/.test(brandBlob)) fail("brand block still references the retired DN Consultancy identity");

@@ -288,7 +288,23 @@ const JKW = {
     const filled = JK.domains.some(d => (answers[d.id] || []).some(v => Number.isInteger(v)));
     if (!filled) return null;
     const s = computeScores(answers);
-    return { index: s.index, answeredAll: s.answeredAll, verdict: indexVerdict(s.index) };
+    /* How much of it was actually answered. computeScores divides each
+       domain by the questions ANSWERED, not the questions asked, so a
+       domain with one good answer reads 100% and carries its full
+       weight. That is a reasonable rule for a finished scorecard and a
+       misleading one for a partial, which is why results.html refuses
+       to render a report until all forty are in. Consumers of this
+       summary need the same ability to refuse. */
+    const total = JK.domains.reduce((n, d) => n + d.questions.length, 0);
+    const answered = JK.domains.reduce(
+      (n, d) => n + (answers[d.id] || []).filter(v => Number.isInteger(v)).length, 0);
+    return {
+      index: s.index,
+      answeredAll: s.answeredAll,
+      answered,
+      total,
+      verdict: indexVerdict(s.index)
+    };
   },
 
   /* ---------- the whole picture ---------- */

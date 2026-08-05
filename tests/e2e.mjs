@@ -824,6 +824,45 @@ section("Regulatory Index — edition, citation, download, embed");
 
    Asserted at both layers: the value must be rejected, AND nothing may
    reach the DOM as markup even if a future edit loosens the validator. */
+/* ─── A PARTIAL SCORECARD HAS NO INDEX ───
+   computeScores divides each domain by the questions ANSWERED, not the
+   questions asked, so a domain with one good answer reads 100% and
+   carries its full weight. results.html has always refused to render a
+   report until all forty are in for exactly that reason. The venture
+   dashboard printed the index anyway, with a verdict band beside it —
+   so the two pages disagreed about whether the same data was fit to
+   show. scorecard() had always returned answeredAll; nothing read it. */
+section("A partial scorecard shows no index");
+{
+  await page.goto(base + "/tools/venture-dashboard.html");
+  await page.evaluate(() => {
+    localStorage.clear();
+    const ans = {};
+    // One domain, one question, best possible answer.
+    ans[JK.domains[0].id] = [4];
+    saveAnswers(ans);
+    localStorage.setItem("dn_onboarded", "1");
+  });
+  await page.goto(base + "/tools/venture-dashboard.html"); await page.waitForTimeout(500);
+
+  const panel = (await page.$eval("#scorecard-x", e => e.textContent) || "").replace(/\s+/g, " ");
+  assert(/in progress/i.test(panel), `a partial scorecard did not report itself as unfinished: "${panel}"`);
+  assert(!/index \d+\/100/i.test(panel), `an index was shown for a partial scorecard: "${panel}"`);
+  assert(/1 of 40/.test(panel), `the panel does not say how much is answered: "${panel}"`);
+
+  // A finished one must still show its index, or the fix has traded a
+  // wrong number for no number.
+  await page.evaluate(() => {
+    const ans = {};
+    JK.domains.forEach(d => { ans[d.id] = [3, 3, 3, 3, 3]; });
+    saveAnswers(ans);
+  });
+  await page.goto(base + "/tools/venture-dashboard.html"); await page.waitForTimeout(500);
+  const done = (await page.$eval("#scorecard-x", e => e.textContent) || "").replace(/\s+/g, " ");
+  assert(/index \d+\/100/i.test(done), `a completed scorecard showed no index: "${done}"`);
+  assert(!/in progress/i.test(done), `a completed scorecard was called unfinished: "${done}"`);
+}
+
 section("Calibration from the URL is validated, not rendered");
 {
   const PAYLOAD = '<img src=x onerror="window.__xss=1">';
