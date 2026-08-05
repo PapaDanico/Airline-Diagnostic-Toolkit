@@ -514,6 +514,39 @@ body.has-partner .partner-banner { display: flex; }
 .partner-logo { height: 30px; display: none; }
 body.has-partner .partner-logo { display: block; }
 
+/* Embedded mode (?embed=1) — the content, without JK's furniture.
+   The attribution line is the exception and is not optional: a corpus
+   inside someone else's page still has to say whose it is. */
+body.is-embed .nav-bar,
+body.is-embed .site-footer,
+body.is-embed footer,
+body.is-embed .cta-band,
+body.is-embed .skip-link { display: none !important; }
+body.is-embed .embed-only { display: block; }
+.embed-only { display: none; }
+body.is-embed section:first-of-type { padding-top: 1.2rem; }
+.embed-attrib {
+  margin: 1.6rem 0 0; padding-top: .9rem;
+  border-top: 1px solid var(--jk-line, #ddd);
+  font-size: .8rem; color: #555;
+}
+
+/* Edition strip on the Regulatory Index — the corpus stating what it is
+   and offering itself in a form that leaves the site. */
+.edition-strip {
+  display: flex; flex-wrap: wrap; gap: 1rem;
+  align-items: flex-start; justify-content: space-between;
+  margin-top: 1.2rem; padding: .9rem 1.1rem;
+  background: var(--jk-sand-lt); border-radius: var(--radius-sm);
+}
+.edition-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .9rem; font-weight: 700; color: var(--accent-deep);
+  letter-spacing: .01em;
+}
+.edition-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+@media print { .edition-actions { display: none; } }
+
 /* Preview-mode banner. Deliberately the loudest thing on the page and
    deliberately not in the brand palette: it must not read as part of the
    partner's identity, because its whole job is to say the identity is
