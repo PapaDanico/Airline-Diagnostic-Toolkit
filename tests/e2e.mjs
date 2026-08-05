@@ -1002,6 +1002,8 @@ for (const pageFile of CONTRAST_PAGES) {
         .slice(0, 6);
       const bg = bgOf(svg);
       if (bg.unresolved) { unresolved.push({ text: 'svg', bg: bg.unresolved }); continue; }
+      let measured = 0;
+      let textured = 0;
 
       for (const sh of (shapes.length ? shapes : [svg])) {
         const scs = getComputedStyle(sh);
@@ -1012,8 +1014,46 @@ for (const pageFile of CONTRAST_PAGES) {
            were solid. */
         for (const [paint, po] of [[scs.fill, scs.fillOpacity], [scs.stroke, scs.strokeOpacity]]) {
           if (!paint || paint === 'none') continue;
-          const c = toRgb(paint);
-          if (!c) { unresolved.push({ text: 'svg paint', bg: paint.slice(0, 40) }); continue; }
+
+          /* A paint can be a server rather than a colour: fill:
+             url(#id). Refusing it outright fails on any textured mark —
+             it did on the sister platform's wordmark grain — and
+             skipping every url() would be a loophole an entire icon
+             could hide behind. So it is resolved by what it points AT.
+
+             A gradient has stops, and stops are colours, measured like
+             any other with the worst one counting. A pattern, filter or
+             mask is a texture whose contrast is not a single ratio, so
+             it is skipped but counted, and an icon painted ONLY by one
+             is reported rather than silently exempted.
+
+             Nothing on this platform uses a paint server today. It is
+             here so the two checks stay the same check, and so the first
+             gradient-filled icon someone adds is measured rather than
+             failing as an unresolved hole. */
+          let paints = [paint];
+          const ref = paint.match(/^\s*url\(["']?#([^"')]+)["']?\)/);
+          if (ref) {
+            const def = document.getElementById(ref[1]);
+            const kind = def ? def.tagName.toLowerCase() : '';
+            if (kind === 'lineargradient' || kind === 'radialgradient') {
+              paints = [...def.querySelectorAll('stop')].map(st => {
+                const ss = getComputedStyle(st);
+                return ss.stopColor || st.getAttribute('stop-color') || '';
+              }).filter(Boolean);
+              if (!paints.length) { unresolved.push({ text: 'svg gradient', bg: '#' + ref[1] + ' has no stops' }); continue; }
+            } else if (kind === 'pattern' || kind === 'filter' || kind === 'mask') {
+              textured++;
+              continue;
+            } else {
+              unresolved.push({ text: 'svg paint', bg: paint.slice(0, 40) });
+              continue;
+            }
+          }
+
+          for (const one of paints) {
+          const c = toRgb(one);
+          if (!c) { unresolved.push({ text: 'svg paint', bg: one.slice(0, 40) }); continue; }
           const alpha = c.a
             * (Number.isFinite(Number(po)) ? Number(po) : 1)
             * (Number.isFinite(elOpacity) ? elOpacity : 1);
@@ -1021,9 +1061,17 @@ for (const pageFile of CONTRAST_PAGES) {
           const r = Math.min(...bg.stops.map(stop =>
             ratio(alpha >= 0.99 ? c.rgb : over(c.rgb, alpha, stop), stop)));
           if (r < 3) {
-            svgOut.push(`<svg ${String(svg.getAttribute('class') || host?.className || '').slice(0, 30)}> ${paint}${alpha < 0.99 ? ' @' + alpha.toFixed(2) : ''} ${r.toFixed(2)}:1`);
+            svgOut.push(`<svg ${String(svg.getAttribute('class') || host?.className || '').slice(0, 30)}> ${one}${alpha < 0.99 ? ' @' + alpha.toFixed(2) : ''} ${r.toFixed(2)}:1`);
+          }
+          measured++;
           }
         }
+      }
+      /* Texture is only safe to skip because something else on the same
+         icon was measured. An icon whose every paint is a pattern has
+         been checked by nobody. */
+      if (textured && !measured) {
+        svgOut.push(`<svg ${String(svg.getAttribute('class') || host?.className || '').slice(0, 30)}> painted only by a pattern/filter — nothing measurable`);
       }
     }
 
