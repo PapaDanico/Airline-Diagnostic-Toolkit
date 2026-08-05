@@ -763,6 +763,57 @@ await page.goto(base + "/about.html"); await page.waitForTimeout(450);
    behind it, and computes WCAG contrast. It is deliberately not a full
    audit: it checks the components that paint their own surface, which
    is where this class of bug lives. */
+/* ─── TNA COSTS ARE IN USD AND SHOW THEIR WORKING ───
+   These were sterling and unsourced. Restating them in dollars alone
+   would have relabelled a guess — and would have carried over a real
+   error: at the old flat rate a full type rating came to about £2,400
+   against a published narrowbody price of USD 18,000–48,000. */
+section("TNA costs are in USD and cite their basis");
+{
+  await page.goto(base + "/tools/training-tna.html");
+  await page.waitForTimeout(500);
+
+    /* innerText, not textContent: textContent includes the contents of
+     <script> elements, and the cost model's own comment records the old
+     sterling figures on purpose. What matters is what a reader sees. */
+  const shown = await page.$eval("body", e => e.innerText);
+  assert(!shown.includes("£"), "a sterling figure is displayed on the TNA");
+  assert(/\$0/.test(await page.$eval("#stat-cost", e => e.textContent)), "the headline figure is not in dollars");
+
+  // Every group states what its rate was built from, and the sources are
+  // on the page rather than in a comment — that is what verifiable means.
+  const notes = await page.$$eval("#basis-groups .note", n => n.length);
+  assert(notes >= 5, `only ${notes} basis notes rendered — one per group plus overrides expected`);
+  const srcLinks = await page.$$eval("#basis-sources a", a => a.map(x => x.href));
+  assert(srcLinks.length >= 2, "fewer than two sources cited for the cost basis");
+  assert(srcLinks.every(h => h.startsWith("https://")), `a cost source is not https: ${srcLinks.join(", ")}`);
+  assert(/IATA/.test(await page.$eval("#basis-sources", e => e.textContent)), "the IATA pricing anchor is not named");
+
+  /* The type rating must carry its own rate, and the total for closing
+     it must land inside the published band. This is the assertion that
+     would have caught the original error. */
+  const cpp = await page.$$eval("tr[data-key]", rows => {
+    const out = {};
+    for (const r of rows) {
+      const name = r.querySelector(".competency").textContent;
+      if (/type-rating/.test(name)) out.typeRating = Number(r.dataset.cpp);
+      if (/SOP compliance/.test(name)) out.sop = Number(r.dataset.cpp);
+    }
+    return out;
+  });
+  assert(cpp.typeRating > cpp.sop,
+    `the type rating (${cpp.typeRating}) is priced at or below a procedures course (${cpp.sop})`);
+
+  const row = await page.$("tr[data-key='0-2']");
+  assert(row, "the type-rating row moved — this test is pinned to its position");
+  await page.selectOption("tr[data-key='0-2'] .cur-select", "1");
+  await page.waitForTimeout(300);
+  const cell = await page.$eval("tr[data-key='0-2'] .cost", e => e.textContent);
+  const total = Number(cell.replace(/[^0-9]/g, ""));
+  assert(total >= 18000 && total <= 48000,
+    `closing the type-rating gap computes ${cell}, outside the published USD 18,000–48,000 band`);
+}
+
 section("Text contrast on painted surfaces");
 for (const pageFile of ["tutorial.html", "index.html", "how-it-works.html", "regulations.html"]) {
   /* Navigate explicitly. Running this against whatever page happened to
@@ -1303,7 +1354,7 @@ assert(await page.$$eval(".cur-select", e => e.length) === 39, "renders 39 curre
 assert(await page.$$eval(".staff-group", e => e.length) === 4, "renders 4 staff group sections");
 assert(await page.$eval("#stat-assessed", e => e.textContent) === "0 / 39", "assessed starts at 0/39");
 assert(await page.$eval("#stat-high", e => e.textContent) === "0", "high count starts at 0");
-assert(await page.$eval("#stat-cost", e => e.textContent) === "£0", "cost starts at £0");
+assert(await page.$eval("#stat-cost", e => e.textContent) === "$0", "cost starts at $0");
 assert(await page.$eval("#stat-avggap", e => e.textContent) === "—", "avg gap starts at —");
 assert(await page.$eval("#progress-pct", e => e.textContent) === "0", "progress pct starts at 0");
 assert(await page.$eval("#progress-count", e => e.textContent) === "0 / 39", "progress count starts at 0/39");
@@ -1318,13 +1369,13 @@ assert(await page.$eval("tr[data-key='0-0'] .gap-val", e => e.textContent) === "
 assert(await page.$eval("tr[data-key='0-0'] .gap-val", e => e.classList.contains("gap-pos")), "gap cell has gap-pos class");
 assert(/High/.test(await page.$eval("tr[data-key='0-0'] .priority", e => e.textContent)), "priority=High (gap≥2 & target≥4)");
 assert(/pri-high/.test(await page.$eval("tr[data-key='0-0'] .priority span", e => e.className)), "priority badge is pri-high");
-assert(await page.$eval("tr[data-key='0-0'] .cost", e => e.textContent) === "£1,800", "cost=£1,800 (gap 3 × £600)");
+assert(await page.$eval("tr[data-key='0-0'] .cost", e => e.textContent) === "$7,200", "cost=$7,200 (gap 3 × $2,400)");
 
 // Stats updated
 assert(await page.$eval("#stat-assessed", e => e.textContent) === "1 / 39", "assessed increments to 1/39");
 assert(await page.$eval("#stat-avggap", e => e.textContent) === "3.0", "avg gap = 3.0");
 assert(await page.$eval("#stat-high", e => e.textContent) === "1", "high count = 1");
-assert(await page.$eval("#stat-cost", e => e.textContent) === "£1,800", "total cost = £1,800");
+assert(await page.$eval("#stat-cost", e => e.textContent) === "$7,200", "total cost = $7,200");
 
 // Progress
 assert(await page.$eval("#progress-pct", e => e.textContent) !== "0", "progress pct > 0 after first entry");
@@ -1339,7 +1390,7 @@ section("Training Needs Analysis — MEDIUM priority (gap≥2, target<4)");
 await page.selectOption("tr[data-key='1-4'] .cur-select", "1"); await page.waitForTimeout(200);
 assert(await page.$eval("tr[data-key='1-4'] .gap-val", e => e.textContent) === "2", "gap=2 when target=3, current=1");
 assert(/Medium/.test(await page.$eval("tr[data-key='1-4'] .priority", e => e.textContent)), "priority=Medium (gap≥2, target<4)");
-assert(await page.$eval("tr[data-key='1-4'] .cost", e => e.textContent) === "£500", "cost=£500 (gap 2 × £250)");
+assert(await page.$eval("tr[data-key='1-4'] .cost", e => e.textContent) === "$2,400", "cost=$2,400 (gap 2 × $1,200)");
 
 /* ─── 11. TNA — gap & priority: MEDIUM (gap=1, target≥4) ─── */
 section("Training Needs Analysis — MEDIUM priority (gap=1, target≥4)");
@@ -1362,21 +1413,21 @@ await page.selectOption("tr[data-key='0-0'] .cur-select", "5"); await page.waitF
 assert(await page.$eval("tr[data-key='0-0'] .gap-val", e => e.textContent) === "0", "gap=0 when current=target");
 assert(await page.$eval("tr[data-key='0-0'] .gap-val", e => e.classList.contains("gap-zero")), "gap cell has gap-zero class");
 assert(/On target/.test(await page.$eval("tr[data-key='0-0'] .priority", e => e.textContent)), "priority=On target when gap=0");
-assert(await page.$eval("tr[data-key='0-0'] .cost", e => e.textContent) === "£0", "cost=£0 when on target");
+assert(await page.$eval("tr[data-key='0-0'] .cost", e => e.textContent) === "$0", "cost=$0 when on target");
 
 /* ─── 14. TNA — cost for engineers (£700/point) ─── */
 section("Training Needs Analysis — engineer cost rate (£700/point)");
 // Row 2-0: AME licensing, target=5, cpp=700. Set current=3 → gap=2
 await page.selectOption("tr[data-key='2-0'] .cur-select", "3"); await page.waitForTimeout(200);
 assert(await page.$eval("tr[data-key='2-0'] .gap-val", e => e.textContent) === "2", "engineer gap=2");
-assert(await page.$eval("tr[data-key='2-0'] .cost", e => e.textContent) === "£1,400", "engineer cost=£1,400 (2×£700)");
+assert(await page.$eval("tr[data-key='2-0'] .cost", e => e.textContent) === "$5,600", "engineer cost=$5,600 (2×$2,800)");
 
 /* ─── 15. TNA — cost for ground ops (£180/point) ─── */
 section("Training Needs Analysis — ground ops cost rate (£180/point)");
 // Row 3-0: Aircraft handling, target=4, cpp=180. Set current=2 → gap=2
 await page.selectOption("tr[data-key='3-0'] .cur-select", "2"); await page.waitForTimeout(200);
 assert(await page.$eval("tr[data-key='3-0'] .gap-val", e => e.textContent) === "2", "ground ops gap=2");
-assert(await page.$eval("tr[data-key='3-0'] .cost", e => e.textContent) === "£360", "ground ops cost=£360 (2×£180)");
+assert(await page.$eval("tr[data-key='3-0'] .cost", e => e.textContent) === "$1,800", "ground ops cost=$1,800 (2×$900)");
 
 /* ─── 16. TNA — capped gap (current > target) ─── */
 section("Training Needs Analysis — gap capped at 0 when current exceeds target");
@@ -1432,7 +1483,7 @@ const allValues = await page.$$eval(".cur-select", sels => sels.map(s => s.value
 assert(allValues.every(v => v === ""), "all selects cleared after reset");
 assert(await page.$eval("#stat-assessed", e => e.textContent) === "0 / 39", "assessed resets to 0/39");
 assert(await page.$eval("#stat-high", e => e.textContent) === "0", "high count resets to 0");
-assert(await page.$eval("#stat-cost", e => e.textContent) === "£0", "cost resets to £0");
+assert(await page.$eval("#stat-cost", e => e.textContent) === "$0", "cost resets to $0");
 assert(await page.$eval("#top-gaps-section", e => getComputedStyle(e).display) === "none", "top-gaps hidden after reset");
 
 /* ─── 22. TNA — export button (download triggered) ─── */
