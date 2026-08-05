@@ -336,7 +336,7 @@ section { padding: var(--sec-y) 0; }
    measure — technically legible, but it reads as cramped and stacks
    two-word lines. Cards get more room and a floor on their width. */
 .g4 { grid-template-columns: repeat(auto-fit, minmax(232px, 1fr)); }
-.card { background: #fff; border: 1px solid var(--jk-line); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow);
+.card { background: #fff; color: var(--jk-ink); border: 1px solid var(--jk-line); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow);
   transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease); }
 .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: var(--jk-line-2); }
 .card h3 { margin-top: 0; }
@@ -345,7 +345,8 @@ section { padding: var(--sec-y) 0; }
 .card-flat:hover { transform: none; box-shadow: var(--shadow); }
 
 /* domain / feature tiles */
-.tile { background: var(--jk-parchment); border-radius: var(--radius); padding: 22px; border-left: 4px solid var(--jk-ember);
+.tile { background: var(--jk-parchment); color: var(--jk-ink);
+  border-radius: var(--radius); padding: 22px; border-left: 4px solid var(--jk-ember);
   transition: transform var(--dur-base) var(--ease), border-left-width var(--dur-fast) var(--ease); }
 .tile:hover { transform: translateY(-3px); border-left-width: 6px; }
 .tile h4 { margin: 0 0 .35rem; font-family: var(--sans); font-weight: 700; font-size: 1rem; }
@@ -357,6 +358,27 @@ section { padding: var(--sec-y) 0; }
    full section envelope is what left it floating in dead space. */
 section.band-dark:has(.metrics) { padding: var(--sec-y-tight) 0; }
 .band-dark h2, .band-dark h3, .band-dark h4 { color: #fff; }
+
+/* ...except inside something that paints its own light surface.
+
+   The rule above is more specific than a component's own `color`, so a
+   .tile inside a dark band got cream from itself and white headings
+   from the band. Five headings on the tutorial shipped at 1.08:1 — the
+   paragraphs read because .tile p sets a colour, the headings did not
+   because .tile h4 never did. Nothing in the suite could see it:
+   textContent has no colour.
+
+   :is() carries the specificity of its heaviest argument, so this lands
+   at 0,2,1 and beats .band-dark h4 at 0,1,1. Listed rather than
+   inherited because a component that paints a background owes the
+   reader a matching foreground, and saying so once here is cheaper than
+   auditing every future band. */
+.band-dark :is(.tile, .card, .note, .phase, .guarantee),
+.band-dark :is(.tile, .card, .note, .phase, .guarantee)
+  :is(h1, h2, h3, h4, h5, h6, p, li, dt, dd, strong, b, span) {
+  color: var(--jk-ink);
+}
+.band-dark :is(.tile, .card, .note, .phase, .guarantee) p { color: var(--jk-muted); }
 .band-dark .eyebrow { color: var(--jk-amber); }
 /* Secondary text on any dark surface. --jk-muted is a warm grey chosen
    against parchment; on ink it drops to roughly 2:1 and stops being
@@ -377,7 +399,7 @@ section.band-dark:has(.metrics) { padding: var(--sec-y-tight) 0; }
 
 /* ---------- engagement phases ---------- */
 .phases { counter-reset: ph; display: grid; grid-template-columns: repeat(5,1fr); gap: 18px; }
-.phase { position: relative; padding: 24px 18px; background: #fff; border: 1px solid var(--jk-line); border-radius: var(--radius);
+.phase { position: relative; padding: 24px 18px; background: #fff; color: var(--jk-ink); border: 1px solid var(--jk-line); border-radius: var(--radius);
   transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease); }
 .phase:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--jk-line-2); }
 .phase::before { counter-increment: ph; content: counter(ph); display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; margin-bottom: .7rem; transition: transform var(--dur-base) var(--ease); }
@@ -410,14 +432,14 @@ button.phase:focus-visible { outline: 2px solid var(--accent); outline-offset: 3
 .phase.open { border-color: var(--accent); }
 
 /* guarantee / callout box */
-.guarantee { background: var(--jk-amber-lt); border: 1px solid var(--jk-amber); border-radius: var(--radius); padding: 22px 26px; display: flex; gap: 1rem; align-items: flex-start; }
+.guarantee { background: var(--jk-amber-lt); color: var(--jk-ink); border: 1px solid var(--jk-amber); border-radius: var(--radius); padding: 22px 26px; display: flex; gap: 1rem; align-items: flex-start; }
 .guarantee svg { color: var(--jk-ember); flex: 0 0 auto; }
 .cta-alt { font-size: .84rem; color: var(--jk-muted); margin: .6rem 0 0; }
 .linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--accent-deep); text-decoration: underline; cursor: pointer; }
 .linkbtn:hover { color: var(--jk-ink); }
 
 /* note / caution panels */
-.note { border-left: 4px solid var(--accent); background: var(--jk-parchment); border-radius: 0 var(--radius) var(--radius) 0; padding: 16px 20px; font-size: .89rem; margin: 1rem 0; }
+.note { border-left: 4px solid var(--accent); background: var(--jk-parchment); color: var(--jk-ink); border-radius: 0 var(--radius) var(--radius) 0; padding: 16px 20px; font-size: .89rem; margin: 1rem 0; }
 .note.warn { border-left-color: var(--jk-amber-sig); background: var(--jk-amber-lt); }
 .note.ok { border-left-color: var(--jk-green); background: var(--jk-green-lt); }
 .note b { display: block; margin-bottom: .2rem; }

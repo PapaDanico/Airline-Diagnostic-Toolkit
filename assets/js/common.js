@@ -483,7 +483,15 @@ function drawRadar(svg, domains, overlay) {
   if (overlay) {
     const op = document.createElementNS(ns, "polygon");
     op.setAttribute("points", overlay.map((pct, i) => pt(i, r * pct / 100).join(",")).join(" "));
-    op.setAttribute("fill", "none"); op.setAttribute("stroke", "#E08A34");
+    op.setAttribute("fill", "none");
+    /* --jk-amber-sig, not --jk-amber. The palette documents #E08A34 as
+       "highlight on dark" and every radar in this product sits on a
+       light surface, where it renders at 2.67:1 — under the 3:1 WCAG
+       asks of a graphical object, on the one line the chart exists to
+       let you compare against. The signal amber is the palette's answer
+       for light backgrounds. The legend swatch on index.html carries
+       the same value; a key that does not match its line is not a key. */
+    op.setAttribute("stroke", "#B87503");
     op.setAttribute("stroke-width", "2"); op.setAttribute("stroke-dasharray", "5 4");
     op.setAttribute("class", "radar-overlay");
     svg.appendChild(op);

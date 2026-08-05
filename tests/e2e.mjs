@@ -750,6 +750,82 @@ await page.goto(base + "/about.html"); await page.waitForTimeout(450);
    this current" and not the question a reader in a meeting has, which is
    "are we looking at the same one". A date cannot answer that; an
    edition can, and only if the digest actually tracks the content. */
+/* ─── TEXT MUST BE READABLE AGAINST WHAT IS BEHIND IT ───
+   The five-habits tiles on the tutorial shipped with white headings on
+   a cream card. .tile painted a light background inside a dark band and
+   never reset the text colour, so the h4 inherited the band's white
+   while the paragraph — which did set a colour — read fine. Five
+   headings were invisible on a live page and nothing in this suite
+   could see it, because every assertion here reads textContent, and
+   textContent does not care what colour anything is.
+
+   This walks real rendered text, resolves the background actually
+   behind it, and computes WCAG contrast. It is deliberately not a full
+   audit: it checks the components that paint their own surface, which
+   is where this class of bug lives. */
+section("Text contrast on painted surfaces");
+for (const pageFile of ["tutorial.html", "index.html", "how-it-works.html", "regulations.html"]) {
+  /* Navigate explicitly. Running this against whatever page happened to
+     be loaded would be the same mistake as the XSS test that never
+     reached its sink — tutorial.html is where the tiles live, and it is
+     the page that shipped the bug. */
+  await page.goto(base + "/" + pageFile);
+  await page.waitForTimeout(400);
+
+  const CONTRAST = await page.evaluate(() => {
+    const lum = (c) => {
+      const [r, g, b] = c.map(v => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const parse = (s) => (s.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+    const opaqueBg = (el) => {
+      for (let n = el; n && n !== document.documentElement; n = n.parentElement) {
+        const bg = getComputedStyle(n).backgroundColor;
+        const parts = (bg.match(/[\d.]+/g) || []).map(Number);
+        if (parts.length >= 3 && (parts.length < 4 || parts[3] > 0.5)) return parts.slice(0, 3);
+      }
+      return [255, 255, 255];
+    };
+    const ratio = (a, b) => {
+      const [hi, lo] = lum(a) > lum(b) ? [lum(a), lum(b)] : [lum(b), lum(a)];
+      return (hi + 0.05) / (lo + 0.05);
+    };
+
+    const out = [];
+    for (const el of document.querySelectorAll(".tile *, .card *, .note *, .phase *, .guarantee *")) {
+      const text = (el.textContent || "").trim();
+      if (!text || el.children.length) continue;
+      const cs = getComputedStyle(el);
+      if (cs.display === "none" || cs.visibility === "hidden") continue;
+      const size = parseFloat(cs.fontSize);
+      const bold = Number(cs.fontWeight) >= 700;
+
+      /* Two thresholds, because WCAG has two. Text is 1.4.3 — 4.5:1, or
+         3:1 once it is large. A glyph hidden from assistive tech is not
+         text to a screen reader but is still a graphical object a
+         sighted reader has to make out, so it falls under 1.4.11 at
+         3:1. The chart legend swatch on the homepage is exactly that:
+         the label beside it carries the meaning, the mark carries the
+         match to the line. Skipping aria-hidden entirely would let a
+         legend nobody can see pass. */
+      const hidden = el.closest("[aria-hidden='true']") !== null;
+      const large = size >= 24 || (bold && size >= 18.66);
+      const need = hidden ? 3 : large ? 3 : 4.5;
+      const r = ratio(parse(cs.color), opaqueBg(el));
+      if (r < need) {
+        out.push({ text: text.slice(0, 40), ratio: Math.round(r * 100) / 100, need });
+      }
+    }
+    return out;
+  });
+
+  assert(CONTRAST.length === 0,
+    `${pageFile}: text below WCAG AA on a painted surface — ${CONTRAST.map(c => `"${c.text}" ${c.ratio}:1 (needs ${c.need})`).join(" | ")}`);
+}
+
 section("Regulatory Index — edition, citation, download, embed");
 {
   await page.goto(base + "/regulations.html"); await page.waitForTimeout(400);
