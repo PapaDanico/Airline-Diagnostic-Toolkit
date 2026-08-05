@@ -514,6 +514,22 @@ body.has-partner .partner-banner { display: flex; }
 .partner-logo { height: 30px; display: none; }
 body.has-partner .partner-logo { display: block; }
 
+/* Preview-mode banner. Deliberately the loudest thing on the page and
+   deliberately not in the brand palette: it must not read as part of the
+   partner's identity, because its whole job is to say the identity is
+   invented. Sticks to the top so it survives a scroll and a screenshot. */
+.partner-preview-bar {
+  position: sticky; top: 0; z-index: 999;
+  background: #3a2f00; color: #ffe9a8;
+  font-size: .82rem; line-height: 1.45;
+  padding: .6rem 1rem; text-align: center;
+  border-bottom: 2px solid #ffc400;
+}
+.partner-preview-bar b { color: #fff; }
+.partner-preview-bar a { color: #ffe9a8; text-decoration: underline; }
+.partner-preview-bar a:hover { color: #fff; }
+@media print { .partner-preview-bar { position: static; } }
+
 /* ============================================================
    RESULTS page
    ============================================================ */
