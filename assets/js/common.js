@@ -448,11 +448,31 @@ function drawRadar(svg, domains, overlay) {
     return [cx + rad * Math.cos(a), cy + rad * Math.sin(a)];
   };
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  /* Rings and axes take currentColor at half opacity rather than a fixed
+     sand. This radar is drawn on four different grounds — the ink hero on
+     the home page, the results panel, the demo report and a parchment card
+     in the MRO tool — and one fixed colour cannot serve all of them. The
+     old #EADCC9 was picked for the dark hero, where it reads well; on the
+     MRO card it measured 1.35:1, which is a scale nobody can see, and a
+     radar's rings ARE its scale.
+
+     currentColor inherits the surface's own text colour, so the rings are
+     light on ink and dark on parchment without anyone maintaining a list
+     of contexts. Half opacity keeps them recessive while clearing 3:1 on
+     every one of those grounds: 3.52 on white, 3.48 on parchment, 3.44 on
+     sand, 5.35 on ink. */
+  const GRID = "currentColor";
+  const GRID_OPACITY = "0.5";
+
   // rings
   [0.25, 0.5, 0.75, 1].forEach(f => {
     const poly = document.createElementNS(ns, "polygon");
     poly.setAttribute("points", domains.map((_, i) => pt(i, r * f).join(",")).join(" "));
-    poly.setAttribute("fill", "none"); poly.setAttribute("stroke", "#EADCC9"); poly.setAttribute("stroke-width", "1");
+    poly.setAttribute("fill", "none");
+    poly.setAttribute("stroke", GRID);
+    poly.setAttribute("stroke-opacity", GRID_OPACITY);
+    poly.setAttribute("stroke-width", "1");
     svg.appendChild(poly);
   });
   // axes + labels
@@ -460,7 +480,9 @@ function drawRadar(svg, domains, overlay) {
     const [x, y] = pt(i, r);
     const line = document.createElementNS(ns, "line");
     line.setAttribute("x1", cx); line.setAttribute("y1", cy); line.setAttribute("x2", x); line.setAttribute("y2", y);
-    line.setAttribute("stroke", "#EADCC9"); svg.appendChild(line);
+    line.setAttribute("stroke", GRID);
+    line.setAttribute("stroke-opacity", GRID_OPACITY);
+    svg.appendChild(line);
 
     const [lx, ly] = pt(i, r + labelGap);
     const anchor = lx < cx - 5 ? "end" : lx > cx + 5 ? "start" : "middle";
