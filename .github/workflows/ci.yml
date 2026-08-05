@@ -15,12 +15,19 @@ jobs:
         with:
           node-version: "20"
 
+      # find, not a glob. `assets/js/*.js` does not descend, so when the
+      # inline scripts were extracted to assets/js/page/ it would have
+      # left 122 kB of JS — most of every tool on the site — unparsed by
+      # the one step whose job is parsing it.
       - name: JS syntax check
         run: |
-          for f in assets/js/*.js; do
+          fail=0
+          while IFS= read -r f; do
             echo "checking $f"
-            node --check "$f"
-          done
+            node --check "$f" || { echo "::error file=$f::syntax error"; fail=1; }
+          done < <(find assets/js scripts tests -name node_modules -prune -o \( -name '*.js' -o -name '*.mjs' \) -print)
+          exit $fail
+        shell: bash
 
       - name: Validate vercel.json
         run: node -e "JSON.parse(require('fs').readFileSync('vercel.json','utf8')); console.log('vercel.json OK')"

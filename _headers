@@ -8,8 +8,32 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
+  # ---- Content-Security-Policy ----
+  #
+  # script-src 'self' is the one that matters, and it is the reason the
+  # site has no inline <script> left: a reflected-XSS bug shipped here
+  # once, and escaping the sink fixed that instance without removing the
+  # class. An injected <script>, or an injected src pointing anywhere but
+  # this origin, is now refused by the browser whether or not the next
+  # escaping bug gets caught in review. That only holds while the policy
+  # has nothing to weaken it — no 'unsafe-inline', no 'unsafe-eval', no
+  # hash list that drifts. The e2e suite asserts every one of those.
+  #
+  # style-src carries 'unsafe-inline' and is the honest exception. There
+  # are ~600 style="" attributes and 15 inline <style> blocks across the
+  # site; extracting them is a separate job with a fraction of the value,
+  # since injected CSS cannot execute. Stated here rather than left to be
+  # inferred as an oversight.
+  #
+  # frame-src 'self' is load-bearing: embed.html frames diagnostic.html
+  # to demo the partner embed. 'none' would blank that page.
+  # connect-src 'self' covers the enquiry forms, which POST fetch("/") to
+  # Netlify's form handler on this origin.
+  # base-uri 'self' stops an injected <base> from repointing every
+  # relative script URL above at someone else's host.
+  #
   # Allow embedding only from JK's own origin by default. To let a real
-  # partner embed the scorecard, append their production domain(s) here,
-  # e.g. ... 'self' https://*.partner.example https://partner.example;
+  # partner embed the scorecard, append their production domain(s) to
+  # frame-ancestors, e.g. ... 'self' https://partner.example;
   # Never use frame-ancestors *.
-  Content-Security-Policy: frame-ancestors 'self';
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self'; form-action 'self'; frame-src 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none';

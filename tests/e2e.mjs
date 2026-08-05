@@ -1674,7 +1674,101 @@ await page.click("#mro-reset"); await page.waitForTimeout(200);
 assert(await page.$eval("#mro-index", e => e.textContent.trim()) === "—", "index resets to — after clearing answers");
 assert(await page.$$eval(".mro-q select", sels => sels.every(s => s.value === "")), "all selects cleared after reset");
 
-/* ─── 24. No JS errors ─── */
+/* ─── 24. Content-Security-Policy ─── */
+section("Content-Security-Policy");
+{
+  /* The site once shipped a reflected XSS. Escaping the sink fixed that
+     instance; it did not remove the class. script-src is what removes
+     the class — but only if nothing quietly weakens it, and only while
+     no page reintroduces an inline <script>, which would be blocked in
+     production and work perfectly in every local file:// test.
+
+     That failure mode is the reason these assertions read the source of
+     truth rather than a rendered page: under file:// no headers are
+     served at all, so a test that asked the browser what policy applied
+     would be asserting nothing. */
+  const headers = readFileSync(resolve(ROOT, "_headers"), "utf8");
+  const cspLine = headers.split("\n").find(l => /^\s*Content-Security-Policy:/i.test(l)) || "";
+  const csp = cspLine.replace(/^\s*Content-Security-Policy:\s*/i, "").trim();
+  assert(csp.length > 0, "_headers declares a Content-Security-Policy");
+
+  const directive = (name) => {
+    const m = csp.match(new RegExp(`(?:^|;)\\s*${name}\\s+([^;]+)`, "i"));
+    return m ? m[1].trim() : null;
+  };
+
+  assert(directive("script-src") === "'self'",
+    `script-src is exactly 'self' (found ${JSON.stringify(directive("script-src"))})`);
+
+  /* Named individually so a failure says which escape hatch appeared,
+     rather than "the policy changed". 'unsafe-inline' in script-src is
+     the one that would silently undo all of this while leaving every
+     other assertion here green. */
+  for (const token of ["'unsafe-inline'", "'unsafe-eval'", "'strict-dynamic'", "data:", "*"]) {
+    assert(!(directive("script-src") || "").includes(token),
+      `script-src does not carry ${token}`);
+  }
+  assert(!/sha256-|sha384-|sha512-|nonce-/.test(directive("script-src") || ""),
+    "script-src carries no hash or nonce allowance — inline scripts are extracted, not listed");
+
+  for (const [name, expected] of [
+    ["default-src", "'self'"],
+    ["object-src", "'none'"],
+    ["base-uri", "'self'"],
+    ["form-action", "'self'"],
+    ["frame-ancestors", "'self'"]
+  ]) {
+    assert(directive(name) === expected, `${name} is ${expected} (found ${JSON.stringify(directive(name))})`);
+  }
+
+  /* frame-src is 'self' rather than 'none' because embed.html frames
+     diagnostic.html to demonstrate the partner embed. Asserted so that
+     tightening it to 'none' fails here instead of blanking that page in
+     production, where nobody is looking. */
+  assert(directive("frame-src") === "'self'",
+    "frame-src is 'self' — embed.html frames diagnostic.html for the partner demo");
+  assert(/<iframe[^>]+src="diagnostic\.html"/.test(readFileSync(resolve(ROOT, "embed.html"), "utf8")),
+    "embed.html still has the same-origin iframe that frame-src 'self' exists for");
+
+  /* The invariant the whole policy rests on. An inline <script> added to
+     any page is inert in production and invisible in local testing, so
+     this walks every page rather than a list. ld+json is data, not
+     script, and CSP does not gate it. */
+  const offenders = [];
+  for (const pageFile of [
+    ...readdirSync(ROOT).filter(f => f.endsWith(".html")),
+    ...readdirSync(resolve(ROOT, "tools")).filter(f => f.endsWith(".html")).map(f => "tools/" + f)
+  ].sort()) {
+    const html = readFileSync(resolve(ROOT, pageFile), "utf8");
+    for (const m of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
+      const attrs = m[1];
+      if (/\bsrc=/.test(attrs)) continue;
+      if (/application\/ld\+json/.test(attrs)) continue;
+      if (m[2].trim()) offenders.push(`${pageFile}: ${m[2].trim().slice(0, 40)}…`);
+    }
+  }
+  assert(offenders.length === 0,
+    `no page carries an inline <script> — it would be blocked by script-src in production and pass every local test (${offenders.join(" | ")})`);
+
+  /* An extracted file nothing loads is dead weight that still passes a
+     syntax check. */
+  const referenced = new Set();
+  for (const pageFile of [
+    ...readdirSync(ROOT).filter(f => f.endsWith(".html")),
+    ...readdirSync(resolve(ROOT, "tools")).filter(f => f.endsWith(".html")).map(f => "tools/" + f)
+  ]) {
+    for (const m of readFileSync(resolve(ROOT, pageFile), "utf8").matchAll(/src="[^"]*assets\/js\/page\/([^"]+)"/g)) {
+      referenced.add(m[1]);
+    }
+  }
+  const onDisk = readdirSync(resolve(ROOT, "assets/js/page")).filter(f => f.endsWith(".js"));
+  const orphans = onDisk.filter(f => !referenced.has(f));
+  assert(orphans.length === 0, `every extracted page script is loaded by a page (orphans: ${orphans.join(", ")})`);
+  assert(onDisk.length === referenced.size,
+    `every referenced page script exists on disk (${referenced.size} referenced, ${onDisk.length} on disk)`);
+}
+
+/* ─── 25. No JS errors ─── */
 section("JavaScript errors");
 assert(errs.length === 0, `no uncaught page errors (${errs.length ? errs.join(" | ") : "none"})`);
 
