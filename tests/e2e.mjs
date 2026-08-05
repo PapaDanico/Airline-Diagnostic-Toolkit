@@ -814,6 +814,68 @@ section("Regulatory Index — edition, citation, download, embed");
   assert(!(await page.$eval("body", b => b.classList.contains("is-embed"))), "embed mode applied on a non-1 value");
 }
 
+/* ─── CALIBRATION FROM THE URL IS AN ENUM, NOT A STRING ───
+   This was a reflected XSS. ?fleet= went from the query string into
+   innerHTML unescaped, on a site whose CSP sets frame-ancestors and no
+   script-src — so a crafted link executed script on the JK origin with
+   access to everything in localStorage. The report link this page
+   generates deliberately carries fleet and model and users are invited
+   to send it on, so the product shipped the delivery vector.
+
+   Asserted at both layers: the value must be rejected, AND nothing may
+   reach the DOM as markup even if a future edit loosens the validator. */
+section("Calibration from the URL is validated, not rendered");
+{
+  const PAYLOAD = '<img src=x onerror="window.__xss=1">';
+
+  /* Answers must exist first. With none saved, results.html renders its
+     empty state, #report stays hidden and the calibration badge — the
+     sink — is never reached. The first version of this test skipped
+     that and passed against a deliberately reintroduced vulnerability,
+     which is a test that proves the page is safe when nobody is using
+     it. */
+  await page.goto(base + "/results.html");
+  await page.evaluate(() => {
+    const ans = {};
+    JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+    saveAnswers(ans);
+    localStorage.setItem("dn_onboarded", "1");
+  });
+
+  await page.goto(base + "/results.html?fleet=" + encodeURIComponent(PAYLOAD) + "&model=" + encodeURIComponent(PAYLOAD));
+  await page.waitForTimeout(500);
+
+  // The sink must actually have been reachable, or nothing below means
+  // anything.
+  assert(await page.$eval("#report", el => el.style.display !== "none"),
+    "the report did not render, so the calibration sink was never exercised");
+
+  assert(await page.evaluate(() => window.__xss === undefined),
+    "a crafted ?fleet= executed script on the page");
+  assert(await page.$$eval("img[src='x']", n => n.length) === 0,
+    "injected markup reached the DOM as an element");
+  const body = await page.$eval("body", b => b.textContent);
+  assert(!/onerror/.test(body), "the payload was rendered as visible text instead of dropped");
+
+  // A value that is not on the list must be dropped, not displayed
+  // escaped — a badge reading "&lt;img…&gt;" is safe and still wrong.
+  await page.goto(base + "/results.html?fleet=Not%20A%20Fleet");
+  await page.waitForTimeout(400);
+  assert(!/Not A Fleet/.test(await page.$eval("body", b => b.textContent)),
+    "an unknown calibration value was displayed");
+
+  /* And the feature still works for a real value, or the fix has traded
+     a vulnerability for a broken feature. */
+  await page.goto(base + "/results.html?fleet=Narrowbody&model=Cargo");
+  await page.waitForTimeout(400);
+  const shown = await page.$eval("body", b => b.textContent);
+  const hasReport = await page.$eval("#report", el => el.style.display !== "none").catch(() => false);
+  if (hasReport) {
+    assert(/Narrowbody/.test(shown), "a valid fleet type was rejected by the validator");
+    assert(/Cargo/.test(shown), "a valid operating model was rejected by the validator");
+  }
+}
+
 section("Privacy notice matches what the code transmits");
 {
   const srcFiles = ["assets/js/common.js", "assets/js/results.js"];
