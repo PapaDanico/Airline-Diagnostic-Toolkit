@@ -70,3 +70,12 @@ jobs:
 
       - name: Full-site page audit
         run: node tests/audit.mjs
+
+      # e2e runs under file://, where no headers exist — so it can assert
+      # what _headers says and never whether a browser honours it. This
+      # serves the site with those headers applied and lets Chromium
+      # enforce them, including a canary page whose inline script must be
+      # blocked. A CSP that browsers silently drop as malformed passes
+      # every other check in this repo and fails this one.
+      - name: CSP enforced by a real browser
+        run: node tests/csp.mjs
