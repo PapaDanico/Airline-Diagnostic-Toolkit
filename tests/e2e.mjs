@@ -734,6 +734,53 @@ await page.goto(base + "/about.html"); await page.waitForTimeout(450);
   assert(st.selfLink === 0, "about.html does not link to itself from its own footer");
 }
 
+/* ─── 4c-ii. PRIVACY NOTICE vs WHAT THE CODE ACTUALLY SENDS ───
+   The notice used to state, without qualification, that inputs are "not
+   transmitted to JK or to any server" and that "there is no database".
+   Three forms POST to Netlify Forms, and two of them carry the report
+   link — which encodes the scorecard answers. The claim was false the
+   moment anyone submitted.
+
+   This is a legal notice under the Data Protection Act, so it is worth
+   more than a wording check: the test reads the form names out of the
+   source and requires the notice to account for every one of them. A
+   fourth form added later fails this until it is disclosed. */
+section("Privacy notice matches what the code transmits");
+{
+  const srcFiles = ["assets/js/common.js", "assets/js/results.js"];
+  const formNames = new Set();
+  for (const f of srcFiles) {
+    const src = readFileSync(new URL("../" + f, import.meta.url), "utf8");
+    for (const m of src.matchAll(/["']form-name["']\s*:\s*["']([\w-]+)["']/g)) formNames.add(m[1]);
+  }
+  assert(formNames.size >= 3, `expected the known transmitting forms, found ${[...formNames].join(", ")}`);
+
+  await page.goto(base + "/privacy.html"); await page.waitForTimeout(300);
+  const txt = (await page.$eval("body", b => b.textContent)).replace(/\s+/g, " ");
+
+  // The absolute claim must be gone.
+  assert(!/inputs are not transmitted to JK or to any server/i.test(txt),
+    "the notice still makes an unqualified no-transmission claim");
+  assert(!/There is no database, no account, and no upload/i.test(txt),
+    "the notice still claims there is no database");
+
+  // The processor must be named, and the answers-in-the-link point made.
+  assert(/Netlify Forms/.test(txt), "Netlify Forms is not named as the recipient");
+  assert(/carries your scorecard answers/i.test(txt),
+    "the notice does not disclose that the report link carries the answers");
+
+  // Every transmitting form must be described. Field names are the
+  // strongest available proxy for "this form is accounted for".
+  assert(/health index/i.test(txt), "the notice does not say the health index is sent");
+  assert(/preferred week/i.test(txt), "the debrief form's fields are not disclosed");
+  assert(/which tool you were using/i.test(txt), "the tool-enquiry form is not disclosed");
+
+  // And what stays true must still be said plainly, or the fix has
+  // traded an overclaim for an underclaim.
+  assert(/Running a tool transmits/i.test(txt) && /nothing/i.test(txt),
+    "the notice no longer states that using a tool sends nothing");
+}
+
 /* ─── 4d. HOMEPAGE — scorecard radar preview (Operate-track section) ─── */
 section("Homepage — scorecard radar preview");
 await page.goto(base + "/index.html"); await page.waitForTimeout(400);
