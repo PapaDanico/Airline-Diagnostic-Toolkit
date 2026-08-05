@@ -4,7 +4,7 @@
 import { chromium } from "playwright";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const base = "file://" + ROOT;
@@ -814,13 +814,44 @@ section("TNA costs are in USD and cite their basis");
     `closing the type-rating gap computes ${cell}, outside the published USD 18,000–48,000 band`);
 }
 
-section("Text contrast on painted surfaces");
-for (const pageFile of ["tutorial.html", "index.html", "how-it-works.html", "regulations.html"]) {
-  /* Navigate explicitly. Running this against whatever page happened to
-     be loaded would be the same mistake as the XSS test that never
-     reached its sink — tutorial.html is where the tiles live, and it is
-     the page that shipped the bug. */
+section("Text contrast, every page");
+/* Enumerated from disk, not listed by hand. The first version of this
+   check named four pages, which is how it passed while the "Start free"
+   button sat at 2.61:1 on all twenty-eight — the check could not see the
+   pages the bug was on. A hand-kept list is a promise to remember; a
+   directory read is not. */
+/* 404.html is the one page that cannot be measured this way, and the
+   exclusion is checked rather than trusted. It references its assets from
+   the site root — it has to, because a 404 is served at whatever depth
+   the missing URL had, and "assets/css/jk.css" from /tools/nope would
+   resolve to /tools/assets/css/jk.css. Under file:// those root-absolute
+   paths point at the filesystem root, so the page loads with no CSS and
+   no JS: measuring it would compare unstyled black on white and report a
+   confident pass about a page it never saw. The assertion below is what
+   keeps this honest — if someone makes those paths relative, the reason
+   for the skip has gone and the suite says so instead of quietly
+   continuing to skip. */
+const rootRelative404 = readFileSync(resolve(ROOT, "404.html"), "utf8");
+assert(/href="\/assets\/css\/jk\.css"/.test(rootRelative404)
+    && /src="\/assets\/js\/common\.js"/.test(rootRelative404)
+    && /href="\/assets\/css\/fonts\.css"/.test(rootRelative404),
+  "404.html references assets from the site root, so it survives being served at any depth");
+
+const CONTRAST_PAGES = [
+  ...readdirSync(ROOT).filter(f => f.endsWith(".html") && f !== "404.html"),
+  ...readdirSync(resolve(ROOT, "tools")).filter(f => f.endsWith(".html")).map(f => "tools/" + f)
+].sort();
+
+let contrastFailures = 0;
+let contrastUnresolved = 0;
+for (const pageFile of CONTRAST_PAGES) {
   await page.goto(base + "/" + pageFile);
+  /* Reveal-on-scroll leaves elements at opacity 0 until they enter the
+     viewport, so what this check can see depends on when it looks. That
+     made an earlier run report two failures and the next run report none
+     — same code, same page. Forcing the end state makes the result a
+     property of the stylesheet rather than of the scheduler. */
+  await page.addStyleTag({ content: ".has-reveal .will-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }" });
   await page.waitForTimeout(400);
 
   const CONTRAST = await page.evaluate(() => {
@@ -831,28 +862,81 @@ for (const pageFile of ["tutorial.html", "index.html", "how-it-works.html", "reg
       });
       return 0.2126 * r + 0.7152 * g + 0.0722 * b;
     };
-    const parse = (s) => (s.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
-    const opaqueBg = (el) => {
-      for (let n = el; n && n !== document.documentElement; n = n.parentElement) {
-        const bg = getComputedStyle(n).backgroundColor;
-        const parts = (bg.match(/[\d.]+/g) || []).map(Number);
-        if (parts.length >= 3 && (parts.length < 4 || parts[3] > 0.5)) return parts.slice(0, 3);
+    /* A CSS colour is not always rgb(). color-mix() computes to
+       "color(srgb 1 1 1 / 0.82)", whose components run 0–1 rather than
+       0–255, so scraping digits out of it reads white as rgb(1,1,1) —
+       near-black — and reports a navy-on-white wordmark at 2:1. The
+       number looks plausible, which is what makes it dangerous.
+
+       This platform has no color-mix() today; its sister platform does,
+       and that is where the misreading was found. The parser is written
+       to refuse rather than guess: an unrecognised notation (oklch, lab,
+       display-p3) returns null and is counted as unresolved, which is
+       asserted below. Guessing is how a check reports a confident number
+       about a colour it did not understand. */
+    const toRgb = (s) => {
+      if (!s) return null;
+      const n = (s.match(/[\d.]+/g) || []).map(Number);
+      if (/^\s*color\(\s*srgb[\s(]/i.test(s)) {
+        return n.length >= 3 ? { rgb: n.slice(0, 3).map(v => Math.round(v * 255)), a: n.length > 3 ? n[3] : 1 } : null;
       }
-      return [255, 255, 255];
+      if (/^\s*rgba?\(/i.test(s)) {
+        return n.length >= 3 ? { rgb: n.slice(0, 3), a: n.length > 3 ? n[3] : 1 } : null;
+      }
+      if (/^\s*transparent\s*$/i.test(s)) return { rgb: [0, 0, 0], a: 0 };
+      return null;
     };
     const ratio = (a, b) => {
       const [hi, lo] = lum(a) > lum(b) ? [lum(a), lum(b)] : [lum(b), lum(a)];
       return (hi + 0.05) / (lo + 0.05);
     };
+    const over = (fg, a, bg) => fg.map((c, i) => Math.round(c * a + bg[i] * (1 - a)));
+    const parseStops = (img) => {
+      const m = img.match(/(?:rgba?|color)\([^)]+\)/g);
+      if (!m) return null;
+      const out = m.map(toRgb);
+      return out.some(x => x === null) ? null : out;
+    };
 
-    const out = [];
-    for (const el of document.querySelectorAll(".tile *, .card *, .note *, .phase *, .guarantee *")) {
+    /* Walk up to whatever is actually visible behind the text.
+       A gradient whose every stop is opaque HIDES what is beneath it, so
+       it ends the walk and its own stops become the backgrounds to test.
+       A gradient with a transparent stop only tints what is beneath, so
+       the walk continues and each stop is composited over what it finds.
+       Getting that backwards produces a run of 1:1 readings — white text
+       measured against a white page body that an opaque gradient had
+       painted over entirely — and 1:1 is the tell that the checker is
+       wrong, not the stylesheet.
+
+       The earlier version had no gradient handling at all: it fell
+       through every gradient to white. That is not a smaller check, it
+       is a wrong one, and it is why this had to be fixed before the page
+       list could be widened. */
+    const bgOf = (el) => {
+      const overlays = [];
+      const settle = (base) => ({ stops: [base, ...overlays.map(x => over(x.rgb, x.a, base))] });
+      for (let n = el; n && n !== document.documentElement; n = n.parentElement) {
+        const cs = getComputedStyle(n);
+        if (cs.backgroundImage && cs.backgroundImage !== "none") {
+          const st = parseStops(cs.backgroundImage);
+          if (!st) return { unresolved: cs.backgroundImage.slice(0, 60) };
+          if (st.every(x => x.a >= 0.99)) return { stops: st.map(x => x.rgb) };
+          overlays.push(...st.filter(x => x.a > 0));
+        }
+        const c = toRgb(cs.backgroundColor);
+        if (!c) return { unresolved: cs.backgroundColor.slice(0, 60) };
+        if (c.a > 0.5) return settle(c.rgb);
+      }
+      return settle([255, 255, 255]);
+    };
+
+    const out = [], unresolved = [];
+    for (const el of document.querySelectorAll("body *")) {
       const text = (el.textContent || "").trim();
       if (!text || el.children.length) continue;
       const cs = getComputedStyle(el);
-      if (cs.display === "none" || cs.visibility === "hidden") continue;
-      const size = parseFloat(cs.fontSize);
-      const bold = Number(cs.fontWeight) >= 700;
+      if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") continue;
+      if (!el.getClientRects().length) continue;
 
       /* Two thresholds, because WCAG has two. Text is 1.4.3 — 4.5:1, or
          3:1 once it is large. A glyph hidden from assistive tech is not
@@ -862,20 +946,45 @@ for (const pageFile of ["tutorial.html", "index.html", "how-it-works.html", "reg
          the label beside it carries the meaning, the mark carries the
          match to the line. Skipping aria-hidden entirely would let a
          legend nobody can see pass. */
+      const size = parseFloat(cs.fontSize);
+      const bold = Number(cs.fontWeight) >= 700;
       const hidden = el.closest("[aria-hidden='true']") !== null;
       const large = size >= 24 || (bold && size >= 18.66);
       const need = hidden ? 3 : large ? 3 : 4.5;
-      const r = ratio(parse(cs.color), opaqueBg(el));
+
+      const bg = bgOf(el);
+      if (bg.unresolved) { unresolved.push({ text: text.slice(0, 40), bg: bg.unresolved }); continue; }
+      /* Worst stop, not an average. Text has to be readable at every
+         point of the gradient it sits on, not on the mean of one. */
+      /* Text colour goes through the same refusing parser. A colour the
+         check cannot read is a hole whether it is behind the text or in
+         it. */
+      const fgc = toRgb(cs.color);
+      if (!fgc) { unresolved.push({ text: text.slice(0, 40), bg: "text colour " + cs.color.slice(0, 40) }); continue; }
+      const r = Math.min(...bg.stops.map(s => ratio(fgc.rgb, s)));
       if (r < need) {
-        out.push({ text: text.slice(0, 40), ratio: Math.round(r * 100) / 100, need });
+        out.push({ text: text.slice(0, 40), ratio: Math.round(r * 100) / 100, need, cls: String(el.className || "").slice(0, 40) });
       }
     }
-    return out;
+    return { out, unresolved };
   });
 
-  assert(CONTRAST.length === 0,
-    `${pageFile}: text below WCAG AA on a painted surface — ${CONTRAST.map(c => `"${c.text}" ${c.ratio}:1 (needs ${c.need})`).join(" | ")}`);
+  contrastFailures += CONTRAST.out.length;
+  contrastUnresolved += CONTRAST.unresolved.length;
+  if (CONTRAST.out.length) {
+    console.log(`  ${pageFile}: ` + CONTRAST.out.map(c => `"${c.text}" [${c.cls}] ${c.ratio}:1 (needs ${c.need})`).join(" | "));
+  }
+  if (CONTRAST.unresolved.length) {
+    console.log(`  ${pageFile}: background unresolved for ` + CONTRAST.unresolved.map(c => `"${c.text}" (${c.bg})`).join(" | "));
+  }
 }
+assert(contrastFailures === 0,
+  `text below WCAG AA across ${CONTRAST_PAGES.length} pages (${contrastFailures} element(s) — listed above)`);
+/* Asserted, not merely printed. An element whose background this cannot
+   work out is not a pass; it is a hole, and a silent hole is how the
+   first version of this check reported clean while missing 24 pages. */
+assert(contrastUnresolved === 0,
+  `every text element's background resolves to a colour (${contrastUnresolved} unresolved — listed above)`);
 
 section("Regulatory Index — edition, citation, download, embed");
 {
