@@ -48,7 +48,7 @@
 .pri-medium { background: #fde047; color: #713f12; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 .pri-low { background: #bfdbfe; color: #0c2340; }
 .pri-none { background: #bbf7d0; color: #064e3b; }
-.pri-unset { color: #d1d5db; font-size: 0.9rem; }
+.pri-unset { color: var(--jk-muted); font-size: 0.9rem; } /* was #d1d5db — 1.47:1, an all-but-invisible "not set" marker */
 .cost { text-align: right; font-family: 'Monaco', 'Menlo', monospace; white-space: nowrap; font-weight: 500; color: #1f2937; }
 .summary-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.2rem; margin-bottom: 1.6rem; }
 .stat-card { background: #fff; padding: 1.1rem; border-left: 5px solid #4A7FA5; border-radius: 0 10px 10px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.2s; }
@@ -142,7 +142,7 @@
         <div class="stat-card"><small>Est. training investment</small><strong id="stat-cost">$0</strong><small>Indicative USD, per person</small></div>
       </div>
       <div class="tna-actions">
-        <button class="btn btn-gold" id="tna-print">Print / save as PDF</button>
+        <button class="btn btn-amber" id="tna-print">Print / save as PDF</button>
         <button class="btn btn-ghost" id="tna-export">↓ Export data (JSON)</button>
         <button class="btn btn-ghost" id="tna-reset">Reset</button>
       </div>

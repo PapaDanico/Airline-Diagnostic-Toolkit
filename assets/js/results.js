@@ -360,7 +360,7 @@
         ${data.content}
         <div style="margin-top:1.4rem;padding-top:1rem;border-top:1px solid #eee;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
           <span style="font-size:0.82rem;color:#666">Deployed during Phase 2–5 of a JK engagement</span>
-          <button id="modal-req-btn" class="btn btn-gold" style="font-size:0.88rem;padding:0.6rem 1.1rem">Request Engagement Brief →</button>
+          <button id="modal-req-btn" class="btn btn-amber" style="font-size:0.88rem;padding:0.6rem 1.1rem">Request Engagement Brief →</button>
         </div>
       </div>`;
 
@@ -600,7 +600,7 @@
     nudge.id = "capture-nudge";
     nudge.style.cssText = "position:fixed;left:0;right:0;bottom:-90px;z-index:60;background:var(--jk-ink,#1F3044);color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;box-shadow:0 -6px 24px rgba(0,0,0,.25);transition:bottom .35s ease";
     nudge.innerHTML = `<span style="font-size:.95rem">📧 Want this report in your inbox, with benchmark notes?</span>
-      <button id="nudge-go" class="btn btn-gold" style="padding:.5rem 1rem">Email me my report</button>
+      <button id="nudge-go" class="btn btn-amber" style="padding:.5rem 1rem">Email me my report</button>
       <button id="nudge-x" aria-label="Dismiss" style="background:none;border:0;color:#fff;font-size:1.2rem;cursor:pointer;opacity:.7">✕</button>`;
     document.body.appendChild(nudge);
     let shown = false;

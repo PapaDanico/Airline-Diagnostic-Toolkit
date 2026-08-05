@@ -18,7 +18,7 @@
       overlay.innerHTML = `<div style="background:#fff;border-radius:12px;padding:32px;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
         <h2 style="margin:0 0 1rem;font-size:1.4rem">Welcome to the Airline Health Scorecard</h2>
         <p style="color:#666;margin:0 0 1.2rem;line-height:1.6"><strong>40 questions</strong> across 8 domains. Takes ~15 minutes. Your answers stay in your browser — no tracking.</p>
-        <button id="onboard-dismiss" style="width:100%;padding:0.85rem;background:#4A7FA5;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer">Got it, let's go →</button>
+        <button id="onboard-dismiss" style="width:100%;padding:0.85rem;background:#457799;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer">Got it, let's go →</button>
       </div>`;
       document.body.appendChild(overlay);
       /* scope the lookup to overlay — global getElementById returns the first
@@ -39,7 +39,7 @@
     bar.className = "resume-banner";
     bar.style.cssText = "background:#FFF8E7;border:1px solid #E8C468;border-radius:10px;padding:14px 18px;margin:0 0 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap";
     bar.innerHTML = `<span>👋 Welcome back — you've answered <b>${preAnswered} of ${total}</b> questions.</span>
-      <button id="resume-jump" class="btn btn-gold" style="white-space:nowrap">Resume where I left off →</button>`;
+      <button id="resume-jump" class="btn btn-amber" style="white-space:nowrap">Resume where I left off →</button>`;
     host.parentNode.insertBefore(bar, host);
     bar.querySelector("#resume-jump").addEventListener("click", () => {
       const firstUnanswered = [...document.querySelectorAll(".q")]
@@ -168,7 +168,7 @@
     const btn = document.getElementById("see-results");
     btn.disabled = n < total;
     btn.classList.toggle("btn-ghost", n < total);
-    btn.classList.toggle("btn-gold", n >= total);
+    btn.classList.toggle("btn-amber", n >= total);
     btn.classList.toggle("btn-lg", n >= total);
     if (n < total) {
       btn.textContent = remaining === 1 ? "Answer 1 more question" : `Answer all ${remaining} questions`;
