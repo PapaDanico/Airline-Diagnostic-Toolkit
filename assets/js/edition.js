@@ -34,6 +34,27 @@
    alphabet with no characters that misread aloud. It detects drift and
    accident, not a determined forger, and nothing here should be relied
    on to do more.
+
+   DUPLICATED, DELIBERATELY, AND THE COPY IS NAMED.
+
+   The same construction — FNV-1a with offset 0x811c9dc5 and prime
+   0x01000193, the same 32-character alphabet, the same explicit field
+   separator — also lives in the sister platform, in src/data/edition.js
+   of the Kanda logistics advisory, where it digests corridor cost bands
+   instead of a citation registry.
+
+   They are separate repositories with no shared build, so there is
+   nowhere honest to put one copy. Extracting a package to share forty
+   lines would cost more than it saves and would couple two products
+   that otherwise share nothing but a practice.
+
+   What that costs is stated here rather than discovered later: a fix to
+   the collision properties of one of these does NOT reach the other.
+   If the separator, the alphabet or the hash changes here, the other
+   file needs the same edit made by hand, and every published edition
+   digest on both platforms changes with it. That is the price of the
+   duplication and it is worth paying — but only while somebody knows
+   they are paying it.
    ============================================================ */
 
 /* Bumped by hand when the corpus changes in a way a reader should
