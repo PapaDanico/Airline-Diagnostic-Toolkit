@@ -13,10 +13,36 @@
   const isShared = Boolean(_decoded);
   const answers = _decoded || loadAnswers();
 
+  /* Calibration arrives from the URL so a shared report shows the same
+     context the sender saw. Both values are ENUMS — they come from a
+     fixed list of four fleet types and four operating models — so
+     anything that is not one of those is not a calibration and is
+     dropped rather than displayed.
+
+     This was a reflected XSS. The values went from the query string
+     into innerHTML unescaped, on a site whose CSP sets frame-ancestors
+     and no script-src, so ?fleet=<img src=x onerror=...> executed on
+     the JK origin with access to everything in localStorage. The
+     delivery vector shipped with the product: the report link this page
+     generates deliberately carries fleet and model, and users are
+     invited to send it to colleagues.
+
+     Validated against the source list rather than escaped, because
+     escaping would faithfully render "<script>" as text in a badge that
+     is supposed to say "Narrowbody". A value that is not on the list is
+     not something to display safely; it is something that has no
+     business being there. The sink is escaped too — see renderCalibration
+     — on the principle that a validator and an encoder should both be
+     wrong before anything reaches the page. */
+  const KNOWN_FLEET = new Set(JK.calibration.fleetTypes);
+  const KNOWN_MODEL = new Set(JK.calibration.operatingModels);
+  const pickEnum = (raw, allowed) => (allowed.has(raw) ? raw : "");
+
   if (_params.get("fleet") || _params.get("model")) {
+    const prior = answers._calibration || {};
     answers._calibration = {
-      fleetType: _params.get("fleet") || (answers._calibration && answers._calibration.fleetType) || "",
-      opModel: _params.get("model") || (answers._calibration && answers._calibration.opModel) || ""
+      fleetType: pickEnum(_params.get("fleet"), KNOWN_FLEET) || prior.fleetType || "",
+      opModel: pickEnum(_params.get("model"), KNOWN_MODEL) || prior.opModel || ""
     };
   }
 
@@ -64,7 +90,10 @@
   if (s.calibration && (s.calibration.fleetType || s.calibration.opModel)) {
     const calibEl = document.createElement("div");
     calibEl.style.cssText = "display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 14px;font-size:.85rem;color:#fff;margin-top:.6rem";
-    calibEl.innerHTML = `🎯 <b>Context Calibrated:</b> ${s.calibration.fleetType || 'Standard Fleet'} · ${s.calibration.opModel || 'Scheduled Model'}`;
+    // Escaped as well as validated. Defence in depth: this line is two
+    // hops from a query string and should not depend on the validator
+    // above still being correct after the next edit.
+    calibEl.innerHTML = `🎯 <b>Context Calibrated:</b> ${escapeHtml(s.calibration.fleetType || 'Standard Fleet')} · ${escapeHtml(s.calibration.opModel || 'Scheduled Model')}`;
     document.getElementById("index-text")?.parentNode?.appendChild(calibEl);
   }
 
