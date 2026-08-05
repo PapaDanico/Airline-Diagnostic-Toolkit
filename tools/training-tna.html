@@ -139,7 +139,7 @@
         <div class="stat-card"><small>Competencies assessed</small><strong id="stat-assessed">0 / 39</strong><small>Pick a current level to assess</small></div>
         <div class="stat-card"><small>Average gap</small><strong id="stat-avggap">—</strong><small>Target minus current</small></div>
         <div class="stat-card alert"><small>High-priority items</small><strong id="stat-high">0</strong><small>Critical gaps to close first</small></div>
-        <div class="stat-card"><small>Est. training investment</small><strong id="stat-cost">£0</strong><small>Indicative, per person</small></div>
+        <div class="stat-card"><small>Est. training investment</small><strong id="stat-cost">$0</strong><small>Indicative USD, per person</small></div>
       </div>
       <div class="tna-actions">
         <button class="btn btn-gold" id="tna-print">Print / save as PDF</button>
@@ -169,9 +169,26 @@
       <li><strong>Rate current proficiency:</strong> For each competency, select your team's present level (1–5). Be honest — gaps drive investment decisions.</li>
       <li><strong>Review the gap:</strong> Gap = Target − Current. The tool flags priority by gap size and how safety-critical the competency is.</li>
       <li><strong>Read the priority:</strong> <span class="pri-badge pri-high">High</span> = large gap on a critical competency, close first. <span class="pri-badge pri-medium">Medium</span> and <span class="pri-badge pri-low">Low</span> follow.</li>
-      <li><strong>Use the cost estimate:</strong> Indicative per-person figures (specialist/technical training costs more than soft-skills). Multiply by headcount for a budget envelope.</li>
+      <li><strong>Use the cost estimate:</strong> Indicative per-person figures in <strong>US dollars</strong>, built from published course pricing — see <a href="#cost-basis">where these figures come from</a>. Multiply by headcount for a budget envelope.</li>
       <li><strong>Build a roadmap:</strong> Sequence training by priority. Use the 90-Day Sprint tool to integrate with other operational fixes.</li>
     </ol>
+  </section>
+
+  <section id="cost-basis" style="margin: 2.4rem 0;">
+    <h2>Where these figures come from</h2>
+    <p class="muted" style="max-width:760px">
+      Every rate below is in <strong>US dollars</strong> and is built from published pricing rather
+      than assumed. One proficiency level is treated as one training intervention — a course, a
+      module, a simulator slot. That is a modelling assumption, not an observed price, which is why
+      these stay indicative. What you can do is check the arithmetic.
+    </p>
+    <div id="basis-groups" style="max-width:860px"></div>
+    <p class="muted" style="font-size:.85rem;margin-top:1rem">
+      Anchored on <span id="basis-sources"></span> · figures as at <span id="basis-asof"></span>.
+      Actual training design requires specialist instructional expertise and regulatory alignment
+      (ICAO, and KCAA for East Africa). Quotations from an approved training organisation supersede
+      anything here.
+    </p>
   </section>
 
   <section style="margin: 2.4rem 0;">
@@ -194,14 +211,70 @@
 <script>applyPartner(); mountChrome();</script>
 <script>
 (function () {
-  // Competency model: name + best-practice target. costPerPoint = indicative £ per person to raise one proficiency level.
+  /* ---------------------------------------------------------------
+     COST BASIS
+
+     These figures were sterling, and unsourced. Restating them in
+     dollars alone would have relabelled a guess, so they are rebuilt on
+     published prices and each rate now shows the arithmetic that got
+     there.
+
+     The anchor is IATA's own published course pricing, which is quoted
+     in USD, is aviation-specific, and carries a developing-nation rate
+     that is the relevant one for East Africa: classroom courses run USD
+     1,700–3,900 at the standard rate and from USD 1,180 for
+     participants from developing nations.
+
+     One proficiency level is taken to be one training intervention —
+     a course, a module, a simulator slot. That is a modelling
+     assumption, not an observed price, and it is the reason these stay
+     labelled indicative. What has changed is that a reader can now see
+     what the number was built from and disagree with it.
+
+     THE TYPE RATING IS THE EXCEPTION, and finding it was the point of
+     doing this properly. At the old flat rate, taking a pilot from
+     awareness to expert on "aircraft systems mastery (type-rating)"
+     came to four levels at £600 — around £2,400 for a type rating that
+     is published at USD 18,000–48,000 for a narrowbody. Not a currency
+     problem: an order-of-magnitude one, which converting to dollars
+     would have carried over intact. Competencies may now override the
+     group rate, and that one does.
+
+     Engineer type-training was checked against the same suspicion and
+     did NOT need an override: published B1/B2 type courses spread over
+     four levels land close to the group rate already.
+     --------------------------------------------------------------- */
+  const COST_BASIS = {
+    currency: "USD",
+    asOf: "August 2026",
+    sources: [
+      { label: "IATA — published training course pricing (USD)",
+        url: "https://www.iata.org/en/training/courses/pricing/" },
+      { label: "Published narrowbody type-rating and recurrent training pricing, 2026",
+        url: "https://rotatepilot.com/blog/how-much-does-type-rating-cost-2026" }
+    ]
+  };
+
+  // Competency model: name + best-practice target. costPerPoint = USD per
+  // person to raise one proficiency level, per the basis above.
   const GROUPS = [
     { name: "Flight Crew (Pilots & Flight Engineers)",
       note: "Operations, safety, and technical competencies specific to line flying and crew resource management.",
-      costPerPoint: 600, items: [
+      costPerPoint: 2400,
+      costBasis: "Mid-point of IATA's published classroom band (USD 1,700–3,900). Flight-crew " +
+                 "competencies here are largely non-type-specific — procedures, threat and error " +
+                 "management, CRM, decision-making — and map to a classroom or CBT module plus a " +
+                 "simulator slot. The type rating is priced separately below.",
+      items: [
         ["SOP compliance & procedural discipline", 5],
         ["Advanced threat & error management (TEM)", 5],
-        ["Aircraft systems mastery (type-rating)", 5],
+        ["Aircraft systems mastery (type-rating)", 5, {
+          cost: 7500,
+          basis: "A narrowbody type rating is published at USD 18,000–48,000. Taking a pilot from " +
+                 "awareness to expert is four levels, so the mid-point spreads to roughly USD 7,500 " +
+                 "a level. At the group rate this competency read about USD 2,400 for the whole " +
+                 "rating, which is the single largest error the old model carried."
+        }],
         ["Navigation & flight planning", 4],
         ["Crew resource management (CRM)", 4],
         ["Emergency procedures & decision-making", 5],
@@ -210,7 +283,10 @@
         ["Communication & technical English (ICAO Level 4+)", 4] ] },
     { name: "Cabin Crew",
       note: "Safety, customer service, and emergency-response competencies for in-flight operations.",
-      costPerPoint: 250, items: [
+      costPerPoint: 1200,
+      costBasis: "IATA's developing-nation floor (from USD 1,180). Cabin safety and service courses " +
+                 "sit at the bottom of the published band and are widely delivered regionally.",
+      items: [
         ["Emergency & safety procedures", 5],
         ["First aid & medical response", 4],
         ["Customer service & hospitality", 4],
@@ -221,7 +297,12 @@
         ["Revenue protection & fraud detection", 3] ] },
     { name: "Engineers & Maintenance",
       note: "Technical, regulatory, and quality-assurance competencies for aircraft maintenance and airworthiness.",
-      costPerPoint: 700, items: [
+      costPerPoint: 2800,
+      costBasis: "Upper half of IATA's published classroom band. Technical and airworthiness courses " +
+                 "run longer than commercial ones. Checked against published B1/B2 type-training " +
+                 "pricing spread over four levels, which lands in the same range — so unlike the " +
+                 "flight-crew type rating, this needs no separate figure.",
+      items: [
         ["AME licensing & compliance (KCAA/EASA)", 5],
         ["Aircraft systems & troubleshooting (type-specific)", 5],
         ["Maintenance planning & scheduling", 4],
@@ -234,7 +315,11 @@
         ["Safety culture & incident reporting", 4] ] },
     { name: "Ground Operations & Support",
       note: "Operational, safety, and customer-service competencies for ramp, cargo, dispatch, and ground services.",
-      costPerPoint: 180, items: [
+      costPerPoint: 900,
+      costBasis: "Below IATA's classroom floor. Ramp, load-control and dangerous-goods awareness " +
+                 "courses are short-duration and routinely delivered by local providers and in-house " +
+                 "instructors rather than bought in.",
+      items: [
         ["Aircraft handling & safety (ramp)", 4],
         ["Ground-service equipment operation", 4],
         ["Weight & balance / loading procedures", 4],
@@ -261,7 +346,34 @@
     if (gap >= 2 || target >= 4) return { cls: "pri-medium", label: "Medium" };
     return { cls: "pri-low", label: "Low" };
   }
-  const money = n => "£" + Math.round(n).toLocaleString("en-GB");
+  const money = n => "$" + Math.round(n).toLocaleString("en-US");
+
+  /* The basis block is rendered from COST_BASIS and the group rates
+     themselves. Writing it into the HTML by hand would let the stated
+     figure and the applied figure drift, which is the whole failure
+     this section exists to prevent. */
+  function renderBasis() {
+    const host = document.getElementById("basis-groups");
+    if (!host) return;
+    const overrides = [];
+    GROUPS.forEach(g => g.items.forEach(it => {
+      if (it[2] && it[2].cost) overrides.push({ name: it[0], cost: it[2].cost, basis: it[2].basis });
+    }));
+    host.innerHTML = GROUPS.map(g => `
+      <div class="note" style="margin:.8rem 0">
+        <b>${esc(g.name)} — ${money(g.costPerPoint)} per level.</b>
+        ${esc(g.costBasis || "No basis recorded.")}
+      </div>`).join("") + overrides.map(o => `
+      <div class="note warn" style="margin:.8rem 0">
+        <b>${esc(o.name)} — ${money(o.cost)} per level, not the group rate.</b>
+        ${esc(o.basis)}
+      </div>`).join("");
+
+    document.getElementById("basis-sources").innerHTML = COST_BASIS.sources
+      .map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.label)}</a>`)
+      .join(" and ");
+    document.getElementById("basis-asof").textContent = COST_BASIS.asOf;
+  }
 
   // Build tables
   const host = document.getElementById("tna-groups");
@@ -271,13 +383,17 @@
       const cur = state[key];
       const opts = [`<option value="">—</option>`].concat([1, 2, 3, 4, 5].map(n =>
         `<option value="${n}"${cur === n ? " selected" : ""}>${n}</option>`)).join("");
-      return `<tr data-key="${key}" data-target="${it[1]}" data-cpp="${g.costPerPoint}">
+      // A competency may carry its own rate. The type rating does,
+      // because the group figure understated it by an order of magnitude.
+      const cpp = (it[2] && it[2].cost) || g.costPerPoint;
+      const why = it[2] && it[2].basis ? ` title="${esc(it[2].basis)}"` : "";
+      return `<tr data-key="${key}" data-target="${it[1]}" data-cpp="${cpp}">
         <td class="competency">${esc(it[0])}</td>
         <td class="target">${it[1]}</td>
         <td class="current"><select class="cur-select" aria-label="Current level for ${esc(it[0])}">${opts}</select></td>
         <td class="gap"><span class="gap-val">—</span></td>
         <td class="priority"><span class="pri-unset">—</span></td>
-        <td class="cost">—</td>
+        <td class="cost"${why}>—</td>
       </tr>`;
     }).join("");
     host.insertAdjacentHTML("beforeend", `
@@ -328,7 +444,7 @@
       if (pri.cls === "pri-high") highCount++;
       const cost = gap * cpp;
       costSum += cost;
-      costCell.textContent = gap > 0 ? money(cost) : "£0";
+      costCell.textContent = gap > 0 ? money(cost) : "$0";
 
       if (groupStats[groupName]) {
         groupStats[groupName].gap += gap;
@@ -432,6 +548,20 @@
       avgGap: document.getElementById("stat-avggap").textContent,
       highPriority: document.getElementById("stat-high").textContent,
       estCost: document.getElementById("stat-cost").textContent,
+      /* The currency and its basis travel with the file. A figure read
+         out of an export six months from now, with no currency on it and
+         no note of what it was built from, is how an indicative planning
+         number becomes a quoted one. */
+      currency: COST_BASIS.currency,
+      costBasis: {
+        asOf: COST_BASIS.asOf,
+        assumption: "One proficiency level is treated as one training intervention. Indicative for planning; not a quotation.",
+        sources: COST_BASIS.sources,
+        ratesPerLevel: GROUPS.map(g => ({ group: g.name, perLevel: g.costPerPoint, basis: g.costBasis })),
+        competencyOverrides: GROUPS.flatMap(g => g.items
+          .filter(it => it[2] && it[2].cost)
+          .map(it => ({ competency: it[0], perLevel: it[2].cost, basis: it[2].basis })))
+      },
       competencies: rows,
       timestamp: new Date().toISOString()
     };
@@ -442,6 +572,7 @@
     a.click(); URL.revokeObjectURL(url);
   });
 
+  renderBasis();
   recompute();
 })();
 </script>
