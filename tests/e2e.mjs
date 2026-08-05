@@ -844,6 +844,7 @@ const CONTRAST_PAGES = [
 
 let contrastFailures = 0;
 let contrastUnresolved = 0;
+let graphicalFailures = 0;
 for (const pageFile of CONTRAST_PAGES) {
   await page.goto(base + "/" + pageFile);
   /* Reveal-on-scroll leaves elements at opacity 0 until they enter the
@@ -966,10 +967,120 @@ for (const pageFile of CONTRAST_PAGES) {
         out.push({ text: text.slice(0, 40), ratio: Math.round(r * 100) / 100, need, cls: String(el.className || "").slice(0, 40) });
       }
     }
-    return { out, unresolved };
+    /* ---- Graphical objects, WCAG 1.4.11 ----
+       The sweep above measures text. An icon is not text, and until now
+       nothing measured icons at all — the earlier passes said so
+       explicitly rather than implying the coverage was complete.
+
+       1.4.11 asks for 3:1 on graphical objects "required to understand
+       the content". An icon sitting next to a label that says the same
+       thing is not required to understand anything, so the exemption is
+       exactly that: the icon's OWN parent carries words. Not an
+       ancestor three levels up — that rule exempted every single icon on
+       both platforms and produced a flawless, meaningless zero. */
+    const svgOut = [];
+    for (const svg of document.querySelectorAll('svg')) {
+      if (!svg.getClientRects().length) continue;
+      const cs = getComputedStyle(svg);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') continue;
+
+      let labelled = false;
+      const host = svg.parentElement;
+      if (host) {
+        const clone = host.cloneNode(true);
+        clone.querySelectorAll('svg').forEach(n => n.remove());
+        labelled = (clone.textContent || '').trim().length > 1;
+      }
+      if (labelled) continue;
+
+      /* Shapes inside defs/clipPath/mask/pattern/symbol are never
+         painted. Their computed fill is the initial value — black — so
+         including them reported a mint-and-white wordmark as
+         black-on-ink at 1.20:1. */
+      const shapes = [...svg.querySelectorAll('path,circle,rect,polygon,polyline,line,ellipse')]
+        .filter(sh => !sh.closest('defs,clipPath,mask,pattern,symbol'))
+        .slice(0, 6);
+      const bg = bgOf(svg);
+      if (bg.unresolved) { unresolved.push({ text: 'svg', bg: bg.unresolved }); continue; }
+      let measured = 0;
+      let textured = 0;
+
+      for (const sh of (shapes.length ? shapes : [svg])) {
+        const scs = getComputedStyle(sh);
+        const elOpacity = Number(scs.opacity);
+        /* fill-opacity and stroke-opacity are separate properties and
+           getComputedStyle().stroke ignores them. Reading the colour
+           alone would wave through a stroke-opacity of 0.05 as if it
+           were solid. */
+        for (const [paint, po] of [[scs.fill, scs.fillOpacity], [scs.stroke, scs.strokeOpacity]]) {
+          if (!paint || paint === 'none') continue;
+
+          /* A paint can be a server rather than a colour: fill:
+             url(#id). Refusing it outright fails on any textured mark —
+             it did on the sister platform's wordmark grain — and
+             skipping every url() would be a loophole an entire icon
+             could hide behind. So it is resolved by what it points AT.
+
+             A gradient has stops, and stops are colours, measured like
+             any other with the worst one counting. A pattern, filter or
+             mask is a texture whose contrast is not a single ratio, so
+             it is skipped but counted, and an icon painted ONLY by one
+             is reported rather than silently exempted.
+
+             Nothing on this platform uses a paint server today. It is
+             here so the two checks stay the same check, and so the first
+             gradient-filled icon someone adds is measured rather than
+             failing as an unresolved hole. */
+          let paints = [paint];
+          const ref = paint.match(/^\s*url\(["']?#([^"')]+)["']?\)/);
+          if (ref) {
+            const def = document.getElementById(ref[1]);
+            const kind = def ? def.tagName.toLowerCase() : '';
+            if (kind === 'lineargradient' || kind === 'radialgradient') {
+              paints = [...def.querySelectorAll('stop')].map(st => {
+                const ss = getComputedStyle(st);
+                return ss.stopColor || st.getAttribute('stop-color') || '';
+              }).filter(Boolean);
+              if (!paints.length) { unresolved.push({ text: 'svg gradient', bg: '#' + ref[1] + ' has no stops' }); continue; }
+            } else if (kind === 'pattern' || kind === 'filter' || kind === 'mask') {
+              textured++;
+              continue;
+            } else {
+              unresolved.push({ text: 'svg paint', bg: paint.slice(0, 40) });
+              continue;
+            }
+          }
+
+          for (const one of paints) {
+          const c = toRgb(one);
+          if (!c) { unresolved.push({ text: 'svg paint', bg: one.slice(0, 40) }); continue; }
+          const alpha = c.a
+            * (Number.isFinite(Number(po)) ? Number(po) : 1)
+            * (Number.isFinite(elOpacity) ? elOpacity : 1);
+          if (alpha <= 0.01) continue;
+          const r = Math.min(...bg.stops.map(stop =>
+            ratio(alpha >= 0.99 ? c.rgb : over(c.rgb, alpha, stop), stop)));
+          if (r < 3) {
+            svgOut.push(`<svg ${String(svg.getAttribute('class') || host?.className || '').slice(0, 30)}> ${one}${alpha < 0.99 ? ' @' + alpha.toFixed(2) : ''} ${r.toFixed(2)}:1`);
+          }
+          measured++;
+          }
+        }
+      }
+      /* Texture is only safe to skip because something else on the same
+         icon was measured. An icon whose every paint is a pattern has
+         been checked by nobody. */
+      if (textured && !measured) {
+        svgOut.push(`<svg ${String(svg.getAttribute('class') || host?.className || '').slice(0, 30)}> painted only by a pattern/filter — nothing measurable`);
+      }
+    }
+
+    return { out, unresolved, svgOut };
   });
 
   contrastFailures += CONTRAST.out.length;
+  graphicalFailures += CONTRAST.svgOut.length;
+  if (CONTRAST.svgOut.length) console.log(`  ${pageFile}: ` + CONTRAST.svgOut.join(' | '));
   contrastUnresolved += CONTRAST.unresolved.length;
   if (CONTRAST.out.length) {
     console.log(`  ${pageFile}: ` + CONTRAST.out.map(c => `"${c.text}" [${c.cls}] ${c.ratio}:1 (needs ${c.need})`).join(" | "));
@@ -985,6 +1096,12 @@ assert(contrastFailures === 0,
    first version of this check reported clean while missing 24 pages. */
 assert(contrastUnresolved === 0,
   `every text element's background resolves to a colour (${contrastUnresolved} unresolved — listed above)`);
+/* An icon carrying meaning with no words beside it has to be visible.
+   The radar's rings are the case that made this worth having: pinned to
+   a sand chosen for the ink hero, they measured 1.35:1 on the parchment
+   card in the MRO tool — a chart scale nobody can see. */
+assert(graphicalFailures === 0,
+  `unlabelled graphical objects meet WCAG 1.4.11 at 3:1 (${graphicalFailures} below — listed above)`);
 
 section("Regulatory Index — edition, citation, download, embed");
 {
