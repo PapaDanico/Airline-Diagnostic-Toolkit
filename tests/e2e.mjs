@@ -862,19 +862,40 @@ for (const pageFile of CONTRAST_PAGES) {
       });
       return 0.2126 * r + 0.7152 * g + 0.0722 * b;
     };
-    const parse = (s) => (s.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+    /* A CSS colour is not always rgb(). color-mix() computes to
+       "color(srgb 1 1 1 / 0.82)", whose components run 0–1 rather than
+       0–255, so scraping digits out of it reads white as rgb(1,1,1) —
+       near-black — and reports a navy-on-white wordmark at 2:1. The
+       number looks plausible, which is what makes it dangerous.
+
+       This platform has no color-mix() today; its sister platform does,
+       and that is where the misreading was found. The parser is written
+       to refuse rather than guess: an unrecognised notation (oklch, lab,
+       display-p3) returns null and is counted as unresolved, which is
+       asserted below. Guessing is how a check reports a confident number
+       about a colour it did not understand. */
+    const toRgb = (s) => {
+      if (!s) return null;
+      const n = (s.match(/[\d.]+/g) || []).map(Number);
+      if (/^\s*color\(\s*srgb[\s(]/i.test(s)) {
+        return n.length >= 3 ? { rgb: n.slice(0, 3).map(v => Math.round(v * 255)), a: n.length > 3 ? n[3] : 1 } : null;
+      }
+      if (/^\s*rgba?\(/i.test(s)) {
+        return n.length >= 3 ? { rgb: n.slice(0, 3), a: n.length > 3 ? n[3] : 1 } : null;
+      }
+      if (/^\s*transparent\s*$/i.test(s)) return { rgb: [0, 0, 0], a: 0 };
+      return null;
+    };
     const ratio = (a, b) => {
       const [hi, lo] = lum(a) > lum(b) ? [lum(a), lum(b)] : [lum(b), lum(a)];
       return (hi + 0.05) / (lo + 0.05);
     };
     const over = (fg, a, bg) => fg.map((c, i) => Math.round(c * a + bg[i] * (1 - a)));
     const parseStops = (img) => {
-      const m = img.match(/rgba?\([^)]+\)/g);
+      const m = img.match(/(?:rgba?|color)\([^)]+\)/g);
       if (!m) return null;
-      return m.map(s => {
-        const q = (s.match(/[\d.]+/g) || []).map(Number);
-        return { rgb: q.slice(0, 3), a: q.length < 4 ? 1 : q[3] };
-      });
+      const out = m.map(toRgb);
+      return out.some(x => x === null) ? null : out;
     };
 
     /* Walk up to whatever is actually visible behind the text.
@@ -902,8 +923,9 @@ for (const pageFile of CONTRAST_PAGES) {
           if (st.every(x => x.a >= 0.99)) return { stops: st.map(x => x.rgb) };
           overlays.push(...st.filter(x => x.a > 0));
         }
-        const q = (cs.backgroundColor.match(/[\d.]+/g) || []).map(Number);
-        if (q.length >= 3 && (q.length < 4 || q[3] > 0.5)) return settle(q.slice(0, 3));
+        const c = toRgb(cs.backgroundColor);
+        if (!c) return { unresolved: cs.backgroundColor.slice(0, 60) };
+        if (c.a > 0.5) return settle(c.rgb);
       }
       return settle([255, 255, 255]);
     };
@@ -934,8 +956,12 @@ for (const pageFile of CONTRAST_PAGES) {
       if (bg.unresolved) { unresolved.push({ text: text.slice(0, 40), bg: bg.unresolved }); continue; }
       /* Worst stop, not an average. Text has to be readable at every
          point of the gradient it sits on, not on the mean of one. */
-      const fg = parse(cs.color);
-      const r = Math.min(...bg.stops.map(s => ratio(fg, s)));
+      /* Text colour goes through the same refusing parser. A colour the
+         check cannot read is a hole whether it is behind the text or in
+         it. */
+      const fgc = toRgb(cs.color);
+      if (!fgc) { unresolved.push({ text: text.slice(0, 40), bg: "text colour " + cs.color.slice(0, 40) }); continue; }
+      const r = Math.min(...bg.stops.map(s => ratio(fgc.rgb, s)));
       if (r < need) {
         out.push({ text: text.slice(0, 40), ratio: Math.round(r * 100) / 100, need, cls: String(el.className || "").slice(0, 40) });
       }
