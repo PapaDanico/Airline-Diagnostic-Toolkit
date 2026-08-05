@@ -46,6 +46,32 @@ function applyPartner() {
   return cfg;
 }
 
+/* ---- embedded mode (?embed=1) ----
+
+   A partner iframing the Regulatory Index wants the index, not JK's
+   navigation and footer inside their page. This strips the chrome and
+   leaves the content, the edition strip and one attribution line — the
+   corpus travels, and it travels with its name on it.
+
+   Deliberately NOT a second copy of the page. A separate embed build of
+   the register would be a second corpus to keep in step with the first,
+   and the two would diverge the first time someone edited one of them.
+
+   Framing is still governed by Content-Security-Policy: frame-ancestors
+   'self' in _headers. This flag changes what an embedded page looks
+   like; it does not grant anyone permission to embed it. A real partner
+   needs their origin added there, one origin at a time, never a
+   wildcard. */
+function isEmbedded() {
+  return new URLSearchParams(location.search).get("embed") === "1";
+}
+
+function applyEmbedMode() {
+  if (!isEmbedded()) return false;
+  document.body.classList.add("is-embed");
+  return true;
+}
+
 /* ---- the preview partner must announce itself ----
 
    A demonstration of the white-label mode renders the whole site under
@@ -258,6 +284,10 @@ function mountFooterLearn() {
 
 /* ---- nav (mobile toggle) + brand/footer injection ---- */
 function mountChrome() {
+  // Embedded pages get the class before anything else renders, so the
+  // chrome is hidden by CSS rather than built and then removed — which
+  // would flash JK's nav inside a partner's page on every load.
+  applyEmbedMode();
   // [data-logo] takes the standard mark; [data-logo="light"] takes the
   // dark-surface render (footer, ink hero).
   document.querySelectorAll("[data-logo]").forEach(el => {
@@ -794,7 +824,7 @@ function wireDisclosure(btn, panel, onToggle) {
 }
 
 if (typeof window !== "undefined") {
-  Object.assign(window, { STORE_KEY, JK_LOGO, JK_LOGO_LIGHT, applyPartner, mountChrome,
+  Object.assign(window, { STORE_KEY, JK_LOGO, JK_LOGO_LIGHT, applyPartner, mountChrome, isEmbedded, applyEmbedMode,
     saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel,
     wireToolEnquiryForm, sessionGet, sessionSet,
     toolStore, fmtMoney, fmtNum, fmtRatio, clampNum, escapeHtml, mountReveal,

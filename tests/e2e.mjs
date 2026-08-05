@@ -745,6 +745,75 @@ await page.goto(base + "/about.html"); await page.waitForTimeout(450);
    more than a wording check: the test reads the form names out of the
    source and requires the notice to account for every one of them. A
    fourth form added later fails this until it is disclosed. */
+/* ─── REGULATORY INDEX — edition identity, citation, download, embed ───
+   The index has always shown when it was last checked. That answers "is
+   this current" and not the question a reader in a meeting has, which is
+   "are we looking at the same one". A date cannot answer that; an
+   edition can, and only if the digest actually tracks the content. */
+section("Regulatory Index — edition, citation, download, embed");
+{
+  await page.goto(base + "/regulations.html"); await page.waitForTimeout(400);
+  const label = await page.$eval("#edition-label", e => e.textContent.trim());
+  assert(/^JK-REG \d{4}\.\d+ \(\d+ instruments\) · [2-9A-HJ-NP-Z]{4}$/.test(label),
+    `edition label malformed: "${label}"`);
+
+  // The count on the page must be the count in the corpus, or the
+  // sanity check a reader performs without leaving the page is a lie.
+  const stated = Number(label.match(/\((\d+) instruments\)/)[1]);
+  const actual = await page.evaluate(() => Object.keys(JKV.cites).length);
+  assert(stated === actual, `label claims ${stated} instruments, corpus has ${actual}`);
+
+  /* The digest must move when the corpus does, and hold when it does
+     not. A version that can be forgotten is a version two different
+     corpora can share, which is the exact failure a citable edition
+     exists to prevent. */
+  const digests = await page.evaluate(() => {
+    const meta = JKV.CITE_META;
+    const base = corpusEdition(JKV.cites, meta).digest;
+    const same = corpusEdition(JSON.parse(JSON.stringify(JKV.cites)), meta).digest;
+    const added = { ...JKV.cites, zzTest: { s: "verified", ref: "L.N. 1/2000", long: "x", url: "" } };
+    const changed = JSON.parse(JSON.stringify(JKV.cites));
+    const firstKey = Object.keys(changed)[0];
+    changed[firstKey] = { ...changed[firstKey], s: "unconfirmed" };
+    return {
+      base, same,
+      added: corpusEdition(added, meta).digest,
+      statusChanged: corpusEdition(changed, meta).digest,
+      reverified: corpusEdition(JKV.cites, { ...meta, verifiedOn: "2099-01-01" }).digest
+    };
+  });
+  assert(digests.base === digests.same, "the digest is unstable for identical content");
+  assert(digests.base !== digests.added, "adding an instrument did not change the digest");
+  assert(digests.base !== digests.statusChanged, "changing a citation status did not change the digest");
+  assert(digests.base !== digests.reverified, "re-verifying did not change the digest");
+
+  // A citation someone can paste into a board paper.
+  const cite = await page.evaluate(() =>
+    corpusCitation(corpusEdition(JKV.cites, JKV.CITE_META), "https://example.org/regulations.html"));
+  for (const part of ["JK & Associates", "Regulatory Index", "instruments", "gazette record", "https://example.org"]) {
+    assert(cite.includes(part), `citation omits "${part}": ${cite}`);
+  }
+
+  assert(await page.$("#edition-download"), "no download control on the index");
+  assert(await page.$("#edition-cite"), "no citation control on the index");
+
+  /* Embedded mode: the chrome goes, the corpus and its attribution stay.
+     An unattributed corpus inside someone else's page is a different
+     thing from a partner carrying yours. */
+  await page.goto(base + "/regulations.html?embed=1"); await page.waitForTimeout(400);
+  assert(await page.$eval("body", b => b.classList.contains("is-embed")), "embed flag did not apply");
+  assert(await page.$eval(".nav-bar", n => getComputedStyle(n).display === "none")
+    .catch(() => true), "navigation still renders inside an embed");
+  const attrib = (await page.$eval("#embed-attrib", e => e.textContent)).replace(/\s+/g, " ");
+  assert(/JK & Associates/.test(attrib), "an embedded index does not say whose it is");
+  assert(/JK-REG \d{4}\.\d+/.test(attrib), "an embedded index does not carry its edition");
+  assert(await page.$eval("#reg-body", b => b.children.length) > 0, "embedded index rendered no instruments");
+
+  // And the flag must not fire on anything else.
+  await page.goto(base + "/regulations.html?embed=yes"); await page.waitForTimeout(300);
+  assert(!(await page.$eval("body", b => b.classList.contains("is-embed"))), "embed mode applied on a non-1 value");
+}
+
 section("Privacy notice matches what the code transmits");
 {
   const srcFiles = ["assets/js/common.js", "assets/js/results.js"];
