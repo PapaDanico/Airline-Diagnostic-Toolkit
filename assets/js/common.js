@@ -32,10 +32,45 @@ function applyPartner() {
   document.documentElement.style.setProperty("--accent", cfg.accent);
   document.documentElement.style.setProperty("--accent-deep", cfg.accentDeep);
   document.querySelectorAll("[data-cobrand]").forEach(el => el.textContent = cfg.cobrand);
-  document.querySelectorAll("img.partner-logo").forEach(img => { img.src = cfg.logo; img.alt = cfg.label; });
+  /* Guarded: a partner registered without a logo used to get
+     img.src = undefined, which the browser resolves against the page URL
+     and fetches — a 404 on every page load, and a broken-image glyph
+     where a partner's mark should be. A partner who has not sent artwork
+     yet should render as JK, not as a broken partner. */
+  if (cfg.logo) {
+    document.querySelectorAll("img.partner-logo").forEach(img => { img.src = cfg.logo; img.alt = cfg.label; });
+  }
+  if (cfg.preview) markPreview(cfg);
   // Note: propagating the partner param onto internal links is handled once in
   // mountChrome (keepPartnerParam), after the canonical nav has been generated.
   return cfg;
+}
+
+/* ---- the preview partner must announce itself ----
+
+   A demonstration of the white-label mode renders the whole site under
+   an invented brand. Left unmarked, a visitor who lands on the preview
+   URL — or a screenshot of it — sees JK asserting a partnership that
+   does not exist. That is the one thing a credibility-first product
+   cannot do, so the banner is not optional decoration: it is the reason
+   the preview is allowed to exist at all.
+
+   Injected at the top of the body rather than into the page content, so
+   it appears on every page the preview reaches, including tool pages
+   this function has never heard of. */
+function markPreview(cfg) {
+  if (document.querySelector("[data-partner-preview]")) return;
+  const bar = document.createElement("div");
+  bar.setAttribute("data-partner-preview", "");
+  bar.className = "partner-preview-bar";
+  bar.setAttribute("role", "note");
+  bar.innerHTML =
+    '<b>Preview.</b> This is how the toolkit looks under a partner\u2019s brand. ' +
+    '\u201C' + cfg.label + '\u201D is an illustration, not a real partnership \u2014 ' +
+    'every JK figure, source and citation below is unchanged. ' +
+    '<a href="' + ASSET_BASE + 'partners.html">How partnership works</a> \u00b7 ' +
+    '<a href="?">Leave preview</a>';
+  document.body.prepend(bar);
 }
 
 /* ---- resolve the active white-label partner from ?partner= ----

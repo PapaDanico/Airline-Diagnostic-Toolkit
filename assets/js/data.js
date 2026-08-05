@@ -32,7 +32,20 @@ const JK = {
   //              cobrand: "Powered by JK & Associates, in collaboration with Example Assoc.",
   //              logo: "assets/partner-example.png" }
   // Then whitelist their domain in _headers (frame-ancestors) before go-live.
-  partners: {},
+  partners: {
+    // A demonstration, not a relationship. `preview: true` makes
+    // common.js banner the whole site so neither a visitor nor a
+    // screenshot can mistake it for a partnership that exists. It
+    // carries no logo on purpose: a partner who has not sent artwork
+    // renders as JK rather than as a broken mark.
+    PREVIEW: {
+      label: "Your Association",
+      accent: "#1F6F8B",
+      accentDeep: "#14495c",
+      cobrand: "Powered by JK & Associates, in collaboration with Your Association",
+      preview: true
+    }
+  },
 
   // 5-point maturity scale fallback (when a question reuses generic anchors)
   scaleGeneric: [

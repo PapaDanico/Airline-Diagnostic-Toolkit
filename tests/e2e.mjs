@@ -910,6 +910,38 @@ await page.goto(base + "/partners.html"); await page.waitForTimeout(400);
 assert(/mailto:/.test(await page.$eval("[data-partner-mailto]", a => a.href)), "partner CTA mailto pre-filled");
 assert(/partner=YOURNAME/.test(await page.$eval("section", e => e.textContent)), "partner link mechanics explained");
 
+/* ---- white-label preview ----
+   The registry was built, documented and left empty, so there was
+   nothing to show a prospect. A PREVIEW entry fixes that and creates the
+   one risk worth guarding: a site rendered under an invented brand,
+   which unmarked is JK asserting a partnership that does not exist.
+   Every assertion below exists to keep that impossible. */
+await page.goto(base + "/index.html?partner=PREVIEW"); await page.waitForTimeout(400);
+{
+  const bar = await page.$("[data-partner-preview]");
+  assert(bar, "preview mode renders no banner — it would read as a real partnership");
+  const txt = (await page.$eval("[data-partner-preview]", e => e.textContent)).replace(/\s+/g, " ");
+  assert(/Preview/i.test(txt), "the banner does not say it is a preview");
+  assert(/not a real partnership/i.test(txt), "the banner does not disclaim the relationship");
+  assert(await page.$eval("body", b => b.classList.contains("has-partner")), "preview did not apply partner mode");
+
+  // A partner registered without artwork must fall back to JK, not to a
+  // broken image. img.src = undefined used to fetch the page URL itself.
+  const broken = await page.$$eval("img.partner-logo", imgs =>
+    imgs.filter(i => !i.getAttribute("src") || /undefined/.test(i.getAttribute("src"))).length);
+  assert(broken === 0, "a logo-less partner produced a broken image source");
+
+  // The banner must survive onto pages the preview reaches, or a
+  // screenshot of any inner page shows an undisclaimed brand.
+  await page.goto(base + "/diagnostic.html?partner=PREVIEW"); await page.waitForTimeout(400);
+  assert(await page.$("[data-partner-preview]"), "preview banner missing on an inner page");
+
+  // And a bogus partner key must still be inert.
+  await page.goto(base + "/index.html?partner=NOT_A_PARTNER"); await page.waitForTimeout(400);
+  assert(!(await page.$("[data-partner-preview]")), "an unregistered partner key rendered a preview banner");
+  assert(!(await page.$eval("body", b => b.classList.contains("has-partner"))), "an unregistered key applied partner mode");
+}
+
 /* ─── 5. RESULTS — engagement key gate ─── */
 section("Results page — engagement key gate");
 // Reload with valid localStorage
