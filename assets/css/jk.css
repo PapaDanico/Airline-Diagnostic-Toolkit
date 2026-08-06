@@ -1105,3 +1105,41 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
      at opacity 0. */
   .has-reveal .will-reveal { opacity: 1 !important; transform: none !important; }
 }
+
+/* ============================================================
+   Focus rings on coloured grounds.
+
+   The default ring is terracotta, and terracotta vanishes on any
+   surface built from terracotta. Measured worst-case against every
+   stop of each ground, because a gradient is only as visible as its
+   least favourable stop:
+
+     .band-ember   terracotta -> oxblood   accent 1.00  amber 2.70  sand 4.58
+     .score-hero   ink                     accent 2.61  amber 7.05
+
+   Amber is the house override for the ink surfaces above and clears
+   3:1 on score-hero comfortably. It does NOT clear it on the ember
+   band — 2.70 — so that one takes sand, which is already the band's
+   accent colour for eyebrows.
+
+   Doubled class selectors, and placed at the end of the file on
+   purpose. `.btn:focus-visible` and `.toolcard[href]:focus-visible`
+   re-specify the whole `outline` shorthand further up, so a
+   single-class rule would tie them on specificity (0,2,0) and lose on
+   source order. That is exactly how the sister platform lost its focus
+   ring on cards, and repeating it here would be careless.
+   ============================================================ */
+.band-ember.band-ember :focus-visible { outline-color: var(--jk-sand); }
+.score-hero.score-hero :focus-visible { outline-color: var(--jk-amber); }
+
+/* A range input has no border to recolour, so the rule above leaves it
+   with nothing but a 10%-alpha terracotta glow — 1.18:1 on the white
+   card, which is no indicator at all. Text inputs are fine: the
+   border-colour change carries them. Sliders get a real ring instead,
+   terracotta on white at 7.23:1. Specificity (0,3,1) beats the
+   `.field input:focus` rule that sets `outline: none`. */
+.field input[type="range"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  box-shadow: none;
+}
