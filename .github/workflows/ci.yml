@@ -50,6 +50,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
 
@@ -79,6 +80,31 @@ jobs:
       # every other check in this repo and fails this one.
       - name: CSP enforced by a real browser
         run: node tests/csp.mjs
+
+  # Split out of the e2e job rather than appended to it. The sister
+  # platform's equivalent job was cancelled twice at exactly 15m03s after
+  # two browser sweeps were added to it — no logs, which reads as
+  # infrastructure until the number turns out to be that exact. These are
+  # independent of e2e and of each other, so running them alongside costs
+  # no wall-clock and keeps each job inside a budget it can be held to.
+  sweep:
+    name: Focus and full-site sweep
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install test toolchain
+        working-directory: tests
+        run: npm install
+
+      - name: Install Chromium
+        working-directory: tests
+        run: npx playwright install --with-deps chromium
 
       # e2e tests focus MANAGEMENT — where focus goes. Nothing tested
       # focus VISIBILITY until this: whether a keyboard user can see
