@@ -340,6 +340,16 @@ function mountChrome() {
   // JK.brand.location sat unread — the drift this file exists to prevent.
   // One hook, one source.
   document.querySelectorAll("[data-location]").forEach(el => { el.textContent = JK.brand.location; });
+  /* Registered name — or the incorporation position, while there is not
+     one yet. Bound from JK.brand so the day the certificate issues is a
+     one-line edit in data.js rather than a hunt through the legal pages,
+     which is how the Privacy Notice came to ship a bracketed blank in
+     the first place. The markup carries the same sentence, so the
+     statement survives with JavaScript disabled; this only keeps it in
+     step. */
+  document.querySelectorAll("[data-registered-name]").forEach(el => {
+    el.textContent = JK.brand.pending ? JK.brand.pending.registeredName : JK.brand.name;
+  });
   // Plain, selectable address (for visitors with no configured mail client).
   document.querySelectorAll("[data-email-plain]").forEach(el => { el.textContent = JK.brand.email; });
   // "Copy email" buttons — robust fallback when mailto: links do nothing.
