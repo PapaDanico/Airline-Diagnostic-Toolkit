@@ -1885,6 +1885,51 @@ section("Content-Security-Policy");
     `every referenced page script exists on disk (${referenced.size} referenced, ${onDisk.length} on disk)`);
 }
 
+/* ─── The incorporation position is stated, not left blank ───
+   The Privacy Notice shipped a highlighted
+   "[full registered legal name and company registration number]" on the
+   live site, inside the one section the Data Protection Act, 2019
+   requires to identify the controller. A reader who sees a bracketed
+   blank there learns the notice was never finished.
+
+   Two-sided on purpose. While incorporation is pending the pages must
+   say so; once it completes and data.js flips, they must carry the
+   registered name instead — and this fails until they do, rather than
+   leaving the "in progress" wording to outlive the certificate. */
+section("Incorporation status is disclosed");
+{
+  const pendingWording = /incorporation in progress/i;
+  for (const path of ["/privacy.html", "/about.html"]) {
+    await page.goto(base + path);
+    await page.waitForTimeout(300);
+    const body = await page.$eval("body", e => e.innerText);
+
+    assert(!/\[[^\]]*registration number[^\]]*\]/i.test(body),
+      `${path} carries no bracketed registration placeholder`);
+    assert(!/\[full registered legal name/i.test(body),
+      `${path} carries no unfilled registered-entity blank`);
+
+    const pending = await page.evaluate(() => window.JK.brand.incorporationPending === true);
+    if (pending) {
+      assert(pendingWording.test(body), `${path} states that incorporation is in progress`);
+    } else {
+      assert(!pendingWording.test(body),
+        `${path} must drop the "incorporation in progress" wording once data.js says it completed`);
+    }
+  }
+
+  /* The statement has to survive with JavaScript off. Bound only from
+     common.js, the Privacy Notice would render an empty <span> for a
+     visitor with scripting disabled — a blank in place of a blank. */
+  const noJs = await browser.newContext({ javaScriptEnabled: false });
+  const bare = await noJs.newPage();
+  await bare.goto(base + "/privacy.html");
+  const bareText = await bare.$eval("[data-registered-name]", e => e.textContent.trim());
+  assert(bareText.length > 20,
+    `the registered-entity line renders without JavaScript ("${bareText.slice(0, 40)}")`);
+  await noJs.close();
+}
+
 /* ─── 25. No JS errors ─── */
 section("JavaScript errors");
 assert(errs.length === 0, `no uncaught page errors (${errs.length ? errs.join(" | ") : "none"})`);

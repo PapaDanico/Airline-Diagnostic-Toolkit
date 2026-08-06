@@ -19,7 +19,35 @@ const JK = {
     email: "info@aviationhubkenya.org",
     // Shared with the sister practice, Kanda Logistics Advisory.
     location: "2nd Avenue, Cargo Terminal, JKIA, Nairobi",
-    version: "v3.3 — End-to-End Aviation Advisory Platform"
+    version: "v3.3 — End-to-End Aviation Advisory Platform",
+
+    /* The practice is mid-incorporation, so there is no registered name
+       or company number yet. Stated as a fact rather than left as a
+       bracketed blank: the Privacy Notice carried
+       "[full registered legal name and company registration number]"
+       in a highlighted span on the live site, inside the one section the
+       Data Protection Act, 2019 requires to identify the controller. A
+       blank there tells a reader the notice was never finished. A
+       sentence saying incorporation is in progress tells them the truth,
+       and is the same amount of work.
+
+       The sister practice reached this conclusion first — see
+       `incorporationPending` in Kanda's site.js — and the wording here
+       mirrors it deliberately. Two sister practices giving
+       differently-worded answers to the same question is its own kind of
+       unreliable.
+
+       When the certificate issues: set this false and replace
+       `pending.registeredName` with the registered name and number. The
+       consistency check in tests/e2e.mjs holds the pages to whichever
+       state this is in. */
+    incorporationPending: true,
+    pending: {
+      registeredName:
+        "JK & Associates — incorporation in progress; registration number to follow",
+      registeredAddress:
+        "2nd Avenue, Cargo Terminal, Jomo Kenyatta International Airport, Nairobi, Kenya"
+    }
   },
 
   // Soft engagement-key gate for Toolboxes B/C/D (marketing gate, not security).
