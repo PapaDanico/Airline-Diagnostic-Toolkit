@@ -79,3 +79,18 @@ jobs:
       # every other check in this repo and fails this one.
       - name: CSP enforced by a real browser
         run: node tests/csp.mjs
+
+      # e2e tests focus MANAGEMENT — where focus goes. Nothing tested
+      # focus VISIBILITY until this: whether a keyboard user can see
+      # where it went. Its first run found a terracotta ring on the
+      # terracotta ember band at 1.00:1, another at 1.90:1 on the
+      # flagship card, and range sliders whose only indicator was a
+      # 10%-alpha glow at 1.18:1.
+      - name: Focus indicators are visible
+        run: node tests/focus.mjs
+
+      # Breadth to e2e's depth: every page and every tool driven under
+      # the production headers, demanding only that nothing throws and
+      # something renders. Catches the page nobody wrote a test for.
+      - name: Drive every page as a user
+        run: node tests/drive.mjs

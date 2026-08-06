@@ -4,7 +4,7 @@
   "description": "Isolated test toolchain for the JK & Associates aviation advisory platform. Kept separate from the repo root so the static site has no build step or dependencies.",
   "type": "module",
   "scripts": {
-    "test": "node e2e.mjs && node audit.mjs"
+    "test": "node e2e.mjs && node audit.mjs && node csp.mjs && node focus.mjs && node drive.mjs"
   },
   "devDependencies": {
     "playwright": "^1.48.0"
