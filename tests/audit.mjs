@@ -21,7 +21,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const NOT_INDEXED = new Set([
   '404.html',      // an error document; indexing it advertises a dead end
   'embed.html',    // frames diagnostic.html to demo the partner embed
-  'results.html'   // renders from answers held in session; bare, it is blank
+  'results.html',  // renders from answers held in session; bare, it is blank
+  'offline.html'   // the service worker's fallback; a crawler reaching it learns nothing
 ]);
 
 function htmlFiles() {

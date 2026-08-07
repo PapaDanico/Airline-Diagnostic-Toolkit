@@ -875,6 +875,25 @@ function wireDisclosure(btn, panel, onToggle) {
   });
 }
 
+/* ---- service worker ----
+
+   Registered from here rather than inline, because the CSP has no
+   'unsafe-inline' in script-src and adding one to register a worker
+   would trade the control that enforces this site's central privacy
+   claim for a convenience.
+
+   Failure is swallowed on purpose. The worker adds offline capability
+   and nothing else: it is network-first for every request, so a visitor
+   whose browser refuses to register it gets precisely the site they
+   would have got anyway. A console error here would describe a
+   degradation nobody experienced. */
+if (typeof navigator !== "undefined" && "serviceWorker" in navigator &&
+    location.protocol !== "file:" && !isEmbedded()) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+
 if (typeof window !== "undefined") {
   Object.assign(window, { STORE_KEY, JK_LOGO, JK_LOGO_LIGHT, applyPartner, mountChrome, isEmbedded, applyEmbedMode,
     saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel,

@@ -1,0 +1,19 @@
+{
+  "name": "JK & Associates — Airline Diagnostic Toolkit",
+  "short_name": "JK Toolkit",
+  "description": "Aviation advisory diagnostics for African operators, investors and greenfield ventures. Every tool runs in your browser; nothing you enter is transmitted.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAF7F2",
+  "theme_color": "#16100D",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/assets/img/jk-badge.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
