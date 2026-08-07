@@ -6,5 +6,5 @@
 applyPartner(); mountChrome();
 const ph = document.getElementById("phases");
 JK.phases.forEach(p => ph.insertAdjacentHTML("beforeend",
-  `<div class="phase"><span class="days">${p.days}</span><h4>${p.t}</h4><p>${p.d}</p></div>`));
+  `<div class="phase"><span class="days">${p.days}</span><h3>${p.t}</h3><p>${p.d}</p></div>`));
 wireToolEnquiryForm("brief-enquiry", "How It Works — Engagement Brief");

@@ -33,7 +33,7 @@
     const b = document.createElement("button");
     b.type = "button"; b.className = "sector"; b.dataset.arch = st.id;
     b.setAttribute("aria-pressed", "false");
-    b.innerHTML = `<h4>${escapeHtml(st.name)}</h4><p>${escapeHtml(st.when)}</p>
+    b.innerHTML = `<h3>${escapeHtml(st.name)}</h3><p>${escapeHtml(st.when)}</p>
       <div class="s-reg">${st.tiers.length} entit${st.tiers.length === 1 ? "y" : "ies"}</div>`;
     b.addEventListener("click", () => selectArch(st.id, true));
     ag.appendChild(b);

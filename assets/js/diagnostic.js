@@ -62,7 +62,7 @@
   calibCard.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem">
       <span style="font-size:1.2rem">🎯</span>
-      <h3 style="margin:0;font-size:1.15rem;font-family:var(--sans);font-weight:700">Pre-Diagnostic Context Calibration</h3>
+      <h2 style="margin:0;font-size:1.15rem;font-family:var(--sans);font-weight:700">Pre-Diagnostic Context Calibration</h2>
     </div>
     <p class="muted" style="margin:0 0 1.2rem;font-size:0.9rem;line-height:1.5">
       Calibrate the domain weighting matrix and benchmark overlays for your carrier's fleet structure and operating model before answering Question 1.

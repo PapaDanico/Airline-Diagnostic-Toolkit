@@ -18,8 +18,20 @@ const ASSET_BASE = (function () {
    variant is a pre-lightened render that preserves the oxblood→amber
    gradient. brightness(0) invert(1) would flatten the phoenix into a
    white silhouette, which is precisely the thing worth keeping. */
-const JK_LOGO       = `<img class="logo" src="${ASSET_BASE}assets/img/jk-badge.png" alt="JK &amp; Associates" width="42" height="42" decoding="async">`;
-const JK_LOGO_LIGHT = `<img class="logo" src="${ASSET_BASE}assets/img/jk-badge-light.png" alt="JK &amp; Associates" width="42" height="42" decoding="async" loading="lazy">`;
+/* alt="" — deliberately empty, not missing.
+
+   The badge always sits inside <a class="brand">, which already carries
+   the words "JK & Associates" in a sibling <span>. With alt text the
+   link's accessible name became "JK & Associates JK & Associates
+   Aviation Advisory · Africa": a screen reader said the name twice, and
+   the second one told the listener nothing the first had not.
+
+   An image that repeats adjacent text is decorative by definition, and
+   the correct way to say so is an empty alt. Removing the attribute
+   entirely is the one thing that would be wrong — assistive tech then
+   falls back to announcing the filename. */
+const JK_LOGO       = `<img class="logo" src="${ASSET_BASE}assets/img/jk-badge.png" alt="" width="42" height="42" decoding="async">`;
+const JK_LOGO_LIGHT = `<img class="logo" src="${ASSET_BASE}assets/img/jk-badge-light.png" alt="" width="42" height="42" decoding="async" loading="lazy">`;
 
 /* ---- partner / white-label handling (?partner=<KEY>) ----
    No-op unless ?partner= matches a key registered in JK.partners
@@ -244,7 +256,7 @@ function mountFooterAbout() {
   const el = document.createElement("div");
   el.className = "footer-about";
   el.innerHTML =
-    `<h4>About JK &amp; Associates</h4>
+    `<h2>About JK &amp; Associates</h2>
      <p>An aviation management consultancy based in Nairobi, Kenya, working with operators,
         investors and greenfield ventures across the continent. Two tracks: taking a venture
         through KCAA certification to an air operator certificate, and making an existing
@@ -275,7 +287,7 @@ function mountFooterLearn() {
 
   const el = document.createElement("div");
   el.className = "footer-learn";
-  el.innerHTML = `<h4>Learn the ground</h4><div class="fl-grid">${links}</div>`;
+  el.innerHTML = `<h2>Learn the ground</h2><div class="fl-grid">${links}</div>`;
 
   // sits above the copyright line where one exists, else at the end
   const ver = footer.querySelector(".ver");
