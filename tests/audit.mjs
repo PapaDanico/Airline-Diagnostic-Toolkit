@@ -70,6 +70,8 @@ await new Promise(r => server.listen(0, "127.0.0.1", r));
 const BASE = `http://127.0.0.1:${server.address().port}/`;
 const b = await chromium.launch(execPath ? { executablePath: execPath } : {});
 let problems = 0;
+let scoringModel = null;
+
 for (const pg of pages) {
   const dir = dirname(pg);
   const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
@@ -90,9 +92,18 @@ for (const pg of pages) {
       dupes: [...new Set(ids.filter((x, i) => ids.indexOf(x) !== i))],
       links: [...new Set([...document.querySelectorAll("a[href]")].map(a => a.getAttribute("href")).filter(h => h && !/^(https?:|mailto:|#|tel:|data:)/.test(h)))],
       hasChrome: !!document.querySelector("[data-year]"),
-      yearOk: document.querySelector("[data-year]")?.textContent === String(new Date().getFullYear())
+      yearOk: document.querySelector("[data-year]")?.textContent === String(new Date().getFullYear()),
+      /* Captured from the live JK namespace rather than parsed out of
+         data.js with a regex. The README describes the scoring model;
+         the browser is where that model actually exists. */
+      scoring: (typeof JK !== "undefined" && Array.isArray(JK.domains))
+        ? { count: JK.domains.length,
+            questions: JK.domains.reduce((n, d) => n + (d.questions ? d.questions.length : 0), 0),
+            weights: JK.domains.map(d => ({ name: d.name, weight: d.weight })) }
+        : null
     };
   });
+  if (r.scoring && !scoringModel) scoringModel = r.scoring;
   await p.setViewportSize({ width: 390, height: 800 }); await p.waitForTimeout(150);
   const mobOX = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   const broken = r.links.filter(l => { const c = l.split("#")[0].split("?")[0]; return c && !existsSync(normalize(join(ROOT, dir, c))); });
@@ -155,6 +166,164 @@ server.close();
     `\n${sitemapIssues.length ? '❌' : '✅'} sitemap.xml covers ${listed.size} of ${onDisk.size} pages ` +
       `(${NOT_INDEXED.size} deliberately excluded)` +
       (sitemapIssues.length ? '\n     - ' + sitemapIssues.join('\n     - ') : '')
+  );
+}
+
+/* ---- the README's description of the scoring model ----
+
+   The sister project shipped three stale README figures today — tool
+   count, test count, bundle size — all wrong for the same reason, a
+   number written once and never re-derived. This README carries the
+   same shape of claim, and one of its statements was already stale: it
+   warned that legal placeholders "must be completed before go-live"
+   twelve hours after they were completed.
+
+   These are the checkable ones. They are all correct today, which is
+   exactly when to write this — while someone still knows what the right
+   answer is, rather than after a reader has acted on a wrong one.
+
+   Compared against the JK namespace as the browser loads it, not
+   against a regex over data.js. A guard that reads the source with a
+   different parser than the product uses is testing its own parser. */
+{
+  const readme = readFileSync(join(ROOT, "README.md"), "utf8");
+  const readmeIssues = [];
+
+  if (!scoringModel) {
+    readmeIssues.push("could not read JK.domains from any page — the scoring claims went unchecked");
+  } else {
+    /* The README states the domain count in THREE places, and the first
+       version of this checked one of them. Editing "8 weighted domains"
+       to "9" on the feature table passed clean, because that line's
+       domain half was being discarded — the same regex read its question
+       count and threw the rest away. A guard that verifies one of three
+       copies of a claim reports on the whole README and covers a third
+       of it, which reads as coverage and is not.
+
+       So every site is collected, and the count of sites is itself
+       asserted: a rewording that drops one must fail loudly rather than
+       quietly shrink what this checks. "whitelisted domains" further
+       down is not a claim about the model, which is why these match
+       shapes rather than counting the word. */
+    const domainClaims = [
+      (readme.match(/[x×]\s*(\d+)\s+weighted domains/) || [])[1],
+      (readme.match(/(\d+)\s+domains,\s+\d+\s+questions/) || [])[1],
+      (readme.match(/(\d+)\s+domains,\s+each\s+weighted/) || [])[1]
+    ].filter(Boolean).map(Number);
+
+    if (domainClaims.length < 3) {
+      readmeIssues.push(
+        `expected three domain-count claims in the README, found ${domainClaims.length}`
+      );
+    }
+    for (const n of new Set(domainClaims)) {
+      if (n !== scoringModel.count) {
+        readmeIssues.push(`README says ${n} domains; JK.domains has ${scoringModel.count}`);
+      }
+    }
+
+    /* Scoped to the scorecard's own two statements, and this took two
+       attempts to get right.
+
+       The first version matched any "N questions" in the README and
+       reported "README claims 38 questions; the scorecard has 40". The
+       38 is faq.html's question count and the 20 further up is the MRO
+       diagnostic's — both correct, neither anything to do with the
+       Health Scorecard. A check that cannot tell which claim it is
+       reading will confidently fail a document that is entirely right,
+       which is worse than not checking: the next person deletes it.
+
+       So each claim is matched in its own context, and the other two
+       counts are checked against their own sources rather than ignored. */
+    const scorecardClaims = [
+      (readme.match(/(\d+)\s+questions\s*[x\u00d7]\s*\d+\s+weighted domains/) || [])[1],
+      (readme.match(/\d+\s+domains,\s+(\d+)\s+questions/) || [])[1]
+    ].filter(Boolean).map(Number);
+
+    if (scorecardClaims.length < 2) {
+      readmeIssues.push(
+        `expected two scorecard question claims in the README, found ${scorecardClaims.length}`
+      );
+    }
+    for (const n of scorecardClaims) {
+      if (n !== scoringModel.questions) {
+        readmeIssues.push(`README claims ${n} scorecard questions; JK.domains has ${scoringModel.questions}`);
+      }
+    }
+
+    /* The weights as a SET of numbers, not matched by name.
+
+       The first version of this derived a short label from each domain
+       name and looked for it in the prose — "Operational Reliability"
+       to "Operational", "Cost & Fuel Efficiency" to "Cost". The README
+       calls those "Operations" and "Cost & Fuel", so the check reported
+       four missing weights against a README that was entirely correct.
+
+       That is the failure this file exists to prevent, committed by the
+       check itself: a confident report about something it had not
+       understood. Prose labels are editorial and should not be derived
+       mechanically. The NUMBERS are the claim, so the numbers are what
+       is compared — every weight in the parenthetical against every
+       weight in data.js, as multisets. A changed value fails, a
+       reworded label does not. */
+    const listed = (readme.match(/domains,\s+each\s+weighted\s*\(([^)]*)\)/) || [])[1];
+    if (!listed) {
+      readmeIssues.push("README no longer lists the domain weights");
+    } else {
+      const claimed = [...listed.matchAll(/(\d+)/g)].map((m) => Number(m[1])).filter((n) => n !== 100).sort((a, b) => a - b);
+      const actual = scoringModel.weights.map((d) => d.weight).sort((a, b) => a - b);
+      if (claimed.join(",") !== actual.join(",")) {
+        readmeIssues.push(`README weights [${claimed}] do not match data.js [${actual}]`);
+      }
+    }
+
+    const total = scoringModel.weights.reduce((n, d) => n + d.weight, 0);
+    if (total !== 100) readmeIssues.push(`domain weights sum to ${total}, not 100`);
+    if (total === 100 && !/=\s*100%/.test(readme)) {
+      readmeIssues.push("README no longer states that the weights sum to 100%");
+    }
+  }
+
+  /* The other two question counts, against their own sources. Both are
+     correct today; both are prose numbers in a table, which is the form
+     that rots. */
+  const faqClaim = Number((readme.match(/faq\.html`?\s*\((\d+)\s+questions/) || [])[1]);
+  const faqActual = (readFileSync(join(ROOT, "faq.html"), "utf8").match(/<h3/g) || []).length;
+  if (!Number.isFinite(faqClaim)) {
+    readmeIssues.push("README no longer states the FAQ question count");
+  } else if (faqClaim !== faqActual) {
+    readmeIssues.push(`README says the FAQ has ${faqClaim} questions; it has ${faqActual}`);
+  }
+
+  const mroClaim = Number((readme.match(/(\d+)\s+questions for Chief Engineers/) || [])[1]);
+  const mroSrc = readFileSync(join(ROOT, "assets/js/page/tools-mro-readiness.js"), "utf8");
+  const mroActual = Number((mroSrc.match(/Answer all (\d+) questions/) || [])[1]);
+  if (!Number.isFinite(mroClaim) || !Number.isFinite(mroActual)) {
+    readmeIssues.push("could not compare the MRO question count");
+  } else if (mroClaim !== mroActual) {
+    readmeIssues.push(`README says the MRO diagnostic has ${mroClaim} questions; it states ${mroActual}`);
+  }
+
+  /* The claim that went stale for twelve hours. It said bracketed
+     placeholders remained in the legal pages and had to be filled
+     before go-live; they had been filled that morning. */
+  const bracketed = /\[(?:full registered|in brackets|and\/or the registered)/i;
+  const legalHasBlanks = ["privacy.html", "terms.html"].some((f) =>
+    bracketed.test(readFileSync(join(ROOT, f), "utf8"))
+  );
+  const readmeWarnsOfBlanks = /marked\s+`?\[in brackets\]`?\s+and must be completed/i.test(readme);
+  if (legalHasBlanks !== readmeWarnsOfBlanks) {
+    readmeIssues.push(
+      legalHasBlanks
+        ? "the legal pages carry bracketed placeholders and the README no longer warns of them"
+        : "the README warns of bracketed placeholders in the legal pages; there are none"
+    );
+  }
+
+  problems += readmeIssues.length;
+  console.log(
+    `\n${readmeIssues.length ? "❌" : "✅"} README matches the product it describes` +
+      (readmeIssues.length ? "\n     - " + readmeIssues.join("\n     - ") : "")
   );
 }
 
