@@ -27,7 +27,7 @@ const grid = document.getElementById("grid");
 PANELS.forEach((panel, i) => {
   const cell = document.createElement("div");
   cell.className = "omc-panel";
-  cell.innerHTML = `<h4><span class="num">${i + 1}.</span> ${panel.t}</h4>
+  cell.innerHTML = `<h2><span class="num">${i + 1}.</span> ${panel.t}</h2>
     <p class="prompt">${panel.p}</p>
     <textarea id="omc-${panel.id}" aria-label="${panel.t}"></textarea>`;
   grid.appendChild(cell);

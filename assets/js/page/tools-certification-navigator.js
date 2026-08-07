@@ -22,7 +22,7 @@
     b.dataset.sector = s.id;
     b.innerHTML =
       `<span class="s-ico" aria-hidden="true">${s.icon}</span>
-       <h4>${s.short}</h4>
+       <h3>${s.short}</h3>
        <p>${s.blurb}</p>
        <div class="s-reg">${s.regLine}</div>`;
     b.addEventListener("click", () => select(s.id, true));

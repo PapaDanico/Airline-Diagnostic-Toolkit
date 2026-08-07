@@ -47,7 +47,7 @@ const panels = document.getElementById("panels");
 DOMAINS.forEach(d => {
   const panel = document.createElement("div");
   panel.className = "mro-panel";
-  panel.innerHTML = `<h3>${d.name}</h3><p class="w">Weight ${d.weight}% of index</p>`;
+  panel.innerHTML = `<h2>${d.name}</h2><p class="w">Weight ${d.weight}% of index</p>`;
   d.qs.forEach((q, qi) => {
     const wrap = document.createElement("div");
     wrap.className = "mro-q";

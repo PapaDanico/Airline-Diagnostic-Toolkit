@@ -134,6 +134,19 @@ body {
 h1, h2, h3, h4 { font-family: var(--serif); font-weight: 700; margin: 0 0 .4em; text-wrap: balance; }
 h1 { font-size: clamp(2.2rem, 5vw, 3.6rem);   line-height: 1.06; letter-spacing: -.022em; }
 h2 { font-size: clamp(1.7rem, 3.4vw, 2.5rem); line-height: 1.12; letter-spacing: -.016em; }
+/* Component heading rules below are written :is(h2, h3, h4) rather than
+   pinned to one tag. Appearance belongs to the component; the LEVEL
+   belongs to the document, and the two were fused here — a footer
+   column heading was an h4 because h4 looked right, on pages whose
+   deepest content heading was h2. That skips a level, and 26 of 28
+   pages did it.
+
+   Pinning the selector to a tag makes fixing the level a visual
+   regression, which is why it stays broken. Matching a range costs
+   nothing — :is() takes the specificity of its most specific argument,
+   and these are all type selectors, so (0,0,1) either way — and it
+   means a heading can be renumbered for the outline without anyone
+   having to re-style it. */
 h3 { font-size: clamp(1.25rem, 2vw, 1.6rem);  line-height: 1.18; letter-spacing: -.008em; }
 h4 { line-height: 1.25; letter-spacing: 0; }
 /* Body copy wants a sane measure and no orphans. */
@@ -354,7 +367,7 @@ section { padding: var(--sec-y) 0; }
 .card { background: #fff; color: var(--jk-ink); border: 1px solid var(--jk-line); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow);
   transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease); }
 .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: var(--jk-line-2); }
-.card h3 { margin-top: 0; }
+.card :is(h2, h3) { margin-top: 0; }
 .card .ref { font-family: var(--sans); font-weight: 700; font-size: .72rem; letter-spacing: .1em; color: var(--accent); }
 .card-flat { box-shadow: none; }
 .card-flat:hover { transform: none; box-shadow: var(--shadow); }
@@ -364,7 +377,7 @@ section { padding: var(--sec-y) 0; }
   border-radius: var(--radius); padding: 22px; border-left: 4px solid var(--jk-ember);
   transition: transform var(--dur-base) var(--ease), border-left-width var(--dur-fast) var(--ease); }
 .tile:hover { transform: translateY(-3px); border-left-width: 6px; }
-.tile h4 { margin: 0 0 .35rem; font-family: var(--sans); font-weight: 700; font-size: 1rem; }
+.tile :is(h3, h4) { margin: 0 0 .35rem; font-family: var(--sans); font-weight: 700; font-size: 1rem; }
 .tile p { margin: 0; font-size: .88rem; color: var(--jk-muted); }
 
 /* ---------- bands ---------- */
@@ -425,7 +438,7 @@ section.band-dark:has(.metrics) { padding: var(--sec-y-tight) 0; }
 .phase::before { counter-increment: ph; content: counter(ph); display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; margin-bottom: .7rem; transition: transform var(--dur-base) var(--ease); }
 .phase:hover::before { transform: scale(1.08); }
 .phase .days { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--jk-ember); }
-.phase h4 { font-family: var(--sans); font-size: .98rem; margin: .2rem 0 .4rem; }
+.phase :is(h3, h4) { font-family: var(--sans); font-size: .98rem; margin: .2rem 0 .4rem; }
 .phase p { font-size: .82rem; color: var(--jk-muted); margin: 0; }
 button.phase { text-align: left; font: inherit; cursor: pointer; display: block; width: 100%; }
 button.phase:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
@@ -471,9 +484,21 @@ button.phase:focus-visible { outline: 2px solid var(--accent); outline-offset: 3
 
 /* ---------- footer ---------- */
 .footer { background: var(--jk-ink); color: #cbbfb8; padding: 54px 0 28px; }
-.footer h4 { color: #fff; font-family: var(--sans); font-size: .88rem; letter-spacing: .06em; text-transform: uppercase; }
+.footer :is(h2, h3, h4) { color: #fff; font-family: var(--sans); font-size: .88rem; letter-spacing: .06em; text-transform: uppercase; }
 .footer a { color: #cbbfb8; }
 .footer a:hover { color: var(--jk-amber); }
+
+/* The legal strip's links are inline inside a sentence, and colour was
+   the only thing separating them from it: #cbbfb8 link on #9a8c85 text
+   is 1.8:1, against the 3:1 that WCAG 1.4.1 asks when colour is the
+   sole distinguishing signal. Both colours are perfectly legible on
+   their own — the failure is that someone who cannot separate the two
+   hues has nothing else to go on.
+
+   Scoped to .ver rather than .footer: the column links above sit one
+   per line with no surrounding prose, so they are not links "in a text
+   block" and underlining them would be noise. */
+.footer .ver a { text-decoration: underline; text-underline-offset: 2px; }
 .footer .cols { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 32px; }
 .footer .ver { margin-top: 28px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.12); font-size: .77rem; color: #9a8c85; display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
 
@@ -485,14 +510,14 @@ button.phase:focus-visible { outline: 2px solid var(--accent); outline-offset: 3
    Two sentences and a link. The long version restated the terms page,
    the home page and the regulatory index; about.html carries it now. */
 .footer-about { margin-top: 30px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.12); }
-.footer-about h4 { margin: 0 0 .7rem; color: var(--jk-amber); }
+.footer-about :is(h2, h3, h4) { margin: 0 0 .7rem; color: var(--jk-amber); }
 .footer-about p { font-size: .87rem; line-height: 1.65; color: #b3a69f; max-width: 66ch; margin-bottom: .5rem; }
 .footer-about .fa-more { display: inline-block; font-size: .87rem; color: var(--jk-amber); }
 .footer-about .fa-more[aria-current="page"] { color: #9a8c85; }
 @media print { .footer-about { display: none; } }
 
 .footer-learn { margin-top: 30px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.12); }
-.footer-learn h4 { margin: 0 0 .9rem; color: var(--jk-amber); }
+.footer-learn :is(h2, h3, h4) { margin: 0 0 .9rem; color: var(--jk-amber); }
 .footer-learn .fl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
 .footer-learn .fl-grid > * { min-width: 0; }
 .footer-learn .fl-item {
@@ -640,7 +665,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .rx { border-left: 4px solid var(--accent); background: var(--jk-parchment); border-radius: 0 var(--radius) var(--radius) 0; padding: 20px 24px; margin-bottom: 16px;
   transition: border-left-width var(--dur-fast) var(--ease), box-shadow var(--dur-base) var(--ease), transform var(--dur-base) var(--ease); }
 .rx:hover { border-left-width: 6px; box-shadow: 0 2px 8px rgba(158,49,22,.12); }
-.rx h4 { margin: 0 0 .3rem; font-family: var(--sans); font-size: 1.05rem; }
+.rx :is(h3, h4) { margin: 0 0 .3rem; font-family: var(--sans); font-size: 1.05rem; }
 .rx .cat { font-size: .9rem; font-style: italic; color: var(--jk-muted); margin-top: .2rem; }
 .rx .jk-tool { font-size: .84rem; color: var(--accent-deep); margin-top: .8rem; font-weight: 600; }
 .rx .jk-tool a { color: var(--accent-deep); }
@@ -772,7 +797,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
    line-height:1 leaves the titles misaligned across a row. Fixing the box
    height puts every title on the same baseline. */
 .sector .s-ico { font-size: 1.6rem; line-height: 1; display: flex; align-items: center; height: 2rem; margin-bottom: .45rem; }
-.sector h4 { font-family: var(--sans); font-size: 1rem; margin: 0 0 .25rem; padding-right: 1.8rem; }
+.sector :is(h3, h4) { font-family: var(--sans); font-size: 1rem; margin: 0 0 .25rem; padding-right: 1.8rem; }
 .sector p { font-size: .82rem; color: var(--jk-muted); margin: 0; }
 .sector .s-reg { font-size: .72rem; color: var(--accent-deep); font-weight: 600; margin-top: .55rem; }
 

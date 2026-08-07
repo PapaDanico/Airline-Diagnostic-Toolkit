@@ -147,7 +147,7 @@
     const canvas = d.canvasLink ? `<div class="jk-tool"><a href="tools/operating-model-canvas.html${partnerQS}">→ Map the whole business with our free Operating Model Canvas</a></div>` : "";
     const std = d.standard ? `<div class="std">Aligns to recognised standard: <strong>${d.standard}</strong></div>` : "";
     div.innerHTML = `
-      <h4>${d.name} — ${d.pct}% <span class="rag rag-${d.rag}" style="font-size:.8rem"><span class="dot"></span>${JK.ragLabel(d.pct)}</span></h4>
+      <h3>${d.name} — ${d.pct}% <span class="rag rag-${d.rag}" style="font-size:.8rem"><span class="dot"></span>${JK.ragLabel(d.pct)}</span></h3>
       <div class="cat">${d.rxCategory}</div>
       ${std}
       <div class="jk-tool">JK diagnostic that goes deeper: ${d.jkTool}</div>

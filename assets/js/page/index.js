@@ -42,7 +42,7 @@ document.getElementById("build-tools").innerHTML = BUILD.map(t =>
 const ph = document.getElementById("phases");
 JK.phases.forEach(p => ph.insertAdjacentHTML("beforeend",
   `<button type="button" class="phase" aria-expanded="false">
-     <span class="days">${p.days}</span><h4>${p.t}</h4><p>${p.d}</p>
+     <span class="days">${p.days}</span><h3>${p.t}</h3><p>${p.d}</p>
      <span class="phase-hint" aria-hidden="true">＋ details</span>
      <span class="phase-detail" hidden>
        <b>What we use</b>
