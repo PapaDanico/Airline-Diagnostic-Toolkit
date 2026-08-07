@@ -1885,6 +1885,67 @@ section("Content-Security-Policy");
     `every referenced page script exists on disk (${referenced.size} referenced, ${onDisk.length} on disk)`);
 }
 
+/* ─── The contact address survives without JavaScript ───
+   Every `data-email` and `data-version` element on the site shipped
+   empty, filled in by common.js at load. With scripting blocked — a
+   corporate proxy, a strict extension, a script that 404s — the privacy
+   notice's "how to contact us" section rendered an empty anchor. That
+   is the one address a person exercising a data-protection right needs,
+   and it was the one thing on the page that required the site to be
+   working in order to read.
+
+   Fixed by putting the text in the markup and letting the JS keep it in
+   step, the same way the registered-entity line already works. That
+   trade needs a guard of its own: a fallback that drifts from the data
+   is a second source of truth, so the markup and JK.brand must agree. */
+section("No-JavaScript fallbacks");
+{
+  const { readFileSync, readdirSync } = await import("node:fs");
+  const dataJs = readFileSync(resolve(ROOT, "assets/js/data.js"), "utf8");
+  const email = dataJs.match(/email:\s*"([^"]+)"/)[1];
+  const version = dataJs.match(/version:\s*"([^"]+)"/)[1];
+
+  const pages = [
+    ...readdirSync(ROOT).filter((f) => f.endsWith(".html")),
+    ...readdirSync(resolve(ROOT, "tools")).filter((f) => f.endsWith(".html")).map((f) => "tools/" + f)
+  ];
+  assert(pages.length >= 25, `${pages.length} pages checked for empty hooks`);
+
+  let emptyEmail = 0, emptyVersion = 0, wrongEmail = 0, checkedEmail = 0;
+  for (const page of pages) {
+    const src = readFileSync(resolve(ROOT, page), "utf8");
+    emptyEmail += (src.match(/<a data-email><\/a>/g) || []).length;
+    emptyVersion += (src.match(/<span data-version><\/span>/g) || []).length;
+    for (const m of src.matchAll(/<a data-email>([^<]*)<\/a>/g)) {
+      checkedEmail++;
+      if (m[1].trim() !== email) wrongEmail++;
+    }
+  }
+  assert(checkedEmail > 0, `${checkedEmail} email fallbacks found to check`);
+  assert(emptyEmail === 0, `no page renders an empty contact address without JS (${emptyEmail} empty)`);
+  assert(emptyVersion === 0, `no page renders an empty version without JS (${emptyVersion} empty)`);
+  assert(wrongEmail === 0, `every email fallback matches JK.brand.email (${wrongEmail} drifted)`);
+
+  // The privacy notice specifically: the section a data subject uses.
+  const privacy = readFileSync(resolve(ROOT, "privacy.html"), "utf8");
+  const contact = privacy.slice(privacy.indexOf('id="contact"'));
+  assert(contact.includes(email), "the privacy notice's contact section carries the address in markup");
+  assert(!/class="todo"/.test(privacy), "the privacy notice carries no unfilled placeholder");
+  assert(!/\[[a-z][^\]]{8,}\]/.test(privacy.replace(/<[^>]+>/g, " ")), "no bracketed placeholder in privacy copy");
+}
+
+/* ─── A vulnerability report has somewhere to go ─── */
+section("Security policy");
+{
+  const { readFileSync } = await import("node:fs");
+  const sec = readFileSync(resolve(ROOT, "SECURITY.md"), "utf8");
+  assert(sec.length > 700, `SECURITY.md has substance (${sec.length} chars)`);
+  assert(/info@aviationhubkenya\.org/.test(sec), "SECURITY.md names a reporting address");
+  assert(/working days/i.test(sec), "SECURITY.md commits to a response time");
+  assert(/out of scope/i.test(sec), "SECURITY.md says what is out of scope");
+  assert(/safe harbour|safe harbor/i.test(sec), "SECURITY.md offers safe harbour to good-faith reporters");
+}
+
 /* ─── The licence exists and matches the Terms ───
    This repository has been publicly readable with no LICENSE file.
    Copyright still applied, but GitHub renders that absence as "no
