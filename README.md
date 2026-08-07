@@ -214,9 +214,26 @@ JSON-LD (`Organization` + two `WebApplication` entries) on the landing page.
 ## Legal posture
 
 Every venture-track tool carries an explicit scope disclaimer: planning aid, not legal / regulatory /
-investment advice, not affiliated with or endorsed by the Kenya Civil Aviation Authority. A few
-legally-specific placeholders in `privacy.html` / `terms.html` (registered entity/number, postal
-address, ODPC registration, DPO) are marked `[in brackets]` and must be completed before go-live.
+investment advice, not affiliated with or endorsed by the Kenya Civil Aviation Authority.
+
+The bracketed placeholders this section used to warn about are gone. `privacy.html` and `terms.html`
+now state the position rather than leaving a blank: the practice is mid-incorporation, so the
+registered-entity line reads "incorporation in progress; registration number to follow" instead of
+`[full registered legal name and company registration number]`. A blank does not say a company is
+being formed — it says the notice was never finished, which is a worse claim than the true one and
+takes the same space to correct. The e2e suite is two-sided on this: while incorporation is pending
+the pages must say so, and once `data.js` flips they must carry the registered name instead.
+
+## Where the pre-rebrand history went
+
+The site was DN-branded before the 2 August redesign. Those 63 commits — and `assets/css/dn.css`,
+`dn-badge.png`, `dn-logo-full.png` — are **in this repository's history**, merged to `main` in #63
+and reachable from it, so they cannot be pruned.
+
+Recorded here because they nearly were. They lived on a branch whose pull request was closed rather
+than merged, which meant the branch looked exactly like the two dozen stale review branches around
+it and was swept up in a cleanup. A closed pull request looks finished from every angle: the work is
+old, the branch is stale, and it appears in no list of merged branches.
 
 ---
 
