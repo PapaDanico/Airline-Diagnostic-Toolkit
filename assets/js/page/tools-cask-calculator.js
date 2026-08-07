@@ -81,7 +81,17 @@ function recalcFuel() {
   const targetFuelCaskCents = targetCents * TARGET_FUEL_SHARE / 100;
   const gapCents = fuelCaskCents - targetFuelCaskCents;
   if (gapCents <= 0) {
-    fuelQual.innerHTML = `Your fuel CASK is <strong>${fuelCaskCents.toFixed(2)} US¢/ASK</strong> (${fuelPct}% of total) — already at or below JK's ${TARGET_FUEL_SHARE}% target fuel share.`;
+    /* Describe the comparison that was actually made. This read "already
+       at or below JK's 32% target fuel share" — a claim about SHARE —
+       while the test above compares COSTS per ASK. At a 3.50¢ CASK with
+       40% fuel, fuel costs 1.40¢/ASK against the 2.88¢ the target
+       allows, so the sentence fired and told an operator their 40% share
+       was at or below 32%, with "(40% of total)" printed inside the same
+       sentence contradicting it. 40% is not an edge case: it is the
+       figure this page cites for African carriers.
+
+       The gap branch below already words this comparison correctly. */
+    fuelQual.innerHTML = `Your fuel CASK is <strong>${fuelCaskCents.toFixed(2)} US¢/ASK</strong> (${fuelPct}% of total) — at or below the <strong>${targetFuelCaskCents.toFixed(2)}¢</strong> that JK's ${TARGET_FUEL_SHARE}% target fuel share allows at a ${targetCents.toFixed(2)}¢ target CASK.`;
     return;
   }
   const annualGap = (gapCents / 100) * ask; // cents→USD per ASK × ASK
