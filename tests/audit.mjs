@@ -71,6 +71,7 @@ const BASE = `http://127.0.0.1:${server.address().port}/`;
 const b = await chromium.launch(execPath ? { executablePath: execPath } : {});
 let problems = 0;
 let scoringModel = null;
+let mroModel = null;
 
 for (const pg of pages) {
   const dir = dirname(pg);
@@ -99,11 +100,23 @@ for (const pg of pages) {
       scoring: (typeof JK !== "undefined" && Array.isArray(JK.domains))
         ? { count: JK.domains.length,
             questions: JK.domains.reduce((n, d) => n + (d.questions ? d.questions.length : 0), 0),
+            sizes: JK.domains.map(d => (d.questions ? d.questions.length : 0)),
             weights: JK.domains.map(d => ({ name: d.name, weight: d.weight })) }
-        : null
+        : null,
+      /* The MRO tool's DOMAINS is module-scoped, so there is no namespace
+         to read. What it actually rendered is a better answer anyway: the
+         question count a visitor is asked IS the number of question
+         selects on the page, not a number written in a string. */
+      mro: (() => {
+        const sels = [...document.querySelectorAll("#panels select[data-d][data-q]")];
+        return sels.length
+          ? { questions: sels.length, domains: new Set(sels.map((s) => s.dataset.d)).size }
+          : null;
+      })()
     };
   });
   if (r.scoring && !scoringModel) scoringModel = r.scoring;
+  if (r.mro && !mroModel) mroModel = r.mro;
   await p.setViewportSize({ width: 390, height: 800 }); await p.waitForTimeout(150);
   const mobOX = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   const broken = r.links.filter(l => { const c = l.split("#")[0].split("?")[0]; return c && !existsSync(normalize(join(ROOT, dir, c))); });
@@ -295,13 +308,19 @@ server.close();
     readmeIssues.push(`README says the FAQ has ${faqClaim} questions; it has ${faqActual}`);
   }
 
+  /* Against what the tool rendered, not against the string in its source.
+     The first version compared the README's number to "Answer all N
+     questions" in tools-mro-readiness.js — one piece of prose against
+     another. Add a question to DOMAINS and update neither, and the two
+     agree at 20 while the tool asks 21: the check passes precisely
+     because both claims are stale in the same direction. */
   const mroClaim = Number((readme.match(/(\d+)\s+questions for Chief Engineers/) || [])[1]);
-  const mroSrc = readFileSync(join(ROOT, "assets/js/page/tools-mro-readiness.js"), "utf8");
-  const mroActual = Number((mroSrc.match(/Answer all (\d+) questions/) || [])[1]);
-  if (!Number.isFinite(mroClaim) || !Number.isFinite(mroActual)) {
-    readmeIssues.push("could not compare the MRO question count");
-  } else if (mroClaim !== mroActual) {
-    readmeIssues.push(`README says the MRO diagnostic has ${mroClaim} questions; it states ${mroActual}`);
+  if (!mroModel) {
+    readmeIssues.push("could not read the MRO tool's rendered questions — its count went unchecked");
+  } else if (!Number.isFinite(mroClaim)) {
+    readmeIssues.push("README no longer states the MRO question count");
+  } else if (mroClaim !== mroModel.questions) {
+    readmeIssues.push(`README says the MRO diagnostic has ${mroClaim} questions; it asks ${mroModel.questions}`);
   }
 
   /* The claim that went stale for twelve hours. It said bracketed
@@ -324,6 +343,113 @@ server.close();
   console.log(
     `\n${readmeIssues.length ? "❌" : "✅"} README matches the product it describes` +
       (readmeIssues.length ? "\n     - " + readmeIssues.join("\n     - ") : "")
+  );
+}
+
+/* ---- the same claims, in the copy visitors actually read ----
+
+   The README states these numbers five times; the pages state them
+   eleven, and a visitor is the one who acts on a wrong one. Guarding the
+   developer-facing document and not the customer-facing one would have
+   been the wrong half.
+
+   Read out of the HTML source rather than the rendered text, because
+   four of these live in <meta> tags. Those never appear on the page and
+   are exactly what a search result shows, so they are claims made to
+   more people than most of the visible ones.
+
+   Each claim is matched in its own context. That is not fastidiousness:
+   "20 questions across 5 domains" on the MRO page and "40 questions
+   across 8 weighted domains" on the scorecard are the same sentence
+   shape with different subjects, and a pattern loose enough to catch
+   both would report each as the other being wrong. */
+{
+  const claimIssues = [];
+  const q = () => scoringModel && scoringModel.questions;
+  const d = () => scoringModel && scoringModel.count;
+
+  const CLAIMS = [
+    /* The scorecard. "weighted" is what separates these from the MRO's
+       identically-shaped sentence, so tools/index.html can carry both. */
+    { file: "diagnostic.html", what: "scorecard questions × domains",
+      re: /(\d+)\s+questions\s+across\s+(\d+)\s+(?:weighted\s+)?domains/g, expect: () => [q(), d()] },
+    { file: "tools/index.html", what: "scorecard questions × weighted domains",
+      re: /(\d+)\s+questions\s+across\s+(\d+)\s+weighted\s+domains/g, expect: () => [q(), d()] },
+    { file: "results.html", what: "questions to complete",
+      re: /Complete all\s+(\d+)\s+questions/g, expect: () => [q()] },
+    { file: "methodology.html", what: "the weighted domains",
+      re: /The\s+(\d+)\s+domains and their weights/g, expect: () => [d()] },
+
+    /* Stronger than the totals: 8 × 5 = 40 holds even if the split were
+       uneven, so the page could be wrong while every total agreed. */
+    { file: "methodology.html", what: "questions per domain",
+      re: /Each domain has\s*<strong>(\d+)\s+questions<\/strong>/g, expect: () => [perDomain()] },
+    { file: "methodology.html", what: "answers averaged per domain",
+      re: /average of its\s+(\d+)\s+answers/g, expect: () => [perDomain()] },
+
+    /* The MRO tool, against what it rendered. */
+    { file: "tools/mro-readiness.html", what: "MRO questions × domains",
+      re: /(\d+)\s+questions\s+across\s+(\d+)\s+domains/g,
+      expect: () => [mroModel && mroModel.questions, mroModel && mroModel.domains] },
+    { file: "tools/mro-readiness.html", what: "MRO questions to answer",
+      re: /Answer the\s+(\d+)\s+questions/g, expect: () => [mroModel && mroModel.questions] },
+    { file: "tools/index.html", what: "MRO questions on the tools index",
+      re: /(\d+)\s+questions\s+across\s+airworthiness/g,
+      expect: () => [mroModel && mroModel.questions] }
+  ];
+
+  /* "Each domain has 5 questions" is a claim about every domain, so an
+     uneven split falsifies it whatever number the page prints. Returning
+     the common size only when there IS one means the table below reports
+     the mismatch; the uneven case is called out separately, because
+     "says 5, product has 5" would be the wrong complaint about a model
+     that no longer has a single answer. */
+  function perDomain() {
+    if (!scoringModel) return null;
+    const distinct = [...new Set(scoringModel.sizes)];
+    return distinct.length === 1 ? distinct[0] : NaN;
+  }
+
+  if (scoringModel && !Number.isFinite(perDomain())) {
+    claimIssues.push(
+      `methodology.html says every domain has the same number of questions; they have ` +
+        `[${scoringModel.sizes.join(", ")}]`
+    );
+  }
+
+  for (const c of CLAIMS) {
+    const want = c.expect();
+    if (want.some((n) => !Number.isFinite(n))) {
+      claimIssues.push(`${c.file}: could not establish the truth for ${c.what} — it went unchecked`);
+      continue;
+    }
+    const html = readFileSync(join(ROOT, c.file), "utf8");
+    const found = [...html.matchAll(c.re)];
+
+    /* At least one, and deliberately not an exact count — unlike the
+       README, whose three domain-count sites are structural. Page copy
+       gets edited for prose reasons, and pinning the number of times a
+       sentence appears would fail on rewrites that are not claims going
+       wrong. What must not happen silently is the pattern matching
+       NOTHING: that is how a guard stops guarding without saying so. */
+    if (found.length === 0) {
+      claimIssues.push(`${c.file}: no longer states ${c.what} — this check has stopped checking anything`);
+      continue;
+    }
+    for (const m of found) {
+      want.forEach((expected, i) => {
+        const got = Number(m[i + 1]);
+        if (got !== expected) {
+          claimIssues.push(`${c.file}: says ${got} for ${c.what}; the product has ${expected}`);
+        }
+      });
+    }
+  }
+
+  problems += claimIssues.length;
+  console.log(
+    `\n${claimIssues.length ? "❌" : "✅"} the pages match the product they describe` +
+      (claimIssues.length ? "\n     - " + claimIssues.join("\n     - ") : "")
   );
 }
 
