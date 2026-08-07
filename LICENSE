@@ -1,0 +1,87 @@
+Copyright © 2026 JK & Associates. All rights reserved.
+
+JK & Associates is in the process of incorporation. Until that
+completes, "JK & Associates" is the practice name under which this work
+is published, and the rights asserted here are asserted under that name.
+The current standing is stated in the Privacy Notice and Terms of Use at
+https://jkassociates.enterprises.
+
+
+THIS IS NOT AN OPEN-SOURCE LICENCE
+
+No permission is granted to use, copy, modify or distribute this source
+code except as expressly set out below. If you are looking for an OSI
+licence — MIT, Apache, GPL or similar — there is not one here, and the
+absence is deliberate rather than an oversight.
+
+This repository has been publicly readable. That made the source
+available; it never made it free to take. Read it, learn from it, tell
+us where it is wrong — all welcome. Shipping it, or a derivative of it,
+as your own product is not.
+
+The diagnostic domains and their weightings, the certification pathway
+mapping, the regulatory index with its verification status, and the
+benchmark provenance are the practice's work product. They are the thing
+clients pay for, not a component library.
+
+
+WHAT YOU MAY DO
+
+You may use the tools published at https://jkassociates.enterprises, and
+the outputs they produce, for your own internal evaluation purposes.
+That expressly includes putting those outputs in documents you give to
+your board, your investors, your lenders or your regulator. You do not
+need to ask, you do not need to attribute, and there is no fee.
+
+Every tool runs entirely in your browser and transmits nothing, so this
+permission needs no account and creates no relationship between us.
+
+
+WHAT YOU MAY NOT DO WITHOUT WRITTEN PERMISSION
+
+  · Redistribute this source code, in whole or in part.
+  · Publish, host or operate a copy of the tools, modified or otherwise.
+  · Create or distribute derivative works from the source, the scoring
+    methodology, the domain and question framework, or the regulatory
+    index.
+  · Sell or republish the content.
+  · Present the tools, or anything derived from them, as your own
+    product.
+  · Remove or alter any copyright, provenance or proprietary notice,
+    including the verification status attached to a regulatory citation.
+
+Embedding is separately addressed: the scorecard is technically
+embeddable but framing is restricted by the site's Content-Security-
+Policy to permitted origins. See section 8 of the Terms of Use.
+
+This mirrors section 7 of the Terms of Use. Where the two are read
+together and appear to differ, the Terms of Use govern.
+
+
+TRADE MARKS
+
+Nothing here grants any right in the name JK & Associates, the JK marks,
+or the name and marks of the sister practice Kanda Logistics Advisory.
+Partner brands carried in this repository are the property of their
+respective owners and are present for co-branding demonstrations only;
+an unregistered partner preview is labelled as such in the product.
+
+We are not affiliated with, appointed by or endorsed by the Kenya Civil
+Aviation Authority or any other regulator, and hold no delegated
+authority from one. Regulatory instruments referenced here are the
+property of the bodies that issued them.
+
+
+NO WARRANTY
+
+This work is provided "as is", without warranty of any kind, express or
+implied. The tools are diagnostic and orientation aids. They are not
+professional, legal, financial, accounting, tax, safety or airworthiness
+advice, and no output should be relied on as the sole basis for a
+decision. See the Terms of Use for the full position.
+
+
+PERMISSIONS AND PARTNERSHIPS
+
+Written permission for anything above, and any institutional, academic
+or partner licence, can be arranged. Ask: info@aviationhubkenya.org

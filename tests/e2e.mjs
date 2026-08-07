@@ -1885,6 +1885,50 @@ section("Content-Security-Policy");
     `every referenced page script exists on disk (${referenced.size} referenced, ${onDisk.length} on disk)`);
 }
 
+/* ─── The licence exists and matches the Terms ───
+   This repository has been publicly readable with no LICENSE file.
+   Copyright still applied, but GitHub renders that absence as "no
+   license", which a good many readers take to mean "help yourself" —
+   and it is exactly the ambiguity a partnership conversation surfaces.
+   Terms of Use section 7 has always said the opposite.
+
+   Asserted rather than trusted because the failure mode is quiet and
+   one-way: a LICENSE swapped for MIT is a grant of rights that cannot be
+   withdrawn, and nothing else in this suite would notice. These checks
+   are about posture, not wording. */
+section("Licence");
+{
+  const { readFileSync } = await import("node:fs");
+  const licence = readFileSync(resolve(ROOT, "LICENSE"), "utf8");
+
+  assert(licence.length > 800, `LICENSE has substance (${licence.length} chars)`);
+  assert(/all rights reserved/i.test(licence), "LICENSE reserves rights");
+  assert(/not an open.source licence/i.test(licence), "LICENSE says plainly that it is not open source");
+
+  // Named, so adopting one has to be deliberate rather than arriving in
+  // a copied template or a well-meaning pull request.
+  for (const osi of ["MIT License", "Apache License", "GNU GENERAL PUBLIC", "BSD License"]) {
+    assert(!licence.includes(osi), `LICENSE is not ${osi} (that grant cannot be withdrawn)`);
+  }
+
+  // Both halves of the bargain the Terms strike. Without the grant the
+  // tools look unusable; without the restriction the methodology is free
+  // to take.
+  assert(/you may use the tools/i.test(licence), "LICENSE grants use of the tools and their outputs");
+  assert(/may not[\s\S]{0,400}redistribute/i.test(licence), "LICENSE restricts redistribution");
+
+  // Entity naming must match the rest of the site, which is
+  // mid-incorporation — the same overclaim just removed from the
+  // Privacy Notice would be worse in a copyright assertion.
+  assert(/incorporation/i.test(licence), "LICENSE states the incorporation position, as the legal pages do");
+
+  const pkg = JSON.parse(readFileSync(resolve(ROOT, "tests", "package.json"), "utf8"));
+  assert(
+    pkg.license === "SEE LICENSE IN LICENSE",
+    `tests/package.json points at the licence file (found ${JSON.stringify(pkg.license)})`
+  );
+}
+
 /* ─── The incorporation position is stated, not left blank ───
    The Privacy Notice shipped a highlighted
    "[full registered legal name and company registration number]" on the

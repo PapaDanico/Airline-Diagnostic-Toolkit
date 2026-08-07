@@ -1,6 +1,7 @@
 {
   "name": "jk-aviation-platform-tests",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE",
   "description": "Isolated test toolchain for the JK & Associates aviation advisory platform. Kept separate from the repo root so the static site has no build step or dependencies.",
   "type": "module",
   "scripts": {
