@@ -64,20 +64,72 @@ function updateFleetNote() {
 document.getElementById("fleetType").addEventListener("change", updateFleetNote);
 updateFleetNote();
 
-// fuel cost-line detail: your fuel CASK vs. JK's 32%-of-target fuel share
+/* Cost-line detail.
+
+   Crew, Maintenance and Airport/Nav were collected and then never read:
+   three labelled, prefilled inputs under a heading promising a
+   "Cost-line breakdown", of which exactly one did anything. Nothing on
+   the page said so, and because none of them carries a name they were
+   not reaching the enquiry form either — a visitor typed their cost
+   structure into fields that fed nothing at all.
+
+   Each line now gets the arithmetic Fuel already had: its share of the
+   computed CASK, in the same cents/ASK unit as everything else. That is
+   division, not modelling — no benchmark is invented for Crew,
+   Maintenance or Airport/Nav, because JK publishes a target share for
+   fuel (32%) and not for the others. Inventing three more targets to
+   make the panel symmetrical would have put numbers on the page that
+   nothing stands behind, which is the defect this whole session has
+   been removing rather than adding.
+
+   The shares are also reconciled against 100 for the first time. Four
+   independent percentage fields could always sum to 115 and the page
+   would price each one without comment. */
 const TARGET_FUEL_SHARE = 32;
+const COST_LINES = [
+  { id: "fuelPct", name: "Fuel" },
+  { id: "crewPct", name: "Crew" },
+  { id: "maintPct", name: "Maintenance" },
+  { id: "airportPct", name: "Airport / Nav" }
+];
+const pctOf = (id) => parseFloat(document.getElementById(id).value) || 0;
+
 function recalcFuel() {
   const op = parseFloat(document.getElementById("opcost").value) || 0;
   const ask = parseFloat(document.getElementById("ask").value) || 0;
   const targetCents = (parseFloat(document.getElementById("target").value) || 9);
-  const fuelPct = parseFloat(document.getElementById("fuelPct").value) || 0;
+  const fuelPct = pctOf("fuelPct");
   const fuelQual = document.getElementById("fuelQual");
-  if (op <= 0 || ask <= 0 || fuelPct <= 0) {
-    fuelQual.textContent = "Enter your figures to see the fuel breakdown.";
+  const lineList = document.getElementById("lineBreakdown");
+  if (op <= 0 || ask <= 0) {
+    lineList.innerHTML = "";
+    fuelQual.textContent = "Enter your figures to see the cost-line breakdown.";
     return;
   }
-  const caskCents = (op / ask) * 100;
-  const fuelCaskCents = caskCents * fuelPct / 100;
+  const caskCentsAll = (op / ask) * 100;
+
+  /* Every line, including the ones left at zero — a line shown as 0.00¢
+     is a visible answer; a line silently omitted looks like a bug. */
+  const rows = COST_LINES.map((l) => {
+    const pct = pctOf(l.id);
+    return `<span>${l.name}</span><span>${pct}%</span><span><strong>${(caskCentsAll * pct / 100).toFixed(2)}¢</strong></span>`;
+  });
+  const stated = COST_LINES.reduce((n, l) => n + pctOf(l.id), 0);
+  const residual = 100 - stated;
+  if (residual >= 0) {
+    rows.push(`<span>Everything else</span><span>${residual.toFixed(0)}%</span><span><strong>${(caskCentsAll * residual / 100).toFixed(2)}¢</strong></span>`);
+  }
+  lineList.innerHTML = rows.join("");
+
+  if (stated > 100) {
+    fuelQual.innerHTML = `Your four cost lines add up to <strong>${stated.toFixed(0)}%</strong> of operating cost. They cannot exceed 100% — the figures above are priced off your ${caskCentsAll.toFixed(2)}¢ CASK as entered, but at least one share is wrong.`;
+    return;
+  }
+  if (fuelPct <= 0) {
+    fuelQual.textContent = "Enter a fuel share to compare it against JK's target.";
+    return;
+  }
+  const fuelCaskCents = caskCentsAll * fuelPct / 100;
   const targetFuelCaskCents = targetCents * TARGET_FUEL_SHARE / 100;
   const gapCents = fuelCaskCents - targetFuelCaskCents;
   if (gapCents <= 0) {
@@ -97,11 +149,15 @@ function recalcFuel() {
   const annualGap = (gapCents / 100) * ask; // cents→USD per ASK × ASK
   fuelQual.innerHTML = `Your fuel CASK is <strong>${fuelCaskCents.toFixed(2)} US¢/ASK</strong> (${fuelPct}% of total). At JK's ${TARGET_FUEL_SHARE}% target fuel share (${targetFuelCaskCents.toFixed(2)}¢), it would be <strong>${gapCents.toFixed(2)}¢ lower</strong> — saving roughly <strong>${fmtUsd(annualGap)}</strong> a year.`;
 }
-// opcost/ask/target feed both recalc() and recalcFuel(); fuelPct feeds
-// only recalcFuel() — one listener per field, not one per consumer
+// opcost/ask/target feed both recalc() and recalcFuel(); the cost-line
+// shares feed only recalcFuel() — one listener per field, not one per
+// consumer. Derived from COST_LINES so a fifth line cannot be added to
+// the panel and left unwired, which is how three of the four came to be
+// inert in the first place.
 const recalcAll = () => { recalc(); recalcFuel(); };
 ["opcost","ask","target"].forEach(id =>
   document.getElementById(id).addEventListener("input", recalcAll));
-document.getElementById("fuelPct").addEventListener("input", recalcFuel);
+COST_LINES.forEach(l =>
+  document.getElementById(l.id).addEventListener("input", recalcFuel));
 recalcAll();
 wireToolEnquiryForm("cask-enquiry", "CASK Benchmarking Calculator");

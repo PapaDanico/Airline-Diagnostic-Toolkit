@@ -9,19 +9,41 @@ function recalc() {
   const spend = parseFloat(document.getElementById("spend").value) || 0;
   const prem = parseFloat(document.getElementById("premium").value) || 0;
   const bench = parseFloat(document.getElementById("benchmark").value) || 0;
+  /* Annual uplift was collected and never read. It had a label, a
+     sensible default of 30,000,000 litres, and an input listener that
+     called this function — so it looked live — while nothing in here
+     touched it, and with no name attribute it did not reach the enquiry
+     form either. A visitor typed their fuel volume into a field that fed
+     nothing.
+
+     It converts the result into the unit a fuel tender is actually
+     negotiated in. Everything above is dollars a year, which is the
+     right number for a board paper and the wrong one for the person at
+     the table arguing over cents a litre. That is division by a figure
+     the operator supplied — no benchmark and no model behind it. */
+  const uplift = parseFloat(document.getElementById("uplift").value) || 0;
   const gap = Math.max(0, prem - bench);     // premium gap, percentage points
   const high = spend * gap / (100 + prem);   // premium is already inside spend
   const low = high * 0.5;                    // conservative capture
   const savePct = spend > 0 ? (high / spend) * 100 : 0;
   const rng = document.getElementById("range");
   const qual = document.getElementById("qual");
+  /* Guarded rather than assumed: uplift is optional, and dividing by a
+     blank field would print "$Infinity a litre". */
+  const perLitre = uplift > 0
+    ? ` At ${Math.round(uplift).toLocaleString("en-US")} litres a year that is an effective <strong>$${(spend / uplift).toFixed(3)}/litre</strong> today`
+    : "";
   if (high <= 0) {
     rng.textContent = "On benchmark";
-    qual.textContent = "Your contract is already at or below the market benchmark. The opportunity is to lock that in and manage price risk — see the hedge-trigger framework in the full tool.";
+    qual.innerHTML = "Your contract is already at or below the market benchmark. The opportunity is to lock that in and manage price risk — see the hedge-trigger framework in the full tool."
+      + (perLitre ? `${perLitre}, which is the figure to hold in the next tender.` : "");
     return;
   }
   rng.textContent = fmt(low) + " – " + fmt(high);
-  qual.innerHTML = `Your airline could be saving between <strong>${fmt(low)}</strong> and <strong>${fmt(high)}</strong> a year by renegotiating closer to market benchmarks — roughly ${savePct.toFixed(1)}% of your current fuel spend.`;
+  qual.innerHTML = `Your airline could be saving between <strong>${fmt(low)}</strong> and <strong>${fmt(high)}</strong> a year by renegotiating closer to market benchmarks — roughly ${savePct.toFixed(1)}% of your current fuel spend.`
+    + (uplift > 0
+      ? `${perLitre}, and the saving is <strong>${(low / uplift * 100).toFixed(2)}–${(high / uplift * 100).toFixed(2)} US¢ a litre</strong> — the unit a tender is argued in.`
+      : "");
 }
 ["spend","premium","benchmark","uplift"].forEach(id =>
   document.getElementById(id).addEventListener("input", recalc));
