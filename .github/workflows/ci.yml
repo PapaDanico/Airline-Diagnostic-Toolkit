@@ -90,6 +90,16 @@ jobs:
       - name: Focus indicators are visible
         run: node tests/focus.mjs
 
+      # manifest.json makes this site installable, and an installed thing
+      # that shows a blank frame with no signal is worse than one that was
+      # never installable. This closes the SERVER — setOffline() does not
+      # apply to requests made inside a service worker — and then asks for
+      # pages. It also guards the property that matters to everyone who is
+      # NOT offline: nothing here is fingerprinted, so an online visit must
+      # still reach the network or a deploy would serve stale assets.
+      - name: The offline promise holds
+        run: node tests/offline.mjs
+
       # Breadth to e2e's depth: every page and every tool driven under
       # the production headers, demanding only that nothing throws and
       # something renders. Catches the page nobody wrote a test for.
