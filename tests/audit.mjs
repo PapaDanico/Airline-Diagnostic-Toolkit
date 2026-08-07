@@ -5,18 +5,33 @@
 import { chromium } from "playwright";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve, join, normalize, extname } from "node:path";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createServer } from "node:http";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const pages = ["index.html", "about.html", "diagnostic.html", "results.html", "demo-results.html", "embed.html", "privacy.html", "terms.html", "methodology.html", "partners.html", "how-it-works.html",
-  "tools/index.html", "tools/mro-readiness.html", "tools/fuel-optimizer.html", "tools/cask-calculator.html", "tools/operating-model-canvas.html", "tools/data-request.html", "tools/training-tna.html",
-  // build-track tools (v3.0)
-  "tools/certification-navigator.html", "tools/venture-builder.html", "tools/corporate-structure.html", "tools/organogram-planner.html",
-  // venture file + public reference (v3.1)
-  "tools/venture-dashboard.html", "regulations.html",
-  // learn section (v3.3)
-  "faq.html", "tutorial.html", "glossary.html"];
+/* Derived from disk, not listed here.
+
+   This was a hand-kept array of 28 filenames, and it had already drifted:
+   404.html existed and was never audited. A page missing from a list of
+   pages to audit is not a gap anyone notices — the run stays green and
+   the number goes down by one, and the number was never printed.
+
+   The same drift is possible in sitemap.xml, which is also hand-kept, so
+   both are now reconciled against the file tree below. */
+const NOT_INDEXED = new Set([
+  '404.html',      // an error document; indexing it advertises a dead end
+  'embed.html',    // frames diagnostic.html to demo the partner embed
+  'results.html'   // renders from answers held in session; bare, it is blank
+]);
+
+function htmlFiles() {
+  const out = [];
+  for (const f of readdirSync(ROOT)) if (f.endsWith('.html')) out.push(f);
+  for (const f of readdirSync(join(ROOT, 'tools'))) if (f.endsWith('.html')) out.push('tools/' + f);
+  return out.sort();
+}
+
+const pages = htmlFiles();
 // Google Fonts is loaded from a CDN; in offline/sandbox CI that request can
 // fail with a cert/network error that is irrelevant to the page itself.
 const IGNORE = /ERR_CERT_AUTHORITY_INVALID|ERR_(NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION)|fonts\.googleapis|fonts\.gstatic/;
@@ -97,5 +112,50 @@ for (const pg of pages) {
 }
 await b.close();
 server.close();
+
+/* ---- sitemap.xml against the file tree, both directions ----
+
+   Hand-kept, like the page list above was, and drift here is quieter
+   still: a page missing from the sitemap is simply never crawled, and
+   nothing on the site looks wrong. Today it happens to be correct — 25
+   URLs, 28 pages, the three absent ones deliberately so — which is
+   exactly when to write the check, while the answer is known.
+
+   Reconciled BOTH ways. Missing entries lose a page its crawl; stale
+   entries point crawlers at documents that no longer exist; and an id
+   in NOT_INDEXED for a page that has since been deleted is an exemption
+   sitting open for whatever reuses the name. */
+{
+  const sm = readFileSync(join(ROOT, 'sitemap.xml'), 'utf8');
+  const listed = new Set(
+    [...sm.matchAll(/<loc>https:\/\/jkassociates\.enterprises\/([^<]*)<\/loc>/g)].map((m) =>
+      m[1] === '' ? 'index.html' : m[1] === 'tools/' ? 'tools/index.html' : m[1]
+    )
+  );
+  const onDisk = new Set(htmlFiles());
+  const sitemapIssues = [];
+
+  for (const f of onDisk) {
+    if (NOT_INDEXED.has(f)) {
+      if (listed.has(f)) sitemapIssues.push(`${f} is in the sitemap but marked NOT_INDEXED`);
+    } else if (!listed.has(f)) {
+      sitemapIssues.push(`${f} exists but is not in the sitemap`);
+    }
+  }
+  for (const l of listed) {
+    if (!onDisk.has(l)) sitemapIssues.push(`sitemap lists ${l}, which is not on disk`);
+  }
+  for (const x of NOT_INDEXED) {
+    if (!onDisk.has(x)) sitemapIssues.push(`NOT_INDEXED names ${x}, which no longer exists — remove it`);
+  }
+
+  problems += sitemapIssues.length;
+  console.log(
+    `\n${sitemapIssues.length ? '❌' : '✅'} sitemap.xml covers ${listed.size} of ${onDisk.size} pages ` +
+      `(${NOT_INDEXED.size} deliberately excluded)` +
+      (sitemapIssues.length ? '\n     - ' + sitemapIssues.join('\n     - ') : '')
+  );
+}
+
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);
 process.exit(problems ? 1 : 0);
