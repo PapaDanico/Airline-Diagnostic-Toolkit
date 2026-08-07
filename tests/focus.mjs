@@ -112,7 +112,10 @@ const COLOUR = `
       if(cs.backgroundImage&&cs.backgroundImage!=='none'){ const m=cs.backgroundImage.match(/(?:rgba?|color)\\([^)]+\\)/g);
         if(!m) return {unresolved:1}; const st=m.map(toRgb); if(st.some(x=>!x)) return {unresolved:1};
         if(st.every(x=>x.a>=0.99)) return {stops:st.map(x=>x.rgb)}; ov.push(...st.filter(x=>x.a>0)); }
-      const c=toRgb(cs.backgroundColor); if(!c) return {unresolved:1}; if(c.a>0.5) return settle(c.rgb); }
+      /* A wash tints, it does not hide: a semi-transparent
+         background-color has to join the overlays rather than be skipped,
+         or the ring is measured against a ground it does not sit on. */
+      const c=toRgb(cs.backgroundColor); if(!c) return {unresolved:1}; if(c.a>0.5) return settle(c.rgb); if(c.a>0) ov.push(c); }
     const r=toRgb(getComputedStyle(document.documentElement).backgroundColor);
     return settle(r&&r.a>0.5?r.rgb:[255,255,255]); };
 `;

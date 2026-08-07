@@ -927,6 +927,17 @@ for (const pageFile of CONTRAST_PAGES) {
         const c = toRgb(cs.backgroundColor);
         if (!c) return { unresolved: cs.backgroundColor.slice(0, 60) };
         if (c.a > 0.5) return settle(c.rgb);
+        /* A wash TINTS; it does not hide. This fell straight through, so
+           a semi-transparent background-color was dropped from the
+           composite and its text was measured against whatever opaque
+           surface sat behind it — a lighter ground than the one the text
+           actually sits on, and therefore a flattering ratio.
+
+           .metrics paints rgba(255,255,255,.12) and the amber callout
+           rgba(255,255,255,.07), both with text on top. Same handling as
+           a transparent gradient stop five lines up, which is what makes
+           this an omission rather than a judgement call. */
+        if (c.a > 0) overlays.push(c);
       }
       return settle([255, 255, 255]);
     };
