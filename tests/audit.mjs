@@ -574,6 +574,78 @@ server.close();
   );
 }
 
+/* ---- the README's count of the sitemap ----
+
+   It said 19 URLs. There were 25. Nothing noticed, in a repository whose
+   smoke test signs off with "the README's numbers are its own" — that
+   motto covered the scoring model and stopped there.
+
+   Cheap to check, and the failure it prevents is a reader trusting the
+   document over the artefact. */
+{
+  const locs = (readFileSync(join(ROOT, "sitemap.xml"), "utf8").match(/<loc>/g) || []).length;
+  const claimed = Number((readFileSync(join(ROOT, "README.md"), "utf8")
+    .match(/`sitemap\.xml`\s*\((\d+)\s+URLs?\)/) || [])[1]);
+  const issues = [];
+  if (!Number.isFinite(claimed)) {
+    issues.push("the README no longer states a sitemap URL count — this check has stopped checking anything");
+  } else if (claimed !== locs) {
+    issues.push(`the README says the sitemap has ${claimed} URLs; it has ${locs}`);
+  }
+  problems += issues.length;
+  console.log(
+    `\n${issues.length ? "❌" : "✅"} the README's sitemap count matches sitemap.xml (${locs} URLs)` +
+      (issues.length ? "\n     - " + issues.join("\n     - ") : "")
+  );
+}
+
+/* ---- the version printed before the JavaScript runs ----
+
+   Every page footer carries <span data-version>v3.3 — …</span>, and
+   common.js overwrites all 27 of them with JK.brand.version on load.
+   The hardcoded text is the fallback: what a visitor sees before the
+   script runs, and all they ever see if it fails.
+
+   Which makes it 27 copies of a string that data.js also owns, with
+   nothing keeping them in step. Bumping data.js to v3.4 leaves every
+   page announcing v3.3 to anyone whose JavaScript has not run yet, and
+   the whole suite passes — verified by doing it.
+
+   The same shape as the JSON-LD claim: a duplicate of a fact, in the
+   copy nobody re-reads, with no guard. This is the cheaper half of the
+   answer — the expensive half would be generating the footers, which
+   buys little for a string that changes twice a year. */
+{
+  const versionIssues = [];
+  const truth = (readFileSync(join(ROOT, "assets", "js", "data.js"), "utf8")
+    .match(/version:\s*"([^"]+)"/) || [])[1];
+
+  if (!truth) {
+    versionIssues.push("data.js no longer states a version, so the footers went unchecked");
+  } else {
+    let withVersion = 0;
+    for (const file of pages) {
+      const html = readFileSync(join(ROOT, file), "utf8");
+      for (const m of html.matchAll(/data-version[^>]*>([^<]*)</g)) {
+        withVersion++;
+        if (m[1].trim() !== truth) {
+          versionIssues.push(`${file}: footer falls back to "${m[1].trim()}"; data.js says "${truth}"`);
+        }
+      }
+    }
+    /* If the attribute disappears entirely the check has stopped
+       checking, and a green tick would say the opposite. */
+    if (withVersion === 0) {
+      versionIssues.push("no page carries a data-version fallback any more — this check has stopped checking anything");
+    }
+    problems += versionIssues.length;
+    console.log(
+      `\n${versionIssues.length ? "❌" : "✅"} ${withVersion} version fallback(s) match data.js ("${truth}")` +
+        (versionIssues.length ? "\n     - " + versionIssues.join("\n     - ") : "")
+    );
+  }
+}
+
 /* ---- the manifest's icons actually exist, at the size it claims ----
 
    A manifest is a set of promises made to an installer, and a wrong one
