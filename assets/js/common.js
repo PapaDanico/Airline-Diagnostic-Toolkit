@@ -431,7 +431,13 @@ function computeScores(answers) {
     weighted += pct * weight; wsum += weight;
     return { id: d.id, name: d.name, weight, pct, answered, total,
              rag: JK.rag(pct), blurb: d.blurb, rxCategory: d.rxCategory, jkTool: d.jkTool, fuelLink: d.fuelLink,
+             /* benchmarkCadence travels with the date it qualifies. Without
+                it results.js could compute an age but not say what the age
+                meant, and printed "the next undefined edition may be due":
+                a projection carrying a fact and dropping the unit for
+                reading it. */
              benchmark: d.benchmark, benchmarkSrc: d.benchmarkSrc, benchmarkAsOf: d.benchmarkAsOf,
+             benchmarkCadence: d.benchmarkCadence,
              standard: d.standard,
              caskLink: d.caskLink, canvasLink: d.canvasLink };
   });

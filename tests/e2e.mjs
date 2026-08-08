@@ -1393,6 +1393,58 @@ await page.goto(base + "/results.html"); await page.waitForTimeout(500);
   assert(bench.named.every(n => bench.srcText.includes(n)),
     `every dated benchmark source is listed (${bench.named.length} sources)`);
 
+  /* Age, not just agreement.
+
+     Everything around this asserts the PAGE agrees with the DATA — the
+     stamp matches the oldest date, every source is listed. None of it
+     asks whether the data is still current, so every benchmark could
+     age out together and the suite would stay green describing them
+     accurately.
+
+     Cadence-aware: an annual source at thirteen months has missed a
+     cycle, a semiannual one at thirteen months has missed two. The
+     grace is publication lag. None is overdue today — the oldest is
+     Cost & Fuel at about thirteen months against a fifteen-month
+     limit — which is when this is worth writing, rather than after a
+     reader has priced a route off a superseded figure. */
+  /* Read from JK.score(), the projection results.js actually renders,
+     not from JK.domains.
+
+     The first version read JK.domains and passed while the page printed
+     "the next undefined edition may be due" — the projection carried
+     benchmarkAsOf and dropped benchmarkCadence, so the raw data had a
+     cadence and the UI did not. A check reading a different object than
+     the product does is the same mistake as a check reading the source
+     with a different parser, and it gave a green tick to a visible
+     defect. */
+  const aged = await page.evaluate(() => {
+    const CYCLE = { annual: 12, semiannual: 6, quarterly: 3 };
+    const GRACE = 3;
+    const scored = computeScores(loadAnswers());
+    return scored.domains
+      .filter(d => d.benchmark && d.benchmarkAsOf)
+      .map(d => {
+        const months = (Date.now() - new Date(d.benchmarkAsOf)) / (1000 * 60 * 60 * 24 * 30.44);
+        const cycle = CYCLE[d.benchmarkCadence] ?? 12;
+        return { name: d.name, src: d.benchmarkSrc, cadence: d.benchmarkCadence || "unstated",
+                 months: Math.round(months), overdue: months > cycle + GRACE };
+      });
+  });
+  const overdue = aged.filter(b => b.overdue);
+  assert(overdue.length === 0,
+    "no benchmark is past its own publication cycle" +
+      (overdue.length
+        ? ` — ${overdue.map(b => `${b.name}: ${b.src}, ${b.months}mo on a ${b.cadence} cycle`).join("; ")}`
+        : ` (oldest ${Math.max(...aged.map(b => b.months))}mo of ${aged.length})`));
+
+  /* A cadence the age rule does not recognise falls back to annual,
+     which is the lenient answer and the wrong one for a quarterly
+     source. Better to require the field than to guess it. */
+  const unstated = aged.filter(b => b.cadence === "unstated");
+  assert(unstated.length === 0,
+    "every dated benchmark declares its cadence, so its age can be judged" +
+      (unstated.length ? ` — ${unstated.map(b => b.name).join(", ")}` : ""));
+
   /* A benchmark with no publication behind it must not sit in the source
      list looking like one; it belongs in the "no published source" line.
 

@@ -8,6 +8,26 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
+  # ---- Strict-Transport-Security ----
+  #
+  # An external review listed this as already set and "Strong". It was
+  # not set anywhere — not here, not in netlify.toml. Netlify does send
+  # HSTS at the edge for a custom domain on its own certificate, so the
+  # header may well have been observed in a response; but a control that
+  # is not in this file is not one this project owns, can reason about,
+  # or would notice losing. A security table marking a missing control
+  # as present is worse than one that omits it: it retires the question.
+  #
+  # One year, subdomains included. TLS here is provisioned per host
+  # automatically, so there is no plaintext subdomain to strand.
+  #
+  # Deliberately NOT preload. The preload list is baked into browser
+  # binaries and takes months to leave — a commitment about every future
+  # subdomain of this domain, made on behalf of a practice whose entity
+  # is still being incorporated. The header already gives the
+  # protection; preload only closes the very first visit, and pays
+  # reversibility for it.
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
   # ---- Content-Security-Policy ----
   #
   # script-src 'self' is the one that matters, and it is the reason the
