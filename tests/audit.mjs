@@ -453,5 +453,107 @@ server.close();
   );
 }
 
+/* ---- the manifest's icons actually exist, at the size it claims ----
+
+   A manifest is a set of promises made to an installer, and a wrong one
+   fails where nobody is looking: the install silently falls back, or the
+   splash screen renders a stretched thumbnail on somebody's phone. The
+   sizes field is a claim about a binary, and nothing here had ever
+   opened the binary to check it.
+
+   The dimensions are read out of the PNG header rather than trusted,
+   because "512x512" in JSON and 512×512 on disk are exactly the kind of
+   pair that agrees on the day it is written. */
+{
+  const iconIssues = [];
+  const manifest = JSON.parse(readFileSync(join(ROOT, "manifest.json"), "utf8"));
+  const icons = manifest.icons || [];
+
+  if (!icons.length) iconIssues.push("manifest declares no icons at all");
+
+  /* Chromium installability wants at least one icon of 192px or more,
+     and a 512 for the splash screen. Both are claims worth holding. */
+  const declared = icons.map((i) => parseInt(i.sizes, 10)).filter(Number.isFinite);
+  if (!declared.some((n) => n >= 192)) iconIssues.push("no icon of 192px or larger — the app is not installable");
+  if (!declared.some((n) => n >= 512)) iconIssues.push("no icon of 512px or larger — the splash screen has nothing to render");
+  if (!icons.some((i) => (i.purpose || "").split(/\s+/).includes("maskable"))) {
+    iconIssues.push("no maskable icon — Android will letterbox the mark onto its own background");
+  }
+
+  for (const icon of icons) {
+    const rel = (icon.src || "").replace(/^\//, "");
+    const file = join(ROOT, rel);
+    if (!existsSync(file)) { iconIssues.push(`${icon.src} is declared but not in the repository`); continue; }
+    /* PNG: an 8-byte signature, then the IHDR chunk whose width and
+       height are big-endian 32-bit at offsets 16 and 20. */
+    const buf = readFileSync(file);
+    if (buf.length < 24 || buf.readUInt32BE(0) !== 0x89504e47) { iconIssues.push(`${icon.src} is not a PNG`); continue; }
+    const w = buf.readUInt32BE(16), h = buf.readUInt32BE(20);
+    const [cw, ch] = (icon.sizes || "").split("x").map(Number);
+    if (w !== cw || h !== ch) iconIssues.push(`${icon.src} claims ${icon.sizes} but is ${w}x${h}`);
+    if (w !== h) iconIssues.push(`${icon.src} is not square (${w}x${h}) — every launcher assumes it is`);
+  }
+
+  problems += iconIssues.length;
+  console.log(
+    `\n${iconIssues.length ? "❌" : "✅"} the manifest's ${icons.length} icons exist at the sizes it claims` +
+      (iconIssues.length ? "\n     - " + iconIssues.join("\n     - ") : "")
+  );
+}
+
+/* ---- the downloadable documents ----
+
+   The Fuel Tender Specification shipped as DN_Fuel_Tender_Spec.pdf with
+   "DN Fuel Tender Specification" in its Title metadata, on a site that
+   is JK & Associates everywhere else. DN is the pre-rebrand name. Its
+   HTML source beside it was correct; the binary had been carried over
+   and never re-rendered, and both were committed together after the
+   rebrand.
+
+   Nothing could have caught that. A checked-in binary does not diff, is
+   not rendered in review, and its Title is metadata nobody opens — yet
+   it is the one artefact a prospect receives by name, after handing
+   over their work email, and the name is what lands in their downloads
+   folder.
+
+   So: every download the code offers must exist, and no shipped
+   document may carry the old brand in its filename or its Title. */
+{
+  const docIssues = [];
+
+  /* Every downloadUrl the site offers, read out of the source rather
+     than listed here — a new tool with a new download is covered the
+     day it ships. */
+  const jsFiles = readdirSync(join(ROOT, "assets/js/page")).filter((f) => f.endsWith(".js"));
+  const offered = new Set();
+  for (const f of jsFiles) {
+    const src = readFileSync(join(ROOT, "assets/js/page", f), "utf8");
+    for (const m of src.matchAll(/downloadUrl:\s*"([^"]+)"/g)) offered.add(m[1]);
+  }
+  if (!offered.size) docIssues.push("no downloadUrl found in any page script — this check has stopped checking anything");
+
+  for (const url of offered) {
+    /* "../assets/..." is relative to /tools/, where these scripts run. */
+    const rel = url.replace(/^\.\.\//, "");
+    if (!existsSync(join(ROOT, rel))) { docIssues.push(`${url} is offered for download but is not in the repository`); continue; }
+    if (/(^|\/)DN[_-]/i.test(rel)) docIssues.push(`${url} still carries the pre-rebrand name in its filename`);
+
+    if (rel.endsWith(".pdf")) {
+      /* The Title dictionary is written uncompressed by Chromium, so it
+         can be read without a PDF library. */
+      const head = readFileSync(join(ROOT, rel)).toString("latin1");
+      const title = (head.match(/\/Title\s*\(([^)]*)\)/) || [])[1];
+      if (!title) docIssues.push(`${url} has no Title metadata — a browser tab and a file manager will show its filename instead`);
+      else if (/\bDN\b/.test(title)) docIssues.push(`${url} has "${title}" as its PDF Title — the pre-rebrand brand`);
+    }
+  }
+
+  problems += docIssues.length;
+  console.log(
+    `\n${docIssues.length ? "❌" : "✅"} the ${offered.size} offered download(s) exist and carry the current brand` +
+      (docIssues.length ? "\n     - " + docIssues.join("\n     - ") : "")
+  );
+}
+
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);
 process.exit(problems ? 1 : 0);
