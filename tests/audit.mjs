@@ -453,6 +453,127 @@ server.close();
   );
 }
 
+/* ---- structured data ----
+
+   The JSON-LD on index.html described the scorecard as "a free, private
+   40-question diagnostic across 8 weighted domains". Every other place
+   that number appears is guarded — the README in three places, the page
+   copy in eleven. This one was not: it could be changed to 55 questions
+   across 9 domains and the whole suite passed.
+
+   That is the worst of the four places to be wrong. Page copy is read by
+   whoever is on the page; a JSON-LD description is read by search
+   engines and by the assistants people now ask about products, and it is
+   quoted back with the authority of the site itself. Nobody proofreads
+   it, because nobody sees it.
+
+   Three properties, and the first is the one that makes the others
+   possible:
+
+     1. Every block parses. A malformed JSON-LD block is dropped
+        silently by every consumer — no error, no warning, just no
+        structured data, exactly like a malformed CSP.
+
+     2. Every number it states about the product is the product's.
+
+     3. Every url points at a page that exists, and every @id it
+        references is defined somewhere on this site. A publisher
+        pointing at an @id nobody defines is not an error anywhere; it
+        just fails to connect, and the organisation and the tool stay
+        two unrelated things. */
+{
+  const ldIssues = [];
+  /* Derived from the site's own canonical rather than hardcoded, so
+     moving the domain does not turn every url check into a silent skip
+     — which is how a guard stops guarding without failing. */
+  const SITE_ORIGIN = (readFileSync(join(ROOT, "index.html"), "utf8")
+    .match(/<link rel="canonical" href="(https?:\/\/[^/"]+)/) || [])[1];
+  if (!SITE_ORIGIN) {
+    ldIssues.push("index.html has no canonical to read the site origin from, so JSON-LD urls went unchecked");
+  }
+  const defined = new Set();
+  const referenced = [];
+  let blocks = 0;
+
+  const ldPages = [
+    ...readdirSync(ROOT).filter((f) => f.endsWith(".html")),
+    ...readdirSync(join(ROOT, "tools")).filter((f) => f.endsWith(".html")).map((f) => "tools/" + f)
+  ].sort();
+
+  for (const file of ldPages) {
+    const html = readFileSync(join(ROOT, file), "utf8");
+    for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+      blocks++;
+      let parsed;
+      try {
+        parsed = JSON.parse(m[1]);
+      } catch (e) {
+        ldIssues.push(`${file}: the JSON-LD does not parse (${e.message}) — every consumer drops it silently`);
+        continue;
+      }
+      const nodes = Array.isArray(parsed["@graph"]) ? parsed["@graph"] : [parsed];
+      for (const node of nodes) {
+        if (typeof node !== "object" || node === null) continue;
+        if (typeof node["@id"] === "string") defined.add(node["@id"]);
+
+        /* A url that 404s is a claim about the site that the site
+           contradicts. Checked against the file tree, since these are
+           absolute and the tree is what gets deployed. */
+        if (SITE_ORIGIN && typeof node.url === "string" && node.url.startsWith(SITE_ORIGIN)) {
+          const rel = node.url.slice(SITE_ORIGIN.length).replace(/^\//, "");
+          const target = rel === "" ? "index.html" : rel;
+          if (!existsSync(join(ROOT, target))) {
+            ldIssues.push(`${file}: JSON-LD points at ${node.url}, which is not a page in this repository`);
+          }
+        }
+
+        /* Any nested { "@id": ... } with nothing else is a reference,
+           not a definition. */
+        for (const [key, value] of Object.entries(node)) {
+          if (key === "@id") continue;
+          if (value && typeof value === "object" && !Array.isArray(value) &&
+              typeof value["@id"] === "string" && Object.keys(value).length === 1) {
+            referenced.push({ file, key, id: value["@id"] });
+          }
+        }
+
+        /* The claim that started this. Matched inside the JSON-LD only,
+           so the numbers on the MRO tool cannot satisfy or falsify it. */
+        if (typeof node.description === "string" && scoringModel) {
+          const dm = node.description.match(/(\d+)[-\s]question[\s\S]*?across\s+(\d+)\s+(?:weighted\s+)?domains/);
+          if (dm) {
+            if (Number(dm[1]) !== scoringModel.questions) {
+              ldIssues.push(`${file}: JSON-LD says ${dm[1]} questions; the product has ${scoringModel.questions}`);
+            }
+            if (Number(dm[2]) !== scoringModel.count) {
+              ldIssues.push(`${file}: JSON-LD says ${dm[2]} domains; the product has ${scoringModel.count}`);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for (const r of referenced) {
+    if (!defined.has(r.id)) {
+      ldIssues.push(`${r.file}: JSON-LD ${r.key} points at "${r.id}", which no page on this site defines`);
+    }
+  }
+
+  /* The guard has to be guarding something. If the markup is ever
+     removed wholesale, that should be a decision, not a silent pass. */
+  if (blocks === 0) {
+    ldIssues.push("no JSON-LD anywhere on the site — this check has stopped checking anything");
+  }
+
+  problems += ldIssues.length;
+  console.log(
+    `\n${ldIssues.length ? "❌" : "✅"} ${blocks} JSON-LD block(s) parse, ` +
+      `${defined.size} @id(s) defined, ${referenced.length} reference(s) resolve` +
+      (ldIssues.length ? "\n     - " + ldIssues.join("\n     - ") : "")
+  );
+}
+
 /* ---- the manifest's icons actually exist, at the size it claims ----
 
    A manifest is a set of promises made to an installer, and a wrong one
