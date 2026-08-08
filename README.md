@@ -198,6 +198,11 @@ node audit.mjs   # full-site sweep: JS errors, h1, alt, dup IDs, broken links, o
 Chromium is pre-installed in the standard dev container under `/opt/pw-browsers`; the suites resolve
 it automatically and never download a browser.
 
+Before adding a check, read [docs/VERIFICATION.md](docs/VERIFICATION.md). Several guards here were
+found to be guarding nothing, and a green tick that means nothing is worse than no check at all —
+it retires the question. The rule is that a new check is watched to fail, on the condition it claims
+to catch, before it counts as working.
+
 ## CI
 
 `.github/workflows/ci.yml` runs on every push/PR:
@@ -208,7 +213,7 @@ it automatically and never download a browser.
 
 ## SEO
 
-`sitemap.xml` (19 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
+`sitemap.xml` (25 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
 JSON-LD on three pages: `Organization` + two `WebApplication` entries on the landing page, a
 `WebApplication` on the venture dashboard, and a `WebPage` on the sample report whose `mainEntity`
 is the scorecard. `tests/audit.mjs` asserts every block parses, that its numbers match the product,
