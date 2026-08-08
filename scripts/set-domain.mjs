@@ -49,4 +49,4 @@ for (const file of files) {
 
 console.log(`\nDone. ${oldBase} → ${newBase} (${total} replacements across ${touched} files).`);
 console.log("Note: this only updates page metadata. Also update the URLs in");
-console.log("netlify.toml / vercel.json redirects only if they reference the full domain (they don't by default).");
+console.log("netlify.toml / _redirects only if they reference the full domain (they don't by default).");

@@ -154,7 +154,7 @@ would flatter a badly-sequenced applicant.
 Ships as a **JK & Associates-only** product — `JK.partners` in `assets/js/data.js` is empty. To
 co-brand: add an entry keyed by a token, then append `?partner=<TOKEN>` to swap the accent colour,
 show the partner logo and add a co-branding line. Framing is allowed only from whitelisted domains
-via `Content-Security-Policy: frame-ancestors` in `_headers` / `vercel.json` (**never** `*`). The
+via `Content-Security-Policy: frame-ancestors` in `_headers` (**never** `*`). The
 Engagement Key that unlocks Toolbox B/C/D previews is `JK.engagementKey`.
 
 `window.DN` remains aliased to `JK` so any older embed or bookmarklet keeps working.
@@ -166,7 +166,7 @@ python3 -m http.server 8080      # then open http://localhost:8080
 node scripts/check-data.mjs      # data-model integrity check (also run in CI)
 ```
 
-No build step. `netlify.toml` and `vercel.json` both publish the repo root as-is, with clean-URL
+No build step. `netlify.toml` publishes the repo root as-is, with clean-URL
 redirects (`/certify`, `/venture`, `/structure`, `/org`, `/scorecard`, `/cask`, `/fuel`, …) and
 security headers including scoped `frame-ancestors`.
 
@@ -201,7 +201,7 @@ it automatically and never download a browser.
 ## CI
 
 `.github/workflows/ci.yml` runs on every push/PR:
-- **validate** — JS syntax, `vercel.json` validation, data-model integrity (scorecard **and**
+- **validate** — JS syntax, `manifest.json` validation, data-model integrity (scorecard **and**
   venture model: sectors, phases, citation-key resolution, capital bounds, headcount monotonicity),
   HTML sanity.
 - **e2e** — runs the `tests/` behaviour and audit suites against the real pages.
