@@ -49,4 +49,4 @@ function recalc() {
   document.getElementById(id).addEventListener("input", recalc));
 recalc();
 wireToolEnquiryForm("fuel-enquiry", "Fuel Contract Optimizer Lite",
-  { downloadUrl: "../assets/docs/DN_Fuel_Tender_Spec.pdf", downloadName: "Fuel Tender Specification" });
+  { downloadUrl: "../assets/docs/JK_Fuel_Tender_Spec.pdf", downloadName: "Fuel Tender Specification" });
