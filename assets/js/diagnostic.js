@@ -25,7 +25,11 @@
          ID match, which a browser extension could steal */
       overlay.querySelector("#onboard-dismiss").addEventListener("click", () => {
         overlay.remove();                                  // remove first …
-        try { localStorage.setItem("dn_onboarded", "1"); } catch (_) {}  // … so QuotaExceededError can't leave overlay blocking the page
+        // … so a QuotaExceededError can't leave the overlay blocking the
+        // page. reportingWrite, not a bare catch: if this write fails the
+        // visitor will meet this modal again on every visit, and the one
+        // banner it raises explains why.
+        reportingWrite(() => localStorage.setItem("dn_onboarded", "1"));
       });
     }
   } catch (_) {}

@@ -85,7 +85,10 @@ const JKW = {
   },
   saveProfile(patch) {
     const next = Object.assign(this.profile(), patch, { updated: new Date().toISOString() });
-    try { localStorage.setItem(this.PROFILE_KEY, JSON.stringify(next)); } catch {}
+    /* The profile is the venture's name, stage and target date — typed
+       once and relied on by every tool downstream. Losing it silently
+       means each tool quietly reverts to placeholders. */
+    reportingWrite(() => localStorage.setItem(this.PROFILE_KEY, JSON.stringify(next)));
     return next;
   },
 
@@ -471,7 +474,7 @@ const JKW = {
   restoreScenario(id) {
     const scn = this.scenarios().find(s => s.id === id);
     if (!scn) return { ok: false, error: "That scenario no longer exists." };
-    let written = 0;
+    let written = 0, failed = 0, notCleared = 0;
     try {
       // clear the current workspace first, or stores present now but
       // absent from the scenario would survive and blend the two
@@ -480,12 +483,24 @@ const JKW = {
         const k = localStorage.key(i);
         if (this.KEY_RE.test(k) && k !== this.SCEN_KEY) stale.push(k);
       }
-      stale.forEach(k => { try { localStorage.removeItem(k); } catch {} });
+      /* A key that refuses to clear is worse than one that refuses to
+         write: the old value survives and blends into the restored
+         scenario, so the workspace ends up as neither. Counted, and
+         reported below, rather than left to be discovered in the
+         numbers. */
+      stale.forEach(k => { if (!reportingWrite(() => localStorage.removeItem(k))) notCleared++; });
       Object.keys(scn.stores || {}).forEach(k => {
         if (!this.KEY_RE.test(k) || k === this.SCEN_KEY) return;
-        try { localStorage.setItem(k, JSON.stringify(scn.stores[k])); written++; } catch {}
+        if (reportingWrite(() => localStorage.setItem(k, JSON.stringify(scn.stores[k])))) written++;
+        else failed++;
       });
     } catch { return { ok: false, error: "Could not write to this browser's storage." }; }
+    if (failed || notCleared) {
+      return { ok: false, written, scenario: scn,
+        error: `Only ${written} of ${written + failed} parts of that scenario could be restored` +
+               (notCleared ? ", and some of the previous workspace could not be cleared" : "") +
+               ". The workspace is now a mix of the two — reload and try again, or clear this browser's storage for the site." };
+    }
     return { ok: true, written, scenario: scn };
   },
 

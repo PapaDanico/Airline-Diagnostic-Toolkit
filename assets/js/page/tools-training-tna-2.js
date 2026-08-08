@@ -298,7 +298,7 @@
       const v = tr.querySelector(".cur-select").value;
       if (v !== "") state[tr.dataset.key] = parseInt(v, 10);
     });
-    try { localStorage.setItem(STORE, JSON.stringify(state)); } catch {}
+    reportingWrite(() => localStorage.setItem(STORE, JSON.stringify(state)));
   }
 
   host.addEventListener("change", e => {
@@ -320,7 +320,7 @@
   document.getElementById("tna-print").addEventListener("click", () => window.print());
   document.getElementById("tna-reset").addEventListener("click", () => {
     if (!confirm("Clear all current-level entries?")) return;
-    try { localStorage.removeItem(STORE); } catch {}
+    reportingWrite(() => localStorage.removeItem(STORE));
     document.querySelectorAll("#tna-groups .cur-select").forEach(s => s.value = "");
     recompute();
   });

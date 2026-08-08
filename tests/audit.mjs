@@ -673,5 +673,75 @@ server.close();
   );
 }
 
+/* ---- storage writes are not swallowed ----
+
+   Every storage call on this site is wrapped, and that is right: Safari
+   private browsing throws on localStorage access itself, so one bare
+   call at the top of a script kills every feature wired below it.
+
+   But the wrapper was applied to reads and writes alike. A failed READ
+   is a non-event — the caller takes the empty default and the visitor
+   gets the first-visit experience, which is real and supported. A failed
+   WRITE loses work: forty answers, or an hour in the venture builder,
+   gone on reload with nothing having said so, and a results page that
+   greets the person who just answered all forty with "complete all 40
+   questions first".
+
+   tests/storage.mjs proves the banner appears when a write is refused.
+   This is the other half, and the cheaper half: it stops the next
+   `try { setItem() } catch {}` from being written at all. A behavioural
+   test can only cover the paths someone drove; this covers the grep.
+
+   Reads are deliberately not checked. Silence is the correct handling
+   for them, and a rule that flagged both would be ignored within a
+   month. */
+{
+  const storeIssues = [];
+  /* A write, then a catch with nothing in it. The `[^}]*` keeps this to
+     a single statement so a catch that genuinely handles the failure —
+     returns an error object, increments a skipped counter, calls
+     reportingWrite — does not match. */
+  const SWALLOWED = /\b(?:localStorage|sessionStorage)\s*\.\s*(?:setItem|removeItem|clear)\s*\([^;]*;?\s*\}?\s*catch\s*(?:\([^)]*\))?\s*\{\s*(?:\/\*[^*]*\*\/\s*)?\}/;
+
+  const jsFiles = [];
+  const walk = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === "node_modules") continue;
+      const full = join(dir, e.name);
+      if (e.isDirectory()) walk(full);
+      else if (e.name.endsWith(".js")) jsFiles.push(full);
+    }
+  };
+  walk(join(ROOT, "assets", "js"));
+
+  for (const file of jsFiles) {
+    const rel = file.slice(ROOT.length + 1);
+    const lines = readFileSync(file, "utf8").split("\n");
+    lines.forEach((line, i) => {
+      if (SWALLOWED.test(line)) {
+        storeIssues.push(`${rel}:${i + 1} discards a failed storage write — route it through reportingWrite() so the visitor is told, or handle the error where it happens`);
+      }
+    });
+  }
+
+  /* The helper the rule points at has to exist, or the rule is advice
+     nobody can follow. */
+  const common = readFileSync(join(ROOT, "assets", "js", "common.js"), "utf8");
+  if (!/function reportingWrite\s*\(/.test(common)) {
+    storeIssues.push("common.js no longer defines reportingWrite(), which every write on the site is routed through");
+  }
+  if (!/reportingWrite/.test(common.split("Object.assign(window")[1] || "")) {
+    storeIssues.push("reportingWrite() is not exported on window, so the page scripts calling it would throw");
+  }
+
+  problems += storeIssues.length;
+  const routed = jsFiles.reduce((n, f) => n + (readFileSync(f, "utf8").match(/reportingWrite\(/g) || []).length, 0);
+  console.log(
+    `\n${storeIssues.length ? "❌" : "✅"} storage writes report their failures ` +
+      `(${routed} call sites routed through reportingWrite across ${jsFiles.length} scripts)` +
+      (storeIssues.length ? "\n     - " + storeIssues.join("\n     - ") : "")
+  );
+}
+
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);
 process.exit(problems ? 1 : 0);

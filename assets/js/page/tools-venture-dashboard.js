@@ -357,7 +357,7 @@
 
   $("ws-clear").addEventListener("click", () => {
     if (!confirm("Clear the venture name, sector and target date? The individual tools keep their own saved work.")) return;
-    try { localStorage.removeItem(JKW.PROFILE_KEY); } catch {}
+    reportingWrite(() => localStorage.removeItem(JKW.PROFILE_KEY));
     prof = JKW.profile();
     $("vf-name").value = ""; $("vf-sector").value = prof.sector; $("vf-target").value = "";
     render();
