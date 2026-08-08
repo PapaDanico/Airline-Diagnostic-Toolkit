@@ -555,5 +555,92 @@ server.close();
   );
 }
 
+/* ---- routing: _redirects against the file tree ----
+
+   An external review reported 500s on five tool URLs. None of the five
+   existed — they had been built from the tools' display names, and the
+   site links to none of them. The catch-all below returns 404, not 500,
+   so the status was wrong too.
+
+   But it was half right, for a reason it did not name. The site was
+   configured for two hosts. vercel.json set cleanUrls, which gives
+   every page an extensionless URL automatically; _redirects lists them
+   one at a time. So /about worked on one host and 404'd on the other,
+   and which host you tested changed the answer. Worse, vercel.json
+   carried only frame-ancestors while _headers carries the full policy —
+   script-src 'self', the thing a reflected XSS was fixed with here — so
+   one live copy of this site was not enforcing it.
+
+   Vercel is cancelled, so vercel.json is gone rather than reconciled.
+   Dead config that contradicts the live config is worse than none: it
+   is what sent the review down the wrong path.
+
+   That leaves one host and these rules, checked for the mistake that
+   actually happened — venture-dashboard was the only tool page with no
+   extensionless rule, while its ten siblings had one. Nothing noticed,
+   because a missing rewrite is not a broken link; it is a URL that
+   simply does not answer. */
+{
+  const routeIssues = [];
+  const lines = readFileSync(join(ROOT, "_redirects"), "utf8")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("#"));
+
+  const rules = lines.map((l) => {
+    const [from, to, status] = l.split(/\s+/);
+    return { from, to, status: status || "" , raw: l };
+  });
+
+  /* Every tool page gets an extensionless route, or the set is
+     inconsistent in a way only a typed URL reveals. */
+  const toolPages = readdirSync(join(ROOT, "tools"))
+    .filter((f) => f.endsWith(".html") && f !== "index.html")
+    .map((f) => f.replace(/\.html$/, ""));
+  const rewritten = new Set(
+    rules.filter((r) => r.status === "200").map((r) => r.from.replace(/^\/tools\//, ""))
+  );
+  for (const t of toolPages) {
+    if (!rewritten.has(t)) routeIssues.push(`/tools/${t} has no extensionless route while its siblings do`);
+  }
+
+  /* A rule pointing at a file that no longer exists does not fail
+     loudly — it falls through to the catch-all and 404s, which looks
+     exactly like a URL that was never meant to work. */
+  for (const r of rules) {
+    if (!r.to || !r.to.startsWith("/")) continue;
+    if (r.to === "/404.html") continue;
+    const target = join(ROOT, r.to.replace(/^\//, ""));
+    if (!existsSync(target)) routeIssues.push(`${r.from} points at ${r.to}, which is not in the repository`);
+  }
+
+  /* Netlify takes the FIRST match, so anything after the catch-all is
+     dead, and a duplicated source silently shadows its second copy. */
+  const catchAll = rules.findIndex((r) => r.from === "/*");
+  if (catchAll === -1) routeIssues.push("no catch-all rule — an unknown path gets the host's default, not this site's 404");
+  else if (catchAll !== rules.length - 1) {
+    routeIssues.push(`${rules.length - 1 - catchAll} rule(s) sit after the /* catch-all and can never match`);
+  }
+  const seen = new Set();
+  for (const r of rules) {
+    if (seen.has(r.from)) routeIssues.push(`${r.from} is defined twice; the second is unreachable`);
+    seen.add(r.from);
+  }
+
+  /* One host, one routing file. A second host's config that disagrees
+     is how the CSP came to be enforced on one copy and not the other. */
+  for (const dead of ["vercel.json", "now.json", "firebase.json"]) {
+    if (existsSync(join(ROOT, dead))) {
+      routeIssues.push(`${dead} is present alongside _redirects — two hosts, two answers, and the review believed the wrong one`);
+    }
+  }
+
+  problems += routeIssues.length;
+  console.log(
+    `\n${routeIssues.length ? "❌" : "✅"} ${rules.length} routing rules resolve, and every tool page has an extensionless URL` +
+      (routeIssues.length ? "\n     - " + routeIssues.join("\n     - ") : "")
+  );
+}
+
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);
 process.exit(problems ? 1 : 0);
