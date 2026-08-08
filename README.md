@@ -209,7 +209,10 @@ it automatically and never download a browser.
 ## SEO
 
 `sitemap.xml` (19 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
-JSON-LD (`Organization` + two `WebApplication` entries) on the landing page.
+JSON-LD on three pages: `Organization` + two `WebApplication` entries on the landing page, a
+`WebApplication` on the venture dashboard, and a `WebPage` on the sample report whose `mainEntity`
+is the scorecard. `tests/audit.mjs` asserts every block parses, that its numbers match the product,
+that every `url` exists and every `@id` reference resolves.
 
 ## Legal posture
 
