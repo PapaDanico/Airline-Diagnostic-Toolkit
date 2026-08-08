@@ -1,8 +1,19 @@
 name: CI
 
 on:
+  # push is main-only on purpose. It used to include "claude/**", and
+  # every branch with an open PR then ran the whole suite TWICE for one
+  # commit — the push event and the pull_request event, same SHA, same
+  # ~21 minutes of runner time, two sets of check runs on the PR for a
+  # human to read. Neither was more authoritative than the other, so the
+  # duplicate bought nothing but the chance of reading the stale one.
+  #
+  # Coverage is unchanged: pull_request covers every branch from the
+  # moment it has a PR, which is the only point at which anyone is
+  # reading the result, and push covers main so a merge is verified
+  # against the merged tree rather than the pre-merge one.
   push:
-    branches: [main, "claude/**"]
+    branches: [main]
   pull_request:
 
 jobs:
@@ -112,3 +123,14 @@ jobs:
       # something renders. Catches the page nobody wrote a test for.
       - name: Drive every page as a user
         run: node tests/drive.mjs
+
+      # Every storage call here is wrapped in a try/catch, correctly —
+      # Safari private browsing throws on localStorage access itself.
+      # But reads and writes were wrapped the same way, and a failed
+      # write loses work: forty answers gone on reload, and a results
+      # page telling the person who just answered all forty to "complete
+      # all 40 questions first". This blocks storage in the browser and
+      # requires the site to say so — and, in the paired control,
+      # requires it to stay quiet when the write succeeds.
+      - name: A refused storage write is reported
+        run: node tests/storage.mjs

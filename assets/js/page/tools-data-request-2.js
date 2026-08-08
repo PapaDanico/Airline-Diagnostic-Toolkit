@@ -11,7 +11,7 @@
     const pct = Math.round((checked / total) * 100);
     document.getElementById('collected-count').textContent = checked;
     document.getElementById('progress-pct').textContent = pct + '%';
-    try { localStorage.setItem('dn_data_request_progress', JSON.stringify(Array.from(allCheckboxes).map(c => c.checked))); } catch {}
+    reportingWrite(() => localStorage.setItem('dn_data_request_progress', JSON.stringify(Array.from(allCheckboxes).map(c => c.checked))));
   }
   allCheckboxes.forEach(checkbox => { checkbox.addEventListener('change', updateProgress); });
   let saved = null;

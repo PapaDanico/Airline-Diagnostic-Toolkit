@@ -1168,3 +1168,65 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   outline-offset: 3px;
   box-shadow: none;
 }
+
+/* ============================================================
+   STORAGE WARNING
+   Injected by common.js only when a localStorage or sessionStorage
+   WRITE is refused — private windows, blocked storage, full quota.
+   It is absent from every normal page load, so it costs nothing on
+   the happy path.
+
+   Fixed, because the diagnostic is a long scroll and the failure
+   happens mid-answer: a banner prepended in flow would appear above
+   a fold the visitor is nowhere near. Bottom rather than top, because
+   the top carries the site nav and this thing does not expire.
+
+   pointer-events: none is the load-bearing line. The first draft of
+   this banner was fixed to the top and swallowed clicks on the
+   questions underneath it — a warning telling someone to finish their
+   diagnostic, while blocking the diagnostic. A persistent bar pinned
+   to a viewport over a normally-scrolling document will always overlay
+   something, so it passes clicks straight through instead; only the
+   close button takes them back. Keyboard reach is unaffected either
+   way, so the button is still tabbable.
+
+   Amber, not red — nothing has been lost yet, and the message's job is
+   to get someone to finish and export, not to make them abandon.
+   ============================================================ */
+.jk-storage-warning {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .7rem 1rem;
+  background: var(--jk-amber-lt);
+  border-top: 3px solid var(--jk-amber-sig);
+  color: var(--jk-ink);
+  font-size: .9rem;
+  line-height: 1.45;
+  box-shadow: 0 -2px 10px rgba(22, 16, 13, .18);
+}
+.jk-storage-warning p { margin: 0; flex: 1; }
+.jk-storage-warning-close {
+  pointer-events: auto;
+  flex: none;
+  background: none;
+  border: 0;
+  padding: 0 .35rem;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--jk-amber-text);
+}
+/* The close button is the one control in the banner, and it sits on an
+   amber wash rather than the white the global ring was measured
+   against. Specificity (0,1,0) is enough — nothing else styles it. */
+.jk-storage-warning-close:focus-visible {
+  outline: 2px solid var(--jk-red-dk);
+  outline-offset: 2px;
+}
+
+@media print { .jk-storage-warning { display: none; } }

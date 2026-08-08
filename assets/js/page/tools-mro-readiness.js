@@ -40,7 +40,7 @@ const DOMAINS = [
 const SCALE = JK.scaleGeneric;
 const KEY = "dn_mro_readiness_v1";
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
-const save = (s) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {} };
+const save = (s) => reportingWrite(() => localStorage.setItem(KEY, JSON.stringify(s)));
 let answers = load();
 
 const panels = document.getElementById("panels");

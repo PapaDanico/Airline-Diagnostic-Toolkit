@@ -395,20 +395,87 @@ function mountChrome() {
   };
 }
 
-/* ---- storage ---- */
-function saveAnswers(obj) { try { localStorage.setItem(STORE_KEY, JSON.stringify(obj)); } catch {} }
-function loadAnswers() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; } }
-function clearAnswers() { try { localStorage.removeItem(STORE_KEY); } catch {} }
-
 /* ---- storage access that can never throw ----
    Safari private browsing (and storage-blocked configurations) throw a
    SecurityError on any localStorage/sessionStorage call, not just writes.
    A single unguarded call anywhere in a top-level script aborts every
    feature wired after it — these wrappers make that class of bug
    structurally impossible instead of relying on a try/catch at every
-   call site. */
+   call site.
+
+   A READ that fails is a non-event: there was nothing stored, the caller
+   gets the empty default, and the site behaves exactly as it does for a
+   first-time visitor. Those catches stay silent, deliberately.
+
+   A WRITE that fails is the opposite, and it was being swallowed by the
+   same reflex. Forty diagnostic questions, or an hour in the venture
+   builder, then a reload, and the work is gone with nothing having said
+   so — and the results page, which needs all forty answers, tells you to
+   "complete all 40 questions first" when you just did. The browser knew.
+   The page did not pass it on.
+
+   So: writes go through reportingWrite, which fails soft (the in-memory
+   state is untouched and the session keeps working) and says so once. */
+let storageWarned = false;
+
+/* Named for the two ways a browser refuses a write, because the fix is
+   different for each and "storage error" helps nobody. */
+function storageRefusal(err) {
+  const name = err && err.name;
+  if (name === "QuotaExceededError" || name === "NS_ERROR_DOM_QUOTA_REACHED") {
+    return "This browser's storage for this site is full.";
+  }
+  return "This browser is blocking storage for this site — private or incognito windows usually are.";
+}
+
+function warnStorageUnavailable(err) {
+  if (storageWarned) return;              // one banner, not one per keystroke
+  storageWarned = true;
+  console.warn("JK: storage write refused —", err);
+  if (typeof document === "undefined" || !document.body) return;
+
+  const bar = document.createElement("div");
+  bar.className = "jk-storage-warning";
+  bar.setAttribute("role", "alert");
+
+  const text = document.createElement("p");
+  /* Says what broke, what still works, and what the visitor loses — in
+     that order, because the middle clause is the one that stops someone
+     abandoning a half-finished diagnostic in a panic. */
+  text.textContent = storageRefusal(err) +
+    " Your work is safe on this page and will still score, but it will not" +
+    " survive a reload or a new tab. Finish and export before you leave.";
+
+  const dismiss = document.createElement("button");
+  dismiss.type = "button";
+  dismiss.className = "jk-storage-warning-close";
+  dismiss.setAttribute("aria-label", "Dismiss storage warning");
+  dismiss.textContent = "×";
+  dismiss.addEventListener("click", () => bar.remove());
+
+  bar.append(text, dismiss);
+  /* Appended, not prepended. role="alert" is announced the moment it is
+     inserted regardless of position, so putting it first buys nothing
+     and costs a keyboard user the skip link: the close button would
+     become the first tab stop on the page, ahead of the site's own
+     navigation, for the rest of the session. */
+  document.body.append(bar);
+}
+
+/* Returns whether the value was persisted, so a caller that can do
+   something better than the banner has the fact available. */
+function reportingWrite(fn) {
+  try { fn(); return true; }
+  catch (err) { warnStorageUnavailable(err); return false; }
+}
+
+/* ---- storage ---- */
+function saveAnswers(obj) { return reportingWrite(() => localStorage.setItem(STORE_KEY, JSON.stringify(obj))); }
+function loadAnswers() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; } }
+function clearAnswers() { return reportingWrite(() => localStorage.removeItem(STORE_KEY)); }
+
 function sessionGet(key) { try { return sessionStorage.getItem(key); } catch { return null; } }
-function sessionSet(key, value) { try { sessionStorage.setItem(key, value); } catch {} }
+function sessionSet(key, value) { return reportingWrite(() => sessionStorage.setItem(key, value)); }
 
 /* ---- scoring engine ----
    answers: { "<domainId>": [s0..s4 per question] }
@@ -625,13 +692,13 @@ function wireToolEnquiryForm(formId, toolName, opts) {
    Everything below is pure client-side; nothing leaves the device.
    ============================================================ */
 
-/* ---- namespaced per-tool storage that can never throw ---- */
+/* ---- namespaced per-tool storage: reads default, writes report ---- */
 function toolStore(key) {
   const k = "jk_" + key + "_v3";
   return {
     load() { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch { return {}; } },
-    save(obj) { try { localStorage.setItem(k, JSON.stringify(obj)); } catch {} },
-    clear() { try { localStorage.removeItem(k); } catch {} }
+    save(obj) { return reportingWrite(() => localStorage.setItem(k, JSON.stringify(obj))); },
+    clear() { return reportingWrite(() => localStorage.removeItem(k)); }
   };
 }
 
@@ -903,7 +970,7 @@ if (typeof navigator !== "undefined" && "serviceWorker" in navigator &&
 if (typeof window !== "undefined") {
   Object.assign(window, { STORE_KEY, JK_LOGO, JK_LOGO_LIGHT, applyPartner, mountChrome, isEmbedded, applyEmbedMode,
     saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel,
-    wireToolEnquiryForm, sessionGet, sessionSet,
+    wireToolEnquiryForm, sessionGet, sessionSet, reportingWrite,
     toolStore, fmtMoney, fmtNum, fmtRatio, clampNum, escapeHtml, mountReveal,
     citeChip, citeChips, mountPrintHead, toolMailto, wireDisclosure,
     annualDebtService, lookThrough });

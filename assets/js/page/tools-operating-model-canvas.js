@@ -19,7 +19,7 @@ const PANELS = [
 
 const KEY = "dn_operating_model_canvas_v1";
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
-const save = (state) => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
+const save = (state) => reportingWrite(() => localStorage.setItem(KEY, JSON.stringify(state)));
 let state = load();
 
 // build the 9 panels
