@@ -22,5 +22,6 @@
 /tools/data-request     /tools/data-request.html           200
 /tools/mro-readiness    /tools/mro-readiness.html          200
 /tools/training-tna     /tools/training-tna.html           200
+/tools/venture-dashboard /tools/venture-dashboard.html     200
 
 /*                      /404.html                          404
