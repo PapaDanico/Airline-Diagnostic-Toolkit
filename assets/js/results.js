@@ -108,12 +108,41 @@
      rather than dressed as a citation. "— Industry planning target" in
      the same italic slot as "— IATA 2024 Safety Report" invites the
      reader to treat the two as equally sourced. They are not. */
+  /* "as at Dec 2025" says when the source was published. It does not say
+     whether it has since been superseded, and the reader is the one
+     making a decision on it.
+
+     Cadence-aware, because the same date means different things: an
+     annual source at thirteen months has missed a cycle, a semiannual
+     one at thirteen months has missed two. The grace is publication
+     lag — a 2026 annual report does not land in January.
+
+     Silent inside the cycle. A note reading "2 months old" against every
+     fresh benchmark is noise, and noise is what stops the one that
+     matters from being read. */
+  const CADENCE_MONTHS = { annual: 12, semiannual: 6, quarterly: 3 };
+  const GRACE_MONTHS = 3;
+
+  const benchAge = (d, now = new Date()) => {
+    if (!d.benchmarkAsOf) return null;
+    const months = (now - new Date(d.benchmarkAsOf)) / (1000 * 60 * 60 * 24 * 30.44);
+    const cycle = CADENCE_MONTHS[d.benchmarkCadence] ?? 12;
+    return { months, cycle, pastCycle: months > cycle, overdue: months > cycle + GRACE_MONTHS };
+  };
+
   const benchAttribution = (d) => {
     if (!d.benchmarkSrc) return "";
     if (!d.benchmarkAsOf) return `— ${d.benchmarkSrc} (no published source)`;
     const when = new Date(d.benchmarkAsOf)
       .toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
-    return `— ${d.benchmarkSrc}, as at ${when}`;
+    const age = benchAge(d);
+    let note = "";
+    if (age && age.overdue) {
+      note = ` · ${Math.round(age.months)} months old, past a ${d.benchmarkCadence} cycle — check for a newer edition`;
+    } else if (age && age.pastCycle) {
+      note = ` · ${Math.round(age.months)} months old; the next ${d.benchmarkCadence} edition may be due`;
+    }
+    return `— ${d.benchmarkSrc}, as at ${when}${note}`;
   };
 
   /* ---- gap table (sorted weakest-first to read like a findings page) ---- */

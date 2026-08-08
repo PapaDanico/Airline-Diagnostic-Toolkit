@@ -87,6 +87,37 @@ const HEADERS = await headersFromFile();
 assert(typeof HEADERS['Content-Security-Policy'] === 'string' && HEADERS['Content-Security-Policy'].length > 0,
   '_headers yields a Content-Security-Policy the server can apply');
 
+/* Every security header this project claims, asserted from the file
+   that has to contain it.
+
+   An external review published a header table listing
+   Strict-Transport-Security as set and "Strong". It was set nowhere —
+   not here, not in netlify.toml. Netlify sends HSTS at the edge for a
+   custom domain, so the header was probably observed in a response and
+   written down as ours. It was not ours: nothing in this repository
+   asked for it, and nothing would have noticed it going away.
+
+   That is what this list prevents. A header that exists only because
+   the host happens to add it is a control nobody owns, and a table
+   saying otherwise retires the question instead of answering it. */
+for (const [name, shape, why] of [
+  ['X-Content-Type-Options', /^nosniff$/, 'stops a MIME-sniffed response becoming a script'],
+  ['Referrer-Policy', /^strict-origin-when-cross-origin$/, 'keeps paths out of third-party referers'],
+  ['Permissions-Policy', /geolocation=\(\)/, 'denies the capabilities this site never uses'],
+  ['Strict-Transport-Security', /^max-age=\d{7,}/, 'a year or more, or it is decorative']
+]) {
+  const value = HEADERS[name];
+  assert(typeof value === 'string' && shape.test(value),
+    `_headers sets ${name} — ${why}${value ? ` (got "${value}")` : ' (absent)'}`);
+}
+
+/* Preload is the one directive here that is hard to undo: it ships in
+   browser binaries and takes months to leave. If it is ever added that
+   should be a decision someone made, not one that arrived with a
+   copy-pasted header. */
+assert(!/preload/i.test(HEADERS['Strict-Transport-Security'] || ''),
+  'HSTS does not claim preload, which would commit every future subdomain for months');
+
 /* The negative control is served only at this path, and only its inline
    script differs from a real page. Keeping it inside the same server and
    the same policy means it is testing the committed CSP rather than a
