@@ -592,16 +592,46 @@ server.close();
     return { from, to, status: status || "" , raw: l };
   });
 
-  /* Every tool page gets an extensionless route, or the set is
-     inconsistent in a way only a typed URL reveals. */
-  const toolPages = readdirSync(join(ROOT, "tools"))
-    .filter((f) => f.endsWith(".html") && f !== "index.html")
-    .map((f) => f.replace(/\.html$/, ""));
-  const rewritten = new Set(
-    rules.filter((r) => r.status === "200").map((r) => r.from.replace(/^\/tools\//, ""))
-  );
-  for (const t of toolPages) {
-    if (!rewritten.has(t)) routeIssues.push(`/tools/${t} has no extensionless route while its siblings do`);
+  /* Every page gets an extensionless route, or the set is inconsistent
+     in a way only a typed URL reveals.
+
+     This started as "every tool page" and was widened, because the
+     asymmetry it left was real: the tools had clean URLs and the
+     content pages did not. That was survivable only while vercel.json
+     set cleanUrls and quietly covered the gap on one host. Removing
+     that config removed the cover too, so /about stopped answering
+     everywhere rather than just on Netlify.
+
+     The exemptions are named with their reason. All three lack a
+     canonical, and the first two are noindex — the same three the page
+     audit already treats as not-for-crawlers, arrived at independently
+     here from what the files actually declare. */
+  const NO_CLEAN_URL = new Map([
+    ["404", "an error document; a typed /404 is not a destination"],
+    ["offline", "the service worker's fallback, noindex"],
+    ["embed", "an iframe target, not a page anyone navigates to"],
+    ["index", "already served at /"],
+    ["demo-results", "a canned demo linked from the tour, never typed"],
+    ["results", "renders from session state; reached via its /results alias"]
+  ]);
+
+  const rewritten = new Set(rules.filter((r) => r.status === "200").map((r) => r.from));
+  const wants = [
+    ...readdirSync(ROOT).filter((f) => f.endsWith(".html")).map((f) => "/" + f.replace(/\.html$/, "")),
+    ...readdirSync(join(ROOT, "tools")).filter((f) => f.endsWith(".html") && f !== "index.html")
+      .map((f) => "/tools/" + f.replace(/\.html$/, ""))
+  ];
+  for (const want of wants) {
+    const bare = want.replace(/^\/(tools\/)?/, "");
+    if (rewritten.has(want) || NO_CLEAN_URL.has(bare)) continue;
+    routeIssues.push(`${want} has no extensionless route while its siblings do`);
+  }
+  /* An exemption for a page that no longer exists is an open door for
+     whatever reuses the name. */
+  for (const [name, why] of NO_CLEAN_URL) {
+    if (!existsSync(join(ROOT, `${name}.html`))) {
+      routeIssues.push(`${name}.html is exempted from clean URLs but no longer exists (${why})`);
+    }
   }
 
   /* A rule pointing at a file that no longer exists does not fail
@@ -637,7 +667,8 @@ server.close();
 
   problems += routeIssues.length;
   console.log(
-    `\n${routeIssues.length ? "❌" : "✅"} ${rules.length} routing rules resolve, and every tool page has an extensionless URL` +
+    `\n${routeIssues.length ? "❌" : "✅"} ${rules.length} routing rules resolve; ` +
+      `${wants.length - NO_CLEAN_URL.size} pages have an extensionless URL, ${NO_CLEAN_URL.size} exempted with a reason` +
       (routeIssues.length ? "\n     - " + routeIssues.join("\n     - ") : "")
   );
 }
