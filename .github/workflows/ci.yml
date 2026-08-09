@@ -41,11 +41,10 @@ jobs:
         shell: bash
 
       # Was "Validate host JSON config". That file is gone and _headers is
-      # now the single policy source, so this check points at the manifest,
-      # which is the
-      # JSON config this site actually ships and which a browser reads
-      # silently: a parse error there costs installability with nothing
-      # on screen to say so.
+      # now the single policy source. This check points at manifest.json,
+      # the JSON config this site actually ships and which a browser reads
+      # silently; a parse error there costs installability with nothing on
+      # screen to say so.
       - name: Validate manifest.json
         run: node -e "const m=JSON.parse(require('fs').readFileSync('manifest.json','utf8')); if(!Array.isArray(m.icons)||!m.icons.length) throw new Error('manifest declares no icons'); console.log('manifest.json OK -', m.icons.length, 'icons')"
 
