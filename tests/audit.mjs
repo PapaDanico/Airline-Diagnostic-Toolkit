@@ -942,5 +942,164 @@ server.close();
   );
 }
 
+/* ---- every var(--token) resolves to a token that exists ----
+
+   The brand ramp was renamed from --dn-* to --jk-* at some point, and
+   the page-level <style> blocks were never brought along. Forty-four
+   references to eight tokens defined nowhere survived across twelve
+   pages, including five of the twelve tools. about.html had
+   var(--jk-muted) and var(--dn-dark) on adjacent lines.
+
+   Nothing caught it, and nothing was going to. An unresolvable var()
+   makes the whole declaration invalid at computed-value time, so the
+   property silently reverts to its inherited or initial value — which
+   for `color` is usually the near-black it was going to be anyway.
+   Every existing guard looked right:
+
+     - the contrast sweep passed, because text falling back to inherited
+       body colour on white has excellent contrast;
+     - the console was clean, because a dead var() is not an error;
+     - the pages rendered, because `border: 1px solid var(--gone)` does
+       not fail loudly, it just stops being a border.
+
+   What it cost: the About page's next-step cards lost their border and
+   with it their hover state (border-color on border-style:none shows
+   nothing), the company profile's stat cards and scoring table lost
+   their rules, the privacy and terms callouts lost their tint, three
+   calculators' result eyebrows lost the amber — and the one that was
+   not cosmetic, the Training TNA's competency selects lost their focus
+   ring entirely, because `.cur-select:focus` set `outline` to a dead
+   token and outranks the global :focus-visible rule on specificity. A
+   keyboard user got no indication at all of where they were.
+
+   This is a grep, not a render, and that is the point: it covers every
+   declaration on the site rather than the ones a test happened to
+   drive. A reference carrying a fallback — var(--x, #fff) — is valid by
+   construction and is not flagged. */
+{
+  const cssIssues = [];
+  const defined = new Set();
+  const referenced = new Map();   /* token -> [file, …] */
+
+  const cssFiles = readdirSync(join(ROOT, "assets", "css"))
+    .filter((f) => f.endsWith(".css"))
+    .map((f) => join("assets", "css", f));
+
+  const collect = (rel, text) => {
+    /* Definitions: a custom property in declaration position, wherever
+       it lives — stylesheet, <style> block, or a style="" attribute. */
+    for (const m of text.matchAll(/(--[A-Za-z0-9_-]+)\s*:/g)) defined.add(m[1]);
+    /* …and the ones JavaScript sets at runtime, which are just as real. */
+    for (const m of text.matchAll(/setProperty\(\s*["'`](--[A-Za-z0-9_-]+)/g)) defined.add(m[1]);
+    /* References. Matching only the no-fallback form: var(--x, #fff)
+       stays valid whether or not --x exists, so it is not a defect. */
+    for (const m of text.matchAll(/var\(\s*(--[A-Za-z0-9_-]+)\s*\)/g)) {
+      if (!referenced.has(m[1])) referenced.set(m[1], []);
+      referenced.get(m[1]).push(rel);
+    }
+  };
+
+  const styleJs = [];
+  const walkJs = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === "node_modules") continue;
+      const full = join(dir, e.name);
+      if (e.isDirectory()) walkJs(full);
+      else if (e.name.endsWith(".js")) styleJs.push(full.slice(ROOT.length + 1));
+    }
+  };
+  walkJs(join(ROOT, "assets", "js"));
+
+  for (const rel of [...cssFiles, ...pages, ...styleJs]) {
+    collect(rel, readFileSync(join(ROOT, rel), "utf8"));
+  }
+
+  for (const [token, where] of referenced) {
+    if (defined.has(token)) continue;
+    const files = [...new Set(where)];
+    cssIssues.push(
+      `${token} is referenced ${where.length}× in ${files.length} file(s) ` +
+      `(${files.slice(0, 4).join(", ")}${files.length > 4 ? `, +${files.length - 4} more` : ""}) ` +
+      `but defined nowhere — every declaration using it is dropped`
+    );
+  }
+
+  problems += cssIssues.length;
+  console.log(
+    `\n${cssIssues.length ? "❌" : "✅"} every var(--token) resolves ` +
+      `(${referenced.size} distinct tokens referenced, ${defined.size} defined)` +
+      (cssIssues.length ? "\n     - " + cssIssues.join("\n     - ") : "")
+  );
+}
+
+/* ---- every class in the markup is a class the stylesheet knows ----
+
+   The same half-finished rename that left the --dn-* tokens behind also
+   left .band-fog behind: used on five sections across results.html,
+   demo-results.html and how-it-works.html, defined nowhere. The live
+   class is .band-parchment.
+
+   A section that should be a tinted band renders as plain white — and
+   because the neighbouring sections are also white, the band padding
+   that was there to separate two backgrounds now separates nothing.
+   That is what 307px of void on how-it-works.html was, and results.html
+   — the page a visitor reaches after answering forty questions — had
+   two of them.
+
+   Nothing in the suite could see it. A class that does not exist has no
+   styles to check, so there is no contrast to measure, no element to
+   find missing, and no console warning. The page is not broken; it is
+   just quietly plainer than it was drawn.
+
+   Classes JavaScript adds at runtime count as used, and classes only
+   ever written by JavaScript count as defined — the check is looking
+   for names that exist in exactly one place and are therefore inert. */
+{
+  const classIssues = [];
+  let styleText = readdirSync(join(ROOT, "assets", "css"))
+    .filter((f) => f.endsWith(".css"))
+    .map((f) => readFileSync(join(ROOT, "assets", "css", f), "utf8"))
+    .join("\n");
+  for (const p of pages) {
+    for (const m of readFileSync(join(ROOT, p), "utf8").matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
+      styleText += m[1];
+    }
+  }
+  const definedClasses = new Set([...styleText.matchAll(/\.([A-Za-z][A-Za-z0-9_-]*)/g)].map((m) => m[1]));
+
+  const scriptFiles = [];
+  const walkScripts = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === "node_modules") continue;
+      const full = join(dir, e.name);
+      if (e.isDirectory()) walkScripts(full);
+      else if (e.name.endsWith(".js")) scriptFiles.push(full);
+    }
+  };
+  walkScripts(join(ROOT, "assets", "js"));
+  const scriptText = scriptFiles.map((f) => readFileSync(f, "utf8")).join("\n");
+
+  const usedClasses = new Map();   /* class -> first page it appears on */
+  for (const p of pages) {
+    const markup = readFileSync(join(ROOT, p), "utf8").replace(/<style[\s\S]*?<\/style>/g, "");
+    for (const m of markup.matchAll(/class="([^"]+)"/g)) {
+      for (const c of m[1].split(/\s+/)) if (c && !usedClasses.has(c)) usedClasses.set(c, p);
+    }
+  }
+
+  for (const [cls, page] of usedClasses) {
+    if (definedClasses.has(cls)) continue;
+    if (scriptText.includes(cls)) continue;   /* a hook JS reads or writes */
+    classIssues.push(`.${cls} is used in the markup (${page}) but no stylesheet defines it and no script touches it`);
+  }
+
+  problems += classIssues.length;
+  console.log(
+    `\n${classIssues.length ? "❌" : "✅"} every class in the markup is styled or scripted ` +
+      `(${usedClasses.size} distinct classes across ${pages.length} pages)` +
+      (classIssues.length ? "\n     - " + classIssues.join("\n     - ") : "")
+  );
+}
+
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);
 process.exit(problems ? 1 : 0);

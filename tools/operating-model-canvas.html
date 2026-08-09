@@ -29,14 +29,14 @@
 <style>
   .omc-meta { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 22px; }
   .omc-meta .field { margin: 0; flex: 1 1 280px; }
-  .omc-meta .saved { font-size: .82rem; color: var(--dn-muted); margin-left: auto; align-self: center; }
+  .omc-meta .saved { font-size: .82rem; color: var(--jk-muted); margin-left: auto; align-self: center; }
   .omc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .omc-panel { border: 1px solid rgba(28,28,28,.14); border-radius: var(--radius-sm); padding: 14px 16px; background: var(--dn-white); display: flex; flex-direction: column; }
-  .omc-panel :is(h2, h3, h4) { font-family: var(--sans); font-size: .98rem; margin: 0; color: var(--dn-dark); }
+  .omc-panel { border: 1px solid rgba(28,28,28,.14); border-radius: var(--radius-sm); padding: 14px 16px; background: var(--jk-white); display: flex; flex-direction: column; }
+  .omc-panel :is(h2, h3, h4) { font-family: var(--sans); font-size: .98rem; margin: 0; color: var(--jk-ink); }
   .omc-panel .num { color: var(--accent); font-weight: 700; }
-  .omc-panel .prompt { font-size: .78rem; color: var(--dn-muted); margin: .3rem 0 .55rem; line-height: 1.4; }
+  .omc-panel .prompt { font-size: .78rem; color: var(--jk-muted); margin: .3rem 0 .55rem; line-height: 1.4; }
   .omc-panel textarea { width: 100%; flex: 1; min-height: 96px; resize: vertical; border: 1px solid rgba(28,28,28,.16);
-    border-radius: 6px; padding: 9px 10px; font: inherit; font-size: .9rem; color: var(--dn-dark); background: var(--dn-fog); }
+    border-radius: 6px; padding: 9px 10px; font: inherit; font-size: .9rem; color: var(--jk-ink); background: var(--jk-parchment); }
   .omc-panel textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; background: #fff; }
   .omc-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
   @media (max-width: 900px){ .omc-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -49,10 +49,12 @@
     .omc-panel textarea { background: #fff !important; border-color: #bbb; min-height: 0; height: auto; overflow: visible; }
     .diag-head { display: none !important; }
   }
-  .omc-print-head { display: none; padding-bottom: 12px; border-bottom: 2px solid var(--dn-dark); margin-bottom: 16px; }
+  .omc-print-head { display: none; padding-bottom: 12px; border-bottom: 2px solid var(--jk-ink); margin-bottom: 16px; }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
+
 
 <nav class="nav">
   <div class="wrap">
@@ -64,6 +66,9 @@
     </div>
   </div>
 </nav>
+
+<main id="main">
+
 
 <header class="diag-head">
   <div class="wrap">
@@ -125,6 +130,7 @@
     <p class="disclaimer" style="margin-top:1rem">A working template for orientation, not a substitute for a full operating-model review. Your entries stay in this browser only.</p>
   </div>
 </section>
+</main>
 
 <footer class="footer">
   <div class="wrap"><div class="ver" style="border:0">

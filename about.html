@@ -17,27 +17,29 @@
 <link rel="stylesheet" href="assets/css/jk.css">
 <style>
   .about { max-width: 820px; }
-  .about h2 { font-family: var(--sans); font-size: 1.15rem; margin: 2.2rem 0 .6rem; color: var(--dn-dark); }
-  .about p, .about li { font-size: .96rem; line-height: 1.65; color: var(--dn-dark); }
+  .about h2 { font-family: var(--sans); font-size: 1.15rem; margin: 2.2rem 0 .6rem; color: var(--jk-ink); }
+  .about p, .about li { font-size: .96rem; line-height: 1.65; color: var(--jk-ink); }
   .about p { margin-bottom: .8rem; }
   /* Counted, not typed — filled from the data model at load. */
   .about-cover { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: .6rem 0 0; }
-  .about-cover div { border: 1px solid var(--dn-line); border-radius: var(--radius-sm); padding: 14px 16px; }
-  .about-cover b { display: block; font-size: 1.6rem; line-height: 1.1; color: var(--dn-dark); }
-  .about-cover span { display: block; font-size: .9rem; color: var(--dn-dark); margin-top: 2px; }
+  .about-cover div { border: 1px solid var(--jk-line); border-radius: var(--radius-sm); padding: 14px 16px; }
+  .about-cover b { display: block; font-size: 1.6rem; line-height: 1.1; color: var(--jk-ink); }
+  .about-cover span { display: block; font-size: .9rem; color: var(--jk-ink); margin-top: 2px; }
   .about-cover small { display: block; font-size: .78rem; color: var(--jk-muted); margin-top: .25rem; }
   .about-stand dl { display: grid; gap: 12px; margin: 0; }
   .about-stand dt { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--jk-muted); margin-bottom: 2px; }
-  .about-stand dd { margin: 0; font-size: .93rem; line-height: 1.5; color: var(--dn-dark); }
+  .about-stand dd { margin: 0; font-size: .93rem; line-height: 1.5; color: var(--jk-ink); }
   .about-else { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: .6rem; }
-  .about-else a { display: block; border: 1px solid var(--dn-line); border-radius: var(--radius-sm); padding: 14px 16px; text-decoration: none; }
-  .about-else a:hover { border-color: var(--accent); background: var(--dn-fog); }
-  .about-else b { display: block; font-size: .95rem; color: var(--dn-dark); margin-bottom: .15rem; }
+  .about-else a { display: block; border: 1px solid var(--jk-line); border-radius: var(--radius-sm); padding: 14px 16px; text-decoration: none; }
+  .about-else a:hover { border-color: var(--accent); background: var(--jk-parchment); }
+  .about-else b { display: block; font-size: .95rem; color: var(--jk-ink); margin-bottom: .15rem; }
   .about-else small { display: block; font-size: .8rem; line-height: 1.45; color: var(--jk-muted); }
-  .about .note { border-left: 4px solid var(--accent); background: var(--dn-fog); padding: 14px 18px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 1rem 0; }
+  .about .note { border-left: 4px solid var(--accent); background: var(--jk-parchment); padding: 14px 18px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 1rem 0; }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
+
 
 <nav class="nav">
   <div class="wrap">
@@ -50,6 +52,9 @@
     </div>
   </div>
 </nav>
+
+<main id="main">
+
 
 <header class="diag-head">
   <div class="wrap">
@@ -118,6 +123,7 @@
 
   </div>
 </section>
+</main>
 
 <footer class="footer">
   <div class="wrap"><div class="ver" style="border:0">

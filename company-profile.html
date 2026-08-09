@@ -35,12 +35,25 @@
 <link rel="stylesheet" href="assets/css/fonts.css">
 <link rel="stylesheet" href="assets/css/jk.css">
 <style>
+  /* Five sections, all on white, each paying a full band's padding top
+     and bottom: 77 + 77 = 154px of nothing between every pair, four
+     times over, 614px on a 3,400px page — 18% of the scroll. Band
+     padding is what separates one background from the next, and where
+     the background never changes it separates nothing. It is the same
+     trap the tool groups below avoid by being divs, met one level up.
+
+     The sections stay sections: they are the page's outline, and a
+     screen-reader user navigates by them. They just stop paying for a
+     band change that does not happen. */
+  main > section { padding-block: 0; }
+  main > section + section { margin-top: clamp(2rem, 3.2vw, 2.8rem); }
+
   /* The stat row and the toolbox grid. Deliberately local: nothing else
      on the site lays out this way, and adding four classes to jk.css for
      one page is how a stylesheet becomes a graveyard. */
   .cp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: .8rem 0 0; }
-  .cp-stats div { border: 1px solid var(--dn-line); border-radius: var(--radius-sm); padding: 14px 16px; }
-  .cp-stats b { display: block; font-size: 1.7rem; line-height: 1.1; color: var(--dn-dark); }
+  .cp-stats div { border: 1px solid var(--jk-line); border-radius: var(--radius-sm); padding: 14px 16px; }
+  .cp-stats b { display: block; font-size: 1.7rem; line-height: 1.1; color: var(--jk-ink); }
   .cp-stats span { display: block; font-size: .82rem; color: var(--jk-muted); margin-top: .3rem; line-height: 1.45; }
   .cp-group { margin-bottom: 1.1rem; }
   .cp-group h3 { font-size: 1rem; margin: 0 0 .4rem; }
@@ -48,13 +61,15 @@
   .cp-group ul { margin: 0; padding-left: 1.1rem; }
   .cp-group li { margin-bottom: .25rem; font-size: .93rem; }
   .cp-table { width: 100%; border-collapse: collapse; margin-top: .6rem; font-size: .9rem; }
-  .cp-table th, .cp-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--dn-line); }
+  .cp-table th, .cp-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--jk-line); }
   .cp-table th:nth-child(n+2), .cp-table td:nth-child(n+2) { text-align: right; }
   .cp-wrap { overflow-x: auto; }
   .cp-note { font-size: .82rem; color: var(--jk-muted); margin-top: .5rem; line-height: 1.5; }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
+
 
 <nav class="nav">
   <div class="wrap">
