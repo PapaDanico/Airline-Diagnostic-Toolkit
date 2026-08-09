@@ -40,13 +40,11 @@ jobs:
           exit $fail
         shell: bash
 
-      # Was "Validate vercel.json". Vercel is cancelled and the file is
-      # gone — it set only frame-ancestors while _headers carries the
-      # full policy, so a second live copy of the site was not enforcing
-      # script-src. The check now points at the manifest, which is the
-      # JSON config this site actually ships and which a browser reads
-      # silently: a parse error there costs installability with nothing
-      # on screen to say so.
+      # Was "Validate host JSON config". That file is gone and _headers is
+      # now the single policy source. This check points at manifest.json,
+      # the JSON config this site actually ships and which a browser reads
+      # silently; a parse error there costs installability with nothing on
+      # screen to say so.
       - name: Validate manifest.json
         run: node -e "const m=JSON.parse(require('fs').readFileSync('manifest.json','utf8')); if(!Array.isArray(m.icons)||!m.icons.length) throw new Error('manifest declares no icons'); console.log('manifest.json OK -', m.icons.length, 'icons')"
 

@@ -4,7 +4,7 @@ An end-to-end consultancy platform for **African aviation ventures**: operators 
 investors building greenfield aviation projects in Kenya and across the continent.
 
 A static, fully client-side web app — **no backend, no signup, no data ever leaves the visitor's
-browser** — deployable on **Netlify or Vercel** (config for both is in the repo).
+browser** — deployable on **Netlify**.
 
 > **Privacy by design.** Every answer, every name, every financial assumption is stored only in the
 > visitor's `localStorage`. There is no API, no analytics, no AI call-home — so the "stays on your
