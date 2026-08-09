@@ -846,8 +846,19 @@ server.close();
   }
 
   /* One host, one routing file. A second host's config that disagrees
-     is how the CSP came to be enforced on one copy and not the other. */
-  for (const dead of ["now.json", "firebase.json"]) {
+     is how the CSP came to be enforced on one copy and not the other.
+
+     vercel.json belongs on this list precisely BECAUSE it is gone. The
+     list is a watchlist for a config coming back, not an inventory of
+     what is here — now.json and firebase.json have never existed in
+     this repository and are watched anyway. Removing the one entry with
+     a history of causing the split-policy problem, on the grounds that
+     the file was deleted, inverted what the list is for: `vercel init`
+     would recreate it and nothing would fail.
+
+     The file being absent is what makes the check cheap, not what makes
+     it unnecessary. */
+  for (const dead of ["vercel.json", "now.json", "firebase.json"]) {
     if (existsSync(join(ROOT, dead))) {
       routeIssues.push(`${dead} is present alongside _redirects — two hosts, two answers, and the review believed the wrong one`);
     }
