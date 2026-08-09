@@ -942,5 +942,95 @@ server.close();
   );
 }
 
+/* ---- every var(--token) resolves to a token that exists ----
+
+   The brand ramp was renamed from --dn-* to --jk-* at some point, and
+   the page-level <style> blocks were never brought along. Forty-four
+   references to eight tokens defined nowhere survived across twelve
+   pages, including five of the twelve tools. about.html had
+   var(--jk-muted) and var(--dn-dark) on adjacent lines.
+
+   Nothing caught it, and nothing was going to. An unresolvable var()
+   makes the whole declaration invalid at computed-value time, so the
+   property silently reverts to its inherited or initial value — which
+   for `color` is usually the near-black it was going to be anyway.
+   Every existing guard looked right:
+
+     - the contrast sweep passed, because text falling back to inherited
+       body colour on white has excellent contrast;
+     - the console was clean, because a dead var() is not an error;
+     - the pages rendered, because `border: 1px solid var(--gone)` does
+       not fail loudly, it just stops being a border.
+
+   What it cost: the About page's next-step cards lost their border and
+   with it their hover state (border-color on border-style:none shows
+   nothing), the company profile's stat cards and scoring table lost
+   their rules, the privacy and terms callouts lost their tint, three
+   calculators' result eyebrows lost the amber — and the one that was
+   not cosmetic, the Training TNA's competency selects lost their focus
+   ring entirely, because `.cur-select:focus` set `outline` to a dead
+   token and outranks the global :focus-visible rule on specificity. A
+   keyboard user got no indication at all of where they were.
+
+   This is a grep, not a render, and that is the point: it covers every
+   declaration on the site rather than the ones a test happened to
+   drive. A reference carrying a fallback — var(--x, #fff) — is valid by
+   construction and is not flagged. */
+{
+  const cssIssues = [];
+  const defined = new Set();
+  const referenced = new Map();   /* token -> [file, …] */
+
+  const cssFiles = readdirSync(join(ROOT, "assets", "css"))
+    .filter((f) => f.endsWith(".css"))
+    .map((f) => join("assets", "css", f));
+
+  const collect = (rel, text) => {
+    /* Definitions: a custom property in declaration position, wherever
+       it lives — stylesheet, <style> block, or a style="" attribute. */
+    for (const m of text.matchAll(/(--[A-Za-z0-9_-]+)\s*:/g)) defined.add(m[1]);
+    /* …and the ones JavaScript sets at runtime, which are just as real. */
+    for (const m of text.matchAll(/setProperty\(\s*["'`](--[A-Za-z0-9_-]+)/g)) defined.add(m[1]);
+    /* References. Matching only the no-fallback form: var(--x, #fff)
+       stays valid whether or not --x exists, so it is not a defect. */
+    for (const m of text.matchAll(/var\(\s*(--[A-Za-z0-9_-]+)\s*\)/g)) {
+      if (!referenced.has(m[1])) referenced.set(m[1], []);
+      referenced.get(m[1]).push(rel);
+    }
+  };
+
+  const styleJs = [];
+  const walkJs = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === "node_modules") continue;
+      const full = join(dir, e.name);
+      if (e.isDirectory()) walkJs(full);
+      else if (e.name.endsWith(".js")) styleJs.push(full.slice(ROOT.length + 1));
+    }
+  };
+  walkJs(join(ROOT, "assets", "js"));
+
+  for (const rel of [...cssFiles, ...pages, ...styleJs]) {
+    collect(rel, readFileSync(join(ROOT, rel), "utf8"));
+  }
+
+  for (const [token, where] of referenced) {
+    if (defined.has(token)) continue;
+    const files = [...new Set(where)];
+    cssIssues.push(
+      `${token} is referenced ${where.length}× in ${files.length} file(s) ` +
+      `(${files.slice(0, 4).join(", ")}${files.length > 4 ? `, +${files.length - 4} more` : ""}) ` +
+      `but defined nowhere — every declaration using it is dropped`
+    );
+  }
+
+  problems += cssIssues.length;
+  console.log(
+    `\n${cssIssues.length ? "❌" : "✅"} every var(--token) resolves ` +
+      `(${referenced.size} distinct tokens referenced, ${defined.size} defined)` +
+      (cssIssues.length ? "\n     - " + cssIssues.join("\n     - ") : "")
+  );
+}
+
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);
 process.exit(problems ? 1 : 0);
