@@ -1619,6 +1619,73 @@ await page.goto(base + "/results.html"); await page.waitForTimeout(300);
 assert(await page.$eval("#empty", e => getComputedStyle(e).display !== "none"), "empty state shown when no answers");
 assert(await page.$eval("#report", e => getComputedStyle(e).display === "none"), "report hidden in empty state");
 
+/* ─── 6b. RESULTS — the charter deviation: partial is refused ─── */
+
+/* docs/DIAGNOSTIC-CHARTER.md records that this platform refuses to
+   score a part-answered scorecard, where the sister platform
+   renormalises and prints a confidence figure. Opposite remedies to the
+   same problem, both deliberate: a lender's boardroom will not tolerate
+   a caveated number, and a border post cannot wait for a complete one.
+
+   The empty state above proves the zero-answer case. It does not prove
+   this one, and this one is where the money is: 39 of 40 answered still
+   has to refuse, because a scorecard is flattered by whichever domains
+   the respondent filled in first. A deviation nobody checks is a
+   comment, and nothing here would have noticed this platform quietly
+   adopting the other's behaviour. */
+section("Results page — a part-answered scorecard is refused, not renormalised");
+{
+  await page.goto(base + "/results.html");
+  const total = await page.evaluate(() => {
+    /* Every question but the last one of the last domain. */
+    const ans = {};
+    JK.domains.forEach(d => { ans[d.id] = d.questions.map((_, i) => i % 5); });
+    const last = JK.domains[JK.domains.length - 1];
+    ans[last.id][last.questions.length - 1] = null;
+    saveAnswers(ans);
+    return JK.domains.reduce((n, d) => n + d.questions.length, 0);
+  });
+  await page.goto(base + "/results.html"); await page.waitForTimeout(300);
+
+  assert(await page.$eval("#empty", e => getComputedStyle(e).display !== "none"),
+    `${total - 1} of ${total} answered must still show the empty state, not a report`);
+  assert(await page.$eval("#report", e => getComputedStyle(e).display === "none"),
+    "no report is rendered from a part-answered scorecard");
+
+  /* And the refusal has to explain itself. "Nothing here" and "not
+     enough here yet" are different messages, and the second is the only
+     one that tells someone what to do. */
+  const msg = (await page.$eval("#empty", e => e.textContent) || "").replace(/\s+/g, " ");
+  assert(/\d+\s+questions?/i.test(msg),
+    `the refusal should name what is missing (got: "${msg.slice(0, 90)}")`);
+
+  /* The engine itself must agree with the page — a projection that
+     reported answeredAll true while the page refused would mean two
+     parts of the product disagreeing about the same data. */
+  const state = await page.evaluate(() => {
+    const s = computeScores(loadAnswers());
+    return { answeredAll: s.answeredAll, index: s.index };
+  });
+  assert(state.answeredAll === false,
+    "computeScores must report the scorecard incomplete, matching what the page shows");
+
+  /* Completing it flips both, which is the negative control: without
+     this, a page that refused everything would pass every line above. */
+  await page.evaluate(() => {
+    const ans = loadAnswers();
+    const last = JK.domains[JK.domains.length - 1];
+    ans[last.id][last.questions.length - 1] = 3;
+    saveAnswers(ans);
+  });
+  await page.goto(base + "/results.html"); await page.waitForTimeout(300);
+  assert(await page.$eval("#report", e => getComputedStyle(e).display !== "none"),
+    "the same scorecard renders a report once the last answer is supplied");
+  assert(await page.$eval("#empty", e => getComputedStyle(e).display === "none"),
+    "and the empty state goes away");
+
+  await page.evaluate(() => localStorage.removeItem("jk_airline_scorecard_v3"));
+}
+
 /* ─── 7. CASK CALCULATOR ─── */
 section("CASK calculator");
 await page.goto(base + "/tools/cask-calculator.html"); await page.waitForTimeout(250);
