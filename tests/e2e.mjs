@@ -1686,6 +1686,69 @@ section("Results page — a part-answered scorecard is refused, not renormalised
   await page.evaluate(() => localStorage.removeItem("jk_airline_scorecard_v3"));
 }
 
+/* ─── 6c. COMPANY PROFILE — counted, not typed ─── */
+
+/* The deck this page replaces was headed "Twelve tools. Free." and
+   listed nine. The count was right and the list was three short — Fuel
+   Contract Optimizer, MRO Readiness and the Venture Control Room, the
+   flagship. Three live products invisible to anyone reading the company
+   profile, and nothing could have noticed: a slide cannot tell that the
+   toolbox grew.
+
+   Every figure on the page is derived, and this reads them back off the
+   rendered DOM and compares them with the registries. Charter rule 10,
+   the same guard the sister platform carries. */
+section("Company profile counts itself from the registries");
+{
+  await page.goto(base + "/company-profile.html"); await page.waitForTimeout(350);
+
+  const seen = await page.evaluate(() => ({
+    stats: [...document.querySelectorAll("#cp-stats div b")].map(e => e.textContent.trim()),
+    toolLinks: [...document.querySelectorAll("#cp-tools a")].map(a => a.getAttribute("href")),
+    groups: document.querySelectorAll("#cp-tools .cp-group").length,
+    sectors: document.querySelectorAll("#cp-sectors li").length,
+    rows: document.querySelectorAll(".cp-table tbody tr").length,
+    body: document.body.innerText.replace(/\s+/g, " ")
+  }));
+  const truth = await page.evaluate(() => ({
+    tools: TOOL_MENU.reduce((n, g) => n + g.items.length, 0),
+    files: TOOL_MENU.flatMap(g => g.items.map(i => i.file)),
+    groups: TOOL_MENU.length,
+    sectors: JKV.sectors.length,
+    phases: JKV.phaseSpine.length,
+    domains: JK.domains.length,
+    questions: JK.domains.reduce((n, d) => n + d.questions.length, 0),
+    weight: JK.domains.reduce((n, d) => n + d.weight, 0)
+  }));
+
+  assert(seen.stats.includes(String(truth.tools)),
+    `the profile should state ${truth.tools} tools (stats read: ${seen.stats.join(", ")})`);
+  assert(seen.stats.includes(String(truth.sectors)),
+    `the profile should state ${truth.sectors} sectors`);
+  assert(seen.stats.includes(String(truth.phases)),
+    `the profile should state ${truth.phases} certification phases`);
+
+  /* The count alone is what the deck got right. Every tool must also be
+     PRESENT — that is the half that was wrong, and a count check would
+     have passed against the deck unchanged. */
+  assert(seen.toolLinks.length === truth.tools,
+    `the toolbox lists ${seen.toolLinks.length} tools but the registry has ${truth.tools}`);
+  const missing = truth.files.filter(f => !seen.toolLinks.includes(f));
+  assert(missing.length === 0, `tools in the menu but absent from the profile: ${missing.join(", ")}`);
+  assert(seen.groups === truth.groups, `expected ${truth.groups} track groups, found ${seen.groups}`);
+
+  assert(seen.sectors === truth.sectors, `expected ${truth.sectors} sectors listed, found ${seen.sectors}`);
+  assert(seen.rows === truth.domains, `expected ${truth.domains} domain rows, found ${seen.rows}`);
+  assert(new RegExp(`${truth.questions} questions`).test(seen.body),
+    `the profile should state ${truth.questions} questions`);
+  assert(new RegExp(`${truth.weight}%`).test(seen.body),
+    `the profile should print the ${truth.weight}% weight total`);
+
+  /* Stamped when read, which is the whole reason this is a page. */
+  const year = String(new Date().getFullYear());
+  assert(new RegExp(year).test(seen.body), "the profile states the date it was read");
+}
+
 /* ─── 7. CASK CALCULATOR ─── */
 section("CASK calculator");
 await page.goto(base + "/tools/cask-calculator.html"); await page.waitForTimeout(250);
