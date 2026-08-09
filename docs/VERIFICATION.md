@@ -100,6 +100,46 @@ all three "passed".
 
 **Ask:** is the baseline committed before you start breaking things?
 
+## 8. The check saw a real change, but not the one it was looking for
+
+`tests/focus.mjs` reported *"1325 focusable elements, all with a visible
+indicator at 3:1"* while the Training TNA's competency selects had no
+focus indicator at all.
+
+The rule was `.cur-select:focus { outline: 2px solid var(--dn-steel);
+border-color: var(--dn-steel) }`, and `--dn-steel` was defined nowhere.
+Both declarations were dropped: the outline reverted to `none`, and
+`border-color` reverted to `currentColor` — black. The check compares
+the resting border to the focused border, found `#cbd5e1` → black, and
+scored that at 21:1.
+
+So the measurement was correct. A colour did change on focus, and it did
+have contrast. It was the accidental by-product of a broken declaration
+rather than any indicator anyone drew, and nothing in a before/after
+colour comparison can tell those apart.
+
+What closed it was not a stricter focus check. It was
+`tests/audit.mjs` refusing to let a `var()` reference resolve to
+nothing, one layer earlier — the defect was never really about focus.
+
+**Ask:** could this check be satisfied by an accident? If the assertion
+is "something changed", name what should have changed.
+
+## 9. The measurement was taken before the thing finished happening
+
+The first pass of the keyboard walk read `getComputedStyle` immediately
+after each `Tab`. `.cur-select` carries `transition: all 0.15s`, so a
+2px ring reads as `solid 0px` for the first frames. Every transitioned
+control on the site came back "no focus indicator", and the one that was
+genuinely ringless was buried in the false ones.
+
+Distinguishing them took a settle delay and reading the `outline-style`:
+mid-transition is `solid 0px`, genuinely absent is `none 0px`, and the
+second never becomes visible however long you wait.
+
+**Ask:** is the property being read the settled one, or one still on its
+way there?
+
 ---
 
 ## The two properties every guard needs

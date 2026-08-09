@@ -35,6 +35,19 @@
 <link rel="stylesheet" href="assets/css/fonts.css">
 <link rel="stylesheet" href="assets/css/jk.css">
 <style>
+  /* Five sections, all on white, each paying a full band's padding top
+     and bottom: 77 + 77 = 154px of nothing between every pair, four
+     times over, 614px on a 3,400px page — 18% of the scroll. Band
+     padding is what separates one background from the next, and where
+     the background never changes it separates nothing. It is the same
+     trap the tool groups below avoid by being divs, met one level up.
+
+     The sections stay sections: they are the page's outline, and a
+     screen-reader user navigates by them. They just stop paying for a
+     band change that does not happen. */
+  main > section { padding-block: 0; }
+  main > section + section { margin-top: clamp(2rem, 3.2vw, 2.8rem); }
+
   /* The stat row and the toolbox grid. Deliberately local: nothing else
      on the site lays out this way, and adding four classes to jk.css for
      one page is how a stylesheet becomes a graveyard. */
@@ -55,6 +68,8 @@
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
+
 
 <nav class="nav">
   <div class="wrap">

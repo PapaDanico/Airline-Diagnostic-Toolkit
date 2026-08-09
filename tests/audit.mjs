@@ -1032,5 +1032,74 @@ server.close();
   );
 }
 
+/* ---- every class in the markup is a class the stylesheet knows ----
+
+   The same half-finished rename that left the --dn-* tokens behind also
+   left .band-fog behind: used on five sections across results.html,
+   demo-results.html and how-it-works.html, defined nowhere. The live
+   class is .band-parchment.
+
+   A section that should be a tinted band renders as plain white — and
+   because the neighbouring sections are also white, the band padding
+   that was there to separate two backgrounds now separates nothing.
+   That is what 307px of void on how-it-works.html was, and results.html
+   — the page a visitor reaches after answering forty questions — had
+   two of them.
+
+   Nothing in the suite could see it. A class that does not exist has no
+   styles to check, so there is no contrast to measure, no element to
+   find missing, and no console warning. The page is not broken; it is
+   just quietly plainer than it was drawn.
+
+   Classes JavaScript adds at runtime count as used, and classes only
+   ever written by JavaScript count as defined — the check is looking
+   for names that exist in exactly one place and are therefore inert. */
+{
+  const classIssues = [];
+  let styleText = readdirSync(join(ROOT, "assets", "css"))
+    .filter((f) => f.endsWith(".css"))
+    .map((f) => readFileSync(join(ROOT, "assets", "css", f), "utf8"))
+    .join("\n");
+  for (const p of pages) {
+    for (const m of readFileSync(join(ROOT, p), "utf8").matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
+      styleText += m[1];
+    }
+  }
+  const definedClasses = new Set([...styleText.matchAll(/\.([A-Za-z][A-Za-z0-9_-]*)/g)].map((m) => m[1]));
+
+  const scriptFiles = [];
+  const walkScripts = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === "node_modules") continue;
+      const full = join(dir, e.name);
+      if (e.isDirectory()) walkScripts(full);
+      else if (e.name.endsWith(".js")) scriptFiles.push(full);
+    }
+  };
+  walkScripts(join(ROOT, "assets", "js"));
+  const scriptText = scriptFiles.map((f) => readFileSync(f, "utf8")).join("\n");
+
+  const usedClasses = new Map();   /* class -> first page it appears on */
+  for (const p of pages) {
+    const markup = readFileSync(join(ROOT, p), "utf8").replace(/<style[\s\S]*?<\/style>/g, "");
+    for (const m of markup.matchAll(/class="([^"]+)"/g)) {
+      for (const c of m[1].split(/\s+/)) if (c && !usedClasses.has(c)) usedClasses.set(c, p);
+    }
+  }
+
+  for (const [cls, page] of usedClasses) {
+    if (definedClasses.has(cls)) continue;
+    if (scriptText.includes(cls)) continue;   /* a hook JS reads or writes */
+    classIssues.push(`.${cls} is used in the markup (${page}) but no stylesheet defines it and no script touches it`);
+  }
+
+  problems += classIssues.length;
+  console.log(
+    `\n${classIssues.length ? "❌" : "✅"} every class in the markup is styled or scripted ` +
+      `(${usedClasses.size} distinct classes across ${pages.length} pages)` +
+      (classIssues.length ? "\n     - " + classIssues.join("\n     - ") : "")
+  );
+}
+
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);
 process.exit(problems ? 1 : 0);
