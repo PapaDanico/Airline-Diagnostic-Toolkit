@@ -756,17 +756,12 @@ server.close();
    so the status was wrong too.
 
    But it was half right, for a reason it did not name. The site was
-   configured for two hosts. vercel.json set cleanUrls, which gives
-   every page an extensionless URL automatically; _redirects lists them
-   one at a time. So /about worked on one host and 404'd on the other,
-   and which host you tested changed the answer. Worse, vercel.json
-   carried only frame-ancestors while _headers carries the full policy —
-   script-src 'self', the thing a reflected XSS was fixed with here — so
-   one live copy of this site was not enforcing it.
+   configured for two hosts, with clean-URL behavior split between host
+   configs and _redirects. So /about worked on one host and 404'd on
+   the other, and which host you tested changed the answer.
 
-   Vercel is cancelled, so vercel.json is gone rather than reconciled.
    Dead config that contradicts the live config is worse than none: it
-   is what sent the review down the wrong path.
+   sends reviews down the wrong path and can weaken header enforcement.
 
    That leaves one host and these rules, checked for the mistake that
    actually happened — venture-dashboard was the only tool page with no
@@ -790,10 +785,10 @@ server.close();
 
      This started as "every tool page" and was widened, because the
      asymmetry it left was real: the tools had clean URLs and the
-     content pages did not. That was survivable only while vercel.json
-     set cleanUrls and quietly covered the gap on one host. Removing
-     that config removed the cover too, so /about stopped answering
-     everywhere rather than just on Netlify.
+     content pages did not. That was survivable only while legacy
+     host-level clean-URL config quietly covered the gap on one host.
+     Removing that config removed the cover too, so /about stopped
+     answering everywhere rather than just on one host.
 
      The exemptions are named with their reason. All three lack a
      canonical, and the first two are noindex — the same three the page
@@ -852,7 +847,7 @@ server.close();
 
   /* One host, one routing file. A second host's config that disagrees
      is how the CSP came to be enforced on one copy and not the other. */
-  for (const dead of ["vercel.json", "now.json", "firebase.json"]) {
+  for (const dead of ["now.json", "firebase.json"]) {
     if (existsSync(join(ROOT, dead))) {
       routeIssues.push(`${dead} is present alongside _redirects — two hosts, two answers, and the review believed the wrong one`);
     }
