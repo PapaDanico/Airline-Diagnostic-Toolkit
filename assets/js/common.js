@@ -971,6 +971,12 @@ if (typeof window !== "undefined") {
   Object.assign(window, { STORE_KEY, JK_LOGO, JK_LOGO_LIGHT, applyPartner, mountChrome, isEmbedded, applyEmbedMode,
     saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel,
     wireToolEnquiryForm, sessionGet, sessionSet, reportingWrite,
+    /* Exported so the company profile can COUNT the toolbox rather
+       than assert a number beside it. The deck this page replaces
+       was headed "Twelve tools" and listed nine — the count was
+       right and the list was three short, which is exactly the
+       drift a derived figure cannot have. */
+    TOOL_MENU,
     toolStore, fmtMoney, fmtNum, fmtRatio, clampNum, escapeHtml, mountReveal,
     citeChip, citeChips, mountPrintHead, toolMailto, wireDisclosure,
     annualDebtService, lookThrough });
