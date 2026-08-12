@@ -140,12 +140,46 @@ const JK = {
   domains: [
     {
       id: "safety", name: "Safety & SMS Maturity", weight: 18,
-      blurb: "ICAO SMS maturity, reporting culture, regulatory standing and safety-data analysis.",
+      /* THIS DOMAIN SCREENS. IT DOES NOT ASSESS.
+
+         Five questions cannot evaluate a system ICAO Annex 19 defines
+         as four components and TWELVE elements. What they can do is
+         tell a carrier whether the SMS is the thing to look at first,
+         which is a different job and still a useful one. Saying so is
+         the difference between a screening question and an overclaim,
+         and this domain is titled "SMS Maturity" and cites Annex 19 —
+         so it has to say which of the two it is doing. The full
+         instrument is named in `fullAssessment` below. */
+      blurb: "ICAO SMS maturity, reporting culture, regulatory standing and safety-data analysis. Five questions that screen — Annex 19 defines twelve elements, and assessing them is a separate instrument.",
+      screensOnly: "Annex 19 defines twelve elements. These five questions indicate whether the SMS is where to look first; they do not assess it.",
+      fullAssessment: {
+        label: "SMS maturity across all twelve Annex 19 elements",
+        href: "https://usalamasms.com/toolkits/maturity"
+      },
       rxCategory: "Aviation SMS platforms and flight-data analysis (FDM/FOQA) tooling; independent safety-culture and SMS maturity assessment.",
       jkTool: "JK B4 — Safety Culture Maturity Assessment (ICAO SMS 5-level)",
       benchmark: "Carriers on the IOSA registry averaged 0.98 accidents per million flights in 2025 against 2.55 for non-IOSA operators. Africa's all-accident rate improved from 12.13 to 7.86 per million sectors — below its own five-year average, but still the highest of any region. IOSA registration is a condition of IATA membership.",
       benchmarkSrc: "IATA 2025 Safety Report", benchmarkAsOf: "2025-12-31", benchmarkCadence: "annual",
       standard: "IOSA · ICAO SMS (Annex 19)",
+      /* WHY THIS FIVE-POINT LADDER IS NOT THE SAME AS THE OTHER ONE.
+
+         A client who uses this scorecard and the twelve-element
+         instrument meets two different five-point SMS scales, and would
+         reasonably ask which is ICAO's. Neither is: ICAO publishes no
+         five-point maturity scale for these elements, so any product
+         showing one is showing its own articulation. Stating that is
+         cheaper than pretending they agree, and far cheaper than a
+         client discovering the discrepancy in front of a regulator.
+
+         What IS external, and is applied in both, is SM ICG's ordering
+         rule — the evaluation tool CASA has adopted as Form 1591 holds
+         that an indicator cannot be Operating or Effective if it is not
+         Present, and cannot be Present if it is not documented. That is
+         why "on paper only" sits at the bottom of this ladder and not
+         off it: documentation is the floor of the scale, not a failure
+         of it. */
+      scaleNote: "This five-point ladder is JK's screening articulation. ICAO publishes no five-point SMS maturity scale, so it is ours and is labelled as such — as is the different five-point scale used by the twelve-element instrument. What both follow is SM ICG's rule that nothing counts as operating before it is documented.",
+      scaleSrc: "SM ICG SMS Evaluation Tool (adopted by CASA as Form 1591)",
       questions: [
         { t: "How mature is your Safety Management System (SMS)?",
           o: ["Deficient — SMS largely on paper only","Reactive — responds after events","Proactive — hazard identification embedded","Predictive — data-driven risk management","Optimising — continuous, fully integrated"] },
