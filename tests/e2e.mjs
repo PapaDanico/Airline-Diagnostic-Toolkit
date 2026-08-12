@@ -64,6 +64,56 @@ await page.reload(); await page.waitForTimeout(300);
 assert(!await page.$eval("#see-results", b => b.disabled), "see-results enabled after all answered");
 assert(/40 of 40/.test(await page.$eval("#progress-label", e => e.textContent)), "progress shows 40/40");
 
+/* ─── 1b. A DEFICIENT SMS SURVIVES THE AVERAGE ───
+   The health index is a weighted mean across eight domains and safety
+   is eighteen of a hundred, so seven strong commercial domains carry a
+   paper-only safety management system to a healthy-looking headline.
+   Driving it proved the case: index 96, verdict "Best-in-class
+   trajectory · Strong across the board", SMS answered "Deficient".
+
+   The index is deliberately NOT capped — SM ICG's own guidance is that
+   an SMS evaluation should not be scored, still less turned into a pass
+   mark. What must hold is that the fact travels anyway: a flag beside
+   the ring, and a verdict sentence that stops claiming strength across
+   a board one plank of which is missing. */
+section("A deficient SMS is not averaged away");
+for (const [level, rung, flagged] of [[0, "Deficient", true], [1, "Reactive", true], [2, "Proactive", false]]) {
+  await page.goto(base + "/results.html");
+  await page.evaluate((lvl) => {
+    const ans = {};
+    JK.domains.forEach(d => { ans[d.id] = d.questions.map(() => 4); });
+    ans.safety[0] = lvl;
+    localStorage.setItem("jk_airline_scorecard_v3", JSON.stringify(ans));
+  }, level);
+  await page.reload(); await page.waitForTimeout(500);
+
+  const flag = await page.$(".index-flag");
+  assert(Boolean(flag) === flagged,
+    `SMS answered "${rung}" ${flagged ? "raises" : "raises no"} flag beside the index`);
+
+  if (flagged) {
+    const text = await page.$eval(".index-flag", e => e.textContent);
+    assert(text.includes(rung), `the flag names the answer that raised it ("${rung}")`);
+    const verdict = await page.$eval("#index-text", e => e.textContent);
+    assert(!/strong across the board/i.test(verdict),
+      `the verdict stops claiming strength across the board with a ${rung.toLowerCase()} SMS`);
+    // The whole point of a flag is that it reaches a board pack.
+    const printed = await page.$eval(".index-flag", e => !e.classList.contains("no-print"));
+    assert(printed, "the flag is not excluded from print");
+  }
+}
+
+/* Put the shared answers back. This block rewrites localStorage to make
+   its own case, and everything after it reads the [1,2,3,2,4] spread set
+   in section 1 — leaving all-fours behind silently broke the prescriber
+   assertions two sections down, which is a check failing for a reason
+   that has nothing to do with what it tests. */
+await page.evaluate(() => {
+  const ans = {};
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  localStorage.setItem("jk_airline_scorecard_v3", JSON.stringify(ans));
+});
+
 /* ─── 2. RESULTS — core rendering ─── */
 section("Results page — core rendering");
 await page.goto(base + "/results.html"); await page.waitForTimeout(600);

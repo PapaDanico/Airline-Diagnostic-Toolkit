@@ -87,6 +87,35 @@
   document.getElementById("index-band").style.color = v.color;
   document.getElementById("index-text").textContent = v.text;
 
+  /* ---- flags that survive the average ----
+     Rendered directly beneath the ring, not in the findings table
+     further down, because the whole point of a flag is that it is seen
+     by somebody who reads only the number. It carries no `no-print`
+     class: on a board report this is the line that must not be the one
+     that got cut. See computeScores() for why the index itself is left
+     alone. */
+  /* The BAND TEXT is prose, not the score, and prose that says "strong
+     across the board" beside a flag saying the safety management system
+     is deficient is simply false — the screenshot that found this read
+     "Best-in-class trajectory · Strong across the board" at index 96
+     with an SMS that exists on paper only. The index is still left
+     alone; what changes is a sentence that was contradicting the panel
+     underneath it. */
+  if ((s.flags || []).some(f => f.severity === "critical")) {
+    document.getElementById("index-text").textContent =
+      "Strong commercially. That is not the same as strong overall, and the finding below is " +
+      "the one an audit opens on.";
+  }
+
+  for (const flag of (s.flags || [])) {
+    const el = document.createElement("div");
+    el.className = "index-flag";
+    el.dataset.severity = flag.severity;
+    el.setAttribute("role", "note");
+    el.innerHTML = `<b>${escapeHtml(flag.title)}</b><span>${escapeHtml(flag.body)}</span>`;
+    document.getElementById("index-text")?.parentNode?.appendChild(el);
+  }
+
   if (s.calibration && (s.calibration.fleetType || s.calibration.opModel)) {
     const calibEl = document.createElement("div");
     calibEl.style.cssText = "display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 14px;font-size:.85rem;color:#fff;margin-top:.6rem";

@@ -1230,3 +1230,41 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 }
 
 @media print { .jk-storage-warning { display: none; } }
+
+/* ── A flag that survives the average ───────────────────────────────
+   The health index is a weighted mean across eight domains, so a
+   deficient safety management system can be carried to a respectable
+   headline by seven commercial ones. The index is left alone on
+   purpose — see computeScores() — and this is what carries the fact
+   the average hides.
+
+   It sits inside the dark index band, so its colours are set against
+   that ground rather than against the page. Deliberately NOT marked
+   no-print: on a board report this is the line that must not be the
+   one that gets cut. */
+.index-flag {
+  display: block;
+  max-width: 46rem;
+  margin: 1rem auto 0;
+  padding: .85rem 1.1rem;
+  text-align: left;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.34);
+  border-left: 4px solid var(--jk-amber);
+  background: rgba(0,0,0,.24);
+  color: #fff;
+  line-height: 1.45;
+}
+.index-flag b { display: block; font-size: .98rem; margin-bottom: .25rem; }
+.index-flag span { display: block; font-size: .88rem; color: rgba(255,255,255,.9); }
+.index-flag[data-severity="critical"] { border-left-color: var(--jk-red); }
+
+@media print {
+  .index-flag {
+    background: #fff;
+    color: #000;
+    border: 1px solid #000;
+    border-left: 4px solid #000;
+  }
+  .index-flag span { color: #000; }
+}

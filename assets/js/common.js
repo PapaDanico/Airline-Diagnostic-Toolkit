@@ -506,9 +506,48 @@ function computeScores(answers) {
              benchmark: d.benchmark, benchmarkSrc: d.benchmarkSrc, benchmarkAsOf: d.benchmarkAsOf,
              benchmarkCadence: d.benchmarkCadence,
              standard: d.standard,
+             screensOnly: d.screensOnly, fullAssessment: d.fullAssessment,
+             scaleNote: d.scaleNote, scaleSrc: d.scaleSrc,
              caskLink: d.caskLink, canvasLink: d.canvasLink };
   });
-  return { domains, index: wsum ? Math.round(weighted / wsum) : 0, answeredAll, calibration: calib };
+
+  /* ---- the safety flag, which does NOT move the index ----------------
+
+     The index is a weighted average across eight domains, and safety is
+     eighteen of a hundred. So a carrier whose SMS exists on paper and
+     nowhere else can be carried to a respectable headline by seven
+     commercial domains doing well. Averaged, that reads as a healthy
+     airline. It is not one, and no regulator will average it.
+
+     The index is deliberately LEFT ALONE. A number a client may already
+     have quoted should not silently change, and capping it would be this
+     tool asserting a pass mark it has no standing to set — SM ICG's own
+     guidance is that an SMS evaluation should not be scored at all, and
+     never as pass/fail. What travels instead is a flag that survives the
+     average and says which answer raised it.
+
+     Raised on the SMS-MATURITY ANSWER, not on the domain percentage: a
+     good reporting rate and clean regulatory findings can lift the
+     domain while the management system underneath is still paper, and
+     that is exactly the case worth flagging. */
+  const SAFETY_FLOOR = 2; // below "Proactive" — i.e. Deficient or Reactive
+  const smsMaturity = (answers.safety || [])[0];
+  const flags = [];
+  if (Number.isInteger(smsMaturity) && smsMaturity < SAFETY_FLOOR) {
+    const rungs = (JK.domains.find(d => d.id === "safety") || {}).questions || [];
+    const rung = String(((rungs[0] || {}).o || [])[smsMaturity] || "").split(" — ")[0];
+    flags.push({
+      id: "sms-maturity",
+      severity: "critical",
+      title: "The safety management system is the finding",
+      body: "You answered “" + rung + "” for SMS maturity. The index above averages that " +
+            "with seven commercial domains, so it does not show it. An operator cannot trade a " +
+            "deficient SMS against good unit costs, and an audit will not average the two — it " +
+            "will open on this."
+    });
+  }
+
+  return { domains, index: wsum ? Math.round(weighted / wsum) : 0, answeredAll, calibration: calib, flags };
 }
 
 function indexVerdict(idx) {
