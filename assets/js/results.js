@@ -181,8 +181,30 @@
     const tr = document.createElement("tr");
     const bench = d.benchmark
       ? `<div class="bench"><b>Industry:</b> ${d.benchmark} <span class="src">${benchAttribution(d)}</span></div>` : "";
+
+    /* A DOMAIN THAT ONLY SCREENS HAS TO SAY SO, AND SAY WHERE TO GO.
+
+       The safety domain was corrected to state that five questions
+       screen rather than assess — Annex 19 defines twelve elements, and
+       this asks about one of them. That correction went into the data
+       and never reached the page: `screensOnly` and `fullAssessment`
+       travelled all the way through computeScores and were rendered by
+       nothing. So the row still read as an assessment, and the honest
+       sentence sat in a source file where no client would ever meet it.
+
+       A caveat nobody sees is not a caveat. This is the line that makes
+       it one, and it carries the link, because telling a carrier its
+       SMS score is indicative and not saying what would be definitive
+       leaves them exactly where they started. */
+    const screens = d.screensOnly
+      ? `<div class="screens"><b>This screens, it does not assess.</b> ${escapeHtml(d.screensOnly)}` +
+        (d.fullAssessment
+          ? ` <a href="${escapeHtml(d.fullAssessment.href)}" rel="noreferrer">${escapeHtml(d.fullAssessment.label)}</a>.`
+          : "") +
+        `</div>`
+      : "";
     tr.innerHTML = `
-      <td><strong>${d.name}</strong><br><span class="muted" style="font-size:.82rem">${d.blurb}</span>${bench}</td>
+      <td><strong>${d.name}</strong><br><span class="muted" style="font-size:.82rem">${d.blurb}</span>${bench}${screens}</td>
       <td>${d.weight}%</td>
       <td class="barcell"><div class="bar"><i class="fill-${d.rag}" style="width:${d.pct}%"></i></div></td>
       <td><strong>${d.pct}%</strong></td>

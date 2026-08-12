@@ -114,6 +114,41 @@ await page.evaluate(() => {
   localStorage.setItem("jk_airline_scorecard_v3", JSON.stringify(ans));
 });
 
+/* ─── 1c. A SCREENING DOMAIN SAYS SO, ON THE PAGE ───
+   The safety domain was corrected to state that five questions screen
+   rather than assess — Annex 19 defines twelve elements and this asks
+   about one. That correction went into the data and reached nothing:
+   `screensOnly` and `fullAssessment` travelled through computeScores
+   and were rendered by no one, so the row still read as an assessment
+   and the honest sentence sat in a source file no client would open.
+
+   A caveat nobody sees is not a caveat. This asserts it is on the page,
+   and that it carries the link — telling a carrier its SMS score is
+   indicative without saying what would be definitive leaves them where
+   they started. */
+section("A screening domain says so where a client will read it");
+await page.goto(base + "/results.html");
+await page.evaluate(() => {
+  const ans = {};
+  JK.domains.forEach(d => { ans[d.id] = [1, 2, 3, 2, 4]; });
+  localStorage.setItem("jk_airline_scorecard_v3", JSON.stringify(ans));
+});
+await page.reload(); await page.waitForTimeout(500);
+{
+  const screens = await page.$$(".screens");
+  assert(screens.length > 0, "the screening caveat renders on the results page");
+  const text = await page.$eval(".screens", e => e.textContent);
+  assert(/twelve elements/i.test(text), "the caveat says how many elements Annex 19 defines");
+  assert(/does not assess/i.test(text), "the caveat distinguishes screening from assessing");
+  const href = await page.$eval(".screens a", a => a.getAttribute("href"));
+  assert(Boolean(href) && /toolkits\/maturity/.test(href),
+    `the caveat links to the twelve-element instrument (got ${href})`);
+  // Exactly the domain that declares it, and no other.
+  const declared = await page.evaluate(() => JK.domains.filter(d => d.screensOnly).length);
+  assert(screens.length === declared,
+    `one caveat per declaring domain (${screens.length} rendered, ${declared} declared)`);
+}
+
 /* ─── 2. RESULTS — core rendering ─── */
 section("Results page — core rendering");
 await page.goto(base + "/results.html"); await page.waitForTimeout(600);
