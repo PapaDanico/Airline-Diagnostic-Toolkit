@@ -158,6 +158,7 @@ const TOOL_MENU = [
   { group: "Operate an airline", items: [
     { file: "diagnostic.html",                    label: "Airline Health Scorecard" },
     { file: "tools/cask-calculator.html",         label: "CASK Benchmarking Calculator" },
+    { file: "tools/route-economics.html",         label: "Route Economics & Break-even" },
     { file: "tools/operating-model-canvas.html",  label: "Operating Model Canvas" },
     { file: "tools/fuel-optimizer.html",          label: "Fuel Contract Optimizer" },
     { file: "tools/training-tna.html",            label: "Training Needs Analysis" },

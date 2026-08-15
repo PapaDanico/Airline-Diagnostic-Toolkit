@@ -471,7 +471,8 @@
       "A2": "tools/cask-calculator.html",
       "A3": "tools/data-request.html",
       "A4": "tools/operating-model-canvas.html",
-      "A5": "tools/training-tna.html"
+      "A5": "tools/training-tna.html",
+      "A6": "tools/route-economics.html"
     };
     JK.toolboxes.forEach(tb => {
       tb.tools.forEach(t => {

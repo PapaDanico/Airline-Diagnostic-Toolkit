@@ -1330,8 +1330,22 @@ section("Regulatory Index — edition, citation, download, embed");
      thing from a partner carrying yours. */
   await page.goto(base + "/regulations.html?embed=1"); await page.waitForTimeout(400);
   assert(await page.$eval("body", b => b.classList.contains("is-embed")), "embed flag did not apply");
-  assert(await page.$eval(".nav-bar", n => getComputedStyle(n).display === "none")
-    .catch(() => true), "navigation still renders inside an embed");
+  /* Not `.catch(() => true)`.
+
+     This read `$eval(".nav-bar", …).catch(() => true)`, and .nav-bar has
+     never existed — the class is .nav. $eval rejected on every run, the
+     catch turned that into a pass, and the check reported success
+     without once looking at a navigation bar. The nav rendered in full
+     inside embeds the whole time.
+
+     An absent element is now a distinct failure from a visible one:
+     one is a stale selector, the other is a rule that stopped applying,
+     and they want different fixes. */
+  const navHidden = await page.$eval(".nav", (n) => getComputedStyle(n).display === "none")
+    .catch(() => null);
+  assert(navHidden === true, navHidden === null
+    ? "embed: no .nav on the page — the selector this test asserts on has gone stale"
+    : "navigation still renders inside an embed");
   const attrib = (await page.$eval("#embed-attrib", e => e.textContent)).replace(/\s+/g, " ");
   assert(/JK & Associates/.test(attrib), "an embedded index does not say whose it is");
   assert(/JK-REG \d{4}\.\d+/.test(attrib), "an embedded index does not carry its edition");
@@ -2151,6 +2165,110 @@ await assertEnquiryFormSubmits(page, "#fuel-enquiry", "fuel page");
   await page.waitForTimeout(150);
   assert(/On benchmark/i.test((await fuelState()).rng),
     "fuel: a premium below the benchmark is still reported as on benchmark");
+}
+
+/* ─── Route economics ───
+   The arithmetic is asserted against figures worked out by hand, not
+   against the tool's own output, so a regression in the model cannot
+   re-bless itself. */
+{
+  const set = async (id, v) => { await page.$eval("#" + id, (e, x) => {
+    e.value = x; e.dispatchEvent(new Event("input", { bubbles: true }));
+  }, v); };
+  const txt = async (id) => (await page.$eval("#" + id, (e) => e.innerText)).replace(/\s+/g, " ");
+
+  await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(350);
+  for (const [id, v] of [["re-stage","1200"],["re-seats","160"],["re-cask","11.07"],
+                         ["re-fare","145"],["re-anc","12"],["re-cargo","1800"],["re-lf","78"]]) await set(id, v);
+  await page.waitForTimeout(250);
+
+  /* ASK 192,000 · trip cost $21,254 · rev/pax $157 · pax 124.8
+     BLF = (21254 − 1800) / (160 × 157) = 77.4% */
+  const blf = await page.$eval("#re-blf", (e) => e.textContent.trim());
+  assert(blf === "77.4%", `route: break-even load factor should be 77.4%, got ${blf}`);
+  const table = await txt("re-table");
+  for (const want of ["$21,254", "$19,594", "$21,394", "11.14 US¢", "11.07 US¢", "13.08 US¢"]) {
+    assert(table.includes(want), `route: result table omits ${want} — got ${table}`);
+  }
+  assert(!/NaN|Infinity|undefined/.test(table), `route: table carries a non-number — ${table}`);
+
+  /* A fare that cannot cover the sector at any load factor is a
+     different statement from a difficult one, and is worded as one. */
+  await set("re-fare", "40"); await set("re-anc", "0"); await set("re-cargo", "0");
+  await page.waitForTimeout(250);
+  assert(/Cannot break even/i.test(await page.$eval("#re-band", (e) => e.textContent)),
+    "route: a sector that cannot break even at any load factor does not say so");
+
+  /* Suspicious but calculable: warn, and still compute. */
+  await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(350);
+  await set("re-cask", "930"); await page.waitForTimeout(250);
+  assert(/Check the inputs/i.test(await txt("re-contrib")),
+    "route: a 100x unit-cost slip draws no caution");
+
+  /* Impossible: refuse, and name the field. */
+  for (const [id, v, needle] of [["re-stage","0","sector length"],["re-lf","0","load factor"],
+                                 ["re-lf","120","load factor"],["re-fare","-10","fare"]]) {
+    await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(300);
+    await set(id, v); await page.waitForTimeout(200);
+    const err = await txt("re-error");
+    assert(new RegExp(needle, "i").test(err), `route: ${id}=${v} should be refused naming "${needle}" — got "${err}"`);
+  }
+
+  /* The chain. A pre-filled figure with no provenance is worse than an
+     empty field, so the carry-over has to say where it came from — and
+     has to stop saying it when the source stops being valid. */
+  await page.goto(base + "/tools/cask-calculator.html"); await page.waitForTimeout(350);
+  await set("opcost", "310000000"); await set("ask", "2800000000"); await page.waitForTimeout(300);
+  await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(350);
+  assert(await page.$eval("#re-cask", (e) => e.value) === "11.07",
+    "route: the CASK calculation did not carry across");
+  assert(/Carried over/i.test(await txt("re-cask-src")),
+    "route: a carried-over unit cost does not say where it came from");
+
+  await page.goto(base + "/tools/cask-calculator.html"); await page.waitForTimeout(300);
+  await set("ask", "0"); await page.waitForTimeout(300);
+  await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(350);
+  assert(!/Carried over/i.test(await txt("re-cask-src")),
+    "route: an invalidated CASK still pre-fills — a stale number wearing a provenance line is the worst case");
+
+  /* ── which aircraft on this sector ──
+     The point of the comparison is the case where unit cost and the
+     right answer disagree. If it only ever agreed with CASK it would be
+     telling operators something they already had. */
+  await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(350);
+  const hidden = () => page.$eval("#re-fleet-panel", (e) => e.hidden);
+  const verdict = async () => (await page.$eval("#re-fleet-verdict", (e) => e.innerText)).replace(/\s+/g, " ");
+
+  /* Thin: 700km, $70+$5, 55% LF. The 737 has the lower CASK and the
+     E190 the better contribution — hand-checked: trip $10,416 vs
+     $7,840, contribution −$3,216 vs −$3,115. */
+  for (const [id, v] of [["re-stage","700"],["re-seats","160"],["re-cask","9.3"],["re-fare","70"],
+                         ["re-anc","5"],["re-cargo","600"],["re-lf","55"],
+                         ["ac0-name","B737-800"],["ac0-seats","160"],["ac0-cask","9.3"],
+                         ["ac1-name","E190"],["ac1-seats","100"],["ac1-cask","11.2"]]) await set(id, v);
+  await page.waitForTimeout(300);
+  assert(await hidden() === false, "route: two aircraft named and the comparison stays hidden");
+  let v = await verdict();
+  assert(/E190/.test(v) && /loses least/i.test(v),
+    `route: on a thin sector the smaller gauge should lose least — got "${v}"`);
+  assert(/lower unit cost/i.test(v) && /worse choice/i.test(v),
+    `route: the CASK-versus-contribution divergence is not called out — got "${v}"`);
+  assert(!/contributes most — -\$/.test(v),
+    "route: an all-negative comparison still says 'contributes most' with a negative figure");
+
+  /* Dense: same types, more traffic — now the gauge wins and the
+     verdict has to change with it. */
+  for (const [id, v2] of [["re-fare","190"],["re-lf","88"],["re-stage","1400"]]) await set(id, v2);
+  await page.waitForTimeout(300);
+  v = await verdict();
+  assert(/B737-800/.test(v) && /contributes most/i.test(v),
+    `route: on a dense sector the larger gauge should win — got "${v}"`);
+
+  /* One named type is not a comparison. */
+  await set("ac1-name", ""); await page.waitForTimeout(300);
+  assert(await hidden() === true, "route: a single aircraft still renders a comparison table");
+
+  await assertEnquiryFormSubmits(page, "#route-enquiry", "route economics page");
 }
 
 await page.goto(base + "/tools/cask-calculator.html"); await page.waitForTimeout(300);

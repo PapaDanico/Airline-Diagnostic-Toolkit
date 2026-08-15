@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Route Economics &amp; Break-even Calculator — work out contribution per sector, break-even load factor and break-even fare from your own unit cost. Free, client-side, on your device.">
+<link rel="canonical" href="https://jkassociates.enterprises/tools/route-economics.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JK &amp; Associates">
+<meta property="og:title" content="Route Economics &amp; Break-even Calculator — JK &amp; Associates">
+<meta property="og:description" content="Contribution per sector, break-even load factor and break-even fare, from your own unit cost. Free, client-side.">
+<meta property="og:url" content="https://jkassociates.enterprises/tools/route-economics.html">
+<meta property="og:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Route Economics &amp; Break-even Calculator — JK &amp; Associates">
+<meta name="twitter:description" content="Contribution per sector, break-even load factor and break-even fare, from your own unit cost.">
+<meta name="twitter:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<title>Route Economics &amp; Break-even Calculator | JK &amp; Associates</title>
+<link rel="icon" type="image/png" href="../assets/img/jk-badge.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#16100D">
+<link rel="apple-touch-icon" href="../assets/img/jk-badge.png">
+<link rel="preload" href="../assets/fonts/cormorant-garamond-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/dm-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="../assets/css/jk.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner><span data-logo></span><span>JK &amp; Associates<small>Route Economics Calculator</small></span></a>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+    <div class="nav-links">
+      <a href="../index.html" data-keep-partner>Home</a>
+      <a href="../diagnostic.html" data-keep-partner>Scorecard</a>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+
+<header class="diag-head">
+  <div class="wrap">
+    <p class="eyebrow">Free point solution · Tool A6</p>
+    <h1 style="margin:0">Route Economics &amp; Break-even</h1>
+    <p class="muted" style="max-width:680px">The CASK calculator tells you what a seat-kilometre costs. This one tells you whether a particular route pays for it — contribution per sector, the load factor you must fill to break even, and the fare that would break even at the load factor you actually expect. Runs entirely on your device.</p>
+  </div>
+</header>
+
+<form name="tool-enquiry" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text" name="bot-field"><input type="hidden" name="tool">
+  <input type="text" name="name"><input type="email" name="email">
+  <input type="text" name="airline"><input type="text" name="concern">
+</form>
+
+<section>
+  <div class="wrap calc">
+    <div class="card">
+      <h2 style="margin-top:0">The sector</h2>
+      <div class="field">
+        <label for="re-stage">Sector length (km, one way)</label>
+        <input id="re-stage" type="number" min="0" step="50" placeholder="e.g. 1200" value="1200">
+        <div class="hint">Great-circle distance is close enough. Block distance if you have it.</div>
+      </div>
+      <div class="field">
+        <label for="re-seats">Seats installed</label>
+        <input id="re-seats" type="number" min="1" step="1" placeholder="e.g. 160" value="160">
+        <div class="hint">Not seats sold — the configured capacity of the aircraft flying it.</div>
+      </div>
+      <div class="field">
+        <label for="re-cask">Your unit cost (US&cent; per ASK)</label>
+        <input id="re-cask" type="number" min="0" step="0.1" placeholder="e.g. 9.3" value="9.3">
+        <div class="hint" id="re-cask-src">CASK = operating cost &divide; available seat-kilometres.</div>
+      </div>
+
+      <h2>The revenue</h2>
+      <div class="field">
+        <label for="re-fare">Average one-way fare (USD per passenger)</label>
+        <input id="re-fare" type="number" min="0" step="5" placeholder="e.g. 145" value="145">
+        <div class="hint">Net of taxes and passenger charges you collect and remit — what the airline keeps.</div>
+      </div>
+      <div class="field">
+        <label for="re-anc">Ancillary revenue (USD per passenger)</label>
+        <input id="re-anc" type="number" min="0" step="1" placeholder="e.g. 12" value="12">
+        <div class="hint">Bags, seat selection, on-board. Leave at zero if you do not separate it.</div>
+      </div>
+      <div class="field">
+        <label for="re-cargo">Belly cargo &amp; mail (USD per sector)</label>
+        <input id="re-cargo" type="number" min="0" step="100" placeholder="e.g. 1800" value="1800">
+        <div class="hint">Per departure, not per passenger. It lowers the load factor you must fill.</div>
+      </div>
+      <div class="field">
+        <label for="re-lf">Expected load factor (%)</label>
+        <input id="re-lf" type="number" min="0" max="100" step="1" placeholder="e.g. 78" value="78">
+        <div class="hint">What you realistically expect to achieve on this sector, not the target.</div>
+      </div>
+      <div id="re-error"></div>
+
+      <h2>Compare aircraft on this sector</h2>
+      <p class="hint" style="margin:-.4rem 0 .8rem">Optional. Same sector, same fare, different gauge. Leave blank to skip. The first row follows the figures above.</p>
+      <div id="re-fleet">
+        <div class="field">
+          <div class="grid g3" style="gap:8px">
+            <div><label for="ac0-name" style="font-size:var(--fs-xs)">Type</label><input id="ac0-name" type="text" placeholder="e.g. B737-800" value="B737-800"></div>
+            <div><label for="ac0-seats" style="font-size:var(--fs-xs)">Seats</label><input id="ac0-seats" type="number" min="1" step="1" placeholder="160"></div>
+            <div><label for="ac0-cask" style="font-size:var(--fs-xs)">US&cent;/ASK</label><input id="ac0-cask" type="number" min="0" step="0.1" placeholder="9.3"></div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="grid g3" style="gap:8px">
+            <div><label for="ac1-name" style="font-size:var(--fs-xs)">Type</label><input id="ac1-name" type="text" placeholder="e.g. E190" value="E190"></div>
+            <div><label for="ac1-seats" style="font-size:var(--fs-xs)">Seats</label><input id="ac1-seats" type="number" min="1" step="1" placeholder="100" value="100"></div>
+            <div><label for="ac1-cask" style="font-size:var(--fs-xs)">US&cent;/ASK</label><input id="ac1-cask" type="number" min="0" step="0.1" placeholder="11.2" value="11.2"></div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="grid g3" style="gap:8px">
+            <div><label for="ac2-name" style="font-size:var(--fs-xs)">Type</label><input id="ac2-name" type="text" placeholder="e.g. ATR72"></div>
+            <div><label for="ac2-seats" style="font-size:var(--fs-xs)">Seats</label><input id="ac2-seats" type="number" min="1" step="1" placeholder="70"></div>
+            <div><label for="ac2-cask" style="font-size:var(--fs-xs)">US&cent;/ASK</label><input id="ac2-cask" type="number" min="0" step="0.1" placeholder="14.5"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="result-panel">
+        <p class="eyebrow" style="color:var(--jk-amber)">Break-even load factor</p>
+        <div class="rng" id="re-blf">&mdash;</div>
+        <p id="re-band" style="font-weight:700;margin:.2rem 0 .6rem">Enter your figures.</p>
+        <p class="qual" id="re-qual">The share of seats that must be sold before the sector covers its own cost.</p>
+      </div>
+
+      <div class="result-panel" style="margin-top:1rem">
+        <p class="eyebrow" style="color:var(--jk-amber)">At your expected load factor</p>
+        <div id="re-table" style="display:grid;grid-template-columns:1fr auto;gap:.35rem .9rem;font-size:var(--fs-sm);margin:0 0 .9rem"></div>
+        <p class="qual" id="re-contrib" style="margin:0">Enter your figures to see the sector result.</p>
+      </div>
+
+      <div class="result-panel" style="margin-top:1rem">
+        <p class="eyebrow" style="color:var(--jk-amber)">What it would take</p>
+        <p class="qual" id="re-levers" style="margin:0">Enter your figures to see the fare and load factor this sector needs.</p>
+      </div>
+
+      <div class="result-panel" style="margin-top:1rem" id="re-fleet-panel" hidden>
+        <p class="eyebrow" style="color:var(--jk-amber)">Which aircraft on this sector</p>
+        <div class="mx-wrap"><table id="re-fleet-table" style="width:100%;border-collapse:collapse;font-size:var(--fs-sm)"></table></div>
+        <p class="qual" id="re-fleet-verdict" style="margin:.9rem 0 0"></p>
+      </div>
+
+      <div class="guarantee" style="margin-top:1.4rem">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <div>
+          <strong>Take it to the whole network.</strong>
+          <p style="margin:.4rem 0 .8rem;font-size:var(--fs-sm)">One sector at a time is the right way to argue a route. JK runs the same maths across your full schedule, with stage-length and gauge effects on unit cost, so the marginal routes surface before the season does.</p>
+          <form id="route-enquiry" class="grid g2" style="gap:10px">
+            <input type="hidden" name="tool" value="Route Economics &amp; Break-even Calculator">
+            <input name="name" placeholder="Name" required>
+            <input name="airline" placeholder="Airline / Organisation">
+            <input name="email" type="email" placeholder="Work email" required>
+            <select name="concern">
+              <option value="">Primary concern</option>
+              <option>Network planning</option><option>Cost reduction</option>
+              <option>Revenue growth</option><option>Fleet decisions</option><option>Strategy</option>
+            </select>
+            <button type="submit" class="btn btn-amber" style="grid-column:1/-1">Talk to JK about your network &rarr;</button>
+            <p class="enq-msg" style="font-size:var(--fs-sm);margin-top:.6rem;grid-column:1/-1"></p>
+          </form>
+          <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain>info@aviationhubkenya.org</span></p>
+        </div>
+      </div>
+      <p class="disclaimer" style="margin-top:1rem">Indicative estimate only, for orientation. This is a single-sector contribution model on the figures you supply: it applies your network CASK to one route, and unit cost varies with stage length and gauge. It does not model connecting traffic, seasonality, currency or fleet assignment. No data leaves your browser.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> JK &amp; Associates · <a data-email>info@aviationhubkenya.org</a></span>
+    <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <span data-version>v3.3 — End-to-End Aviation Advisory Platform</span></span>
+  </div></div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/page/tools-route-economics.js"></script>
+</body>
+</html>
