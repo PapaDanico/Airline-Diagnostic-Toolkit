@@ -2268,6 +2268,23 @@ await assertEnquiryFormSubmits(page, "#fuel-enquiry", "fuel page");
   await set("ac1-name", ""); await page.waitForTimeout(300);
   assert(await hidden() === true, "route: a single aircraft still renders a comparison table");
 
+  /* ── the house judgement is labelled as one ──
+     Every other figure on this site traces to a source. The break-even
+     bands do not — they are JK's reading — so the page has to say so,
+     and the cut-offs it quotes have to be the ones the code uses. A
+     panel naming different numbers from BLF_BANDS would be a sourcing
+     note that had itself stopped being true, which is the failure this
+     whole suite exists to catch. */
+  await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(350);
+  const note = (await page.$eval("#re-blf", (e) => e.closest(".result-panel").innerText)).replace(/\s+/g, " ");
+  assert(/JK's reading/i.test(note), "route: the break-even bands are not attributed to JK");
+  assert(/not a published standard/i.test(note), "route: the bands do not say they are unpublished");
+  for (const cut of ["65%", "80%", "90%"]) {
+    assert(note.includes(cut), `route: the bands note omits the ${cut} cut-off the code uses`);
+  }
+  assert(/fact rather than a view/i.test(note),
+    "route: the 100% line is arithmetic and should be distinguished from the house bands");
+
   await assertEnquiryFormSubmits(page, "#route-enquiry", "route economics page");
 }
 

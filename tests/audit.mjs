@@ -1131,6 +1131,113 @@ server.close();
   );
 }
 
+/* ---- and every class the stylesheet defines is a class something uses ----
+
+   The mirror of the check above, and the direction nothing was looking.
+
+   .legal .todo was found by accident, only because the rule happened to
+   be moving house — an amber highlight for marking an unsettled clause
+   in a draft policy, on a site where no page has ever carried the class.
+   Twelve more turned up when this was written: six margin utilities, a
+   hero logo, a logo-invert filter, an org-level grid, a ghost pill, a
+   wrap-wide container and a gap bar. Between them, rules that had been
+   downloaded by every visitor and applied to nothing.
+
+   Dead CSS is not a bug. It is a map that no longer matches the ground,
+   and this project's characteristic failure is exactly that: something
+   asserting a state of affairs that has quietly stopped being true.
+
+   ── Why this cannot be a naive substring search ──
+
+   The first version of this check called .is-hold, .is-spv and .is-trust
+   dead. They are live. corporate-structure writes
+
+       class="entity is-${t.k}"
+
+   where t.k is hold | spv | trust, so the literal appears nowhere. A
+   guard that demanded those be deleted would have removed working
+   styles, which is a worse outcome than the dead rules it set out to
+   find.
+
+   So the prefixes JavaScript interpolates into a class attribute are
+   collected first, and any defined class beginning with one is treated
+   as spoken for. That is deliberately generous — a false negative here
+   leaves a dead rule in the sheet, a false positive deletes a live one,
+   and those are not equally bad. */
+{
+  const deadIssues = [];
+
+  const definedIn = new Map();      /* class -> Set(files that define it) */
+  const noteDef = (cls, where) => {
+    if (!definedIn.has(cls)) definedIn.set(cls, new Set());
+    definedIn.get(cls).add(where);
+  };
+  const scanSheet = (css, where) => {
+    css = css
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/url\([^)]*\)/g, "")        /* .png in a url() is not a class */
+      .replace(/"[^"]*"|'[^']*'/g, "");    /* nor a font name or content string */
+    for (const rule of css.matchAll(/([^{}]+)\{[^{}]*\}/g)) {
+      if (/^\s*@/.test(rule[1])) continue;
+      for (const c of rule[1].matchAll(/\.([A-Za-z][A-Za-z0-9_-]*)/g)) noteDef(c[1], where);
+    }
+  };
+  for (const f of readdirSync(join(ROOT, "assets", "css"))) {
+    if (f.endsWith(".css")) scanSheet(readFileSync(join(ROOT, "assets", "css", f), "utf8"), `assets/css/${f}`);
+  }
+  for (const p of pages) {
+    for (const m of readFileSync(join(ROOT, p), "utf8").matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) scanSheet(m[1], p);
+  }
+
+  const inMarkup = new Set();
+  for (const p of pages) {
+    const markup = readFileSync(join(ROOT, p), "utf8").replace(/<style[\s\S]*?<\/style>/g, "");
+    for (const m of markup.matchAll(/class="([^"]+)"/g)) {
+      for (const c of m[1].split(/\s+/)) if (c) inMarkup.add(c);
+    }
+  }
+
+  const scripts = [];
+  const walkAllJs = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === "node_modules") continue;
+      const full = join(dir, e.name);
+      if (e.isDirectory()) walkAllJs(full);
+      else if (e.name.endsWith(".js")) scripts.push(readFileSync(full, "utf8"));
+    }
+  };
+  walkAllJs(join(ROOT, "assets", "js"));
+  try { scripts.push(readFileSync(join(ROOT, "sw.js"), "utf8")); } catch { /* optional */ }
+  const scriptText = scripts.join("\n");
+
+  /* class-name fragments that JavaScript completes at runtime */
+  const runtimePrefixes = new Set();
+  for (const re of [
+    /class(?:Name)?\s*=\s*["'`]([^"'`$]*?)([A-Za-z0-9_-]*)\$\{/g,
+    /classList\.(?:add|remove|toggle)\(\s*["'`]([^"'`$]*?)([A-Za-z0-9_-]*)\$\{/g,
+    /["'`]([A-Za-z][A-Za-z0-9_-]*-)["'`]\s*\+/g
+  ]) {
+    for (const m of scriptText.matchAll(re)) {
+      const frag = ((m[2] !== undefined ? m[2] : m[1]) || "").split(/\s+/).pop();
+      if (frag && frag.length >= 2) runtimePrefixes.add(frag);
+    }
+  }
+
+  for (const [cls, where] of definedIn) {
+    if (inMarkup.has(cls)) continue;
+    if (scriptText.includes(cls)) continue;
+    if ([...runtimePrefixes].some((p) => cls.startsWith(p))) continue;
+    deadIssues.push(`.${cls} is defined in ${[...where].join(", ")} but no markup carries it and no script writes it`);
+  }
+
+  problems += deadIssues.length;
+  console.log(
+    `\n${deadIssues.length ? "❌" : "✅"} every class the stylesheet defines is one something uses ` +
+      `(${definedIn.size} defined, ${inMarkup.size} in markup, ${runtimePrefixes.size} runtime prefixes honoured)` +
+      (deadIssues.length ? "\n     - " + deadIssues.join("\n     - ") : "")
+  );
+}
+
 /* ---- design values stay bounded ----
 
    A ratchet, not a rule. It does not say the numbers below are right —
@@ -1182,7 +1289,10 @@ server.close();
      white face and a white glyph — four more #fff against two fewer
      #4A7FA5, so the count rose while the palette got stricter. White is
      the exception this file already names. */
-  const CEILING = { colourUses: 207, colourDistinct: 64, fontUses: 9, fontDistinct: 9 };
+  /* 207 → 208. The route panel's sourcing note is separated by the same
+     rgba(255,255,255,.15) rule the CASK panel beside it already uses —
+     one more use of a literal already in the sheet, no new colour. */
+  const CEILING = { colourUses: 208, colourDistinct: 64, fontUses: 9, fontDistinct: 9 };
 
   const jkCss = readFileSync(join(ROOT, "assets", "css", "jk.css"), "utf8");
   const rootBlock = jkCss.slice(jkCss.indexOf(":root"), jkCss.indexOf("/* ---------- reset"));

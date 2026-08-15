@@ -29,11 +29,19 @@ const val = (id) => {
    units slip does not. They warn; only the refusals below stop the
    calculation. */
 const SANE = {
-  stage:  { max: 18000,  msg: (v) => `${Math.round(v).toLocaleString("en-US")} km is longer than any scheduled sector flown. Check the units — miles are about 1.6× kilometres.` },
-  seats:  { max: 900,    msg: (v) => `${v} seats exceeds the largest certified passenger configuration in service.` },
-  cask:   { max: 60,     msg: (v) => `${v.toFixed(1)} US¢/ASK is several times the industry range. A figure entered in USD rather than cents reads a hundred times high.` },
-  caskLo: { min: 1.5,    msg: (v) => `${v.toFixed(2)} US¢/ASK is below any operator's unit cost. A figure entered in cents where dollars were meant reads a hundred times low.` },
-  fare:   { max: 20000,  msg: (v) => `${usd(v)} is an implausible average one-way fare. Check whether this is a fare or a sector's total revenue.` }
+  /* The longest scheduled sector flown is around 15,000 km, so 18,000
+     clears every real route with room to spare. */
+  stage:  { max: 18000,  msg: (v) => `${Math.round(v).toLocaleString("en-US")} km is longer than the longest scheduled sector flown, which is around 15,000 km. Check the units — a mile is about 1.6 kilometres.` },
+  seats:  { max: 900,    msg: (v) => `${v} seats is more than the largest certified passenger configuration in service.` },
+  /* Anchored to the figure this site already publishes rather than to an
+     unnamed "industry range": the CASK calculator states a JK
+     competitive target of 9 US¢/ASK and cites IATA's Cost Disadvantage
+     of African Airlines (2025) for African carriers running close to
+     double the rest of the world. Six times the target is far outside
+     anything that context supports; a sixth of it is below it. */
+  cask:   { max: 60,     msg: (v) => `${v.toFixed(1)} US¢/ASK is more than six times the 9 US¢ target the CASK calculator benchmarks against. A figure entered in USD rather than cents reads a hundred times high.` },
+  caskLo: { min: 1.5,    msg: (v) => `${v.toFixed(2)} US¢/ASK is a sixth of the 9 US¢ benchmark and below what any operator achieves. A figure entered in dollars where cents were meant reads a hundred times low.` },
+  fare:   { max: 20000,  msg: (v) => `${usd(v)} is an implausible average one-way fare. Check whether this is a fare or the sector's total revenue.` }
 };
 
 function calculate() {
@@ -194,14 +202,30 @@ function blank() {
     "Enter your figures to see the fare and load factor this sector needs.";
 }
 
-/* Bands on the break-even load factor. Above 100 the sector cannot pay
-   for itself however full it flies, which is a different statement from
-   "difficult" and is worded as one. */
+/* Bands on the break-even load factor.
+
+   These are JK's reading, not a published standard, and the tool says so
+   rather than presenting them as neutral fact. Every other figure on
+   this site traces to IATA, KCAA or a stated source; the one place that
+   was not true was here, on a tool that hands an operator a word like
+   "comfortable" about their own route.
+
+   The site's existing idiom for a house judgement is the CASK
+   calculator's "JK competitive target", which is labelled as JK's and
+   left editable. Same treatment: the cut-offs are named on the page,
+   attributed, and the reader can disagree with them and still keep the
+   arithmetic, which is the part that is not a matter of opinion.
+
+   The 100% line is the exception. It is arithmetic — above it the sector
+   cannot pay for itself however full it flies — so it is stated flatly
+   while the rest are hedged. */
+const BLF_BANDS = { comfortable: 65, workable: 80, thin: 90 };
+
 function bandFor(blf) {
-  if (blf > 100) return { txt: "Cannot break even at this fare", col: "#ff8a80" };
-  if (blf > 90)  return { txt: "Break-even only at near-capacity", col: "#ff8a80" };
-  if (blf > 80)  return { txt: "Thin — little tolerance for a soft month", col: "#f0c14b" };
-  if (blf > 65)  return { txt: "Workable", col: "#5cd6a0" };
+  if (blf > 100)                return { txt: "Cannot break even at this fare", col: "#ff8a80" };
+  if (blf > BLF_BANDS.thin)     return { txt: "Break-even only at near-capacity", col: "#ff8a80" };
+  if (blf > BLF_BANDS.workable) return { txt: "Thin — little tolerance for a soft month", col: "#f0c14b" };
+  if (blf > BLF_BANDS.comfortable) return { txt: "Workable", col: "#5cd6a0" };
   return { txt: "Comfortable", col: "#5cd6a0" };
 }
 
