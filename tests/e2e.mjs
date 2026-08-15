@@ -1624,6 +1624,68 @@ await page.goto(base + "/results.html"); await page.waitForTimeout(500);
     "every dated benchmark declares its cadence, so its age can be judged" +
       (unstated.length ? ` — ${unstated.map(b => b.name).join(", ")}` : ""));
 
+  /* The same claim, on the other page that makes it.
+
+     methodology.html carried "current as of Q4 2024 – mid-2025" as
+     literal prose while the data had moved to June 2026 — a year of
+     refreshes the page describing the refresh policy never heard about.
+     results.html had this exact bug, it was fixed there by deriving the
+     stamp, and the fix reached one of the two pages.
+
+     Asserted against the data rather than against a string, for the
+     reason the results.html version already records: a pinned literal
+     passes for exactly as long as nobody updates a figure. */
+  await page.goto(base + "/methodology.html"); await page.waitForTimeout(350);
+  const meth = await page.evaluate(() => ({
+    shown: document.getElementById("meth-asof")?.textContent.trim(),
+    sources: document.getElementById("meth-sources")?.textContent.trim(),
+    expected: JK.benchmarkMeta.asOf,
+    expectedSources: JK.benchmarkMeta.sources
+  }));
+  assert(meth.shown === meth.expected,
+    `methodology's data-as-of stamp says "${meth.shown}" and the benchmarks say "${meth.expected}"`);
+  for (const src of meth.expectedSources) {
+    assert(meth.sources.includes(src),
+      `methodology's source list omits ${src}, which the benchmarks name`);
+  }
+  assert(!/Q4 2024/.test(await page.content()),
+    "methodology still carries a hardcoded benchmark date");
+
+  /* The verification panel has to actually show the verification.
+
+     It renders from a fetched assets/verification.json, and the failure
+     mode that matters is not an error — it is the panel quietly showing
+     its fallback while the page around it still says "every push runs
+     the checks below". A reassuring placeholder where the evidence
+     should be is the exact defect this whole page is about.
+
+     So: the rendered list must carry every headline the file carries,
+     and must not be the fallback. */
+  {
+    /* The panel fills from a fetch, so wait for it to settle rather than
+       reading whatever is on screen 350ms after navigation. Reading too
+       early would fail on the placeholder and teach whoever hit it that
+       this assertion is flaky — which is how a real one gets deleted. */
+    await page.waitForFunction(
+      () => !/Loading the current figures/.test(document.getElementById("verif-body")?.innerText || ""),
+      null, { timeout: 5000 }
+    ).catch(() => {});
+    const shown = await page.$eval("#verif-body", (e) => e.innerText);
+    const file = JSON.parse(readFileSync(resolve(ROOT, "assets/verification.json"), "utf8"));
+    assert(!/could not be loaded|Loading the current figures/i.test(shown),
+      "methodology's verification panel is showing a placeholder, not the figures");
+    for (const suite of file.suites) {
+      assert(shown.includes(suite.headline),
+        `methodology's verification panel omits the ${suite.suite} line: "${suite.headline}"`);
+    }
+    assert(file.suites.length >= 7,
+      `only ${file.suites.length} suites in the published verification file`);
+  }
+
+  /* Back to results — the checks after this one continue there, and the
+     saved answers that put it in a scored state are still in storage. */
+  await page.goto(base + "/results.html"); await page.waitForTimeout(400);
+
   /* A benchmark with no publication behind it must not sit in the source
      list looking like one; it belongs in the "no published source" line.
 
