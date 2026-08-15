@@ -47,6 +47,15 @@
   --jk-amber-text: #96600A;
   --jk-green:      #1E7A4A;
   --jk-green-lt:   #E8F3ED;
+  /* --jk-green on --jk-green-lt is 4.34:1 — under the 4.5:1 that words
+     need, which only mattered once a badge put green text on the green
+     wash. This is the pair for that. */
+  --jk-green-dk:   #16603A;
+  /* The light-red wash the RAG set never had. --jk-amber-lt and
+     --jk-green-lt existed; red had only the two dark stops, so anything
+     wanting a red fill reached outside the palette for it. Warm-leaning
+     to sit with the parchments rather than the signal red. */
+  --jk-red-lt:     #FAE7E3;
 
   /* ---- semantic accent (overridable by ?partner=) ---- */
   --accent:        var(--jk-terracotta);

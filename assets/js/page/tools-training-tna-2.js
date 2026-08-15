@@ -283,8 +283,8 @@
         <div class="gap-item">
           <span class="comp">${g.competency}</span>
           <div class="metrics">
-            <span style="color:#dc2626;font-weight:600">Gap: ${g.gap}</span>
-            <span style="color:#6b7280">${money(g.cost)}</span>
+            <span style="color:var(--jk-red-dk);font-weight:600">Gap: ${g.gap}</span>
+            <span style="color:var(--jk-muted)">${money(g.cost)}</span>
           </div>
         </div>`).join("");
     } else {
