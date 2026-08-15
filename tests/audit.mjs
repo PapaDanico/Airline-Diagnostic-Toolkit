@@ -599,51 +599,81 @@ server.close();
   );
 }
 
-/* ---- the version printed before the JavaScript runs ----
+/* ---- what the pages say before the JavaScript runs ----
 
-   Every page footer carries <span data-version>v3.3 — …</span>, and
-   common.js overwrites all 27 of them with JK.brand.version on load.
-   The hardcoded text is the fallback: what a visitor sees before the
-   script runs, and all they ever see if it fails.
+   Several facts about the practice live in data.js and are written into
+   the markup at load: the version, the contact address, the office
+   address. Each has a hook — <span data-version>, <a data-email>,
+   <p data-location> — and each hook wraps hardcoded text. That text is
+   the fallback: what a visitor sees before the script runs, all they
+   ever see if it fails, and what a crawler reading the raw HTML gets.
 
-   Which makes it 27 copies of a string that data.js also owns, with
-   nothing keeping them in step. Bumping data.js to v3.4 leaves every
-   page announcing v3.3 to anyone whose JavaScript has not run yet, and
-   the whole suite passes — verified by doing it.
+   So every hook is also a copy of a fact data.js owns, with nothing
+   keeping the two in step. Bumping data.js leaves every page announcing
+   the old value to anyone whose JavaScript has not run, and the whole
+   suite passes — verified by doing it with the version string.
 
-   The same shape as the JSON-LD claim: a duplicate of a fact, in the
-   copy nobody re-reads, with no guard. This is the cheaper half of the
-   answer — the expensive half would be generating the footers, which
-   buys little for a string that changes twice a year. */
+   This started as a version-only check and was widened after the same
+   shape turned up in the address. common.js carries a comment saying
+   the office address "was hardcoded into twelve footers while
+   JK.brand.location sat unread — the drift this file exists to
+   prevent". The hook was duly added. The eleven stale fallbacks behind
+   it were not touched, so the runtime was right and the pre-script
+   paint said "Nairobi, Kenya" on eleven pages while the practice's
+   published address was 2nd Avenue, Cargo Terminal, JKIA.
+
+   Fixing the drift and leaving the check version-only would have been
+   the same mistake a third time. */
 {
-  const versionIssues = [];
-  const truth = (readFileSync(join(ROOT, "assets", "js", "data.js"), "utf8")
-    .match(/version:\s*"([^"]+)"/) || [])[1];
+  const fallbackIssues = [];
+  const dataJs = readFileSync(join(ROOT, "assets", "js", "data.js"), "utf8");
+  const field = (name) => (dataJs.match(new RegExp(`${name}:\\s*"([^"]+)"`)) || [])[1];
 
-  if (!truth) {
-    versionIssues.push("data.js no longer states a version, so the footers went unchecked");
-  } else {
-    let withVersion = 0;
+  /* attribute → the data.js field whose value it must repeat */
+  const BOUND = [
+    ["data-version", "version"],
+    ["data-email", "email"],
+    ["data-email-plain", "email"],
+    ["data-location", "location"]
+  ];
+
+  const counts = [];
+  for (const [attr, name] of BOUND) {
+    const truth = field(name);
+    if (!truth) {
+      fallbackIssues.push(`data.js no longer states ${name}, so every ${attr} fallback went unchecked`);
+      continue;
+    }
+    let seen = 0;
     for (const file of pages) {
       const html = readFileSync(join(ROOT, file), "utf8");
-      for (const m of html.matchAll(/data-version[^>]*>([^<]*)</g)) {
-        withVersion++;
+      /* (?=[\s>=]) because data-email is a prefix of data-email-plain,
+         and without it every plain hook was also reported as an empty
+         data-email — the guard naming the wrong attribute on four pages
+         the first time it ran.
+
+         [^>]* then stops at the tag's own close, so the capture is the
+         element's text and not the rest of the document. */
+      for (const m of html.matchAll(new RegExp(`${attr}(?=[\\s>=])[^>]*>([^<]*)<`, "g"))) {
+        seen++;
         if (m[1].trim() !== truth) {
-          versionIssues.push(`${file}: footer falls back to "${m[1].trim()}"; data.js says "${truth}"`);
+          fallbackIssues.push(`${file}: ${attr} falls back to "${m[1].trim()}"; data.js says "${truth}"`);
         }
       }
     }
-    /* If the attribute disappears entirely the check has stopped
-       checking, and a green tick would say the opposite. */
-    if (withVersion === 0) {
-      versionIssues.push("no page carries a data-version fallback any more — this check has stopped checking anything");
+    /* If a hook disappears entirely the check has stopped checking, and
+       a green tick would say the opposite. */
+    if (seen === 0) {
+      fallbackIssues.push(`no page carries a ${attr} fallback any more — that hook has stopped being checked`);
     }
-    problems += versionIssues.length;
-    console.log(
-      `\n${versionIssues.length ? "❌" : "✅"} ${withVersion} version fallback(s) match data.js ("${truth}")` +
-        (versionIssues.length ? "\n     - " + versionIssues.join("\n     - ") : "")
-    );
+    counts.push(`${seen} ${attr}`);
   }
+
+  problems += fallbackIssues.length;
+  console.log(
+    `\n${fallbackIssues.length ? "❌" : "✅"} pre-script fallbacks match data.js (${counts.join(", ")})` +
+      (fallbackIssues.length ? "\n     - " + fallbackIssues.join("\n     - ") : "")
+  );
 }
 
 /* ---- the manifest's icons actually exist, at the size it claims ----
