@@ -293,12 +293,18 @@ section { padding: var(--sec-y) 0; }
   background: rgba(255,255,255,.93); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--jk-line);
 }
-.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 1rem; }
+/* min-height, and allowed to wrap. A fixed 72px non-wrapping row is
+   fine until the text inside it grows: a reader using text-only zoom at
+   200% pushed the links to 1430px on a 1280px window and the whole page
+   scrolled sideways. Wrapping lets the bar grow a row instead, which is
+   the behaviour the criterion asks for and costs nothing at normal size
+   because the content already fits on one line. */
+.nav .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; min-height: 72px; gap: 1rem; }
 .brand { display: flex; align-items: center; gap: .7rem; font-family: var(--serif); font-weight: 700; font-size: 1.22rem; color: var(--jk-ink); }
 .brand:hover { text-decoration: none; }
 .brand .logo { width: 42px; height: 42px; flex: 0 0 auto; }
 .brand small { display: block; font-family: var(--sans); font-weight: 500; font-size: .6rem; letter-spacing: .13em; text-transform: uppercase; color: var(--jk-muted); }
-.nav-links { display: flex; align-items: center; gap: 1.3rem; }
+.nav-links { display: flex; flex-wrap: wrap; align-items: center; gap: 1.3rem; }
 /* :not(.btn) is load-bearing, not tidiness. The nav carries one button —
    the "Start free" CTA, which appears on all 28 pages and is the most
    clicked element on the site — and `.nav-links a` (0,1,1) outranks
@@ -307,7 +313,11 @@ section { padding: var(--sec-y) 0; }
    The same applies to the :hover rule below, which was pushing it to
    1.87:1. A button dropped into the nav later should look like a button,
    not like a nav link that happens to have a background. */
-.nav-links a:not(.btn) { color: var(--jk-ink); font-weight: 600; font-size: .93rem; transition: color var(--dur-fast) var(--ease); }
+/* min-height 24px: WCAG 2.2 adds 2.5.8 Target Size (Minimum) at AA, and
+   these links were landing between 20 and 24px tall — a 0.93rem line box
+   with no vertical padding. inline-flex so the min-height actually
+   applies to an inline element and the label stays centred in it. */
+.nav-links a:not(.btn) { display: inline-flex; align-items: center; min-height: 24px; color: var(--jk-ink); font-weight: 600; font-size: .93rem; transition: color var(--dur-fast) var(--ease); }
 .dd-caret { display: inline-block; vertical-align: -1px; margin-left: .18rem; opacity: .55; transition: transform var(--dur-base) var(--ease), opacity var(--dur-fast) var(--ease); }
 .dropdown:hover .dd-caret, .dropdown:focus-within .dd-caret { transform: rotate(180deg); opacity: 1; }
 .nav-links a:not(.btn):hover { color: var(--accent); text-decoration: none; }
@@ -316,7 +326,23 @@ section { padding: var(--sec-y) 0; }
 .nav-current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: var(--accent); border-radius: 2px; }
 .nav-links a.nav-section { color: var(--accent); font-weight: 700; position: relative; }
 .nav-links a.nav-section::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: var(--accent); opacity: .45; border-radius: 2px; }
-@media (max-width: 980px) { .nav-current::after, .nav-links a.nav-section::after { display: none; } }
+/* 61.25em, not 980px — and the unit is the point.
+
+   A px media query asks how wide the window is. An em one asks how wide
+   it is relative to the reader's *browser* default font size, so
+   somebody who has set their default to 24px gets the collapsed nav on
+   a window where a 16px reader gets the full one. That is the layout
+   they need and the px query never gave them.
+
+   It is deliberately NOT the fix for text-only zoom. Media-query em
+   resolves against the browser default, not against a root font-size
+   the page sets, so a page that doubles its own root size does not
+   cross this breakpoint — measured, after writing a comment here that
+   claimed otherwise. The wrapping below is what handles that case.
+
+   61.25em is 980px at the default 16px root, so nothing moves for a
+   reader who has not changed anything. */
+@media (max-width: 61.25em) { .nav-current::after, .nav-links a.nav-section::after { display: none; } }
 .nav-toggle { display: none; background: none; border: 0; font-size: 1.6rem; cursor: pointer; color: var(--jk-ink); line-height: 1; padding: .2rem .4rem; }
 
 /* dropdown */
@@ -332,7 +358,7 @@ section { padding: var(--sec-y) 0; }
 .dropdown-menu a { display: block; padding: .55rem .7rem; border-radius: 6px; font-size: .89rem; }
 .dropdown-menu a:hover { background: var(--jk-parchment); text-decoration: none; }
 .dropdown-menu .dd-head { font-size: .66rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--jk-muted); padding: .5rem .7rem .2rem; }
-@media (max-width: 980px) {
+@media (max-width: 61.25em) {
   .dropdown-menu { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; border: 0; background: transparent; padding: 0 0 0 1rem; min-width: 0; }
 }
 
@@ -475,7 +501,12 @@ section.band-dark:has(.metrics) { padding: var(--sec-y-tight) 0; }
 .metrics .m .src { font-size: .68rem; color: #8d817b; margin-top: .3rem; }
 
 /* ---------- engagement phases ---------- */
-.phases { counter-reset: ph; display: grid; grid-template-columns: repeat(5,1fr); gap: 18px; }
+/* auto-fit rather than a hard five, so the row reflows instead of
+   overflowing. At 200% text the five fixed tracks pushed the last phase
+   to 1374px on a 1280px window; with a minimum track width they wrap to
+   however many fit. Five still sit in a row at normal size on any
+   viewport this grid was designed for. */
+.phases { counter-reset: ph; display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 18px; }
 .phase { position: relative; padding: 24px 18px; background: #fff; color: var(--jk-ink); border: 1px solid var(--jk-line); border-radius: var(--radius);
   transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease); }
 .phase:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--jk-line-2); }
@@ -1023,7 +1054,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .small { font-size: .84rem; }
 .tnum { font-variant-numeric: tabular-nums; }
 
-@media (max-width: 980px){
+@media (max-width: 61.25em){
   .hero-grid, .g4, .g3, .g2, .metrics, .phases, .locked-grid, .footer .cols, .doors { grid-template-columns: 1fr; }
   .g4, .metrics { grid-template-columns: 1fr 1fr; }
   .footer .cols { grid-template-columns: 1fr 1fr; }
