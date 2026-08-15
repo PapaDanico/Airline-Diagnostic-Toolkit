@@ -270,13 +270,72 @@ function mountFooterAbout() {
   else footer.appendChild(el);
 }
 
+/* ---- one destination, one link ----
+
+   The footer columns are static markup, written per page, and they are
+   not the same from page to page: the glossary lists a Reference column
+   with the regulatory index and Methodology in it, the home page lists
+   two tool columns and neither. So "which links are already here" is a
+   question that can only be answered on the page, at mount time — a
+   hand-kept exclusion list would be wrong on some page the day it was
+   written, and wrong on more of them a month later.
+
+   Hence a rule instead of an edit. Anything the footer already links
+   above is not offered again below. Destinations are normalised so that
+   ../regulations.html from a tool page and regulations.html from the
+   root count as the same page. */
+const sameDest = (href) => (href || "").replace(/^(\.\.\/)+/, "").replace(/^\//, "").toLowerCase();
+
+function footerDestinations(scope) {
+  const out = new Set();
+  for (const a of scope.querySelectorAll("a[href]")) {
+    const h = a.getAttribute("href") || "";
+    if (/^(mailto:|tel:|#|https?:)/.test(h)) continue;
+    out.add(sameDest(h));
+  }
+  return out;
+}
+
+/* The copyright line repeated Privacy and Terms — both of which the
+   Legal column carries in full a few hundred pixels above — and on
+   pages with a Reference column, Methodology as well. Strip whatever is
+   already linked, along with the separator that came with it, and leave
+   the ones that are this footer's only route to that page. */
+function dedupeVersionLine() {
+  const footer = document.querySelector(".footer .wrap");
+  const ver = footer && footer.querySelector(".ver");
+  if (!ver) return;
+  const above = new Set();
+  for (const el of footer.children) {
+    if (el === ver) break;
+    for (const d of footerDestinations(el)) above.add(d);
+  }
+  for (const a of [...ver.querySelectorAll("a[href]")]) {
+    if (!above.has(sameDest(a.getAttribute("href")))) continue;
+    // take the separator with it, or the preceding one if it was last
+    const after = a.nextSibling;
+    if (after && after.nodeType === 3 && /^\s*·\s*$/.test(after.textContent)) after.remove();
+    else {
+      const before = a.previousSibling;
+      if (before && before.nodeType === 3 && /^\s*·\s*$/.test(before.textContent)) before.remove();
+    }
+    a.remove();
+  }
+}
+
 function mountFooterLearn() {
   const footer = document.querySelector(".footer .wrap");
   if (!footer || footer.querySelector(".footer-learn")) return;
   const root = location.pathname.includes("/tools/") ? "../" : "";
   const here = (location.pathname.split("/").pop() || "index.html").toLowerCase();
 
-  const links = LEARN_LINKS.map(l => {
+  /* Same rule: a reference the columns already carry is not offered a
+     second time as a card. On the glossary page that removes
+     Regulations, which the Reference column lists as "Kenya regulatory
+     index" — one page, two names, twice in one footer. */
+  const alreadyLinked = footerDestinations(footer);
+
+  const links = LEARN_LINKS.filter(l => !alreadyLinked.has(sameDest(l.file))).map(l => {
     // never link a page to itself — a self-referential link in a footer
     // reads as a broken one
     if (!root && here === l.file) {
@@ -284,6 +343,10 @@ function mountFooterLearn() {
     }
     return `<a class="fl-item" href="${root}${l.file}" data-keep-partner><b>${l.label}</b><small>${l.hint}</small></a>`;
   }).join("");
+
+  // If the columns already carried every reference, there is no strip
+  // to add — a heading over an empty grid is worse than no heading.
+  if (!links) return;
 
   const el = document.createElement("div");
   el.className = "footer-learn";
@@ -324,6 +387,8 @@ function mountChrome() {
   // costs a strip at the bottom, an unhandled one costs the site.
   try { mountFooterAbout(); } catch (e) { console.error("footer about:", e); }
   try { mountFooterLearn(); } catch (e) { console.error("footer learn:", e); }
+  // Last, so the columns and the strip above it both count as "already linked".
+  try { dedupeVersionLine(); } catch (e) { console.error("footer dedupe:", e); }
 
   // Propagate ?partner= across every internal link in one pass — the generated
   // nav plus any data-keep-partner links in the page body/footer. Done here

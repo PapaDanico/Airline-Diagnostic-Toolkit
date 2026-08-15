@@ -152,6 +152,50 @@ h4 { line-height: 1.25; letter-spacing: 0; }
 /* Body copy wants a sane measure and no orphans. */
 p { text-wrap: pretty; }
 p { margin: 0 0 1rem; }
+
+/* ...and here is the measure half of that sentence, which was never
+   actually written. Only the orphan half was.
+
+   Characters per line at 1440px, measured against each element's own
+   computed font rather than estimated from its pixel width: the
+   glossary ran at 141, the company profile at 163, methodology at 102,
+   and privacy, terms and about at 97. Comfortable reading is 45-75 and
+   the practical ceiling is around 90 — past that the eye loses its
+   place on the way back to the start of the next line, which on a
+   privacy notice or a regulatory glossary is where a reader gives up.
+
+   These pages measured as the best users of horizontal space on the
+   site. They were the worst: a full-bleed column of 140-character lines
+   is not space used, it is space that has defeated the text.
+
+   Listed explicitly rather than applied to every <p> in <main>. Card
+   copy, table cells, stat labels and hero decks are short by
+   construction and set their own widths; a blanket rule would fight
+   them, and the pages that need this are the ones measured above.
+
+   54ch, and the number is not a typo for 72.
+
+   The CSS ch unit is the advance width of "0", not the average width of
+   a character, and in DM Sans the digit is much the wider of the two:
+   11px against about 8. So the usual "65ch for a comfortable measure"
+   advice, taken literally, sets a column that holds nearer 90 — the
+   first pass here set 72ch and re-measured at 97 characters, which is
+   where it started. The unit reads as if it counts characters and does
+   not.
+
+   54ch lands at roughly 75 rendered characters in this typeface, which
+   is the top of the comfortable range. It is tied to the font, so it is
+   checked by measurement rather than trusted: tests/e2e.mjs counts
+   characters per line against each element's own computed font. */
+.legal :is(p, li),
+.about :is(p, li),
+.g-term p,
+.cp-note,
+.lead,
+.disclaimer,
+#cp-model p {
+  max-width: 54ch;
+}
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 img { max-width: 100%; display: block; }
@@ -718,7 +762,11 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .tool-head { background: var(--jk-parchment); padding: 40px 0 30px; border-bottom: 1px solid var(--jk-line); }
 .tool-head .ref { font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
 .tool-head h1 { font-size: clamp(1.9rem, 4vw, 2.9rem); margin-bottom: .3rem; }
-.tool-head .lead { font-size: 1.05rem; color: #45362f; max-width: 720px; }
+/* 54ch, not 720px. At 1.05rem that pixel width was 92 characters a
+   line — the widest running prose on the site after the glossary,
+   and it governs the deck on every tool page, not just this one.
+   A character measure also holds if the type scale ever moves. */
+.tool-head .lead { font-size: 1.05rem; color: #45362f; max-width: 54ch; }
 
 /* form fields */
 .field { margin-bottom: 18px; }
