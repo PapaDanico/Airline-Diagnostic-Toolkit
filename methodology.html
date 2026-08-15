@@ -127,7 +127,22 @@
     </ul>
     <p class="note" style="font-size:var(--fs-sm)">The oldest industry figure cited across the toolkit dates from <b id="meth-asof">—</b>; some are more current. Drawn from <span id="meth-sources">the sources named inline against each figure</span>. We refresh these as new reports are published, and each figure in the report names its own source.</p>
 
-    <h2>6. Limitations — read this</h2>
+    <h2>6. What is checked, and how you can tell</h2>
+    <p>The section above says where the figures come from. This one says what stops them
+      quietly ceasing to be true. Every push to this site runs the checks below, and the
+      build fails if any of them does — including the check that these numbers describe
+      the run that just happened, so the table cannot overstate itself.</p>
+    <div id="verif-body">
+      <p class="muted" style="font-size:var(--fs-sm)">Loading the current figures…</p>
+    </div>
+    <p class="note" style="font-size:var(--fs-sm)"><strong>What this does not say.</strong>
+      There is no "last verified" date here, deliberately: a date written into a file is
+      stale the moment anything else changes. What the build guarantees is that these
+      figures describe the version of the site you are reading. The list covers the
+      browser-driven suites; syntax, data-model and markup checks run separately and are
+      not counted in it.</p>
+
+    <h2>7. Limitations — read this</h2>
     <div class="note">
       <p style="margin:0">The Scorecard is a <strong>self-assessment screening instrument</strong>, not an audit.
       Scores reflect the knowledge and candour of the person answering. It does not replace an IOSA audit, a
@@ -135,7 +150,7 @@
       indicative and carry no certification value.</p>
     </div>
 
-    <h2>7. Data handling</h2>
+    <h2>8. Data handling</h2>
     <p>Your answers never leave your browser — there is no server, database or analytics collecting them.
       See the <a href="privacy.html">Privacy Notice</a> for the full explanation.</p>
 
@@ -155,6 +170,7 @@
 
 <script src="assets/js/data.js"></script>
 <script src="assets/js/common.js"></script>
+<script src="assets/js/verification-data.js"></script>
 <script src="assets/js/page/methodology.js"></script>
 </body>
 </html>

@@ -1651,6 +1651,37 @@ await page.goto(base + "/results.html"); await page.waitForTimeout(500);
   assert(!/Q4 2024/.test(await page.content()),
     "methodology still carries a hardcoded benchmark date");
 
+  /* The verification panel has to actually show the verification.
+
+     It renders from a fetched assets/verification.json, and the failure
+     mode that matters is not an error — it is the panel quietly showing
+     its fallback while the page around it still says "every push runs
+     the checks below". A reassuring placeholder where the evidence
+     should be is the exact defect this whole page is about.
+
+     So: the rendered list must carry every headline the file carries,
+     and must not be the fallback. */
+  {
+    /* The panel fills from a fetch, so wait for it to settle rather than
+       reading whatever is on screen 350ms after navigation. Reading too
+       early would fail on the placeholder and teach whoever hit it that
+       this assertion is flaky — which is how a real one gets deleted. */
+    await page.waitForFunction(
+      () => !/Loading the current figures/.test(document.getElementById("verif-body")?.innerText || ""),
+      null, { timeout: 5000 }
+    ).catch(() => {});
+    const shown = await page.$eval("#verif-body", (e) => e.innerText);
+    const file = JSON.parse(readFileSync(resolve(ROOT, "assets/verification.json"), "utf8"));
+    assert(!/could not be loaded|Loading the current figures/i.test(shown),
+      "methodology's verification panel is showing a placeholder, not the figures");
+    for (const suite of file.suites) {
+      assert(shown.includes(suite.headline),
+        `methodology's verification panel omits the ${suite.suite} line: "${suite.headline}"`);
+    }
+    assert(file.suites.length >= 7,
+      `only ${file.suites.length} suites in the published verification file`);
+  }
+
   /* Back to results — the checks after this one continue there, and the
      saved answers that put it in a scored state are still in storage. */
   await page.goto(base + "/results.html"); await page.waitForTimeout(400);
