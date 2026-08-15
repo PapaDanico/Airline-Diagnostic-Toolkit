@@ -1330,8 +1330,22 @@ section("Regulatory Index — edition, citation, download, embed");
      thing from a partner carrying yours. */
   await page.goto(base + "/regulations.html?embed=1"); await page.waitForTimeout(400);
   assert(await page.$eval("body", b => b.classList.contains("is-embed")), "embed flag did not apply");
-  assert(await page.$eval(".nav-bar", n => getComputedStyle(n).display === "none")
-    .catch(() => true), "navigation still renders inside an embed");
+  /* Not `.catch(() => true)`.
+
+     This read `$eval(".nav-bar", …).catch(() => true)`, and .nav-bar has
+     never existed — the class is .nav. $eval rejected on every run, the
+     catch turned that into a pass, and the check reported success
+     without once looking at a navigation bar. The nav rendered in full
+     inside embeds the whole time.
+
+     An absent element is now a distinct failure from a visible one:
+     one is a stale selector, the other is a rule that stopped applying,
+     and they want different fixes. */
+  const navHidden = await page.$eval(".nav", (n) => getComputedStyle(n).display === "none")
+    .catch(() => null);
+  assert(navHidden === true, navHidden === null
+    ? "embed: no .nav on the page — the selector this test asserts on has gone stale"
+    : "navigation still renders inside an embed");
   const attrib = (await page.$eval("#embed-attrib", e => e.textContent)).replace(/\s+/g, " ");
   assert(/JK & Associates/.test(attrib), "an embedded index does not say whose it is");
   assert(/JK-REG \d{4}\.\d+/.test(attrib), "an embedded index does not carry its edition");
