@@ -2107,6 +2107,52 @@ assert(await page.$("#fuel-enquiry [name=email]") !== null, "fuel page: enquiry 
 assert(await page.$("#contact-cta") === null, "fuel page: bare mailto CTA removed");
 await assertEnquiryFormSubmits(page, "#fuel-enquiry", "fuel page");
 
+/* An empty field is not a finding.
+
+   Clearing the spend used to print "On benchmark" and congratulate the
+   visitor on a contract the tool had been told nothing about. The two
+   states share a zero and nothing else: no spend means no answer, on
+   benchmark means the answer is that there is no gap. */
+{
+  const fuelState = async () => await page.evaluate(() => ({
+    rng: document.getElementById("range").textContent.trim(),
+    qual: document.getElementById("qual").innerText
+  }));
+
+  await page.goto(base + "/tools/fuel-optimizer.html"); await page.waitForTimeout(300);
+  const seeded = await fuelState();
+  assert(/^\$[\d,]+ – \$[\d,]+$/.test(seeded.rng),
+    `fuel: seeded defaults produce a range (got "${seeded.rng}")`);
+
+  for (const [value, label] of [["", "cleared"], ["0", "typed 0"]]) {
+    await page.$eval("#spend", (e, v) => {
+      e.value = v; e.dispatchEvent(new Event("input", { bubbles: true }));
+    }, value);
+    await page.waitForTimeout(150);
+    const s = await fuelState();
+    assert(s.rng === "—", `fuel: spend ${label} shows no verdict (got "${s.rng}")`);
+    assert(!/benchmark/i.test(s.rng), `fuel: spend ${label} is not called "On benchmark"`);
+    assert(!/\$0\.000|Infinity|NaN/.test(s.qual),
+      `fuel: spend ${label} quotes no per-litre price built from nothing`);
+  }
+
+  /* Recoverable — the neutral state is a state, not a dead end. */
+  await page.$eval("#spend", (e) => {
+    e.value = "24000000"; e.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForTimeout(150);
+  assert(/^\$[\d,]+ – \$[\d,]+$/.test((await fuelState()).rng),
+    "fuel: restoring the spend brings the range back");
+
+  /* And the genuine verdict still reads as one. */
+  await page.$eval("#premium", (e) => {
+    e.value = "1"; e.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForTimeout(150);
+  assert(/On benchmark/i.test((await fuelState()).rng),
+    "fuel: a premium below the benchmark is still reported as on benchmark");
+}
+
 await page.goto(base + "/tools/cask-calculator.html"); await page.waitForTimeout(300);
 assert(await page.$("#cask-enquiry [name=email]") !== null, "CASK page: enquiry form email field present");
 assert(await page.$("#contact-cta") === null, "CASK page: bare mailto CTA removed");

@@ -30,9 +30,27 @@ function recalc() {
   const qual = document.getElementById("qual");
   /* Guarded rather than assumed: uplift is optional, and dividing by a
      blank field would print "$Infinity a litre". */
-  const perLitre = uplift > 0
+  const perLitre = uplift > 0 && spend > 0
     ? ` At ${Math.round(uplift).toLocaleString("en-US")} litres a year that is an effective <strong>$${(spend / uplift).toFixed(3)}/litre</strong> today`
     : "";
+  /* No spend is not a verdict.
+
+     `high` is spend x gap, so clearing the spend field drove it to zero
+     and fell into the branch below, which congratulated the visitor on a
+     contract it had been told nothing about: "already at or below the
+     market benchmark", with an effective price of $0.000/litre "to hold
+     in the next tender". The premium and benchmark fields still held
+     their defaults, so the page looked fully answered.
+
+     The markup ships the honest state — an em dash and "Enter your
+     figures to see the range" — and before this nothing could return to
+     it, because recalc() runs on load and every path out of it writes a
+     result. Restoring it is the whole fix. */
+  if (!(spend > 0)) {
+    rng.textContent = "—";
+    qual.textContent = "Enter your annual fuel spend to see the range.";
+    return;
+  }
   if (high <= 0) {
     rng.textContent = "On benchmark";
     qual.innerHTML = "Your contract is already at or below the market benchmark. The opportunity is to lock that in and manage price risk — see the hedge-trigger framework in the full tool."
