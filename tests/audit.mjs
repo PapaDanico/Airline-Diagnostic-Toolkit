@@ -1289,7 +1289,10 @@ server.close();
      white face and a white glyph — four more #fff against two fewer
      #4A7FA5, so the count rose while the palette got stricter. White is
      the exception this file already names. */
-  const CEILING = { colourUses: 207, colourDistinct: 64, fontUses: 9, fontDistinct: 9 };
+  /* 207 → 208. The route panel's sourcing note is separated by the same
+     rgba(255,255,255,.15) rule the CASK panel beside it already uses —
+     one more use of a literal already in the sheet, no new colour. */
+  const CEILING = { colourUses: 208, colourDistinct: 64, fontUses: 9, fontDistinct: 9 };
 
   const jkCss = readFileSync(join(ROOT, "assets", "css", "jk.css"), "utf8");
   const rootBlock = jkCss.slice(jkCss.indexOf(":root"), jkCss.indexOf("/* ---------- reset"));
