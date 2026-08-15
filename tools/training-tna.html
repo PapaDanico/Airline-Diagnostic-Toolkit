@@ -29,8 +29,8 @@
 <style>
 .tna-container { max-width: 1200px; }
 .staff-group { margin-bottom: 2.4rem; }
-.staff-group h3 { color: #1a1a1a; margin: 1.2rem 0 0.8rem; font-size: 1.2rem; }
-.tna-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 1.2rem; min-width: 640px; border: 1px solid #e5e7eb; }
+.staff-group h3 { color: #1a1a1a; margin: 1.2rem 0 0.8rem; font-size: var(--fs-lg); }
+.tna-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); margin-bottom: 1.2rem; min-width: 640px; border: 1px solid #e5e7eb; }
 .tna-table thead { background: #f9fafb; }
 .tna-table th { padding: 0.7rem 0.6rem; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb; color: #374151; }
 .tna-table td { padding: 0.65rem 0.6rem; border-bottom: 1px solid #f3f4f6; }
@@ -38,28 +38,28 @@
 .competency { font-weight: 500; color: #1f2937; }
 .target, .current, .gap { text-align: center; vertical-align: middle; }
 .current { min-width: 90px; }
-.cur-select { width: 65px; padding: 0.4rem 0.5rem; border: 1.5px solid #cbd5e1; border-radius: 6px; font-family: var(--sans); font-size: 0.9rem; background: #fff; cursor: pointer; transition: all 0.15s; }
+.cur-select { width: 65px; padding: 0.4rem 0.5rem; border: 1.5px solid #cbd5e1; border-radius: 6px; font-family: var(--sans); font-size: var(--fs-sm); background: #fff; cursor: pointer; transition: all 0.15s; }
 .cur-select:hover { border-color: #4A7FA5; background: #f8fafc; }
 .cur-select:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-color: var(--accent); background: #fff; }
-.gap-val { font-weight: 700; font-size: 1.05rem; }
+.gap-val { font-weight: 700; font-size: var(--fs-base); }
 .gap-pos { color: #dc2626; }
 .gap-zero { color: #16a34a; }
 .priority { text-align: center; }
-.pri-badge { display: inline-block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.3rem 0.6rem; border-radius: 5px; white-space: nowrap; }
+.pri-badge { display: inline-block; font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.3rem 0.6rem; border-radius: 5px; white-space: nowrap; }
 .pri-high { background: #fecaca; color: #7f1d1d; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 .pri-medium { background: #fde047; color: #713f12; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 .pri-low { background: #bfdbfe; color: #0c2340; }
 .pri-none { background: #bbf7d0; color: #064e3b; }
-.pri-unset { color: var(--jk-muted); font-size: 0.9rem; } /* was #d1d5db — 1.47:1, an all-but-invisible "not set" marker */
+.pri-unset { color: var(--jk-muted); font-size: var(--fs-sm); } /* was #d1d5db — 1.47:1, an all-but-invisible "not set" marker */
 .cost { text-align: right; font-family: 'Monaco', 'Menlo', monospace; white-space: nowrap; font-weight: 500; color: #1f2937; }
 .summary-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.2rem; margin-bottom: 1.6rem; }
 .stat-card { background: #fff; padding: 1.1rem; border-left: 5px solid #4A7FA5; border-radius: 0 10px 10px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.2s; }
 .stat-card:hover { box-shadow: 0 4px 12px rgba(74,127,165,0.15); }
-.stat-card strong { display: block; font-size: 1.6rem; color: #1f2937; margin: 0.4rem 0 0.2rem; font-weight: 700; }
+.stat-card strong { display: block; font-size: var(--fs-2xl); color: #1f2937; margin: 0.4rem 0 0.2rem; font-weight: 700; }
 .stat-card.alert { border-left-color: #dc2626; }
 .stat-card.alert strong { color: #dc2626; }
-.stat-card small { color: #6b7280; font-size: 0.82rem; line-height: 1.4; }
-.disclaimer-box { background: #fffbeb; padding: 1.1rem 1.2rem; border-left: 5px solid #f59e0b; margin-bottom: 2rem; font-size: 0.9rem; border-radius: 0 8px 8px 0; line-height: 1.6; color: #78350f; }
+.stat-card small { color: #6b7280; font-size: var(--fs-xs); line-height: 1.4; }
+.disclaimer-box { background: #fffbeb; padding: 1.1rem 1.2rem; border-left: 5px solid #f59e0b; margin-bottom: 2rem; font-size: var(--fs-sm); border-radius: 0 8px 8px 0; line-height: 1.6; color: #78350f; }
 .disclaimer-box strong { color: #92400e; }
 .tna-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.6rem 0; }
 .tna-actions .btn { box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.2s; }
@@ -68,32 +68,32 @@
 .progress-section { margin: 1.4rem 0; }
 .progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-bottom: 0.5rem; }
 .progress-fill { height: 100%; background: linear-gradient(90deg, #4A7FA5, #2d5a8c); transition: width 0.3s ease; border-radius: 4px; }
-.progress-label { font-size: 0.85rem; color: #6b7280; }
+.progress-label { font-size: var(--fs-sm); color: #6b7280; }
 .group-summaries { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; margin-bottom: 2rem; }
-.group-summary { background: #f9fafb; padding: 0.8rem; border-radius: 6px; border: 1px solid #e5e7eb; font-size: 0.85rem; }
+.group-summary { background: #f9fafb; padding: 0.8rem; border-radius: 6px; border: 1px solid #e5e7eb; font-size: var(--fs-sm); }
 .group-summary .name { font-weight: 600; color: #1f2937; margin-bottom: 0.4rem; }
 .group-summary .stat { display: flex; justify-content: space-between; padding: 0.2rem 0; color: #6b7280; }
 .group-summary .stat strong { color: #374151; font-weight: 500; }
 .top-gaps { background: #f0f9ff; padding: 1.2rem; border-radius: 8px; border-left: 5px solid #0284c7; margin-bottom: 2rem; }
-.top-gaps h3 { margin-top: 0; color: #0c4a6e; font-size: 1rem; }
-.gap-item { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; font-size: 0.9rem; }
+.top-gaps h3 { margin-top: 0; color: #0c4a6e; font-size: var(--fs-base); }
+.gap-item { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; font-size: var(--fs-sm); }
 .gap-item .comp { flex: 1; color: #1f2937; }
-.gap-item .metrics { display: flex; gap: 0.8rem; font-size: 0.85rem; }
+.gap-item .metrics { display: flex; gap: 0.8rem; font-size: var(--fs-sm); }
 .gap-bar { display: inline-block; width: 30px; height: 4px; background: #dc2626; border-radius: 2px; }
 @media (max-width: 768px) {
-  .tna-table { font-size: 0.8rem; }
+  .tna-table { font-size: var(--fs-xs); }
   .tna-table th, .tna-table td { padding: 0.5rem 0.35rem; }
-  .stat-card strong { font-size: 1.4rem; }
+  .stat-card strong { font-size: var(--fs-xl); }
   .summary-stats { gap: 0.8rem; }
   .stat-card { padding: 0.9rem; }
-  .cur-select { width: 55px; padding: 0.3rem 0.4rem; font-size: 0.85rem; }
+  .cur-select { width: 55px; padding: 0.3rem 0.4rem; font-size: var(--fs-sm); }
   .tna-actions { gap: 0.6rem; flex-direction: column; }
   .tna-actions .btn { width: 100%; }
 }
 @media (max-width: 480px) {
-  .cur-select { width: 50px; font-size: 0.8rem; }
-  .tna-table { font-size: 0.75rem; }
-  .stat-card small { font-size: 0.75rem; }
+  .cur-select { width: 50px; font-size: var(--fs-xs); }
+  .tna-table { font-size: var(--fs-xs); }
+  .stat-card small { font-size: var(--fs-xs); }
 }
 @media print {
   .cur-select { border: 0; -webkit-appearance: none; appearance: none; }
@@ -126,7 +126,7 @@
     <div class="partner-banner" style="margin-bottom:1rem;margin-top:2rem"><img class="partner-logo" alt=""><span data-cobrand></span></div>
     <p class="eyebrow">Workforce capability planning</p>
     <h1>Training Needs Analysis</h1>
-    <p style="font-size: 1.1rem; max-width: 720px; color: #666;">Rate your team's current proficiency against best-practice targets across four staff groups. The tool calculates competency gaps, flags training priorities, and estimates investment — live as you type.</p>
+    <p style="font-size: var(--fs-md); max-width: 720px; color: #666;">Rate your team's current proficiency against best-practice targets across four staff groups. The tool calculates competency gaps, flags training priorities, and estimates investment — live as you type.</p>
   </section>
 
   <section>
@@ -190,7 +190,7 @@
       these stay indicative. What you can do is check the arithmetic.
     </p>
     <div id="basis-groups" style="max-width:860px"></div>
-    <p class="muted" style="font-size:.85rem;margin-top:1rem">
+    <p class="muted" style="font-size:var(--fs-sm);margin-top:1rem">
       Anchored on <span id="basis-sources"></span> · figures as at <span id="basis-asof"></span>.
       Actual training design requires specialist instructional expertise and regulatory alignment
       (ICAO, and KCAA for East Africa). Quotations from an approved training organisation supersede

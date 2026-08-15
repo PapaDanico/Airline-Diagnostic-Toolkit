@@ -57,7 +57,7 @@
     <h2 style="margin-bottom:.4rem">What are you building?</h2>
     <p class="muted" style="max-width:680px">Each sector carries a different capital shape. Selecting one loads indicative planning ranges you can then override with your own numbers.</p>
     <div class="segmented" id="sector-seg" style="margin-top:1.2rem" role="group" aria-label="Select a sector"></div>
-    <p class="muted" id="sector-note" style="font-size:.86rem;margin-top:1rem;max-width:720px"></p>
+    <p class="muted" id="sector-note" style="font-size:var(--fs-sm);margin-top:1rem;max-width:720px"></p>
   </div>
 </section>
 
@@ -75,9 +75,9 @@
           <div id="capex-lines"></div>
           <div class="flex between items-center" style="border-top:2px solid var(--jk-line-2);margin-top:1rem;padding-top:1rem">
             <b>Total capital requirement</b>
-            <b class="tnum" id="capex-total" style="font-size:1.25rem;font-family:var(--serif)">—</b>
+            <b class="tnum" id="capex-total" style="font-size:var(--fs-lg);font-family:var(--serif)">—</b>
           </div>
-          <p class="muted" style="font-size:.8rem;margin:.6rem 0 0">
+          <p class="muted" style="font-size:var(--fs-xs);margin:.6rem 0 0">
             Split shown below as fixed CAPEX vs working capital — lenders size term debt against the former, not the latter.
           </p>
           <button class="btn btn-ghost btn-sm" id="reset-capex" style="margin-top:.9rem">Reset to sector mid-points</button>
@@ -163,14 +163,14 @@
             <p class="hint">The minimum DSCR your facility will require.</p>
           </div>
 
-          <h3 style="font-family:var(--sans);font-size:.98rem;margin:1.4rem 0 .5rem">Sensitivity</h3>
+          <h3 style="font-family:var(--sans);font-size:var(--fs-base);margin:1.4rem 0 .5rem">Sensitivity</h3>
           <div class="table-scroll">
             <table class="dtable" id="sens">
               <thead><tr><th>Scenario</th><th class="num">Revenue</th><th class="num">EBITDA</th><th class="num">Debt service</th><th class="num">DSCR</th><th>Covenant</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
-          <p class="muted" style="font-size:.8rem;margin-top:.8rem">
+          <p class="muted" style="font-size:var(--fs-xs);margin-top:.8rem">
             Debt service is a level annual payment (principal + interest) over the term. Real facilities add fees, principal holidays and step-ups — this is a first-pass sanity check, not a bankable model.
           </p>
         </div>
@@ -180,7 +180,7 @@
         <h2 style="margin-bottom:.4rem">Break-even</h2>
         <div class="card card-flat" style="margin-top:1.2rem">
           <div class="kpis" id="be-kpis"></div>
-          <p class="muted" style="font-size:.84rem;margin:1.1rem 0 0" id="be-note"></p>
+          <p class="muted" style="font-size:var(--fs-sm);margin:1.1rem 0 0" id="be-note"></p>
         </div>
 
       </div>
@@ -201,7 +201,7 @@
             <a class="btn btn-ghost-lt" id="talk" href="#" style="justify-content:center">Pressure-test this model</a>
           </div>
         </div>
-        <div class="note no-print" style="margin-top:1rem;font-size:.82rem">
+        <div class="note no-print" style="margin-top:1rem;font-size:var(--fs-xs)">
           <b>Next steps</b>
           <a href="certification-navigator.html" data-keep-partner>Map the certification path →</a><br>
           <a href="corporate-structure.html" data-keep-partner>Design the holding structure →</a><br>
@@ -214,8 +214,8 @@
 
 <section class="sources">
   <div class="wrap">
-    <h3 style="font-size:1.1rem">Assumptions and limits</h3>
-    <p class="muted" style="font-size:.86rem;max-width:780px">
+    <h3 style="font-size:var(--fs-md)">Assumptions and limits</h3>
+    <p class="muted" style="font-size:var(--fs-sm);max-width:780px">
       Capital ranges are JK &amp; Associates planning bands built from African greenfield project experience and published sector data; they are deliberately wide because the binding variables — aircraft or device class, lease versus purchase, hangar versus line-only, site and tenure — move the answer by an order of magnitude. Market context figures are drawn from IATA's December 2025 industry outlook for 2026 and AFRAA reporting.
     </p>
     <p class="disclaimer" style="max-width:780px">
@@ -239,7 +239,7 @@
     <div class="cols">
       <div>
         <a class="brand" href="../index.html" style="color:#fff" data-keep-partner><span data-logo="light"></span><span style="color:#fff">JK &amp; Associates</span></a>
-        <p style="margin-top:1rem;max-width:320px;font-size:.9rem">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
+        <p style="margin-top:1rem;max-width:320px;font-size:var(--fs-sm)">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
       </div>
       <div>
         <h2>Build a venture</h2>

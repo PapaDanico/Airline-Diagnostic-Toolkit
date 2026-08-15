@@ -28,10 +28,10 @@
 <link rel="stylesheet" href="../assets/css/jk.css">
 <style>
   .mro-panel { border: 1px solid rgba(28,28,28,.14); border-radius: var(--radius-sm); padding: 16px 18px; background: var(--jk-white); margin-bottom: 14px; }
-  .mro-panel :is(h2, h3) { font-size: 1.02rem; margin: 0 0 2px; }
-  .mro-panel .w { font-size: .78rem; color: var(--jk-muted); margin-bottom: .7rem; }
+  .mro-panel :is(h2, h3) { font-size: var(--fs-base); margin: 0 0 2px; }
+  .mro-panel .w { font-size: var(--fs-xs); color: var(--jk-muted); margin-bottom: .7rem; }
   .mro-q { margin-bottom: .8rem; }
-  .mro-q label { display: block; font-size: .9rem; margin-bottom: .3rem; }
+  .mro-q label { display: block; font-size: var(--fs-sm); margin-bottom: .3rem; }
   .mro-q select { width: 100%; padding: 8px 10px; border: 1px solid rgba(28,28,28,.16); border-radius: 6px; font: inherit; background: var(--jk-parchment); }
   .mro-q select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; background: #fff; }
   .mro-radar-wrap { max-width: 560px; margin: 1.2rem auto; }
@@ -89,7 +89,7 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
       <div>
         <strong>Turn this into a technical improvement plan.</strong>
-        <p style="margin:.4rem 0 .8rem;font-size:.9rem">JK maps your weakest domains to a quantified 90-day sprint — compliance-risk remediation, records digitisation, or MRO sourcing strategy, scoped from your actual gaps.</p>
+        <p style="margin:.4rem 0 .8rem;font-size:var(--fs-sm)">JK maps your weakest domains to a quantified 90-day sprint — compliance-risk remediation, records digitisation, or MRO sourcing strategy, scoped from your actual gaps.</p>
         <form id="mro-enquiry" class="grid g2" style="gap:10px">
           <input type="hidden" name="tool" value="MRO & Technical Readiness Diagnostic">
           <input name="name" placeholder="Name" required>
@@ -101,7 +101,7 @@
             <option>Revenue growth</option><option>AOC startup</option><option>Strategy</option>
           </select>
           <button type="submit" class="btn btn-amber" style="grid-column:1/-1">Talk to JK about your technical readiness →</button>
-          <p class="enq-msg" style="font-size:.88rem;margin-top:.6rem;grid-column:1/-1"></p>
+          <p class="enq-msg" style="font-size:var(--fs-sm);margin-top:.6rem;grid-column:1/-1"></p>
         </form>
         <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain>info@aviationhubkenya.org</span></p>
       </div>

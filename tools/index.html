@@ -20,16 +20,16 @@
   @media (max-width: 360px) { .toolgrid { grid-template-columns: 1fr; } }
   .toolcard2 { background: #fff; border: 1px solid #e6e3db; border-radius: var(--radius, 12px); padding: 24px; display: flex; flex-direction: column; gap: .55rem; transition: box-shadow .2s, transform .2s; }
   .toolcard2:hover, .toolcard2:focus-within { box-shadow: 0 10px 30px rgba(0,0,0,.08); transform: translateY(-2px); }
-  .toolcard2 .ico { font-size: 1.7rem; }
-  .toolcard2 h3 { margin: 0; font-size: 1.12rem; }
+  .toolcard2 .ico { font-size: var(--fs-3xl); }
+  .toolcard2 h3 { margin: 0; font-size: var(--fs-md); }
   .flagship h3 { color: #fff; }
   /* The flagship card is an ink-to-brown gradient, so the default
      terracotta focus ring reads 1.90:1 against it. Amber clears
      3:1 on both stops (5.13 worst case). Doubled class so it wins
      against .btn:focus-visible in jk.css regardless of order. */
   .flagship.flagship :focus-visible { outline-color: var(--jk-amber); }
-  .toolcard2 p { margin: 0; color: #666; font-size: .93rem; line-height: 1.55; flex: 1; }
-  .toolcard2 .meta { font-size: .8rem; color: var(--jk-muted); } /* was #999 — 2.85:1 on white */
+  .toolcard2 p { margin: 0; color: #666; font-size: var(--fs-sm); line-height: 1.55; flex: 1; }
+  .toolcard2 .meta { font-size: var(--fs-xs); color: var(--jk-muted); } /* was #999 — 2.85:1 on white */
   .toolcard2 .btn { justify-content: center; }
   .flagship { grid-column: 1 / -1; background: linear-gradient(120deg, var(--jk-ink), #4a2216); color: #fff; }
   .flagship p { color: #ded1c9; }

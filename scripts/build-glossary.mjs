@@ -65,7 +65,7 @@ const html = JKG.cats.map(c => {
   const items = JKG.byCat(c.id).slice().sort(alpha);
   return `      <div class="g-group" id="cat-${esc(c.id)}" data-cat="${esc(c.id)}">
         <h2><span aria-hidden="true">${c.icon}</span> ${esc(c.label)}
-          <span class="muted g-n" style="font-size:.9rem;font-family:var(--sans);font-weight:400">${items.length}</span></h2>
+          <span class="muted g-n" style="font-size:var(--fs-sm);font-family:var(--sans);font-weight:400">${items.length}</span></h2>
         <p class="muted">${esc(c.blurb)}</p>
 ${items.map(termHtml).join("\n")}
       </div>`;

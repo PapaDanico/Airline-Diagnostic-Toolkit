@@ -1131,5 +1131,103 @@ server.close();
   );
 }
 
+/* ---- design values stay bounded ----
+
+   A ratchet, not a rule. It does not say the numbers below are right —
+   they are not — it says they may not get worse without somebody
+   deciding to make them worse.
+
+   The counts, measured across jk.css and every page's <style> block and
+   inline style attribute, excluding the :root token block:
+
+     255 colour literals, 94 distinct values, of which 3 correspond to
+         a token in the palette;
+     344 font-size literals, 61 distinct values, against 0 type-scale
+         tokens. The sister platform has 21 type tokens and 18 literals.
+
+   Why there is no scale here instead of a ratchet, having tried: the
+   font sizes are a continuum, not a set of clusters. Between 0.66rem
+   and 1rem there are 31 distinct values with no gap wider than 4%, so
+   any clustering collapses the whole band into one step and a 26.5%
+   shift. A modular ratio is no kinder — the observed gradations sit
+   about 6% apart and a 1.125 scale steps 11%, so adopting one re-wraps
+   body copy across thirty pages.
+
+   Which means consolidating type here is a design decision that moves
+   visible text, not a mechanical cleanup, and it should be made
+   deliberately rather than smuggled in behind a refactor. Likewise the
+   colours: 112 of the 255 are exactly a token value, but 109 of those
+   are #fff, and white does not drift. Replacing it would be churn
+   wearing the costume of progress.
+
+   So the ceiling is recorded at today's numbers. Reduce them by all
+   means — the check prints the delta and asks you to lower the ceiling
+   when you do — but the 62nd distinct font size does not arrive by
+   accident. */
+{
+  /* Type came down from 344/61 to 9/9 when the scale landed. The nine
+     that remain are the seven responsive clamp() display sizes, fluid by
+     design and not a single step, and the two declarations marked
+     `fitted:` — the figure inside the score ring and the lockup under
+     the brand mark, sized to a graphic rather than to the document.
+     Colour is untouched and still the open question. */
+  const CEILING = { colourUses: 255, colourDistinct: 94, fontUses: 9, fontDistinct: 9 };
+
+  const jkCss = readFileSync(join(ROOT, "assets", "css", "jk.css"), "utf8");
+  const rootBlock = jkCss.slice(jkCss.indexOf(":root"), jkCss.indexOf("/* ---------- reset"));
+
+  const colours = new Map(), fonts = new Map();
+  const tally = (text) => {
+    for (const m of text.matchAll(/#[0-9a-fA-F]{3,8}\b/g)) {
+      const v = m[0].toLowerCase();
+      colours.set(v, (colours.get(v) || 0) + 1);
+    }
+    for (const m of text.matchAll(/font-size:\s*([^;}]+)/g)) {
+      const v = m[1].trim();
+      if (v.startsWith("var(")) continue;
+      fonts.set(v, (fonts.get(v) || 0) + 1);
+    }
+  };
+
+  tally(jkCss.replace(rootBlock, ""));
+  for (const f of readdirSync(join(ROOT, "assets", "css"))) {
+    if (f.endsWith(".css") && f !== "jk.css") tally(readFileSync(join(ROOT, "assets", "css", f), "utf8"));
+  }
+  for (const p of pages) {
+    const html = readFileSync(join(ROOT, p), "utf8");
+    for (const m of html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) tally(m[1]);
+    for (const m of html.matchAll(/style="([^"]+)"/g)) tally(m[1]);
+  }
+
+  const now = {
+    colourUses: [...colours.values()].reduce((a, b) => a + b, 0),
+    colourDistinct: colours.size,
+    fontUses: [...fonts.values()].reduce((a, b) => a + b, 0),
+    fontDistinct: fonts.size
+  };
+
+  const tokenIssues = [];
+  for (const [key, max] of Object.entries(CEILING)) {
+    if (now[key] > max) {
+      tokenIssues.push(`${key} is ${now[key]}, above the recorded ceiling of ${max} — ` +
+        `a new hardcoded design value went in; use a token, or raise the ceiling on purpose`);
+    }
+  }
+  /* A ceiling nobody lowers stops being a ratchet and becomes wallpaper. */
+  const improved = Object.entries(CEILING).filter(([k, max]) => now[k] < max);
+  if (improved.length) {
+    tokenIssues.push(`ceiling is stale — ${improved.map(([k, max]) => `${k} is now ${now[k]}, under ${max}`).join("; ")}. ` +
+      `Lower CEILING in this file so the gain is held.`);
+  }
+
+  problems += tokenIssues.length;
+  console.log(
+    `\n${tokenIssues.length ? "❌" : "✅"} design values bounded ` +
+      `(${now.colourUses} colour literals / ${now.colourDistinct} distinct, ` +
+      `${now.fontUses} font-size literals / ${now.fontDistinct} distinct)` +
+      (tokenIssues.length ? "\n     - " + tokenIssues.join("\n     - ") : "")
+  );
+}
+
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);
 process.exit(problems ? 1 : 0);

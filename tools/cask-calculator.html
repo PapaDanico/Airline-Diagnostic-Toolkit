@@ -89,10 +89,10 @@
       <div class="field">
         <label>Cost-line breakdown (% of total operating cost)</label>
         <div class="grid g2" style="gap:8px">
-          <div><label for="fuelPct" style="font-size:.8rem">Fuel</label><input id="fuelPct" type="number" min="0" max="100" step="1" value="34"></div>
-          <div><label for="crewPct" style="font-size:.8rem">Crew</label><input id="crewPct" type="number" min="0" max="100" step="1" value="22"></div>
-          <div><label for="maintPct" style="font-size:.8rem">Maintenance</label><input id="maintPct" type="number" min="0" max="100" step="1" value="18"></div>
-          <div><label for="airportPct" style="font-size:.8rem">Airport / Nav</label><input id="airportPct" type="number" min="0" max="100" step="1" value="12"></div>
+          <div><label for="fuelPct" style="font-size:var(--fs-xs)">Fuel</label><input id="fuelPct" type="number" min="0" max="100" step="1" value="34"></div>
+          <div><label for="crewPct" style="font-size:var(--fs-xs)">Crew</label><input id="crewPct" type="number" min="0" max="100" step="1" value="22"></div>
+          <div><label for="maintPct" style="font-size:var(--fs-xs)">Maintenance</label><input id="maintPct" type="number" min="0" max="100" step="1" value="18"></div>
+          <div><label for="airportPct" style="font-size:var(--fs-xs)">Airport / Nav</label><input id="airportPct" type="number" min="0" max="100" step="1" value="12"></div>
         </div>
         <div class="hint">Approximate shares of your total operating cost — used to estimate your fuel-specific unit cost below.</div>
       </div>
@@ -105,18 +105,18 @@
         <p id="band" style="font-weight:700;margin:.2rem 0 .6rem">Enter your figures.</p>
         <p class="qual" id="qual">CASK = total operating cost &divide; available seat-kilometres.</p>
         <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
-        <p style="font-size:.84rem;color:#bfbfbf;margin:0">Context: African carriers' unit costs run close to <strong>double</strong> the rest of the world (IATA, <em>Cost Disadvantage of African Airlines</em>, 2025), driven by fuel (~40% of cost), thin scale and high financing and airport charges. The &le; 9 US&cent; target reflects a competitive position, not the regional average.</p>
+        <p style="font-size:var(--fs-sm);color:#bfbfbf;margin:0">Context: African carriers' unit costs run close to <strong>double</strong> the rest of the world (IATA, <em>Cost Disadvantage of African Airlines</em>, 2025), driven by fuel (~40% of cost), thin scale and high financing and airport charges. The &le; 9 US&cent; target reflects a competitive position, not the regional average.</p>
       </div>
       <div class="result-panel" style="margin-top:1rem">
         <p class="eyebrow" style="color:var(--jk-amber)">Cost-line detail</p>
-        <div id="lineBreakdown" style="display:grid;grid-template-columns:1fr auto auto;gap:.35rem .9rem;font-size:.9rem;margin:0 0 .9rem"></div>
+        <div id="lineBreakdown" style="display:grid;grid-template-columns:1fr auto auto;gap:.35rem .9rem;font-size:var(--fs-sm);margin:0 0 .9rem"></div>
         <p class="qual" id="fuelQual" style="margin:0">Enter your figures to see the cost-line breakdown.</p>
       </div>
       <div class="guarantee" style="margin-top:1.4rem">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         <div>
           <strong>Unlock the full CASK Benchmarking pack.</strong>
-          <p style="margin:.4rem 0 .8rem;font-size:.9rem">Your CASK broken down by cost line, benchmarked against African peers and LCC comparators, with the biggest unit-cost levers ranked by impact.</p>
+          <p style="margin:.4rem 0 .8rem;font-size:var(--fs-sm)">Your CASK broken down by cost line, benchmarked against African peers and LCC comparators, with the biggest unit-cost levers ranked by impact.</p>
           <form id="cask-enquiry" class="grid g2" style="gap:10px">
             <input type="hidden" name="tool" value="CASK Benchmarking Calculator">
             <input name="name" placeholder="Name" required>
@@ -128,7 +128,7 @@
               <option>Revenue growth</option><option>AOC startup</option><option>Strategy</option>
             </select>
             <button type="submit" class="btn btn-amber" style="grid-column:1/-1">Talk to JK about your unit cost →</button>
-            <p class="enq-msg" style="font-size:.88rem;margin-top:.6rem;grid-column:1/-1"></p>
+            <p class="enq-msg" style="font-size:var(--fs-sm);margin-top:.6rem;grid-column:1/-1"></p>
           </form>
           <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain>info@aviationhubkenya.org</span></p>
         </div>
