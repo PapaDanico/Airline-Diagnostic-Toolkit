@@ -750,11 +750,39 @@ assert(await page.$$eval("#operate .step", e => e.length) === 4, "operate track 
 assert(await page.$$eval(".step .out", e => e.length) === 10, "every one of the ten steps states what you get out of it");
 assert(await page.$$eval(".pitfall", e => e.length) >= 4, "steps carry the common-mistake warnings");
 
-section("Footer learn strip");
-for (const pg of ["index.html", "diagnostic.html", "tools/index.html", "regulations.html", "tools/venture-dashboard.html"]) {
+/* ─── Footer references: present, and present once ───
+
+   This used to assert the strip carried all four links on every page.
+   It passed on pages whose columns already carried one of them, because
+   listing a page twice satisfies "all four" exactly as well as listing
+   it once — the Control Room and the glossary both offered the
+   regulatory index in the Reference column AND as a Regulations card,
+   one page under two names in one footer.
+
+   The assertion is now the property that matters: every reference is
+   reachable from the footer, and reachable exactly once, whether it got
+   there via a column or via the strip. */
+section("Footer references");
+const REFERENCES = ["tutorial.html", "faq.html", "glossary.html", "regulations.html"];
+for (const pg of ["index.html", "diagnostic.html", "tools/index.html", "regulations.html", "tools/venture-dashboard.html", "glossary.html"]) {
   await page.goto(base + "/" + pg); await page.waitForTimeout(350);
-  const n = await page.$$eval(".footer-learn .fl-item", e => e.length);
-  assert(n === 4, `${pg}: learn strip injected with all four links (${n})`);
+  const counts = await page.evaluate(() => {
+    const norm = (h) => (h || "").replace(/^(\.\.\/)+/, "").replace(/^\//, "").split(/[#?]/)[0].toLowerCase();
+    const out = {};
+    for (const a of document.querySelectorAll(".footer a[href]")) {
+      const d = norm(a.getAttribute("href"));
+      if (d) out[d] = (out[d] || 0) + 1;
+    }
+    return { out, here: (location.pathname.split("/").pop() || "index.html").toLowerCase() };
+  });
+  for (const ref of REFERENCES) {
+    const n = counts.out[ref] || 0;
+    /* the current page renders as non-navigating text, so it is reachable
+       by definition and zero links to it is the correct answer */
+    const isSelf = counts.here === ref;
+    assert(isSelf ? n === 0 : n === 1,
+      `${pg}: footer links ${ref} ${n} time(s)${isSelf ? " (current page — zero is right)" : ", expected exactly 1"}`);
+  }
 }
 // a page must not link to itself in its own footer
 await page.goto(base + "/glossary.html"); await page.waitForTimeout(400);
