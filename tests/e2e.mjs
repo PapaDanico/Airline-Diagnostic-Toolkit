@@ -2167,6 +2167,73 @@ await assertEnquiryFormSubmits(page, "#fuel-enquiry", "fuel page");
     "fuel: a premium below the benchmark is still reported as on benchmark");
 }
 
+/* ─── Route economics ───
+   The arithmetic is asserted against figures worked out by hand, not
+   against the tool's own output, so a regression in the model cannot
+   re-bless itself. */
+{
+  const set = async (id, v) => { await page.$eval("#" + id, (e, x) => {
+    e.value = x; e.dispatchEvent(new Event("input", { bubbles: true }));
+  }, v); };
+  const txt = async (id) => (await page.$eval("#" + id, (e) => e.innerText)).replace(/\s+/g, " ");
+
+  await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(350);
+  for (const [id, v] of [["re-stage","1200"],["re-seats","160"],["re-cask","11.07"],
+                         ["re-fare","145"],["re-anc","12"],["re-cargo","1800"],["re-lf","78"]]) await set(id, v);
+  await page.waitForTimeout(250);
+
+  /* ASK 192,000 · trip cost $21,254 · rev/pax $157 · pax 124.8
+     BLF = (21254 − 1800) / (160 × 157) = 77.4% */
+  const blf = await page.$eval("#re-blf", (e) => e.textContent.trim());
+  assert(blf === "77.4%", `route: break-even load factor should be 77.4%, got ${blf}`);
+  const table = await txt("re-table");
+  for (const want of ["$21,254", "$19,594", "$21,394", "11.14 US¢", "11.07 US¢", "13.08 US¢"]) {
+    assert(table.includes(want), `route: result table omits ${want} — got ${table}`);
+  }
+  assert(!/NaN|Infinity|undefined/.test(table), `route: table carries a non-number — ${table}`);
+
+  /* A fare that cannot cover the sector at any load factor is a
+     different statement from a difficult one, and is worded as one. */
+  await set("re-fare", "40"); await set("re-anc", "0"); await set("re-cargo", "0");
+  await page.waitForTimeout(250);
+  assert(/Cannot break even/i.test(await page.$eval("#re-band", (e) => e.textContent)),
+    "route: a sector that cannot break even at any load factor does not say so");
+
+  /* Suspicious but calculable: warn, and still compute. */
+  await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(350);
+  await set("re-cask", "930"); await page.waitForTimeout(250);
+  assert(/Check the inputs/i.test(await txt("re-contrib")),
+    "route: a 100x unit-cost slip draws no caution");
+
+  /* Impossible: refuse, and name the field. */
+  for (const [id, v, needle] of [["re-stage","0","sector length"],["re-lf","0","load factor"],
+                                 ["re-lf","120","load factor"],["re-fare","-10","fare"]]) {
+    await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(300);
+    await set(id, v); await page.waitForTimeout(200);
+    const err = await txt("re-error");
+    assert(new RegExp(needle, "i").test(err), `route: ${id}=${v} should be refused naming "${needle}" — got "${err}"`);
+  }
+
+  /* The chain. A pre-filled figure with no provenance is worse than an
+     empty field, so the carry-over has to say where it came from — and
+     has to stop saying it when the source stops being valid. */
+  await page.goto(base + "/tools/cask-calculator.html"); await page.waitForTimeout(350);
+  await set("opcost", "310000000"); await set("ask", "2800000000"); await page.waitForTimeout(300);
+  await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(350);
+  assert(await page.$eval("#re-cask", (e) => e.value) === "11.07",
+    "route: the CASK calculation did not carry across");
+  assert(/Carried over/i.test(await txt("re-cask-src")),
+    "route: a carried-over unit cost does not say where it came from");
+
+  await page.goto(base + "/tools/cask-calculator.html"); await page.waitForTimeout(300);
+  await set("ask", "0"); await page.waitForTimeout(300);
+  await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(350);
+  assert(!/Carried over/i.test(await txt("re-cask-src")),
+    "route: an invalidated CASK still pre-fills — a stale number wearing a provenance line is the worst case");
+
+  await assertEnquiryFormSubmits(page, "#route-enquiry", "route economics page");
+}
+
 await page.goto(base + "/tools/cask-calculator.html"); await page.waitForTimeout(300);
 assert(await page.$("#cask-enquiry [name=email]") !== null, "CASK page: enquiry form email field present");
 assert(await page.$("#contact-cta") === null, "CASK page: bare mailto CTA removed");

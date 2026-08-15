@@ -154,9 +154,25 @@ function recalcFuel() {
 // consumer. Derived from COST_LINES so a fifth line cannot be added to
 // the panel and left unwired, which is how three of the four came to be
 // inert in the first place.
-const recalcAll = () => { recalc(); recalcFuel(); };
+/* Publish the unit cost for the route calculator to pick up.
+
+   CASK is the one figure the route tool cannot ask an operator to
+   produce off the top of their head, and it is the whole output of this
+   page. Written on every valid recalculation and cleared the moment the
+   inputs stop being valid, so a stale number can never pre-fill
+   anything downstream. The route tool says where it came from. */
+const caskStore = toolStore("cask");
+function publishCask() {
+  const op = parseFloat(document.getElementById("opcost").value) || 0;
+  const ask = parseFloat(document.getElementById("ask").value) || 0;
+  if (op <= 0 || ask <= 0) { caskStore.clear(); return; }
+  caskStore.save({ caskCents: (op / ask) * 100, fleetType: document.getElementById("fleetType").value });
+}
+
+const recalcAll = () => { recalc(); recalcFuel(); publishCask(); };
 ["opcost","ask","target"].forEach(id =>
   document.getElementById(id).addEventListener("input", recalcAll));
+document.getElementById("fleetType").addEventListener("change", publishCask);
 COST_LINES.forEach(l =>
   document.getElementById(l.id).addEventListener("input", recalcFuel));
 recalcAll();
