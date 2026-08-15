@@ -762,6 +762,57 @@ assert(await page.$$eval(".pitfall", e => e.length) >= 4, "steps carry the commo
    The assertion is now the property that matters: every reference is
    reachable from the footer, and reachable exactly once, whether it got
    there via a column or via the strip. */
+/* ─── Running prose keeps a readable measure ───
+
+   Characters per line — not pixels, and not `ch`. Both of those lie.
+
+   Pixels lie because the same 720px is a comfortable measure at one
+   type size and 92 characters at another, and this site sets measures
+   at four different sizes. `ch` lies because it is the advance width of
+   "0", which in DM Sans is about 11px against an average character of
+   8 — so the familiar "65ch" advice, taken at face value, gives a
+   column holding nearer 90. The first attempt at this fix set 72ch and
+   re-measured at 97 characters, which is where it started.
+
+   So this counts characters, on a canvas, against each element's own
+   computed font. It is the only form of the check that cannot be
+   satisfied by a number that merely looks right: at 1440px the glossary
+   ran at 141 characters a line, the company profile at 163, methodology
+   at 102, privacy, terms and about at 97 and the regulatory index at 92
+   — and every one of them had a max-width set, and looked in the
+   stylesheet like it had been thought about. */
+section("Running prose keeps a readable measure");
+{
+  const MAX_CHARS = 90;   // comfortable is 45-75; past ~90 the eye loses the line
+  for (const pg of ["privacy.html", "terms.html", "methodology.html", "glossary.html",
+                    "about.html", "regulations.html", "company-profile.html", "tutorial.html", "faq.html"]) {
+    await page.goto(base + "/" + pg); await page.waitForTimeout(350);
+    const worst = await page.evaluate(() => {
+      const ctx = document.createElement("canvas").getContext("2d");
+      const main = document.querySelector("main") || document.body;
+      let count = 0, text = "";
+      for (const el of main.querySelectorAll("p, li")) {
+        const t = (el.textContent || "").trim();
+        /* running prose only: short labels wrap on their own, and a
+           block containing other blocks is a layout box, not a sentence */
+        if (t.length < 200 || el.querySelector("p, li, div, table")) continue;
+        const cs = getComputedStyle(el);
+        if (cs.display === "none" || cs.visibility === "hidden") continue;
+        ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        const avg = ctx.measureText("abcdefghijklmnopqrstuvwxyz ").width / 27;
+        const w = el.getBoundingClientRect().width -
+          parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        const chars = Math.round(w / avg);
+        if (chars > count) { count = chars; text = t.slice(0, 40); }
+      }
+      return { count, text };
+    });
+    assert(worst.count <= MAX_CHARS,
+      `${pg}: widest prose line is ${worst.count} characters (max ${MAX_CHARS})` +
+      (worst.count > MAX_CHARS ? ` — "${worst.text}…"` : ""));
+  }
+}
+
 section("Footer references");
 const REFERENCES = ["tutorial.html", "faq.html", "glossary.html", "regulations.html"];
 for (const pg of ["index.html", "diagnostic.html", "tools/index.html", "regulations.html", "tools/venture-dashboard.html", "glossary.html"]) {
