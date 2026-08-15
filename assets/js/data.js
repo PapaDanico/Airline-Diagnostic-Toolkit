@@ -360,14 +360,15 @@ const JK = {
       {ref:"A2", n:"CASK Benchmarking Calculator", d:"Cost efficiency vs African and LCC benchmarks."},
       {ref:"A3", n:"48-Hour Data Request", d:"28-item structured priority data pack."},
       {ref:"A4", n:"Operating Model Canvas", d:"9-panel airline model on one page."},
-      {ref:"A5", n:"Training Needs Analysis", d:"Competency-gap assessment, 4 staff groups."} ]},
+      {ref:"A5", n:"Training Needs Analysis", d:"Competency-gap assessment, 4 staff groups."},
+      {ref:"A6", n:"Route Economics & Break-even", d:"One sector: contribution, break-even load factor and fare, and which gauge to fly it."} ]},
     { box:"V", locked:false, title:"Venture & Greenfield", track:"build", tools:[
       {ref:"V1", n:"KCAA Certification Navigator", d:"The five-phase certification path for six sectors, gate by gate."},
       {ref:"V2", n:"Greenfield Venture Builder", d:"CAPEX, capital stack, debt sizing, DSCR and break-even."},
       {ref:"V3", n:"Corporate Structure Designer", d:"HoldCo / SPV / OpCo layering with look-through economics."},
       {ref:"V4", n:"Organogram & Postholder Planner", d:"Required postholders, org tree and headcount ramp."} ]},
     { box:"B", locked:true, title:"Deep Diagnostic", track:"operate", tools:[
-      {ref:"B1", n:"Route Profitability Diagnostic", d:"Fast P&L with break-even load factor per route."},
+      {ref:"B1", n:"Route Profitability Diagnostic", d:"Every route in the schedule, with stage-length-adjusted unit cost, connecting traffic and seasonality — the network view the free single-sector calculator cannot give."},
       {ref:"B2", n:"Staff Cost Efficiency Analyser", d:"Labour-ratio benchmarking across all staff groups."},
       {ref:"B3", n:"Fleet Utilisation & Turn-Time Audit", d:"Block hours, AOG and turnaround analysis."},
       {ref:"B4", n:"Safety Culture Maturity Assessment", d:"ICAO SMS 5-level scoring framework."},
