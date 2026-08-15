@@ -16,18 +16,24 @@
 <link rel="stylesheet" href="assets/css/fonts.css">
 <link rel="stylesheet" href="assets/css/jk.css">
 <style>
-  .legal { max-width: 860px; }
-  .legal h2 { font-family: var(--sans); font-size: var(--fs-md); margin: 2rem 0 .6rem; color: var(--jk-ink); }
-  .legal p, .legal li, .legal td, .legal th { font-size: var(--fs-base); line-height: 1.65; color: var(--jk-ink); }
-  .legal ul { padding-left: 1.2rem; }
-  .legal li { margin-bottom: .45rem; }
-  .legal .note { border-left: 4px solid var(--accent); background: var(--jk-parchment); padding: 14px 18px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 1rem 0; }
+  /* The comparison table is particular to this page; the surrounding
+     long-document styles are shared and live in jk.css. */
   .mx-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
   .mx-table th, .mx-table td { text-align: left; padding: 9px 12px; border-bottom: 1px solid #e3e0d8; }
   .mx-table th { font-family: var(--sans); font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: .04em; color: var(--jk-muted); } /* was #777 — 4.48:1, just under AA */
   .mx-table td b { color: var(--jk-ink); }
   .mx-wrap { overflow-x: auto; }
   .band { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 600; }
+  /* One ramp, four steps. These were four washes from four different
+     colour families — a red, a Tailwind amber, a mint and a pale blue —
+     picked per band rather than from the palette. The top band is a
+     solid fill rather than a fifth wash, because "best-in-class" should
+     read as stronger than "competitive" and green is already spent on
+     the band below it. */
+  .band-0 { background: var(--jk-red-lt);    color: var(--jk-red-dk); }
+  .band-1 { background: var(--jk-amber-lt);  color: var(--jk-amber-text); }
+  .band-2 { background: var(--jk-green-lt);  color: var(--jk-green-dk); }
+  .band-3 { background: var(--jk-green);     color: #fff; }
 </style>
 </head>
 <body>
@@ -104,10 +110,10 @@
 
     <h2>4. Interpretation bands</h2>
     <p>
-      <span class="band" style="background:#FDE8E8;color:#9B1C1C">0–44 · Turnaround required</span>
-      <span class="band" style="background:#FEF3C7;color:#92400E">45–64 · Material gaps to close</span>
-      <span class="band" style="background:#E7F6EC;color:#166534">65–79 · Competitive, with upside</span>
-      <span class="band" style="background:#E0F2FE;color:#075985">80–100 · Best-in-class trajectory</span>
+      <span class="band band-0">0–44 · Turnaround required</span>
+      <span class="band band-1">45–64 · Material gaps to close</span>
+      <span class="band band-2">65–79 · Competitive, with upside</span>
+      <span class="band band-3">80–100 · Best-in-class trajectory</span>
     </p>
     <p>The report also flags your three widest domain gaps and prescribes the matching JK toolboxes and
       engagement phases, so the output is a prioritised action shortlist rather than a raw number.</p>

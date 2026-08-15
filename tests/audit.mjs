@@ -1170,8 +1170,15 @@ server.close();
      design and not a single step, and the two declarations marked
      `fitted:` — the figure inside the score ring and the lockup under
      the brand mark, sized to a graphic rather than to the document.
-     Colour is untouched and still the open question. */
-  const CEILING = { colourUses: 255, colourDistinct: 94, fontUses: 9, fontDistinct: 9 };
+
+     Colour came down from 255/94 to 215/76, and the note above about
+     #fff still holds: 108 of what remains is white, which does not
+     drift and is not worth an indirection. The 39 that went were one
+     page — training-tna, built in Tailwind's palette and never
+     reconciled — repainted in the site's own. What is left is mostly
+     the two standalone documents that do not load jk.css and a long
+     tail used once each. */
+  const CEILING = { colourUses: 204, colourDistinct: 64, fontUses: 9, fontDistinct: 9 };
 
   const jkCss = readFileSync(join(ROOT, "assets", "css", "jk.css"), "utf8");
   const rootBlock = jkCss.slice(jkCss.indexOf(":root"), jkCss.indexOf("/* ---------- reset"));
@@ -1226,6 +1233,77 @@ server.close();
       `(${now.colourUses} colour literals / ${now.colourDistinct} distinct, ` +
       `${now.fontUses} font-size literals / ${now.fontDistinct} distinct)` +
       (tokenIssues.length ? "\n     - " + tokenIssues.join("\n     - ") : "")
+  );
+}
+
+/* ---- the neutrals stay warm ----
+
+   The palette block says so in a comment — "neutrals (warm, never
+   grey-blue)" — and a comment is not enforceable. training-tna was
+   built against Tailwind's default greys and shipped for as long as the
+   history shows: #1f2937, #6b7280, #e5e7eb, #f9fafb, #cbd5e1 under a
+   steel-blue #4A7FA5, on pages that also loaded the warm sheet. The
+   header was terracotta and everything below the fold was cool, and
+   nothing objected because nothing was looking.
+
+   A neutral here is a colour whose channels are close enough together
+   to read as grey rather than as a hue. Warm means red at or above
+   blue, which every token in the palette satisfies. The threshold is
+   deliberately loose: this catches a colour picked from the wrong
+   family, not a shade someone nudged.
+
+   Only pages that load jk.css are checked. embed.html and the fuel
+   tender spec source are standalone documents with their own type and
+   colour; they are not inconsistent with a sheet they never load. */
+{
+  const parse = (c) => {
+    c = c.trim().toLowerCase();
+    if (/^#[0-9a-f]{3}$/.test(c)) c = "#" + [...c.slice(1)].map((x) => x + x).join("");
+    if (/^#[0-9a-f]{6}$/.test(c)) return [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+    const m = c.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/);
+    return m ? [+m[1], +m[2], +m[3]] : null;
+  };
+  const isCoolNeutral = (rgb) => {
+    const [r, g, b] = rgb;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    if (mx === 0) return false;
+    if ((mx - mn) / mx > 0.22) return false;   // a hue, not a neutral
+    if (mx - mn <= 2) return false;            // a true grey, no cast either way
+    return b > r;
+  };
+
+  const jkCss = readFileSync(join(ROOT, "assets", "css", "jk.css"), "utf8");
+  const LIT = /#[0-9a-fA-F]{3,8}\b|\brgba?\([^)]*\)/g;
+  const cool = [];
+  const scan = (text, where) => {
+    for (const m of text.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(LIT)) {
+      const rgb = parse(m[0]);
+      if (rgb && isCoolNeutral(rgb)) cool.push(`${m[0]} in ${where}`);
+    }
+  };
+  scan(jkCss, "assets/css/jk.css");
+  for (const p of pages) {
+    const html = readFileSync(join(ROOT, p), "utf8");
+    if (!html.includes("jk.css")) continue;
+    for (const m of html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) scan(m[1], p);
+    for (const m of html.matchAll(/style="([^"]+)"/g)) scan(m[1], p);
+  }
+  for (const f of readdirSync(join(ROOT, "assets", "js", "page"))) {
+    if (f.endsWith(".js")) scan(readFileSync(join(ROOT, "assets", "js", "page", f), "utf8"), `assets/js/page/${f}`);
+  }
+
+  /* --jk-green-lt is a pale green, not a neutral: its channels sit
+     inside the saturation threshold but it is a wash with a hue, and
+     green washes are blue-adjacent by construction. Named rather than
+     loosened, so the test keeps catching greys. */
+  const ALLOWED = new Set(["#E8F3ED".toLowerCase()]);
+  const real = cool.filter((c) => !ALLOWED.has(c.split(" ")[0].toLowerCase()));
+
+  problems += real.length ? 1 : 0;
+  console.log(
+    `\n${real.length ? "❌" : "✅"} the neutrals stay warm ` +
+      `(${real.length} blue-shifted neutral${real.length === 1 ? "" : "s"} on pages that load jk.css)` +
+      (real.length ? "\n     - " + real.join("\n     - ") : "")
   );
 }
 
