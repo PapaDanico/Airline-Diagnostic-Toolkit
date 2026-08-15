@@ -23,6 +23,7 @@
    alone: clicking "Clear" in a loop is a test that erases what it is
    testing, and a print dialog blocks the run forever. */
 import { createServer } from 'node:http';
+import { record } from './verification.mjs';
 import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -186,7 +187,10 @@ if (problems.length) {
    diagnostic, and 12 tools — across 176 interactions) with enough room
    that adding or retiring one page does not trip them, but not so much
    that a collapse would slip through. */
-if (driven < 25 || interactions < 120) {
+const tooLittle = driven < 25 || interactions < 120;
+record('drive', { passed: !tooLittle, runs: driven, interactions,
+  headline: `${driven} pages driven as a user would, ${interactions} interactions, no console errors` });
+if (tooLittle) {
   console.log(`❌  too little was actually driven (${driven} runs, ${interactions} interactions) — the sweep is not proving anything`);
   process.exit(1);
 }

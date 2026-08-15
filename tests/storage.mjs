@@ -29,6 +29,7 @@
    showed "Complete all 40 questions first" — so it demonstrated nothing
    and was not committed. */
 import { createServer } from 'node:http';
+import { record } from './verification.mjs';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -338,6 +339,8 @@ console.log('\n── The warning does not damage the page it lands on ──');
 await browser.close();
 server.close();
 
+record('storage', { passed: failures === 0, checks: passed,
+  headline: `a refused save is reported on screen and the result survives it` });
 console.log(`\n  ${passed} passed, ${failures} failed`);
 console.log(failures
   ? `\n❌  ${failures} storage failure(s)`

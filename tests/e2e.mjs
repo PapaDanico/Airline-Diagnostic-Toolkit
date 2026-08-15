@@ -2,6 +2,7 @@
    Runs the real pages in headless Chromium and asserts the core flows.
    Exits non-zero on any failure so CI fails loudly. Run: node tests/e2e.mjs */
 import { chromium } from "playwright";
+import { record } from "./verification.mjs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
@@ -2579,6 +2580,8 @@ assert(errs.length === 0, `no uncaught page errors (${errs.length ? errs.join(" 
 
 await browser.close();
 
+record("e2e", { passed: failures === 0, assertions: passed, failures,
+  headline: `${passed} behaviour assertions across the site` });
 console.log(`\n  ${passed} passed, ${failures} failed`);
 console.log(failures ? `\n❌  ${failures} failure(s)` : "\n✅  all E2E checks passed");
 process.exit(failures ? 1 : 0);

@@ -30,6 +30,7 @@
    ============================================================ */
 
 import { chromium } from 'playwright';
+import { record } from './verification.mjs';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -161,6 +162,8 @@ expect(
 await context.close();
 await browser.close();
 
+record('offline', { passed: failures === 0,
+  headline: 'the site still works with the network cut, and a live network still beats the cache' });
 console.log('\n' + '─'.repeat(52));
 if (failures === 0) {
   console.log('Offline capability holds, and online still beats the cache.');

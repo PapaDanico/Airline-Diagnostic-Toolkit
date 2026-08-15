@@ -34,6 +34,7 @@
 
    A colour this cannot parse is reported rather than guessed at. */
 import { createServer } from 'node:http';
+import { record } from './verification.mjs';
 import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -267,6 +268,8 @@ expect(low.size === 0, `every focus indicator reaches ${MIN_RATIO}:1 against its
 for (const v of [...unresolved.values()].slice(0, 10)) console.log(`      unresolved: [${v.cls}] ${v.where}`);
 expect(unresolved.size === 0, `every colour involved was parsed rather than guessed (${unresolved.size} unresolved)`);
 
+record('focus', { passed: failures === 0, elements: measured, minRatio: MIN_RATIO,
+  headline: `${measured} focusable elements, each with a visible indicator at ${MIN_RATIO}:1` });
 console.log(`\n${'─'.repeat(52)}`);
 console.log(failures ? `❌  ${failures} focus-visibility failure(s)` : `✅  ${measured} focusable elements, all with a visible indicator at ${MIN_RATIO}:1`);
 process.exit(failures ? 1 : 0);

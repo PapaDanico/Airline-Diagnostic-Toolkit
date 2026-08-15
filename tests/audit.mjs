@@ -3,6 +3,7 @@
    and horizontal overflow at desktop (1280) and mobile (390).
    Exits non-zero on any issue. Run: node tests/audit.mjs */
 import { chromium } from "playwright";
+import { record } from "./verification.mjs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve, join, normalize, extname } from "node:path";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
@@ -1421,5 +1422,7 @@ server.close();
   );
 }
 
+record("audit", { passed: problems === 0, issues: problems, pages: pages.length,
+  headline: `${pages.length} pages audited for dead tokens, dead CSS, palette and design-value drift` });
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);
 process.exit(problems ? 1 : 0);

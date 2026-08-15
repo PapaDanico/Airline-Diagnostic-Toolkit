@@ -132,3 +132,10 @@ jobs:
       # requires it to stay quiet when the write succeeds.
       - name: A refused storage write is reported
         run: node tests/storage.mjs
+
+      # Last, because it asserts that every suite above it actually ran.
+      # The published figures on the site are generated from these
+      # records, so a suite that is skipped, or fails, or whose numbers
+      # were edited by hand, stops the build rather than the claim.
+      - name: The published verification figures match this run
+        run: node scripts/build-verification.mjs --check
