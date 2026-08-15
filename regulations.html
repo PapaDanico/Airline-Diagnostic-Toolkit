@@ -28,12 +28,12 @@
 <link rel="stylesheet" href="assets/css/fonts.css">
 <link rel="stylesheet" href="assets/css/jk.css">
 <style>
-  .reg-table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 760px; }
+  .reg-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); min-width: 760px; }
   .reg-table th, .reg-table td { text-align: left; padding: 13px 14px; border-bottom: 1px solid var(--jk-line); vertical-align: top; }
-  .reg-table th { font-family: var(--sans); font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; color: var(--jk-muted); }
+  .reg-table th { font-family: var(--sans); font-size: var(--fs-2xs); letter-spacing: .06em; text-transform: uppercase; color: var(--jk-muted); }
   .reg-table tbody tr:hover td { background: var(--jk-parchment); }
   .reg-table .ref-cell { white-space: nowrap; font-variant-numeric: lining-nums tabular-nums; font-weight: 600; }
-  .reg-table .sec-cell { font-size: .8rem; color: var(--jk-muted); }
+  .reg-table .sec-cell { font-size: var(--fs-xs); color: var(--jk-muted); }
   /* The instrument title is the column that deserves the room; without
      explicit widths the browser gave a third of the table to a list of
      six short sector names and stacked every row six lines deep. */
@@ -42,7 +42,7 @@
   .reg-table th:nth-child(4), .reg-table td:nth-child(4) { width: 22%; }
   .reg-table td a { font-weight: 600; }
 
-  .st { display: inline-flex; align-items: center; gap: .38rem; font-size: .76rem; font-weight: 700;
+  .st { display: inline-flex; align-items: center; gap: .38rem; font-size: var(--fs-xs); font-weight: 700;
         letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
   .st::before { content: ""; width: 8px; height: 8px; border-radius: 50%; flex: none; }
   .st-ok { color: var(--jk-green); } .st-ok::before { background: var(--jk-green); }
@@ -55,7 +55,7 @@
   .sec-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px; }
   .sec-map > * { min-width: 0; }
   .sec-map .card { padding: 22px; }
-  .sec-map h3 { font-family: var(--sans); font-size: 1rem; margin: 0 0 .2rem; }
+  .sec-map h3 { font-family: var(--sans); font-size: var(--fs-base); margin: 0 0 .2rem; }
   .sec-map .cites { display: flex; flex-wrap: wrap; gap: 6px; margin-top: .7rem; }
 </style>
 </head>
@@ -121,14 +121,14 @@
         <tbody id="reg-body"></tbody>
       </table>
     </div>
-    <p class="muted" style="font-size:.82rem;margin-top:1rem;max-width:54ch" id="verified-on"></p>
+    <p class="muted" style="font-size:var(--fs-xs);margin-top:1rem;max-width:54ch" id="verified-on"></p>
 
     <p class="embed-only embed-attrib" id="embed-attrib"></p>
 
     <div class="edition-strip" id="edition-strip" hidden>
       <div>
         <span class="edition-label" id="edition-label"></span>
-        <p class="muted" style="font-size:.78rem;margin:.35rem 0 0;max-width:54ch">
+        <p class="muted" style="font-size:var(--fs-xs);margin:.35rem 0 0;max-width:54ch">
           The code after the instrument count is derived from the index itself, so two people
           quoting the same edition are reading the same instruments. If yours differs from a
           colleague&rsquo;s, one of you is on a cached page.
@@ -165,7 +165,7 @@
 <!-- SOURCES -->
 <section class="sources">
   <div class="wrap">
-    <h3 style="font-size:1.1rem">Where this was checked</h3>
+    <h3 style="font-size:var(--fs-md)">Where this was checked</h3>
     <ul id="src-list"></ul>
     <p class="disclaimer" style="margin-top:1rem;max-width:54ch">
       This index is a planning aid, not legal or regulatory advice, and it is not affiliated with or endorsed by the Kenya Civil
@@ -191,7 +191,7 @@
     <div class="cols">
       <div>
         <a class="brand" href="index.html" style="color:#fff" data-keep-partner><span data-logo="light"></span><span style="color:#fff">JK &amp; Associates</span></a>
-        <p style="margin-top:1rem;max-width:320px;font-size:.9rem">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
+        <p style="margin-top:1rem;max-width:320px;font-size:var(--fs-sm)">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
       </div>
       <div>
         <h2>Build a venture</h2>

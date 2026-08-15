@@ -29,26 +29,26 @@
 <style>
 .data-request { max-width: 900px; }
 .dr-section { margin-bottom: 2.2rem; }
-.dr-section h3 { color: #1a1a1a; margin: 1.4rem 0 0.8rem; font-size: 1.1rem; }
+.dr-section h3 { color: #1a1a1a; margin: 1.4rem 0 0.8rem; font-size: var(--fs-md); }
 .dr-list { list-style: none; padding: 0; margin: 0; }
 .dr-item { display: flex; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid #eee; align-items: flex-start; }
 .dr-item:last-child { border-bottom: none; }
 .dr-item input { margin-top: 0.4rem; flex: 0 0 auto; accent-color: #4A7FA5; cursor: pointer; }
 .dr-item label { cursor: pointer; flex: 1; }
 .dr-item strong { color: #333; display: block; margin-bottom: 0.2rem; }
-.dr-item .hint { font-size: 0.82rem; color: #666; }
-.dr-priority { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-left: 0.5rem; padding: 0.2rem 0.5rem; border-radius: 3px; }
+.dr-item .hint { font-size: var(--fs-xs); color: #666; }
+.dr-priority { display: inline-block; font-size: var(--fs-2xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-left: 0.5rem; padding: 0.2rem 0.5rem; border-radius: 3px; }
 .pri-high { background: #fee2e2; color: #991b1b; }
 .summary-box { background: #f0f9ff; border: 1px solid #0284c7; border-radius: 12px; padding: 1.4rem; margin: 2rem 0; }
 .summary-box strong { color: #0c4a6e; display: block; margin-bottom: 0.5rem; }
 .progress-tracker { display: flex; gap: 1.2rem; margin: 1.4rem 0; flex-wrap: wrap; }
 .tracker-item { flex: 1; min-width: 140px; background: #f5f5f5; padding: 1rem; border-radius: 8px; text-align: center; }
-.tracker-item .count { font-size: 1.6rem; font-weight: 700; color: #4A7FA5; }
-.tracker-item .label { font-size: 0.8rem; color: #666; margin-top: 0.4rem; }
+.tracker-item .count { font-size: var(--fs-2xl); font-weight: 700; color: #4A7FA5; }
+.tracker-item .label { font-size: var(--fs-xs); color: #666; margin-top: 0.4rem; }
 @media (max-width: 768px) {
   .dr-item { padding: 0.6rem 0; }
   .tracker-item { min-width: 100px; padding: 0.8rem; }
-  .tracker-item .count { font-size: 1.3rem; }
+  .tracker-item .count { font-size: var(--fs-lg); }
 }
 </style>
 </head>
@@ -77,7 +77,7 @@
     <div class="partner-banner" style="margin-bottom:1rem;margin-top:2rem"><img class="partner-logo" alt=""><span data-cobrand></span></div>
     <p class="eyebrow">Data pack for rapid diagnostics</p>
     <h1>48-Hour Data Request</h1>
-    <p style="font-size: 1.1rem; max-width: 720px; color: #666;">A structured checklist of 28 essential metrics across safety, operations, fleet, cost, revenue, and finance. Collect these data points to accelerate diagnostics and validate hypotheses from your initial scorecard.</p>
+    <p style="font-size: var(--fs-md); max-width: 720px; color: #666;">A structured checklist of 28 essential metrics across safety, operations, fleet, cost, revenue, and finance. Collect these data points to accelerate diagnostics and validate hypotheses from your initial scorecard.</p>
   </section>
 
   <section>

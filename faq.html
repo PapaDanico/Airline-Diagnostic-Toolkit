@@ -32,21 +32,21 @@
   .faq-layout > * { min-width: 0; }
   @media (max-width: 900px) { .faq-layout { grid-template-columns: 1fr; gap: 1.6rem; } }
 
-  .faq-toc { position: sticky; top: 96px; font-size: .88rem; }
-  .faq-toc h2 { font-family: var(--sans); font-size: .74rem; letter-spacing: .1em; text-transform: uppercase;
+  .faq-toc { position: sticky; top: 96px; font-size: var(--fs-sm); }
+  .faq-toc h2 { font-family: var(--sans); font-size: var(--fs-2xs); letter-spacing: .1em; text-transform: uppercase;
                 color: var(--jk-muted); margin: 0 0 .7rem; }
   .faq-toc a { display: block; padding: .32rem 0; color: var(--jk-ink); }
   .faq-toc a:hover { color: var(--accent); }
-  .faq-toc .n { color: var(--jk-muted); font-size: .78rem; font-variant-numeric: lining-nums tabular-nums; }
+  .faq-toc .n { color: var(--jk-muted); font-size: var(--fs-xs); font-variant-numeric: lining-nums tabular-nums; }
   @media (max-width: 900px) { .faq-toc { position: static; } }
 
   .faq-sec { margin-bottom: 3rem; scroll-margin-top: 96px; }
   .faq-sec:first-child > h2 { margin-top: 0; }
-  .faq-sec > h2 { font-size: 1.55rem; padding-bottom: .45rem; border-bottom: 2px solid var(--jk-sand); margin-bottom: .3rem; }
-  .faq-sec > p.lede { color: var(--jk-muted); font-size: .92rem; margin-bottom: 1.4rem; max-width: 62ch; }
+  .faq-sec > h2 { font-size: var(--fs-2xl); padding-bottom: .45rem; border-bottom: 2px solid var(--jk-sand); margin-bottom: .3rem; }
+  .faq-sec > p.lede { color: var(--jk-muted); font-size: var(--fs-sm); margin-bottom: 1.4rem; max-width: 62ch; }
 
   .qa { border-bottom: 1px solid var(--jk-line); }
-  .qa h3 { margin: 0; font-size: 1rem; font-family: var(--sans); letter-spacing: 0; }
+  .qa h3 { margin: 0; font-size: var(--fs-base); font-family: var(--sans); letter-spacing: 0; }
   .qa h3 button { width: 100%; text-align: left; background: none; border: 0; font: inherit; color: var(--jk-ink);
                   padding: 16px 34px 16px 0; cursor: pointer; position: relative; line-height: 1.45; }
   .qa h3 button:hover { color: var(--accent-deep); }
@@ -56,14 +56,14 @@
   .qa h3 button[aria-expanded="true"]::after { transform: translateY(-20%) rotate(-135deg); }
   .qa .a { padding: 0 0 18px; max-width: 68ch; }
   .qa .a[hidden] { display: none; }
-  .qa .a p { font-size: .93rem; line-height: 1.68; margin: 0 0 .7rem; }
+  .qa .a p { font-size: var(--fs-sm); line-height: 1.68; margin: 0 0 .7rem; }
   .qa .a p:last-child { margin-bottom: 0; }
   .qa .a ul { padding-left: 1.15rem; margin: 0 0 .7rem; }
-  .qa .a li { font-size: .93rem; line-height: 1.62; margin-bottom: .35rem; }
+  .qa .a li { font-size: var(--fs-sm); line-height: 1.62; margin-bottom: .35rem; }
   .qa .a .note { margin: .8rem 0; }
 
   .faq-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.6rem; }
-  .faq-actions .btn { font-size: .82rem; padding: .42rem .9rem; }
+  .faq-actions .btn { font-size: var(--fs-xs); padding: .42rem .9rem; }
 
   @media print {
     .qa .a[hidden] { display: block !important; }
@@ -392,7 +392,7 @@
     <div class="cols">
       <div>
         <a class="brand" href="index.html" style="color:#fff" data-keep-partner><span data-logo="light"></span><span style="color:#fff">JK &amp; Associates</span></a>
-        <p style="margin-top:1rem;max-width:320px;font-size:.9rem">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
+        <p style="margin-top:1rem;max-width:320px;font-size:var(--fs-sm)">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
       </div>
       <div>
         <h2>Build a venture</h2>

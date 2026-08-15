@@ -1165,7 +1165,13 @@ server.close();
    when you do — but the 62nd distinct font size does not arrive by
    accident. */
 {
-  const CEILING = { colourUses: 255, colourDistinct: 94, fontUses: 344, fontDistinct: 61 };
+  /* Type came down from 344/61 to 9/9 when the scale landed. The nine
+     that remain are the seven responsive clamp() display sizes, fluid by
+     design and not a single step, and the two declarations marked
+     `fitted:` — the figure inside the score ring and the lockup under
+     the brand mark, sized to a graphic rather than to the document.
+     Colour is untouched and still the open question. */
+  const CEILING = { colourUses: 255, colourDistinct: 94, fontUses: 9, fontDistinct: 9 };
 
   const jkCss = readFileSync(join(ROOT, "assets", "css", "jk.css"), "utf8");
   const rootBlock = jkCss.slice(jkCss.indexOf(":root"), jkCss.indexOf("/* ---------- reset"));
