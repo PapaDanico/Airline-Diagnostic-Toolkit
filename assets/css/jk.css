@@ -1238,6 +1238,54 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 }
 
 /* ============================================================
+   The long-document layout — methodology, privacy, terms.
+
+   These three pages each carried their own copy of this block in a
+   page-level <style>. Ten rules, written three times, and two of the
+   three copies had already fallen out of step: the container was
+   820px on two pages and 860px on the third, and the heading, list
+   and note rules were byte-identical triplicates that any future
+   change would have had to find in three places or silently split
+   into four.
+
+   Consolidated at 820px, the value two of the three pages agreed on.
+   Nothing depended on 860 — methodology's comparison table measures
+   812px unconstrained and sits in a .mx-wrap that scrolls if it ever
+   outgrows the column, so the extra 40px was slack rather than
+   headroom.
+
+   The paragraph and list measure lives further up with the other
+   prose rules, because it is the same 54ch decision made for the
+   whole site rather than something these pages get to choose.
+
+   One rule did not survive the move. privacy.html styled a .todo —
+   an amber highlight with a dashed underline, for marking a clause
+   still being drafted — and no page has carried that class for as
+   long as the history shows. Promoting it here would have turned one
+   page's dead rule into the whole site's, so it is deleted instead.
+   The audit checks markup against CSS; nothing checks CSS against
+   markup, which is how it survived.
+   ============================================================ */
+.legal { max-width: 820px; }
+.legal h2 {
+  font-family: var(--sans); font-size: var(--fs-md);
+  margin: 2rem 0 .6rem; color: var(--jk-ink);
+}
+.legal h3 { font-family: var(--sans); font-size: var(--fs-base); margin: 1.3rem 0 .4rem; }
+/* td/th included because methodology sets its comparison table in the
+   same document voice; the other two have no tables and are unaffected. */
+.legal :is(p, li, td, th) { font-size: var(--fs-base); line-height: 1.65; color: var(--jk-ink); }
+.legal ul { padding-left: 1.2rem; }
+.legal li { margin-bottom: .45rem; }
+.legal .toc { background: var(--jk-parchment); border-radius: var(--radius-sm); padding: 14px 20px; }
+.legal .toc ol { margin: .3rem 0; padding-left: 1.2rem; }
+.legal .toc a { font-size: var(--fs-sm); }
+.legal .note {
+  border-left: 4px solid var(--accent); background: var(--jk-parchment);
+  padding: 14px 18px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 1rem 0;
+}
+
+/* ============================================================
    Reduced motion — everything above is progressive polish. A
    visitor who asks for less motion gets a calm, instant interface
    with every hover/focus state still legible.

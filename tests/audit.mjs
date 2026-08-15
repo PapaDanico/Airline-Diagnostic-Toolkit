@@ -1171,7 +1171,7 @@ server.close();
      `fitted:` — the figure inside the score ring and the lockup under
      the brand mark, sized to a graphic rather than to the document.
      Colour is untouched and still the open question. */
-  const CEILING = { colourUses: 255, colourDistinct: 94, fontUses: 9, fontDistinct: 9 };
+  const CEILING = { colourUses: 254, colourDistinct: 94, fontUses: 9, fontDistinct: 9 };
 
   const jkCss = readFileSync(join(ROOT, "assets", "css", "jk.css"), "utf8");
   const rootBlock = jkCss.slice(jkCss.indexOf(":root"), jkCss.indexOf("/* ---------- reset"));
