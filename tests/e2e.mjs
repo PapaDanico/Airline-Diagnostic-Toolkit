@@ -1624,6 +1624,37 @@ await page.goto(base + "/results.html"); await page.waitForTimeout(500);
     "every dated benchmark declares its cadence, so its age can be judged" +
       (unstated.length ? ` — ${unstated.map(b => b.name).join(", ")}` : ""));
 
+  /* The same claim, on the other page that makes it.
+
+     methodology.html carried "current as of Q4 2024 – mid-2025" as
+     literal prose while the data had moved to June 2026 — a year of
+     refreshes the page describing the refresh policy never heard about.
+     results.html had this exact bug, it was fixed there by deriving the
+     stamp, and the fix reached one of the two pages.
+
+     Asserted against the data rather than against a string, for the
+     reason the results.html version already records: a pinned literal
+     passes for exactly as long as nobody updates a figure. */
+  await page.goto(base + "/methodology.html"); await page.waitForTimeout(350);
+  const meth = await page.evaluate(() => ({
+    shown: document.getElementById("meth-asof")?.textContent.trim(),
+    sources: document.getElementById("meth-sources")?.textContent.trim(),
+    expected: JK.benchmarkMeta.asOf,
+    expectedSources: JK.benchmarkMeta.sources
+  }));
+  assert(meth.shown === meth.expected,
+    `methodology's data-as-of stamp says "${meth.shown}" and the benchmarks say "${meth.expected}"`);
+  for (const src of meth.expectedSources) {
+    assert(meth.sources.includes(src),
+      `methodology's source list omits ${src}, which the benchmarks name`);
+  }
+  assert(!/Q4 2024/.test(await page.content()),
+    "methodology still carries a hardcoded benchmark date");
+
+  /* Back to results — the checks after this one continue there, and the
+     saved answers that put it in a scored state are still in storage. */
+  await page.goto(base + "/results.html"); await page.waitForTimeout(400);
+
   /* A benchmark with no publication behind it must not sit in the source
      list looking like one; it belongs in the "no published source" line.
 
