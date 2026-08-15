@@ -26,6 +26,7 @@
 
    Run: node tests/csp.mjs */
 import { createServer } from 'node:http';
+import { record } from './verification.mjs';
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, extname, join, resolve } from 'node:path';
@@ -226,6 +227,8 @@ assert(marketRows > 0, `index.html's extracted script populated #market-stats ($
 await browser.close();
 server.close();
 
+record('csp', { passed: failures === 0, checks: passed,
+  headline: `every page runs clean under the enforced Content-Security-Policy` });
 console.log(`\n  ${passed} passed, ${failures} failed`);
 console.log(failures ? `\n❌  ${failures} CSP failure(s)` : '\n✅  CSP enforced, and every page runs clean under it');
 process.exit(failures ? 1 : 0);

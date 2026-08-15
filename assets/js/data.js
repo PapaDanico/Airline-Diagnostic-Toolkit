@@ -368,7 +368,7 @@ const JK = {
       {ref:"V3", n:"Corporate Structure Designer", d:"HoldCo / SPV / OpCo layering with look-through economics."},
       {ref:"V4", n:"Organogram & Postholder Planner", d:"Required postholders, org tree and headcount ramp."} ]},
     { box:"B", locked:true, title:"Deep Diagnostic", track:"operate", tools:[
-      {ref:"B1", n:"Route Profitability Diagnostic", d:"Every route in the schedule, with stage-length-adjusted unit cost, connecting traffic and seasonality — the network view the free single-sector calculator cannot give."},
+      {ref:"B1", n:"Route Profitability Diagnostic", d:"Every route in the schedule, with stage-length-adjusted unit cost, connecting traffic and seasonality."},
       {ref:"B2", n:"Staff Cost Efficiency Analyser", d:"Labour-ratio benchmarking across all staff groups."},
       {ref:"B3", n:"Fleet Utilisation & Turn-Time Audit", d:"Block hours, AOG and turnaround analysis."},
       {ref:"B4", n:"Safety Culture Maturity Assessment", d:"ICAO SMS 5-level scoring framework."},
