@@ -101,6 +101,84 @@ function calculate() {
 
   render({ stage, seats, caskC, fare, anc, cargo, lfPct, ask, tripCost, revPerPax,
            pax, paxRev, totalRev, contrib, margin, raskC, yieldC, blf, beFare, cautions });
+  renderFleet({ stage, seats, caskC, revPerPax, cargo, lfPct });
+}
+
+/* ---- which aircraft on this sector ----
+
+   The comparison operators actually make, and the one place a unit-cost
+   metric misleads on its own. CASK rewards the biggest gauge that can be
+   filled; trip cost rewards the smallest that can carry the traffic. On
+   a thin route those point in opposite directions, and the site's own
+   CASK calculator already says so in its turboprop note without giving
+   anyone a way to test it.
+
+   Same sector, same fare, same expected load factor — only seats and
+   unit cost change. Nothing here needs OEM data: the operator supplies
+   the two figures for each type they are actually choosing between. */
+function renderFleet(base) {
+  const panel = document.getElementById("re-fleet-panel");
+  const rows = [];
+  for (let i = 0; i < 3; i++) {
+    const name = (document.getElementById(`ac${i}-name`).value || "").trim();
+    let seats = val(`ac${i}-seats`);
+    let caskC = val(`ac${i}-cask`);
+    /* The first row is the aircraft already modelled above; blanks there
+       mean "the one I just described", not "skip me". */
+    if (i === 0) { seats = seats ?? base.seats; caskC = caskC ?? base.caskC; }
+    if (!name || seats === null || caskC === null || seats < 1 || caskC <= 0) continue;
+
+    const ask = seats * base.stage;
+    const trip = (caskC / 100) * ask;
+    const pax = seats * (base.lfPct / 100);
+    const rev = pax * base.revPerPax + base.cargo;
+    rows.push({
+      name, seats, caskC, trip,
+      contrib: rev - trip,
+      blf: base.revPerPax > 0 ? ((trip - base.cargo) / (seats * base.revPerPax)) * 100 : null
+    });
+  }
+
+  if (rows.length < 2) { panel.hidden = true; return; }
+  panel.hidden = false;
+
+  const bestContrib = rows.reduce((a, b) => (b.contrib > a.contrib ? b : a));
+  const bestCask    = rows.reduce((a, b) => (b.caskC < a.caskC ? b : a));
+  const bestTrip    = rows.reduce((a, b) => (b.trip < a.trip ? b : a));
+
+  document.getElementById("re-fleet-table").innerHTML =
+    `<thead><tr>${["Type", "Seats", "US¢/ASK", "Trip cost", "Break-even LF", "Contribution"]
+      .map((h, i) => `<th style="text-align:${i ? "right" : "left"};padding:.4rem .5rem;border-bottom:1px solid rgba(255,255,255,.18);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em">${h}</th>`)
+      .join("")}</tr></thead><tbody>` +
+    rows.map((r) => {
+      const win = r === bestContrib;
+      return `<tr${win ? ' style="font-weight:700"' : ""}>` +
+        `<td style="padding:.4rem .5rem;border-bottom:1px solid rgba(255,255,255,.08)">${escapeHtml(r.name)}${win ? " ←" : ""}</td>` +
+        [r.seats, r.caskC.toFixed(2), usd(r.trip),
+         r.blf === null ? "—" : r.blf.toFixed(1) + "%", usd(r.contrib)]
+          .map((v) => `<td style="text-align:right;padding:.4rem .5rem;border-bottom:1px solid rgba(255,255,255,.08)">${v}</td>`)
+          .join("") + `</tr>`;
+    }).join("") + `</tbody>`;
+
+  /* "Contributes most" is the wrong sentence when every option is under
+     water — the honest one is that the route does not work and this is
+     the cheapest way to be wrong about it. */
+  const allLose = bestContrib.contrib < 0;
+  const parts = [allLose
+    ? `At ${base.lfPct.toFixed(0)}% load factor <strong>every option here loses money on this sector</strong>. <strong>${escapeHtml(bestContrib.name)}</strong> loses least, at ${usd(Math.abs(bestContrib.contrib))} a departure — a reason to change the fare, the cost or the route, not a reason to pick an aircraft.`
+    : `On this sector at ${base.lfPct.toFixed(0)}% load factor, <strong>${escapeHtml(bestContrib.name)}</strong> contributes most — ${usd(bestContrib.contrib)} a departure.`];
+
+  /* The divergence is the finding. When the lowest unit cost is not the
+     better answer, say why in the same breath, because CASK alone is the
+     number most operators would have compared. */
+  if (bestCask !== bestContrib) {
+    parts.push(`<strong>${escapeHtml(bestCask.name)}</strong> has the lower unit cost at ${bestCask.caskC.toFixed(2)}¢ against ${bestContrib.caskC.toFixed(2)}¢, and is still the worse choice here: its ${bestCask.seats} seats cost ${usd(bestCask.trip)} to fly and there is not enough traffic at this load factor to fill the extra gauge. Unit cost rewards the biggest aircraft you can fill; this sector is not filling it.`);
+  } else if (bestTrip !== bestContrib) {
+    parts.push(`<strong>${escapeHtml(bestTrip.name)}</strong> is cheaper per departure at ${usd(bestTrip.trip)}, but carries fewer passengers than this fare and load factor can support.`);
+  } else {
+    parts.push(`It wins on unit cost and trip cost together, so the choice is not close on economics — capability, range and fleet commonality decide the rest.`);
+  }
+  document.getElementById("re-fleet-verdict").innerHTML = parts.join(" ");
 }
 
 function blank() {
@@ -203,7 +281,11 @@ function render(r) {
     ` — <strong>${c.toFixed(2)} US¢/ASK</strong>. Change it here to test a different sector; the calculator keeps its own.`;
 })();
 
-["re-stage", "re-seats", "re-cask", "re-fare", "re-anc", "re-cargo", "re-lf"].forEach((id) =>
-  document.getElementById(id).addEventListener("input", calculate));
+const FIELDS = ["re-stage", "re-seats", "re-cask", "re-fare", "re-anc", "re-cargo", "re-lf"];
+for (let i = 0; i < 3; i++) FIELDS.push(`ac${i}-name`, `ac${i}-seats`, `ac${i}-cask`);
+FIELDS.forEach((id) => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("input", calculate);
+});
 calculate();
 wireToolEnquiryForm("route-enquiry", "Route Economics & Break-even Calculator");

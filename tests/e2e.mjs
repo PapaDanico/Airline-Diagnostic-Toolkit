@@ -2231,6 +2231,43 @@ await assertEnquiryFormSubmits(page, "#fuel-enquiry", "fuel page");
   assert(!/Carried over/i.test(await txt("re-cask-src")),
     "route: an invalidated CASK still pre-fills — a stale number wearing a provenance line is the worst case");
 
+  /* ── which aircraft on this sector ──
+     The point of the comparison is the case where unit cost and the
+     right answer disagree. If it only ever agreed with CASK it would be
+     telling operators something they already had. */
+  await page.goto(base + "/tools/route-economics.html"); await page.waitForTimeout(350);
+  const hidden = () => page.$eval("#re-fleet-panel", (e) => e.hidden);
+  const verdict = async () => (await page.$eval("#re-fleet-verdict", (e) => e.innerText)).replace(/\s+/g, " ");
+
+  /* Thin: 700km, $70+$5, 55% LF. The 737 has the lower CASK and the
+     E190 the better contribution — hand-checked: trip $10,416 vs
+     $7,840, contribution −$3,216 vs −$3,115. */
+  for (const [id, v] of [["re-stage","700"],["re-seats","160"],["re-cask","9.3"],["re-fare","70"],
+                         ["re-anc","5"],["re-cargo","600"],["re-lf","55"],
+                         ["ac0-name","B737-800"],["ac0-seats","160"],["ac0-cask","9.3"],
+                         ["ac1-name","E190"],["ac1-seats","100"],["ac1-cask","11.2"]]) await set(id, v);
+  await page.waitForTimeout(300);
+  assert(await hidden() === false, "route: two aircraft named and the comparison stays hidden");
+  let v = await verdict();
+  assert(/E190/.test(v) && /loses least/i.test(v),
+    `route: on a thin sector the smaller gauge should lose least — got "${v}"`);
+  assert(/lower unit cost/i.test(v) && /worse choice/i.test(v),
+    `route: the CASK-versus-contribution divergence is not called out — got "${v}"`);
+  assert(!/contributes most — -\$/.test(v),
+    "route: an all-negative comparison still says 'contributes most' with a negative figure");
+
+  /* Dense: same types, more traffic — now the gauge wins and the
+     verdict has to change with it. */
+  for (const [id, v2] of [["re-fare","190"],["re-lf","88"],["re-stage","1400"]]) await set(id, v2);
+  await page.waitForTimeout(300);
+  v = await verdict();
+  assert(/B737-800/.test(v) && /contributes most/i.test(v),
+    `route: on a dense sector the larger gauge should win — got "${v}"`);
+
+  /* One named type is not a comparison. */
+  await set("ac1-name", ""); await page.waitForTimeout(300);
+  assert(await hidden() === true, "route: a single aircraft still renders a comparison table");
+
   await assertEnquiryFormSubmits(page, "#route-enquiry", "route economics page");
 }
 

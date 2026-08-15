@@ -1340,6 +1340,13 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
    The audit checks markup against CSS; nothing checks CSS against
    markup, which is how it survived.
    ============================================================ */
+/* A horizontal scroll container for a table too wide for the column.
+   Page-local to methodology until route-economics needed one too, and a
+   scroll container that exists on one page is exactly the rule the next
+   page forgets — route-economics overflowed 104px on a 390px viewport
+   because the class was there and the styles were not. */
+.mx-wrap { overflow-x: auto; }
+
 .legal { max-width: 820px; }
 .legal h2 {
   font-family: var(--sans); font-size: var(--fs-md);

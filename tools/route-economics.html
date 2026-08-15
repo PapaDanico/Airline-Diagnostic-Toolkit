@@ -101,6 +101,32 @@
         <div class="hint">What you realistically expect to achieve on this sector, not the target.</div>
       </div>
       <div id="re-error"></div>
+
+      <h2>Compare aircraft on this sector</h2>
+      <p class="hint" style="margin:-.4rem 0 .8rem">Optional. Same sector, same fare, different gauge. Leave blank to skip. The first row follows the figures above.</p>
+      <div id="re-fleet">
+        <div class="field">
+          <div class="grid g3" style="gap:8px">
+            <div><label for="ac0-name" style="font-size:var(--fs-xs)">Type</label><input id="ac0-name" type="text" placeholder="e.g. B737-800" value="B737-800"></div>
+            <div><label for="ac0-seats" style="font-size:var(--fs-xs)">Seats</label><input id="ac0-seats" type="number" min="1" step="1" placeholder="160"></div>
+            <div><label for="ac0-cask" style="font-size:var(--fs-xs)">US&cent;/ASK</label><input id="ac0-cask" type="number" min="0" step="0.1" placeholder="9.3"></div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="grid g3" style="gap:8px">
+            <div><label for="ac1-name" style="font-size:var(--fs-xs)">Type</label><input id="ac1-name" type="text" placeholder="e.g. E190" value="E190"></div>
+            <div><label for="ac1-seats" style="font-size:var(--fs-xs)">Seats</label><input id="ac1-seats" type="number" min="1" step="1" placeholder="100" value="100"></div>
+            <div><label for="ac1-cask" style="font-size:var(--fs-xs)">US&cent;/ASK</label><input id="ac1-cask" type="number" min="0" step="0.1" placeholder="11.2" value="11.2"></div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="grid g3" style="gap:8px">
+            <div><label for="ac2-name" style="font-size:var(--fs-xs)">Type</label><input id="ac2-name" type="text" placeholder="e.g. ATR72"></div>
+            <div><label for="ac2-seats" style="font-size:var(--fs-xs)">Seats</label><input id="ac2-seats" type="number" min="1" step="1" placeholder="70"></div>
+            <div><label for="ac2-cask" style="font-size:var(--fs-xs)">US&cent;/ASK</label><input id="ac2-cask" type="number" min="0" step="0.1" placeholder="14.5"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div>
@@ -120,6 +146,12 @@
       <div class="result-panel" style="margin-top:1rem">
         <p class="eyebrow" style="color:var(--jk-amber)">What it would take</p>
         <p class="qual" id="re-levers" style="margin:0">Enter your figures to see the fare and load factor this sector needs.</p>
+      </div>
+
+      <div class="result-panel" style="margin-top:1rem" id="re-fleet-panel" hidden>
+        <p class="eyebrow" style="color:var(--jk-amber)">Which aircraft on this sector</p>
+        <div class="mx-wrap"><table id="re-fleet-table" style="width:100%;border-collapse:collapse;font-size:var(--fs-sm)"></table></div>
+        <p class="qual" id="re-fleet-verdict" style="margin:.9rem 0 0"></p>
       </div>
 
       <div class="guarantee" style="margin-top:1.4rem">
