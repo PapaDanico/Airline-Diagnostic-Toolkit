@@ -68,3 +68,11 @@ function recalc() {
 recalc();
 wireToolEnquiryForm("fuel-enquiry", "Fuel Contract Optimizer Lite",
   { downloadUrl: "../assets/docs/JK_Fuel_Tender_Spec.pdf", downloadName: "Fuel Tender Specification" });
+
+/* A result you cannot take away is a result that exists only for as long
+   as the tab does. mountPrintHead stamps the mark, the tool name and the
+   date onto the printed copy, because a board pack gets circulated
+   detached from the page that produced it. */
+mountPrintHead("Fuel Contract Optimizer Lite",
+  "Indicative annual saving from closing the into-plane premium gap");
+document.getElementById("print").addEventListener("click", () => window.print());

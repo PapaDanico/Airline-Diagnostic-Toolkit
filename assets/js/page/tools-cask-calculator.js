@@ -177,3 +177,11 @@ COST_LINES.forEach(l =>
   document.getElementById(l.id).addEventListener("input", recalcFuel));
 recalcAll();
 wireToolEnquiryForm("cask-enquiry", "CASK Benchmarking Calculator");
+
+/* A result you cannot take away is a result that exists only for as long
+   as the tab does. mountPrintHead stamps the mark, the tool name and the
+   date onto the printed copy, because a board pack gets circulated
+   detached from the page that produced it. */
+mountPrintHead("CASK Benchmarking Calculator",
+  "Unit cost per available seat-kilometre, with cost-line breakdown");
+document.getElementById("print").addEventListener("click", () => window.print());

@@ -313,3 +313,11 @@ FIELDS.forEach((id) => {
 });
 calculate();
 wireToolEnquiryForm("route-enquiry", "Route Economics & Break-even Calculator");
+
+/* A result you cannot take away is a result that exists only for as long
+   as the tab does. mountPrintHead stamps the mark, the tool name and the
+   date onto the printed copy, because a board pack gets circulated
+   detached from the page that produced it. */
+mountPrintHead("Route Economics & Break-even Calculator",
+  "Single-sector contribution, break-even load factor and fare floor");
+document.getElementById("print").addEventListener("click", () => window.print());

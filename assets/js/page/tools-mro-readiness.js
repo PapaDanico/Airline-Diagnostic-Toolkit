@@ -104,3 +104,11 @@ document.getElementById("mro-reset").addEventListener("click", () => {
 });
 
 wireToolEnquiryForm("mro-enquiry", "MRO & Technical Readiness Diagnostic");
+
+/* A result you cannot take away is a result that exists only for as long
+   as the tab does. mountPrintHead stamps the mark, the tool name and the
+   date onto the printed copy, because a board pack gets circulated
+   detached from the page that produced it. */
+mountPrintHead("MRO & Technical Readiness Diagnostic",
+  "Technical Readiness Index across twenty airworthiness questions");
+document.getElementById("print").addEventListener("click", () => window.print());

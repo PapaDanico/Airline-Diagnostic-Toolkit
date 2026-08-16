@@ -1422,7 +1422,66 @@ server.close();
   );
 }
 
+/* ── every tool lets a reader keep the answer ───────────────────────
+   A Chromium sweep of the whole site found five tools that computed a
+   result and offered no way to take it away: CASK, the fuel optimizer,
+   MRO readiness, route economics and the data request. The figure
+   existed for exactly as long as the tab did. Nothing caught it,
+   because every suite we had asks whether a page WORKS and none asks
+   whether the work SURVIVES the page.
+
+   Checked against the built page rather than a hand-kept list, so a
+   tool added next year is in scope the moment its file exists. The
+   deliverable can be a print control, a file download or a copy — what
+   is not acceptable is none of them.
+
+   Matched on word boundaries after "Sprint Implementation" was read as
+   a print control on the home page: a substring test for "print" says
+   yes to any sprint, and a detector that says yes everywhere measures
+   nothing. */
+{
+  const TOOL_DIR = join(ROOT, "tools");
+  const LABEL = /\b(print|export|download|copy (report|citation|workspace))\b|\.(pdf|csv|json)\b/i;
+  const naked = [];
+
+  for (const f of readdirSync(TOOL_DIR)) {
+    if (!f.endsWith(".html") || f === "index.html") continue;
+    const html = readFileSync(join(TOOL_DIR, f), "utf8")
+      .replace(/<nav[\s\S]*?<\/nav>|<footer[\s\S]*?<\/footer>|<head>[\s\S]*?<\/head>/g, "");
+
+    /* Only what a reader can press.
+
+       Scanning the whole file passed tools/data-request.html twice
+       over — once on <link rel="manifest" href="/manifest.json"> in
+       the head, and once on a bullet reading "Download and email this
+       checklist", which is prose instructing the reader to use a
+       control the page did not have. A guard that reads a promise as
+       its own fulfilment is worse than no guard. */
+    const controls = [...html.matchAll(/<(button|a)\b[^>]*>([\s\S]*?)<\/\1>/gi)]
+      .map((m) => m[0]).filter((s) => LABEL.test(s));
+
+    /* Page scripts can mount the control instead. Matched on the act,
+       not the word: a comment mentioning print is not a print button.
+       Some tools split across numbered files, so glob the prefix. */
+    const stem = `tools-${f.replace(/\.html$/, "")}`;
+    const scripts = readdirSync(join(ROOT, "assets", "js", "page"))
+      .filter((n) => n === `${stem}.js` || n.startsWith(`${stem}-`))
+      .map((n) => readFileSync(join(ROOT, "assets", "js", "page", n), "utf8"))
+      .join("\n");
+    const mounted = /window\.print\(\)|createObjectURL|download\s*=|\bdownloadUrl\b/.test(scripts);
+
+    if (!controls.length && !mounted) naked.push(`tools/${f}`);
+  }
+
+  problems += naked.length ? 1 : 0;
+  console.log(
+    `\n${naked.length ? "❌" : "✅"} every tool lets a reader keep the answer ` +
+      `(${readdirSync(TOOL_DIR).filter((f) => f.endsWith(".html") && f !== "index.html").length} tools)` +
+      (naked.length ? "\n     - no deliverable: " + naked.join("\n     - no deliverable: ") : "")
+  );
+}
+
 record("audit", { passed: problems === 0, issues: problems, pages: pages.length,
-  headline: `${pages.length} pages audited for dead tokens, dead CSS, palette and design-value drift` });
+  headline: `${pages.length} pages audited for dead tokens, dead CSS, palette, design-value drift and deliverables` });
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);
 process.exit(problems ? 1 : 0);

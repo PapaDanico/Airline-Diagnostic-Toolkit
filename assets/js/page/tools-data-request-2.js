@@ -24,3 +24,62 @@
     } catch {}
   }
 })();
+
+/* The page told the reader to "download and email this checklist" and
+   then gave them nowhere to download it from — an instruction with no
+   control behind it, which is a worse defect than a missing feature
+   because it reads as the reader's mistake.
+
+   Two ways out, because the two uses differ. Print is for the version
+   that goes into a pack; the CSV is for the one that gets mailed to
+   ops, finance and planning with a deadline against each line, which
+   is what step one of the instructions actually describes. Both carry
+   the ticks already saved in the browser. */
+(function () {
+  mountPrintHead("Data Request Checklist",
+    "Baseline diagnostic data pack — collection status");
+
+  const rows = () => [...document.querySelectorAll(".dr-item")].map((li) => {
+    const box = li.querySelector('input[type="checkbox"]');
+    const strong = li.querySelector("strong");
+    /* The PRIORITY chip lives inside <strong>; lift it out rather than
+       letting it run into the item name in the exported cell. */
+    const priority = strong?.querySelector(".dr-priority");
+    const name = strong ? strong.textContent.replace(priority?.textContent || "", "").trim() : "";
+    return {
+      /* h2 OR h3: the groups are .dr-section > h3 and the first version
+         looked only for h2. It produced a clean, complete-looking CSV
+         with the Section column blank on all 28 rows — the one column
+         that makes the export sortable by the team it gets mailed to. */
+      section: li.closest("section")?.querySelector("h2, h3")?.textContent.trim() || "",
+      item: name,
+      detail: li.querySelector(".hint")?.textContent.trim() || "",
+      priority: priority ? "PRIORITY" : "",
+      collected: box?.checked ? "yes" : "no"
+    };
+  });
+
+  const cell = (s) => `"${String(s).replace(/"/g, '""')}"`;
+
+  document.getElementById("dr-csv").addEventListener("click", () => {
+    const data = rows();
+    const csv = [["Section", "Item", "Detail", "Priority", "Collected", "Owner", "Due"]]
+      .concat(data.map((r) => [r.section, r.item, r.detail, r.priority, r.collected, "", ""]))
+      .map((r) => r.map(cell).join(",")).join("\r\n");
+
+    /* Owner and Due ship empty on purpose. The instruction is to send
+       this out with a 48-hour deadline against each line, and a column
+       that already exists gets filled in; one the recipient has to add
+       does not. */
+    const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `JK-data-request-checklist-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("print").addEventListener("click", () => window.print());
+})();
