@@ -16,6 +16,22 @@ on:
     branches: [main]
   pull_request:
 
+
+# Supersede, do not stack.
+#
+# A branch pushed three times in ten minutes used to start three full
+# runs and let all three finish, because nothing cancelled the earlier
+# ones. This suite is ~13 minutes a job, so an afternoon of iterating on
+# one PR spent hours of runner time re-verifying commits that no longer
+# existed. On a private repository that time is metered.
+#
+# main is exempt on purpose: a merge must be verified against the merged
+# tree, and cancelling that to make room for the next merge would leave
+# the branch everyone deploys from unchecked.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   validate:
     runs-on: ubuntu-latest
