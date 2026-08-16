@@ -1609,12 +1609,59 @@ await page.goto(base + "/results.html"); await page.waitForTimeout(500);
                  months: Math.round(months), overdue: months > cycle + GRACE };
       });
   });
+  /* Reported, not failed — and the distinction is the whole point.
+
+     This asserted overdue.length === 0, which made the passage of time
+     a build failure. The oldest figure here is thirteen and a half
+     months against a fifteen-month limit, so that gate was about six
+     weeks from firing on whoever next touched this repository, for a
+     reason no commit of theirs could fix. The only ways out would have
+     been to re-source an IATA report on the spot or delete the check,
+     and people delete the check.
+
+     The sister platform reached this conclusion first and wrote it
+     down in scripts/check-data.mjs: "Going stale is not a defect in the
+     code and no commit can fix it — a gate that fails on the passage of
+     time blocks unrelated work until someone does research, and gates
+     like that get deleted rather than satisfied." Two products under
+     one charter had opposite answers to the same question, with nothing
+     recording which was deliberate. This is the reconciliation, and it
+     goes the sister platform's way.
+
+     What still fails is anything a commit CAN fix: a benchmark with no
+     date, or with a cadence the age rule cannot read. Those are code
+     defects. Age is a research task, and it is loud rather than
+     blocking. */
   const overdue = aged.filter(b => b.overdue);
-  assert(overdue.length === 0,
-    "no benchmark is past its own publication cycle" +
-      (overdue.length
-        ? ` — ${overdue.map(b => `${b.name}: ${b.src}, ${b.months}mo on a ${b.cadence} cycle`).join("; ")}`
-        : ` (oldest ${Math.max(...aged.map(b => b.months))}mo of ${aged.length})`));
+  if (overdue.length) {
+    console.log(`  WARN :: ${overdue.length} benchmark(s) past their publication cycle — ` +
+      overdue.map((b) => `${b.name}: ${b.src}, ${b.months}mo on a ${b.cadence} cycle`).join("; "));
+    console.log("         Re-source or restate them. This does not fail the build: no commit " +
+      "can make a figure younger, and a gate that fails on elapsed time gets deleted.");
+  }
+  assert(true,
+    `benchmark ages checked against their own cycles (oldest ${Math.max(...aged.map(b => b.months))}mo ` +
+    `of ${aged.length}, ${overdue.length} overdue)`);
+
+  /* A date that exists but does not parse IS a code defect, and unlike
+     age it is fixable by a commit — so this one fails.
+
+     Scoped deliberately to dates that are stated and unreadable. A
+     benchmark with NO date is a different thing, already governed
+     further down: those are planning targets, they are allowed, and the
+     rule about them is that the page must say so.
+
+     Written the obvious way — filter `aged`, call it "every benchmark
+     carries a date" — this assertion could not fail, because `aged`
+     drops undated entries before it sees them. It read as the stricter
+     check and was the weaker one, which is worse than absent: the same
+     shape as the .catch(() => true) this suite was already caught with.
+     Break-tested both ways: benchmarkAsOf "soon" fails here,
+     benchmarkAsOf null passes here and trips the disclosure rules. */
+  const unreadable = aged.filter((b) => !Number.isFinite(b.months));
+  assert(unreadable.length === 0,
+    `every stated benchmark date parses (${aged.length} checked)` +
+      (unreadable.length ? ` — ${unreadable.map((b) => b.name).join(", ")}` : ""));
 
   /* A cadence the age rule does not recognise falls back to annual,
      which is the lenient answer and the wrong one for a quarterly
