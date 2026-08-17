@@ -151,8 +151,15 @@ const JKW = {
       headline: "Not started", next: "Size the capital requirement and test the funding stack.", facts: [] });
 
     const n = k => { const v = parseFloat(st[k]); return isFinite(v) ? v : 0; };
+    /* Read the saved tier, not the sector. Line COUNT and line MEANING
+       both vary by tier — a medevac model carries a medical interior and
+       a rotary one carries life-limited parts — so summing a saved
+       state.capex against the wrong tier's lines silently mis-classifies
+       capex as working capital. Falls back to the first tier for models
+       saved before tiers existed, which is where their figures came from. */
+    const tier = sec.capital.tiers.find(t => t.id === st.tier) || sec.capital.tiers[0];
     let capex = 0, wc = 0;
-    sec.capital.lines.forEach((l, i) => {
+    tier.lines.forEach((l, i) => {
       const v = (st.capex || {})[i] || 0;
       if (l.cat === "wc") wc += v; else capex += v;
     });

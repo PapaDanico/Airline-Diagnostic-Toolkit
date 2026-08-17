@@ -38,16 +38,66 @@
     seg.appendChild(b);
   });
 
+  /* The active tier's lines ARE the model. Every read of s.capital.lines
+     went through here after tiers landed, because line COUNT now varies
+     between tiers — a medevac operation carries a medical interior and a
+     rotary one carries life-limited parts, neither of which a scheduled
+     carrier has. Indexing state.capex by position is only safe if the
+     tier is pinned alongside it. */
+  function tierOf(s) {
+    const ts = s.capital.tiers;
+    return ts.find(t => t.id === state.tier) || ts[0];
+  }
+
+  function selectTier(id) {
+    state.tier = id;
+    const s = JKV.sector(state.sector);
+    seedCapex(s, tierOf(s));
+    renderTierBar(s);
+    renderCapex(s);
+    $("sector-note").innerHTML = `<b>${s.name}.</b> ${tierOf(s).note} ${s.leadNote}`;
+    store.save(state);
+    recompute();
+  }
+
+  function seedCapex(s, t) {
+    state.capex = {}; state.capexSector = state.sector; state.capexTier = t.id;
+    t.lines.forEach((l, i) => { state.capex[i] = Math.round((l.lo + l.hi) / 2); });
+  }
+
+  function renderTierBar(s) {
+    const host = $("tier-seg");
+    const ts = s.capital.tiers;
+    /* A single-tier sector shows no chooser at all — an empty control bar
+       reads as a broken feature rather than an absent choice. */
+    if (ts.length < 2) { host.innerHTML = ""; host.hidden = true; return; }
+    host.hidden = false;
+    const active = tierOf(s).id;
+    host.innerHTML = `<p class="eyebrow" style="margin:0 0 .5rem">${s.capital.scale}</p>
+      <div class="segmented" role="group" aria-label="${s.capital.scale}">${ts.map(t => `
+        <button type="button" class="seg${t.id === active ? " is-on" : ""}" data-tier="${t.id}"
+                aria-pressed="${t.id === active}">${t.label}<small style="display:block;font-weight:400;opacity:.75">${t.sub}</small></button>`).join("")}</div>`;
+    host.querySelectorAll("[data-tier]").forEach(b =>
+      b.addEventListener("click", () => selectTier(b.dataset.tier)));
+  }
+
   function selectSector(id, resetLines) {
     const s = JKV.sector(id);
     if (!s) return;
     state.sector = id;
-    if (resetLines || !state.capex || state.capexSector !== id) {
-      state.capex = {}; state.capexSector = id;
-      s.capital.lines.forEach((l, i) => { state.capex[i] = Math.round((l.lo + l.hi) / 2); });
+    /* Normalise the tier before anything reads it. Tier ids are unique
+       per sector, so a tier carried over from the previous sector is a
+       dangling reference — tierOf() falls back safely, but leaving the
+       stale id in state means the chooser highlights nothing. */
+    if (!s.capital.tiers.some(t => t.id === state.tier)) state.tier = s.capital.tiers[0].id;
+    if (resetLines || !state.capex || state.capexSector !== id || state.capexTier !== state.tier) {
+      seedCapex(s, tierOf(s));
     }
     seg.querySelectorAll(".seg").forEach(el => el.setAttribute("aria-pressed", String(el.dataset.sector === id)));
-    $("sector-note").innerHTML = `<b>${s.name}.</b> ${s.capital.note} ${s.leadNote}`;
+    /* The note lives on the tier now, not the sector — each tier states
+       its own scale assumption, which is the point of having tiers. */
+    $("sector-note").innerHTML = `<b>${s.name}.</b> ${tierOf(s).note} ${s.leadNote}`;
+    renderTierBar(s);
     renderCapex(s);
     recompute();
   }
@@ -55,21 +105,49 @@
   /* ---------- CAPEX lines ---------- */
   function renderCapex(s) {
     const host = $("capex-lines");
-    host.innerHTML = s.capital.lines.map((l, i) => `
-      <div class="field" style="margin-bottom:14px">
+    const t = tierOf(s);
+    host.innerHTML = t.lines.map((l, i) => `
+      <div class="field" style="margin-bottom:16px">
         <label for="cx-${i}" style="display:flex;justify-content:space-between;gap:1rem;align-items:baseline">
           <span>${l.k}${l.cat === "wc" ? ' <span class="tag" style="vertical-align:middle">working capital</span>' : ""}</span>
-          <b class="tnum" data-out="${i}" style="font-family:var(--serif);font-size:1.05rem;white-space:nowrap">—</b>
         </label>
-        <input type="range" id="cx-${i}" min="${l.lo}" max="${l.hi}" step="${Math.max(1000, Math.round((l.hi - l.lo) / 100))}"
-               value="${state.capex[i]}" style="width:100%;accent-color:var(--accent);padding:0;border:0;background:none"
-               aria-describedby="cxh-${i}">
-        <p class="hint" id="cxh-${i}">Planning band ${fmtMoney(l.lo)} – ${fmtMoney(l.hi)}</p>
+        <div class="cx-row">
+          <input type="range" id="cx-${i}" min="${l.lo}" max="${l.hi}" step="${Math.max(1000, Math.round((l.hi - l.lo) / 100))}"
+                 value="${Math.min(state.capex[i], l.hi)}" aria-describedby="cxh-${i}">
+          <input type="number" id="cxn-${i}" class="cx-num" min="0" step="1000" value="${state.capex[i]}"
+                 aria-label="${l.k} — exact amount in USD">
+        </div>
+        <p class="hint" id="cxh-${i}">
+          <b data-band="${i}">Planning band ${fmtMoney(l.lo)} – ${fmtMoney(l.hi)}</b>
+          ${l.drv ? ` · ${l.drv}` : ""}
+        </p>
       </div>`).join("");
 
-    s.capital.lines.forEach((l, i) => {
-      const el = $("cx-" + i);
-      el.addEventListener("input", () => { state.capex[i] = parseFloat(el.value); recompute(); });
+    t.lines.forEach((l, i) => {
+      const sl = $("cx-" + i), nu = $("cxn-" + i);
+      /* Slider and number field are two views of one value. The slider
+         is bounded by the planning band because that is what a band is
+         for; the number field is not, because an operator with a real
+         quotation should never be told their own figure is impossible.
+         A linear slider stretched to hold every case would make the
+         common case unsettable — 1M steps cannot express 1.65M. */
+      const set = (v, fromSlider) => {
+        v = Math.max(0, Math.min(1e12, v || 0));
+        state.capex[i] = v;
+        if (!fromSlider) sl.value = Math.max(l.lo, Math.min(l.hi, v));
+        if (fromSlider) nu.value = v;
+        const band = document.querySelector(`[data-band="${i}"]`);
+        if (band) {
+          const out = v > l.hi || v < l.lo;
+          band.textContent = out
+            ? `Outside the planning band of ${fmtMoney(l.lo)} – ${fmtMoney(l.hi)}`
+            : `Planning band ${fmtMoney(l.lo)} – ${fmtMoney(l.hi)}`;
+          band.style.color = out ? "var(--jk-amber-text)" : "";
+        }
+        recompute();
+      };
+      sl.addEventListener("input", () => set(parseFloat(sl.value), true));
+      nu.addEventListener("input", () => set(parseFloat(nu.value), false));
     });
   }
 
@@ -82,21 +160,103 @@
   /* Debt service comes from common.js — the Venture Control Room re-derives
      the same DSCR from this saved model, and two implementations would drift. */
 
+  /* ---------- capital analysis ----------
+     The difference between a calculator and a diagnostic. A calculator
+     adds up what was typed. This reads the same figures back and says
+     what they imply — which line is outside its band, whether the set
+     describes one coherent venture, and whether the tier is even the
+     right one. Every finding names the number that triggered it, because
+     an unexplained warning is noise the user learns to scroll past. */
+  function renderCapexAnalysis(s, tier, capex, wc, total) {
+    const host = $("capex-analysis");
+    if (!host) return;
+    if (!total) { host.innerHTML = ""; return; }
+
+    const findings = [];
+    const bandMid = tier.lines.reduce((a, l) => a + (l.lo + l.hi) / 2, 0);
+    const bandMax = tier.lines.reduce((a, l) => a + l.hi, 0);
+    const bandMin = tier.lines.reduce((a, l) => a + l.lo, 0);
+
+    /* 1 — tier fit. Sitting far outside the tier's own envelope usually
+       means the wrong tier is selected, not that the figures are wrong. */
+    const tiers = s.capital.tiers;
+    const idx = tiers.indexOf(tier);
+    if (total > bandMax * 1.15 && idx < tiers.length - 1) {
+      findings.push({ t: "warn", h: "This is a larger venture than the tier assumes",
+        d: `Your figures total ${fmtMoney(total)} against a ${tier.label} ceiling of ${fmtMoney(bandMax)}. ` +
+           `${tiers[idx + 1].label} (${tiers[idx + 1].sub}) is built for this size and carries different line items, not just larger numbers.` });
+    } else if (total < bandMin * 0.85 && idx > 0) {
+      findings.push({ t: "warn", h: "This is smaller than the tier assumes",
+        d: `Your figures total ${fmtMoney(total)} against a ${tier.label} floor of ${fmtMoney(bandMin)}. ` +
+           `${tiers[idx - 1].label} (${tiers[idx - 1].sub}) may describe the venture better.` });
+    }
+
+    /* 2 — lines pushed well outside their own band. Named individually,
+       because "something is off" is not a finding. */
+    const outliers = tier.lines
+      .map((l, i) => ({ l, v: state.capex[i] || 0 }))
+      .filter(x => x.v > x.l.hi * 1.5 || (x.v > 0 && x.v < x.l.lo * 0.5));
+    if (outliers.length) {
+      findings.push({ t: "info", h: `${outliers.length} line${outliers.length > 1 ? "s sit" : " sits"} well outside the planning band`,
+        d: outliers.map(x => `${x.l.k} at ${fmtMoney(x.v)} against ${fmtMoney(x.l.lo)}–${fmtMoney(x.l.hi)}`).join("; ") +
+           ". That is fine where it comes from a quotation, and worth checking where it does not." });
+    }
+
+    /* 3 — working capital share. The line that actually kills ventures,
+       and the one founders trim first when the total looks too big. */
+    const wcShare = wc / total;
+    if (wcShare < 0.15) {
+      findings.push({ t: "warn", h: "Working capital looks thin",
+        d: `Working capital is ${(wcShare * 100).toFixed(0)}% of total capital. Below roughly 15% a venture is funding assets and hoping revenue arrives on schedule. ` +
+           `Lenders size term debt against fixed assets, not against this — so a shortfall here lands on equity.` });
+    } else if (wcShare > 0.55) {
+      findings.push({ t: "info", h: "Working capital dominates the requirement",
+        d: `Working capital is ${(wcShare * 100).toFixed(0)}% of total capital, so most of what you are raising is not financeable with term debt. ` +
+           `Check the funding mix below — this shape needs equity or a revolving facility.` });
+    }
+
+    /* 4 — certification as a share. High share is not an error; it is the
+       structural fact that makes small operations expensive to certify,
+       and it is worth naming rather than leaving the user to notice. */
+    const cert = tier.lines
+      .map((l, i) => ({ l, v: state.capex[i] || 0 }))
+      .filter(x => /certification/i.test(x.l.k))
+      .reduce((a, x) => a + x.v, 0);
+    if (cert && cert / total > 0.06) {
+      findings.push({ t: "info", h: "Certification is a large share of a small entry",
+        d: `Regulatory certification is ${((cert / total) * 100).toFixed(1)}% of total capital. ` +
+           `The programme costs roughly the same whatever the fleet size, so this share falls as the venture grows — it is the arithmetic that makes small operations expensive per aircraft, not an error in your figures.` });
+    }
+
+    const ratios = [
+      { k: "Fixed capex", v: fmtMoney(capex) },
+      { k: "Working capital", v: fmtMoney(wc) },
+      { k: "WC share", v: `${(wcShare * 100).toFixed(0)}%` },
+      { k: "Against tier mid-point", v: `${total >= bandMid ? "+" : ""}${(((total / bandMid) - 1) * 100).toFixed(0)}%` }
+    ];
+
+    host.innerHTML = `
+      <div class="cx-ratios">${ratios.map(r =>
+        `<div><b>${r.v}</b><span>${r.k}</span></div>`).join("")}</div>
+      ${findings.map(f => `<div class="note ${f.t === "warn" ? "warn" : ""}" style="margin-top:.8rem">
+        <b>${f.h}</b><p style="margin:.3rem 0 0">${f.d}</p></div>`).join("")}`;
+  }
+
   /* ---------- main recompute ---------- */
   function recompute() {
     const s = JKV.sector(state.sector);
     if (!s) return;
 
     // capex split
+    const tier = tierOf(s);
     let capex = 0, wc = 0;
-    s.capital.lines.forEach((l, i) => {
+    tier.lines.forEach((l, i) => {
       const v = state.capex[i] || 0;
-      const out = document.querySelector(`[data-out="${i}"]`);
-      if (out) out.textContent = fmtMoney(v);
       if (l.cat === "wc") wc += v; else capex += v;
     });
     const total = capex + wc;
     $("capex-total").textContent = fmtMoney(total);
+    renderCapexAnalysis(s, tier, capex, wc, total);
 
     // funding
     const equity = num("f-equity"), invest = num("f-invest"), sub = num("f-sub"),

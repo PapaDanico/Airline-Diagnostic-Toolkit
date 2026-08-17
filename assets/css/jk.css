@@ -894,6 +894,39 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
    A character measure also holds if the type scale ever moves. */
 .tool-head .lead { font-size: var(--fs-base); color: #45362f; max-width: 54ch; }
 
+/* Slider and number field on one row. The slider is bounded by the
+   planning band; the number field is not — an operator holding a real
+   quotation must never be told their own figure is out of range. A
+   single linear slider stretched to cover every venture size would make
+   the common case unsettable, which is why both controls exist. */
+.cx-row { display: flex; gap: .75rem; align-items: center; }
+.cx-row input[type="range"] {
+  flex: 1 1 auto; min-width: 0; accent-color: var(--accent);
+  padding: 0; border: 0; background: none;
+}
+.cx-num {
+  flex: 0 0 9.5rem; text-align: right; font-variant-numeric: tabular-nums;
+}
+@media (max-width: 560px) {
+  .cx-row { flex-wrap: wrap; }
+  .cx-num { flex: 1 1 100%; text-align: left; }
+}
+
+/* Derived figures under the capital table — read back, not typed in. */
+.cx-ratios {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1px; background: var(--jk-line); border: 1px solid var(--jk-line);
+  margin-top: 1.1rem;
+}
+.cx-ratios > div { background: var(--jk-white); padding: .7rem .8rem; }
+.cx-ratios b {
+  display: block; font-size: var(--fs-md); font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+.cx-ratios span {
+  display: block; font-size: var(--fs-xs); color: var(--jk-muted); margin-top: .1rem;
+}
+
 /* The row that lets a reader take the answer away.
 
    Five tools computed a result and offered no way to keep it — the

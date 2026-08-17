@@ -16,8 +16,8 @@ window.JK_VERIFICATION = {
     },
     {
       "suite": "focus",
-      "headline": "1391 focusable elements, each with a visible indicator at 3:1",
-      "elements": 1391,
+      "headline": "1387 focusable elements, each with a visible indicator at 3:1",
+      "elements": 1387,
       "minRatio": 3
     },
     {
@@ -36,9 +36,9 @@ window.JK_VERIFICATION = {
     },
     {
       "suite": "drive",
-      "headline": "32 pages driven as a user would, 193 interactions, no console errors",
+      "headline": "32 pages driven as a user would, 200 interactions, no console errors",
       "runs": 32,
-      "interactions": 193
+      "interactions": 200
     }
   ]
 };

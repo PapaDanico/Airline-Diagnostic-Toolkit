@@ -137,15 +137,75 @@ const JKV = {
       manuals:["Operations Manual Parts A–D","Minimum Equipment List (MEL)","Continuing Airworthiness Management Exposition (CAME)","Maintenance Programme","Safety Management System Manual","Quality Assurance Manual","Security Programme","Dangerous Goods Manual","Training Manual","Emergency Response Plan","Aircraft Flight Manual / Ops Specs"],
       capital:{
         unit:"USD",
-        note:"Indicative planning ranges for a 2–3 aircraft regional start-up in East Africa. Aircraft are assumed leased, not purchased — ownership shifts the model entirely.",
-        lines:[
-          {k:"Aircraft — lease deposits & delivery", lo:900000,  hi:2400000, cat:"capex"},
-          {k:"Initial spares & rotables",            lo:400000,  hi:1200000, cat:"capex"},
-          {k:"Ground support equipment",             lo:150000,  hi:600000,  cat:"capex"},
-          {k:"Certification & regulatory programme", lo:180000,  hi:450000,  cat:"capex"},
-          {k:"Manuals, systems & IT",                lo:120000,  hi:400000,  cat:"capex"},
-          {k:"Initial crew training & type ratings", lo:250000,  hi:900000,  cat:"capex"},
-          {k:"Working capital — 6 months",           lo:1200000, hi:3500000, cat:"wc"}
+        scale:"Type of operation",
+        tiers:[
+          {
+            id:"scheduled", label:"Scheduled regional", sub:"2\u20133 aircraft",
+            note:"Indicative planning ranges for a 2\u20133 aircraft regional start-up in East Africa. Aircraft are assumed leased, not purchased \u2014 ownership shifts the model entirely.",
+            lines:[
+  {k:"Aircraft \u2014 lease deposits & delivery", lo:900000, hi:2400000, cat:"capex", drv:"Deposits run 2\u20133 months' rent per aircraft plus delivery, ferry and acceptance checks."},
+  {k:"Initial spares & rotables", lo:400000, hi:1200000, cat:"capex", drv:"Driven by type commonality and how far you are from a pool. One type is materially cheaper to support than two."},
+  {k:"Ground support equipment", lo:150000, hi:600000, cat:"capex", drv:"Collapses to near zero where a handler is contracted; rises fast at an outstation with no third party."},
+  {k:"Certification & regulatory programme", lo:180000, hi:450000, cat:"capex", drv:"Close to fixed regardless of fleet size \u2014 the same five phases are worked whether you fly two aircraft or twenty."},
+  {k:"Manuals, systems & IT", lo:120000, hi:400000, cat:"capex", drv:"Ops manual suite, MEL, CAME plus reservations and DCS. Buying a manual set is cheap; making it yours is not."},
+  {k:"Initial crew training & type ratings", lo:250000, hi:900000, cat:"capex", drv:"Type ratings dominate. Hiring already-rated crew shifts this to salary, it does not remove it."},
+  {k:"Working capital \u2014 6 months", lo:1200000, hi:3500000, cat:"wc", drv:"The line that kills start-ups. Lenders will not fund it, and revenue arrives later than the plan says."}
+            ]
+          },
+          {
+            id:"bizav", label:"Business aviation", sub:"Non-scheduled charter, 2\u20134 jets",
+            note:"Non-scheduled commercial air transport on midsize jets. Handling is bought from an FBO rather than owned, and manufacturer support programmes move much of the spares burden to opex \u2014 so the capital shape is lighter than a scheduled carrier of the same fleet count, while the regulatory burden is identical.",
+            lines:[
+  {k:"Aircraft \u2014 lease deposits & delivery", lo:1200000, hi:4500000, cat:"capex", drv:"Higher per aircraft than a turboprop regional. Deposits and delivery on a midsize jet dominate the entry."},
+  {k:"Initial spares & rotables", lo:250000, hi:900000, cat:"capex", drv:"Low, because manufacturer support programmes carry most of it. Confirm the programme is transferable before assuming this."},
+  {k:"Ground support equipment", lo:40000, hi:250000, cat:"capex", drv:"Near zero. Handling is bought at the FBO, which is an opex line and a dependency worth contracting for."},
+  {k:"Certification & regulatory programme", lo:180000, hi:450000, cat:"capex", drv:"The same five phases as any AOC. This is the line that makes small fleets expensive to certify per aircraft."},
+  {k:"Manuals, systems & IT", lo:150000, hi:500000, cat:"capex", drv:"Ops manual suite plus charter quoting and empty-leg marketing \u2014 the commercial system is the differentiator here."},
+  {k:"Initial crew training & type ratings", lo:300000, hi:1100000, cat:"capex", drv:"Jet type ratings are costly and crew ratios are high relative to fleet, because clients book at short notice."},
+  {k:"Working capital \u2014 6 months", lo:900000, hi:3200000, cat:"wc", drv:"Charter revenue is lumpy and seasonal. Utilisation below roughly 400 hours a year is where these models fail."}
+            ]
+          },
+          {
+            id:"medevac-fw", label:"Air ambulance \u2014 fixed wing", sub:"2\u20133 aircraft, aeromedical",
+            note:"An AOC plus an aeromedical capability, which is two approvals rather than one. The medical interior is a certified modification, not equipment placed in a cabin, and it carries its own airworthiness paperwork.",
+            lines:[
+  {k:"Aircraft \u2014 lease deposits & delivery", lo:600000, hi:2200000, cat:"capex", drv:"Turboprops and light jets. Cabin cross-section decides whether a stretcher and an attending team actually fit."},
+  {k:"Medical interior, STC & equipment", lo:400000, hi:1600000, cat:"capex", drv:"Stretcher, ventilator, monitors, oxygen and power \u2014 installed under an STC. The certification, not the equipment, is the long pole."},
+  {k:"Initial spares & rotables", lo:300000, hi:900000, cat:"capex", drv:"Aircraft spares plus a separate medical-equipment spares and calibration regime."},
+  {k:"Ground support equipment", lo:60000, hi:300000, cat:"capex", drv:"Ambulance interface at the ramp, and cold-chain handling where blood or organs are carried."},
+  {k:"Certification, aeromedical & clinical approval", lo:250000, hi:700000, cat:"capex", drv:"AOC plus medical director, clinical governance and health-authority approval. Materially above a standard AOC."},
+  {k:"Manuals, systems & IT", lo:180000, hi:550000, cat:"capex", drv:"Ops Manual Part D gains a medical annex, plus clinical protocols and a 24/7 dispatch system."},
+  {k:"Crew training \u2014 flight & aeromedical", lo:350000, hi:1200000, cat:"capex", drv:"Two workforces trained to two standards. Aeromedical crew currency is a continuing obligation, not an initial cost."},
+  {k:"Working capital \u2014 9 months", lo:1400000, hi:4200000, cat:"wc", drv:"Standby capacity is paid for whether or not it flies, and insurer and scheme receivables run long."}
+            ]
+          },
+          {
+            id:"medevac-rw", label:"Air ambulance \u2014 rotary", sub:"HEMS, 2\u20133 helicopters",
+            note:"The largest and fastest-growing air ambulance segment, and a different certification basis from any aeroplane operation. HEMS brings confined-area and night operations, its own operating minima, and life-limited component exposure that dominates maintenance reserves.",
+            lines:[
+  {k:"Helicopters \u2014 lease deposits & delivery", lo:900000, hi:3500000, cat:"capex", drv:"Twin-engine IFR-capable airframes. Single-engine is cheaper and closes most HEMS work to you."},
+  {k:"Medical interior, STC & equipment", lo:350000, hi:1400000, cat:"capex", drv:"Tighter cabin volume than fixed wing makes the installation harder, not easier, and the STC scarcer."},
+  {k:"Spares, rotables & life-limited parts", lo:500000, hi:1800000, cat:"capex", drv:"Rotorcraft are component-driven. Life-limited part reserves are the single most underestimated line in this table."},
+  {k:"Base, helipad & hangar", lo:200000, hi:1200000, cat:"capex", drv:"Hospital helipad access is a negotiation, not a purchase, and it decides your response envelope."},
+  {k:"Certification, aeromedical & HEMS approval", lo:300000, hi:850000, cat:"capex", drv:"AOC plus HEMS operational approval plus clinical governance. The most regulated entry on the platform."},
+  {k:"Manuals, systems & IT", lo:180000, hi:550000, cat:"capex", drv:"HEMS operating minima, site survey procedures and a dispatch system that answers in minutes."},
+  {k:"Crew training \u2014 HEMS, NVIS & medical", lo:450000, hi:1600000, cat:"capex", drv:"Night vision imaging systems and confined-area currency, on top of aeromedical training."},
+  {k:"Working capital \u2014 12 months", lo:1800000, hi:5500000, cat:"wc", drv:"Twelve months, because 24/7 standby is the product and scheme contracts take a year to mature."}
+            ]
+          },
+          {
+            id:"group", label:"Scheduled group", sub:"20+ aircraft, multi-base",
+            note:"A multi-base regional operator, possibly multi-AOC. At this scale the binding constraint is treasury and lessor appetite rather than any single capital line.",
+            lines:[
+  {k:"Aircraft \u2014 lease deposits & delivery", lo:7500000, hi:26000000, cat:"capex", drv:"Sale-and-leaseback and manufacturer support change the shape entirely. Deposits may be waived against a strong balance sheet."},
+  {k:"Initial spares & rotables", lo:3500000, hi:12000000, cat:"capex", drv:"A main base store plus outstation kits. Power-by-the-hour moves this line to opex and should be modelled as such."},
+  {k:"Ground support equipment", lo:900000, hi:4000000, cat:"capex", drv:"Multi-base own-handling. Frequently spun into a separate handling company \u2014 see the Corporate Structure Designer."},
+  {k:"Certification & regulatory programme", lo:400000, hi:1200000, cat:"capex", drv:"Rises only if a second AOC or a foreign operator permit is in scope."},
+  {k:"Manuals, systems & IT", lo:700000, hi:2800000, cat:"capex", drv:"Integrated ops control, and the systems integration cost that nobody budgets for."},
+  {k:"Initial crew training & type ratings", lo:2000000, hi:9000000, cat:"capex", drv:"An in-house ATO becomes cheaper than buying training \u2014 the ATO sector tab is the other half of that decision."},
+  {k:"Working capital \u2014 6 months", lo:11000000, hi:45000000, cat:"wc", drv:"Fuel and lease rentals dominate. Six months at this scale is a treasury function, not a buffer."}
+            ]
+          }
         ]
       },
       items:{
@@ -217,15 +277,47 @@ const JKV = {
       manuals:["Training Manual","Operations Manual","Training Programmes / Approved Courses","Quality Manual","Safety Management System Manual","FSTD Qualification & Guide per device","Student Records System","Instructor Standardisation Procedures"],
       capital:{
         unit:"USD",
-        note:"Anchored on a three-device simulator hub in a Kenyan SEZ. Device pricing dominates: a single FNPT/FTD-class device is a fraction of a full-flight simulator, so confirm the device class before using these ranges.",
-        lines:[
-          {k:"Training devices (FSTD) & shipping",   lo:1400000, hi:5200000, cat:"capex"},
-          {k:"Building fit-out / hangar & classrooms", lo:900000, hi:2600000, cat:"capex"},
-          {k:"Device installation & qualification",  lo:180000,  hi:520000,  cat:"capex"},
-          {k:"Aircraft for flight training (if any)", lo:0,      hi:1800000, cat:"capex"},
-          {k:"Courseware, LMS & systems",            lo:90000,   hi:320000,  cat:"capex"},
-          {k:"Certification & regulatory programme", lo:120000,  hi:340000,  cat:"capex"},
-          {k:"Working capital — 9 months",           lo:600000,  hi:1900000, cat:"wc"}
+        scale:"Device class",
+        tiers:[
+          {
+            id:"single", label:"FNPT / FTD", sub:"Single-device ATO",
+            note:"A single lower-class device with classrooms. Device pricing dominates: an FNPT/FTD-class device is a fraction of a full-flight simulator, so confirm the device class before using these ranges.",
+            lines:[
+  {k:"Training devices (FSTD) & shipping", lo:1400000, hi:5200000, cat:"capex", drv:"Device class is the whole number. Shipping and rigging into a landlocked site is a real line, not a rounding error."},
+  {k:"Building fit-out / hangar & classrooms", lo:900000, hi:2600000, cat:"capex", drv:"Floor loading, ceiling height and power for a motion device drive the build far more than floor area."},
+  {k:"Device installation & qualification", lo:180000, hi:520000, cat:"capex", drv:"Initial evaluation plus the OEM engineer's time. Recurrent qualification is opex and is often forgotten."},
+  {k:"Aircraft for flight training (if any)", lo:0, hi:1800000, cat:"capex", drv:"Zero for a simulator-only ATO. An aircraft turns this into two regulated businesses."},
+  {k:"Courseware, LMS & systems", lo:90000, hi:320000, cat:"capex", drv:"Buying courseware is cheap; getting it approved against your own syllabus is the cost."},
+  {k:"Certification & regulatory programme", lo:120000, hi:340000, cat:"capex", drv:"Close to fixed. Scales with number of approved courses, not with device count."},
+  {k:"Working capital \u2014 9 months", lo:600000, hi:1900000, cat:"wc", drv:"Nine months because utilisation ramps slowly \u2014 an empty simulator still costs the same to keep qualified."}
+            ]
+          },
+          {
+            id:"hub", label:"3\u20134 devices", sub:"Multi-device academy",
+            note:"A multi-device academy with at least one full-flight simulator. Anchored on a three-device hub in a Kenyan SEZ, where the incentive regime materially changes the landed device cost.",
+            lines:[
+  {k:"Training devices (FSTD) & shipping", lo:12000000, hi:34000000, cat:"capex", drv:"One Level D full-flight simulator dominates every other line in this table combined."},
+  {k:"Building fit-out / hangar & classrooms", lo:3500000, hi:11000000, cat:"capex", drv:"A purpose-built simulator bay, not a fit-out. Foundations and cooling are the cost, not the walls."},
+  {k:"Device installation & qualification", lo:700000, hi:2200000, cat:"capex", drv:"Per-device evaluation across a fleet, plus the interoperability work between them."},
+  {k:"Aircraft for flight training (if any)", lo:0, hi:5500000, cat:"capex", drv:"A small training fleet, which brings its own AOC-adjacent obligations."},
+  {k:"Courseware, LMS & systems", lo:350000, hi:1200000, cat:"capex", drv:"Multi-course approvals and a scheduling system that can fill four devices."},
+  {k:"Certification & regulatory programme", lo:300000, hi:850000, cat:"capex", drv:"More approved courses and more instructor authorisations, on one organisational approval."},
+  {k:"Working capital \u2014 9 months", lo:2400000, hi:7500000, cat:"wc", drv:"Instructor payroll runs whether or not the devices are booked."}
+            ]
+          },
+          {
+            id:"regional", label:"6+ devices", sub:"Regional simulator hub",
+            note:"A regional training hub selling third-party device time across borders. At this scale utilisation, not capital, decides the outcome \u2014 the model lives or dies on hours sold to other operators.",
+            lines:[
+  {k:"Training devices (FSTD) & shipping", lo:28000000, hi:72000000, cat:"capex", drv:"A multi-type device fleet. Type mix is a market bet: the wrong types are an unsellable asset."},
+  {k:"Building fit-out / hangar & classrooms", lo:9000000, hi:26000000, cat:"capex", drv:"A campus with accommodation. Increasingly the differentiator in a regional catchment."},
+  {k:"Device installation & qualification", lo:1800000, hi:5200000, cat:"capex", drv:"Phased so revenue starts before the last device lands."},
+  {k:"Aircraft for flight training (if any)", lo:0, hi:9000000, cat:"capex", drv:"An integrated ab-initio fleet alongside the devices."},
+  {k:"Courseware, LMS & systems", lo:900000, hi:2800000, cat:"capex", drv:"Multi-authority approvals \u2014 KCAA plus EASA or FAA recognition is what sells third-party hours."},
+  {k:"Certification & regulatory programme", lo:600000, hi:1800000, cat:"capex", drv:"Multiple authority approvals is the driver, not the number of devices."},
+  {k:"Working capital \u2014 9 months", lo:5500000, hi:17000000, cat:"wc", drv:"A large fixed instructor and engineering base carried against demand you do not control."}
+            ]
+          }
         ]
       },
       items:{
@@ -292,15 +384,47 @@ const JKV = {
       manuals:["Maintenance Organisation Exposition (MOE)","Capability List","Quality Manual","Safety Management System Manual","Technical Procedures Manual","Human Factors Training Programme","Tooling & Calibration Register","Stores Procedures"],
       capital:{
         unit:"USD",
-        note:"Line-maintenance-only entry is a fraction of a base-maintenance hangar. The hangar decision dominates the model.",
-        lines:[
-          {k:"Hangar / facility (lease fit-out or build)", lo:600000, hi:6500000, cat:"capex"},
-          {k:"Tooling, GSE & test equipment",         lo:350000,  hi:2200000, cat:"capex"},
-          {k:"Initial spares & consumables",          lo:200000,  hi:1100000, cat:"capex"},
-          {k:"Calibration & workshop equipment",      lo:80000,   hi:420000,  cat:"capex"},
-          {k:"Certification & regulatory programme",  lo:110000,  hi:300000,  cat:"capex"},
-          {k:"Staff training & type authorisations",  lo:150000,  hi:700000,  cat:"capex"},
-          {k:"Working capital — 6 months",            lo:400000,  hi:1600000, cat:"wc"}
+        scale:"Rating scope",
+        tiers:[
+          {
+            id:"line", label:"Line maintenance", sub:"Line station",
+            note:"Line-maintenance-only entry is a fraction of a base-maintenance hangar. The hangar decision dominates the model.",
+            lines:[
+  {k:"Hangar / facility (lease fit-out or build)", lo:600000, hi:6500000, cat:"capex", drv:"Line work needs a store and an office, not a hangar. The upper bound here already assumes a small hangar."},
+  {k:"Tooling, GSE & test equipment", lo:350000, hi:2200000, cat:"capex", drv:"Type-specific tooling lists are non-negotiable and are the reason a second type is expensive."},
+  {k:"Initial spares & consumables", lo:200000, hi:1100000, cat:"capex", drv:"Largely consumables at line level. Rotables belong to the operator or a pool."},
+  {k:"Calibration & workshop equipment", lo:80000, hi:420000, cat:"capex", drv:"Calibration traceability is an approval condition, not an optional quality gesture."},
+  {k:"Certification & regulatory programme", lo:110000, hi:300000, cat:"capex", drv:"Scales with the rating scope sought, not with facility size."},
+  {k:"Staff training & type authorisations", lo:150000, hi:700000, cat:"capex", drv:"Licensed engineer type authorisations are the constraint, and the market for them is tight."},
+  {k:"Working capital \u2014 6 months", lo:400000, hi:1600000, cat:"wc", drv:"Thin if contracts are secured before opening; brutal if built speculatively."}
+            ]
+          },
+          {
+            id:"base", label:"Base \u2014 narrowbody", sub:"Base maintenance",
+            note:"A narrowbody base-maintenance hangar taking C-checks. The hangar is now the dominant line and its bay count sets the ceiling on revenue.",
+            lines:[
+  {k:"Hangar / facility (lease fit-out or build)", lo:8000000, hi:28000000, cat:"capex", drv:"A two-bay narrowbody hangar. Span and door height are the cost drivers, and they are decided once."},
+  {k:"Tooling, GSE & test equipment", lo:2500000, hi:8500000, cat:"capex", drv:"Docking, jacks and NDT. Docking is type-specific and does not transfer."},
+  {k:"Initial spares & consumables", lo:1200000, hi:4500000, cat:"capex", drv:"Base checks consume materially more than line, and lead times force stock."},
+  {k:"Calibration & workshop equipment", lo:400000, hi:1600000, cat:"capex", drv:"In-house shops begin to make sense here \u2014 each one is a separate rating."},
+  {k:"Certification & regulatory programme", lo:300000, hi:900000, cat:"capex", drv:"Broader ratings and a much larger exposition to write and defend."},
+  {k:"Staff training & type authorisations", lo:700000, hi:2800000, cat:"capex", drv:"A base-maintenance workforce is an order of magnitude larger than a line station's."},
+  {k:"Working capital \u2014 6 months", lo:2200000, hi:7500000, cat:"wc", drv:"Work in progress on a C-check ties up cash for weeks before it invoices."}
+            ]
+          },
+          {
+            id:"widebody", label:"Base + shops", sub:"Widebody & component",
+            note:"Widebody base capability with component shops. This is an industrial facility, and the component shop ratings are separate businesses sharing a roof.",
+            lines:[
+  {k:"Hangar / facility (lease fit-out or build)", lo:30000000, hi:75000000, cat:"capex", drv:"Widebody span. At this point the build is an infrastructure project with its own financing."},
+  {k:"Tooling, GSE & test equipment", lo:9000000, hi:26000000, cat:"capex", drv:"Widebody docking plus shop test rigs. Engine capability multiplies this again."},
+  {k:"Initial spares & consumables", lo:4000000, hi:14000000, cat:"capex", drv:"Shop stock plus rotable pool if exchange services are offered."},
+  {k:"Calibration & workshop equipment", lo:1800000, hi:6500000, cat:"capex", drv:"Each shop rating carries its own equipment and its own approval."},
+  {k:"Certification & regulatory programme", lo:800000, hi:2400000, cat:"capex", drv:"Multiple ratings and usually a second authority \u2014 EASA Part-145 recognition is what wins foreign work."},
+  {k:"Staff training & type authorisations", lo:2500000, hi:8000000, cat:"capex", drv:"Several hundred licensed staff. The training pipeline becomes a permanent function."},
+  {k:"Working capital \u2014 6 months", lo:7000000, hi:22000000, cat:"wc", drv:"Long work-in-progress cycles on heavy checks and shop visits."}
+            ]
+          }
         ]
       },
       items:{
@@ -365,15 +489,21 @@ const JKV = {
       manuals:["Ground Operations Manual","Safety Management System Manual","Training & Competence Programme","Security Programme","Dangerous Goods Acceptance Procedures","Emergency Response Plan","Service Level Agreements","Equipment Maintenance Programme"],
       capital:{
         unit:"USD",
-        note:"GSE dominates ramp handling; an FBO is a property play with a service wrapper. Concession fees and aerodrome charges are the recurring line that kills thin models.",
-        lines:[
-          {k:"Ground support equipment fleet",       lo:450000,  hi:3200000, cat:"capex"},
-          {k:"FBO terminal / facility fit-out",      lo:0,       hi:4500000, cat:"capex"},
-          {k:"Concession & aerodrome entry fees",    lo:60000,   hi:600000,  cat:"capex"},
-          {k:"IT, DCS & ramp systems",               lo:70000,   hi:340000,  cat:"capex"},
-          {k:"Certification & regulatory programme", lo:70000,   hi:220000,  cat:"capex"},
-          {k:"Staff recruitment & initial training", lo:120000,  hi:520000,  cat:"capex"},
-          {k:"Working capital — 6 months",           lo:300000,  hi:1400000, cat:"wc"}
+        scale:"Operation",
+        tiers:[
+          {
+            id:"single", label:"Ramp & FBO", sub:"Single-station operation",
+            note:"GSE dominates ramp handling; an FBO is a property play with a service wrapper. Concession fees and aerodrome charges are the recurring line that kills thin models.",
+            lines:[
+  {k:"Ground support equipment fleet", lo:450000, hi:3200000, cat:"capex", drv:"Aircraft type served sets the GSE list. A single widebody stand changes the whole fleet requirement."},
+  {k:"FBO terminal / facility fit-out", lo:0, hi:4500000, cat:"capex", drv:"Zero for ramp-only. An FBO is a real estate decision wearing a handling uniform."},
+  {k:"Concession & aerodrome entry fees", lo:60000, hi:600000, cat:"capex", drv:"Set by the aerodrome operator and rarely negotiable. Confirm before modelling anything else."},
+  {k:"IT, DCS & ramp systems", lo:70000, hi:340000, cat:"capex", drv:"Departure control licensing is per-airline-served and recurs."},
+  {k:"Certification & regulatory programme", lo:70000, hi:220000, cat:"capex", drv:"Lighter than most, but the aerodrome operator's own requirements often exceed the authority's."},
+  {k:"Staff recruitment & initial training", lo:120000, hi:520000, cat:"capex", drv:"High headcount, high turnover. This line recurs in practice even though it sits in capex."},
+  {k:"Working capital \u2014 6 months", lo:300000, hi:1400000, cat:"wc", drv:"Airlines pay on 30\u201360 day terms while payroll runs fortnightly."}
+            ]
+          }
         ]
       },
       items:{
@@ -435,15 +565,47 @@ const JKV = {
       manuals:["Aerodrome Manual","Safety Management System Manual","Emergency Plan","Wildlife Hazard Management Plan","Aerodrome Works Safety Plan","Obstacle Limitation Surface survey","Pavement & Lighting Maintenance Programme","Security Programme"],
       capital:{
         unit:"USD",
-        note:"Enormously site-dependent. A code-2C unpaved strip and a code-4E international field differ by orders of magnitude — treat these as a rough sanity band for a small regional aerodrome only.",
-        lines:[
-          {k:"Land acquisition / lease",              lo:200000,  hi:8000000,  cat:"capex"},
-          {k:"Runway, taxiway & apron works",         lo:2500000, hi:45000000, cat:"capex"},
-          {k:"Terminal & landside",                   lo:600000,  hi:20000000, cat:"capex"},
-          {k:"Lighting, navaids & met",               lo:400000,  hi:6000000,  cat:"capex"},
-          {k:"Rescue & fire fighting establishment",  lo:350000,  hi:3200000,  cat:"capex"},
-          {k:"Surveys, EIA & certification programme",lo:250000,  hi:1400000,  cat:"capex"},
-          {k:"Working capital — 12 months",           lo:400000,  hi:2600000,  cat:"wc"}
+        scale:"Aerodrome reference code",
+        tiers:[
+          {
+            id:"c2", label:"Code 2C", sub:"Regional strip",
+            note:"A short unpaved or lightly paved strip serving turboprops. The reference code is set by the critical aircraft type, and it drives every design standard downstream.",
+            lines:[
+  {k:"Land acquisition / lease", lo:200000, hi:3000000, cat:"capex", drv:"Includes the obstacle limitation surfaces beyond the fence \u2014 control of adjacent land is part of the asset."},
+  {k:"Runway, taxiway & apron works", lo:2500000, hi:12000000, cat:"capex", drv:"Pavement classification number against the critical type. Unpaved to paved is the single largest step change."},
+  {k:"Terminal & landside", lo:600000, hi:4000000, cat:"capex", drv:"At this code a terminal is a building, not a facility."},
+  {k:"Lighting, navaids & met", lo:400000, hi:2200000, cat:"capex", drv:"Day VFR only is a fraction of the cost. Night or instrument capability transforms this line."},
+  {k:"Rescue & fire fighting establishment", lo:350000, hi:1400000, cat:"capex", drv:"RFFS category follows the critical aircraft. It is a permanent staffing commitment, not a vehicle purchase."},
+  {k:"Surveys, EIA & certification programme", lo:250000, hi:900000, cat:"capex", drv:"Obstacle and topographical survey plus environmental approval. Long lead, frequently the critical path."},
+  {k:"Working capital \u2014 12 months", lo:400000, hi:1600000, cat:"wc", drv:"Twelve months because traffic builds slowly and airline commitments are soft until they fly."}
+            ]
+          },
+          {
+            id:"c3", label:"Code 3C", sub:"Domestic airport",
+            note:"A paved instrument runway serving narrowbody jets on domestic sectors. Instrument capability and RFFS category are the step changes from code 2C.",
+            lines:[
+  {k:"Land acquisition / lease", lo:1500000, hi:12000000, cat:"capex", drv:"Larger obstacle surfaces and public safety zones. Land assembly is often the schedule risk."},
+  {k:"Runway, taxiway & apron works", lo:14000000, hi:48000000, cat:"capex", drv:"Full-depth pavement for jet loads, parallel taxiway and a multi-stand apron."},
+  {k:"Terminal & landside", lo:5000000, hi:22000000, cat:"capex", drv:"Security screening, hold rooms and baggage handling \u2014 a regulated facility with mandated flows."},
+  {k:"Lighting, navaids & met", lo:2200000, hi:9000000, cat:"capex", drv:"Approach lighting and instrument procedures. Procedure design and flight validation are separate line items."},
+  {k:"Rescue & fire fighting establishment", lo:1200000, hi:4500000, cat:"capex", drv:"Higher category means more vehicles, more staff and a bigger fire station."},
+  {k:"Surveys, EIA & certification programme", lo:800000, hi:3200000, cat:"capex", drv:"Full aerodrome manual, safety case and certification programme against the authority."},
+  {k:"Working capital \u2014 12 months", lo:1400000, hi:5500000, cat:"wc", drv:"Fixed operating cost is high and largely independent of traffic."}
+            ]
+          },
+          {
+            id:"e4", label:"Code 4D / 4E", sub:"International gateway",
+            note:"A full international field taking widebodies. This is national infrastructure \u2014 expect blended concessional and commercial financing, and a timeline measured in years rather than months.",
+            lines:[
+  {k:"Land acquisition / lease", lo:8000000, hi:45000000, cat:"capex", drv:"Frequently the binding constraint. Compulsory acquisition carries political as well as financial cost."},
+  {k:"Runway, taxiway & apron works", lo:60000000, hi:180000000, cat:"capex", drv:"A code-4E runway with full taxiway system and widebody apron. Ground conditions can double this."},
+  {k:"Terminal & landside", lo:40000000, hi:150000000, cat:"capex", drv:"International terminal with border, customs and health facilities. Often the concession asset itself."},
+  {k:"Lighting, navaids & met", lo:12000000, hi:40000000, cat:"capex", drv:"CAT I to CAT III capability. The category decides schedule reliability in fog and therefore airline commitment."},
+  {k:"Rescue & fire fighting establishment", lo:6000000, hi:18000000, cat:"capex", drv:"Category 9\u201310. A standing fire service with its own training establishment."},
+  {k:"Surveys, EIA & certification programme", lo:3500000, hi:14000000, cat:"capex", drv:"Full environmental and social impact assessment, resettlement planning, and a multi-year certification programme."},
+  {k:"Working capital \u2014 12 months", lo:6000000, hi:25000000, cat:"wc", drv:"A large fixed cost base carried from the day of opening."}
+            ]
+          }
         ]
       },
       items:{
@@ -506,15 +668,21 @@ const JKV = {
       manuals:["UAS Operations Manual","Safety Management System Manual","Maintenance & Airworthiness Procedures","Training Manual (UTO)","Emergency Response Procedures","Risk Assessment per operation type","Remote Pilot Competency Records","Data & Privacy Handling Policy"],
       capital:{
         unit:"USD",
-        note:"By far the lightest capital entry. The real cost driver is the aircraft class and payload: a survey quadcopter fleet and a BVLOS fixed-wing logistics platform are different businesses.",
-        lines:[
-          {k:"Aircraft fleet & payloads",             lo:35000,  hi:900000,  cat:"capex"},
-          {k:"Ground control, comms & C2 links",      lo:15000,  hi:260000,  cat:"capex"},
-          {k:"Processing software & workstations",    lo:12000,  hi:140000,  cat:"capex"},
-          {k:"Operating base / hangar fit-out",       lo:20000,  hi:320000,  cat:"capex"},
-          {k:"Certification & regulatory programme",  lo:25000,  hi:110000,  cat:"capex"},
-          {k:"Remote pilot training & authorisations",lo:18000,  hi:160000,  cat:"capex"},
-          {k:"Working capital — 6 months",            lo:60000,  hi:480000,  cat:"wc"}
+        scale:"Operation",
+        tiers:[
+          {
+            id:"single", label:"RPAS operator", sub:"Operator & training",
+            note:"By far the lightest capital entry. The real cost driver is the aircraft class and payload: a survey quadcopter fleet and a BVLOS fixed-wing logistics platform are different businesses.",
+            lines:[
+  {k:"Aircraft fleet & payloads", lo:35000, hi:900000, cat:"capex", drv:"Payload, not airframe, is usually the expensive half. Survey-grade sensors outprice the aircraft carrying them."},
+  {k:"Ground control, comms & C2 links", lo:15000, hi:260000, cat:"capex", drv:"BVLOS demands redundant command and control links, which is the step change in this line."},
+  {k:"Processing software & workstations", lo:12000, hi:140000, cat:"capex", drv:"Per-seat photogrammetry licensing recurs annually and is often modelled once."},
+  {k:"Operating base / hangar fit-out", lo:20000, hi:320000, cat:"capex", drv:"Modest unless a fixed BVLOS corridor with permanent infrastructure is planned."},
+  {k:"Certification & regulatory programme", lo:25000, hi:110000, cat:"capex", drv:"ROC plus operational authorisations. BVLOS approval is a different order of effort from VLOS."},
+  {k:"Remote pilot training & authorisations", lo:18000, hi:160000, cat:"capex", drv:"Adding a UTO makes this a second regulated business with its own approval."},
+  {k:"Working capital \u2014 6 months", lo:60000, hi:480000, cat:"wc", drv:"Project-based revenue with long public-sector payment cycles."}
+            ]
+          }
         ]
       },
       items:{
