@@ -1225,6 +1225,17 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   .g4, .metrics, .footer .cols { grid-template-columns: 1fr; }
 }
 
+/* Tier chips carry their own capital range, so the ladder from a
+   2-aircraft start-up to a 20-aircraft group is legible before anything
+   is clicked. Without it a user on the smallest tier sees a slider
+   capped at 2.40M and concludes the tool cannot model a large venture. */
+.tier-seg-btn { text-align: left; line-height: 1.25; }
+.tier-seg-btn small { display: block; font-weight: 400; opacity: .75; }
+.tier-seg-btn em {
+  display: block; font-style: normal; font-variant-numeric: tabular-nums;
+  font-size: var(--fs-2xs); opacity: .62; margin-top: .15rem;
+}
+
 /* print-only branded header (hidden on screen) */
 /* Revenue derivation, folded away by default.
 

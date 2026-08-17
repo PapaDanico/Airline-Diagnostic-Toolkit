@@ -74,10 +74,25 @@
     if (ts.length < 2) { host.innerHTML = ""; host.hidden = true; return; }
     host.hidden = false;
     const active = tierOf(s).id;
+    /* Each chip carries its own total range.
+
+       A user on the smallest tier sees a slider capped at 2.40M and
+       reasonably concludes the tool cannot model a large venture — the
+       ladder out is a click away and invisible. Printing the range on
+       the chip makes the whole scale legible without selecting
+       anything: the group tier says USD 26.0M – USD 100.0M on its face.
+
+       Range is summed from the tier's own bands, never typed, so it
+       cannot drift from the numbers it describes. */
+    const span = t => {
+      const lo = t.lines.reduce((a, l) => a + l.lo, 0);
+      const hi = t.lines.reduce((a, l) => a + l.hi, 0);
+      return `${fmtMoney(lo)} – ${fmtMoney(hi)}`;
+    };
     host.innerHTML = `<p class="eyebrow" style="margin:0 0 .5rem">${s.capital.scale}</p>
       <div class="segmented" role="group" aria-label="${s.capital.scale}">${ts.map(t => `
-        <button type="button" class="seg${t.id === active ? " is-on" : ""}" data-tier="${t.id}"
-                aria-pressed="${t.id === active}">${t.label}<small style="display:block;font-weight:400;opacity:.75">${t.sub}</small></button>`).join("")}</div>`;
+        <button type="button" class="seg tier-seg-btn${t.id === active ? " is-on" : ""}" data-tier="${t.id}"
+                aria-pressed="${t.id === active}">${t.label}<small>${t.sub}</small><em>${span(t)}</em></button>`).join("")}</div>`;
     host.querySelectorAll("[data-tier]").forEach(b =>
       b.addEventListener("click", () => selectTier(b.dataset.tier)));
   }
