@@ -19,7 +19,7 @@ const JK = {
     email: "info@aviationhubkenya.org",
     // Shared with the sister practice, Kanda Logistics Advisory.
     location: "2nd Avenue, Cargo Terminal, JKIA, Nairobi",
-    version: "v3.3 — End-to-End Aviation Advisory Platform",
+    version: "v3.4 — Scheduled, Business Aviation & Aeromedical",
 
     /* The practice is mid-incorporation, so there is no registered name
        or company number yet. Stated as a fact rather than left as a

@@ -55,6 +55,7 @@
     seedCapex(s, tierOf(s));
     renderTierBar(s);
     renderCapex(s);
+    renderRevenueBuilder(s);
     $("sector-note").innerHTML = `<b>${s.name}.</b> ${tierOf(s).note} ${s.leadNote}`;
     store.save(state);
     recompute();
@@ -99,6 +100,7 @@
     $("sector-note").innerHTML = `<b>${s.name}.</b> ${tierOf(s).note} ${s.leadNote}`;
     renderTierBar(s);
     renderCapex(s);
+    renderRevenueBuilder(s);
     recompute();
   }
 
@@ -159,6 +161,104 @@
 
   /* Debt service comes from common.js — the Venture Control Room re-derives
      the same DSCR from this saved model, and two implementations would drift. */
+
+  /* ---------- revenue derivation ----------
+     Steady-state revenue was a single typed number, and DSCR, covenant
+     headroom, break-even and payback all rested on it. That is the
+     weakest link in the model: every downstream figure was precise
+     about an input nobody had tested.
+
+     Derived instead from the drivers the operation actually earns on —
+     and those differ by operation type, which is exactly why the tiers
+     were split that way. A scheduled carrier earns on seats and load
+     factor. A charter operator earns on block hours, where utilisation
+     below roughly 400 a year is the failure mode. Medevac earns on
+     missions plus retainers, and the retainer half is what makes 24/7
+     standby survivable — a model resting on mission volume alone has
+     not read its own contracts.
+
+     Typing a figure directly still works. The derivation writes into
+     the same field, so an operator with a real forecast is never forced
+     through a model they do not need. */
+  function revenueOf(tier, vals) {
+    const d = id => Number(vals[id] ?? 0);
+    switch (tier.id) {
+      case "scheduled":
+      case "group":
+        return d("ac") * d("sec") * d("days") * d("seats") * (d("lf") / 100) * d("fare");
+      case "bizav":
+        return d("ac") * d("hrs") * d("rate");
+      case "medevac-fw":
+      case "medevac-rw":
+        return d("miss") * d("fee") + d("ret");
+      default:
+        return null;
+    }
+  }
+
+  function renderRevenueBuilder(s) {
+    const host = $("rev-build");
+    if (!host) return;
+    const tier = tierOf(s);
+    const cfg = tier.revenue;
+    /* No driver set for this tier means the plain input stands. Better
+       an honest gap than a revenue model invented for a sector nobody
+       has thought about properly. */
+    if (!cfg) { host.innerHTML = ""; host.hidden = true; return; }
+    host.hidden = false;
+
+    state.rev = state.rev || {};
+    if (state.revTier !== tier.id) {
+      state.revTier = tier.id;
+      state.rev = {};
+      cfg.drivers.forEach(dr => { state.rev[dr.id] = dr.dflt; });
+    }
+
+    host.innerHTML = `
+      <details class="rev-details"${state.revOpen ? " open" : ""}>
+        <summary><b>Derive it instead</b> — ${escapeHtml(cfg.basis)}</summary>
+        <p class="hint" style="margin:.5rem 0 .9rem">${escapeHtml(cfg.note)}</p>
+        ${cfg.drivers.map(dr => `
+          <div class="field" style="margin-bottom:12px">
+            <label for="rv-${dr.id}" style="display:flex;justify-content:space-between;gap:1rem">
+              <span>${escapeHtml(dr.k)}${dr.unit ? ` <span class="muted">(${escapeHtml(dr.unit)})</span>` : ""}</span>
+            </label>
+            <input type="number" id="rv-${dr.id}" min="${dr.lo}" max="${dr.hi}" value="${state.rev[dr.id]}"
+                   step="${dr.hi > 10000 ? 1000 : dr.hi > 100 ? 1 : 0.5}">
+            <p class="hint">${escapeHtml(dr.drv)}</p>
+          </div>`).join("")}
+        <div class="rev-out">
+          <b id="rev-total">—</b>
+          <span>derived annual revenue — writes into the field above</span>
+        </div>
+      </details>`;
+
+    const sync = () => {
+      cfg.drivers.forEach(dr => {
+        const el = $("rv-" + dr.id);
+        if (el) state.rev[dr.id] = clampNum(parseFloat(el.value), dr.lo, dr.hi);
+      });
+      const v = revenueOf(tier, state.rev);
+      const out = $("rev-total");
+      if (out) out.textContent = v ? fmtMoney(v) : "—";
+      if (v) { $("d-rev").value = Math.round(v); state["d-rev"] = String(Math.round(v)); }
+      recompute();
+    };
+    cfg.drivers.forEach(dr => $("rv-" + dr.id)?.addEventListener("input", sync));
+    /* Opening the panel IS the consent to derive, so it applies on open
+       rather than waiting for a driver to be nudged. The first version
+       painted a derived figure and left the revenue field on zero,
+       which reads as a control that does nothing. Closing it leaves the
+       last derived value in place — the operator can then type over it. */
+    host.querySelector(".rev-details")?.addEventListener("toggle", e => {
+      state.revOpen = e.target.open;
+      if (e.target.open) sync();
+    });
+    const v0 = revenueOf(tier, state.rev);
+    const out0 = $("rev-total");
+    if (out0) out0.textContent = v0 ? fmtMoney(v0) : "—";
+    if (state.revOpen && v0) sync();
+  }
 
   /* ---------- capital analysis ----------
      The difference between a calculator and a diagnostic. A calculator

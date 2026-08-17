@@ -142,6 +142,18 @@ const JKV = {
           {
             id:"scheduled", label:"Scheduled regional", sub:"2\u20133 aircraft",
             note:"Indicative planning ranges for a 2\u20133 aircraft regional start-up in East Africa. Aircraft are assumed leased, not purchased \u2014 ownership shifts the model entirely.",
+            revenue:{
+              basis:"Aircraft \u00d7 sectors \u00d7 seats \u00d7 load factor \u00d7 fare",
+              note:"Scheduled revenue is a capacity calculation. Every term is something an operator either controls or forecasts, and the product of six plausible numbers is far more defensible than one typed total.",
+              drivers:[
+                {id:"ac", k:"Aircraft in service", lo:1, hi:6, dflt:2, unit:"", drv:"Utilisation, not fleet count, is what actually earns. Two hard-worked aircraft beat four idle ones."},
+                {id:"sec", k:"Sectors per aircraft per day", lo:1, hi:10, dflt:4, unit:"", drv:"Turn time and sector length set the ceiling. Short sectors mean more of them and more ground time."},
+                {id:"days", k:"Operating days per year", lo:200, hi:365, dflt:340, unit:"", drv:"Allow for heavy maintenance. 365 assumes an aircraft that never goes into a hangar."},
+                {id:"seats", k:"Seats per aircraft", lo:19, hi:220, dflt:76, unit:"", drv:"Gauge decides unit cost as much as revenue \u2014 see the CASK calculator."},
+                {id:"lf", k:"Load factor", lo:30, hi:95, dflt:70, unit:"%", drv:"Above roughly 80% on thin regional routes usually means the schedule is too small, not that demand is strong."},
+                {id:"fare", k:"Average one-way fare", lo:20, hi:600, dflt:95, unit:"USD", drv:"Net of taxes and charges you collect and remit. What the airline keeps."}
+              ]
+            },
             lines:[
   {k:"Aircraft \u2014 lease deposits & delivery", lo:900000, hi:2400000, cat:"capex", drv:"Deposits run 2\u20133 months' rent per aircraft plus delivery, ferry and acceptance checks."},
   {k:"Initial spares & rotables", lo:400000, hi:1200000, cat:"capex", drv:"Driven by type commonality and how far you are from a pool. One type is materially cheaper to support than two."},
@@ -155,6 +167,15 @@ const JKV = {
           {
             id:"bizav", label:"Business aviation", sub:"Non-scheduled charter, 2\u20134 jets",
             note:"Non-scheduled commercial air transport on midsize jets. Handling is bought from an FBO rather than owned, and manufacturer support programmes move much of the spares burden to opex \u2014 so the capital shape is lighter than a scheduled carrier of the same fleet count, while the regulatory burden is identical.",
+            revenue:{
+              basis:"Aircraft \u00d7 block hours \u00d7 charter rate",
+              note:"Charter revenue is hours sold, not seats filled. Utilisation is the single variable that decides whether the model works \u2014 below roughly 400 hours a year per aircraft these ventures do not cover their fixed cost.",
+              drivers:[
+                {id:"ac", k:"Aircraft in service", lo:1, hi:8, dflt:3, unit:"", drv:"Fleet depth matters for availability: one aircraft in maintenance is a refused booking."},
+                {id:"hrs", k:"Block hours per aircraft per year", lo:150, hi:900, dflt:400, unit:"", drv:"The number that decides everything. 400 is a working floor; owner-flown tails achieve far less."},
+                {id:"rate", k:"Charter rate per block hour", lo:1500, hi:12000, dflt:3500, unit:"USD", drv:"Midsize jet rates. Positioning and empty legs erode the realised rate well below the quoted one."}
+              ]
+            },
             lines:[
   {k:"Aircraft \u2014 lease deposits & delivery", lo:1200000, hi:4500000, cat:"capex", drv:"Higher per aircraft than a turboprop regional. Deposits and delivery on a midsize jet dominate the entry."},
   {k:"Initial spares & rotables", lo:250000, hi:900000, cat:"capex", drv:"Low, because manufacturer support programmes carry most of it. Confirm the programme is transferable before assuming this."},
@@ -168,6 +189,15 @@ const JKV = {
           {
             id:"medevac-fw", label:"Air ambulance \u2014 fixed wing", sub:"2\u20133 aircraft, aeromedical",
             note:"An AOC plus an aeromedical capability, which is two approvals rather than one. The medical interior is a certified modification, not equipment placed in a cabin, and it carries its own airworthiness paperwork.",
+            revenue:{
+              basis:"Missions \u00d7 mission fee + standby retainers",
+              note:"Medevac revenue has two halves that behave differently. Mission fees are variable and unpredictable; retainers are contracted and are what makes 24/7 standby survivable. A model resting only on mission volume is a model that has not read its own contracts.",
+              drivers:[
+                {id:"miss", k:"Missions per year", lo:40, hi:600, dflt:180, unit:"", drv:"Demand is event-driven and seasonal. Insurer and scheme relationships smooth it; spot work does not."},
+                {id:"fee", k:"Average mission fee", lo:5000, hi:60000, dflt:18000, unit:"USD", drv:"Varies hugely by range and clinical acuity. An international repatriation is a different product from a domestic transfer."},
+                {id:"ret", k:"Annual standby & scheme retainers", lo:0, hi:5000000, dflt:600000, unit:"USD", drv:"Contracted income for being available. This is the line that makes the fixed cost base bearable."}
+              ]
+            },
             lines:[
   {k:"Aircraft \u2014 lease deposits & delivery", lo:600000, hi:2200000, cat:"capex", drv:"Turboprops and light jets. Cabin cross-section decides whether a stretcher and an attending team actually fit."},
   {k:"Medical interior, STC & equipment", lo:400000, hi:1600000, cat:"capex", drv:"Stretcher, ventilator, monitors, oxygen and power \u2014 installed under an STC. The certification, not the equipment, is the long pole."},
@@ -182,6 +212,15 @@ const JKV = {
           {
             id:"medevac-rw", label:"Air ambulance \u2014 rotary", sub:"HEMS, 2\u20133 helicopters",
             note:"The largest and fastest-growing air ambulance segment, and a different certification basis from any aeroplane operation. HEMS brings confined-area and night operations, its own operating minima, and life-limited component exposure that dominates maintenance reserves.",
+            revenue:{
+              basis:"Missions \u00d7 mission fee + standby retainers",
+              note:"Rotary missions are shorter, more frequent and lower-value per flight than fixed wing, and the retainer share is correspondingly larger. HEMS economics are a standby business with flying attached, not the reverse.",
+              drivers:[
+                {id:"miss", k:"Missions per year", lo:50, hi:800, dflt:240, unit:"", drv:"Shorter sectors mean higher mission counts. Response radius, not fleet size, sets the ceiling."},
+                {id:"fee", k:"Average mission fee", lo:4000, hi:45000, dflt:12000, unit:"USD", drv:"Lower per mission than fixed wing. Scene work and inter-facility transfers price very differently."},
+                {id:"ret", k:"Annual standby & scheme retainers", lo:0, hi:8000000, dflt:1200000, unit:"USD", drv:"Larger share than fixed wing. County, scheme or hospital contracts are the foundation of a HEMS base."}
+              ]
+            },
             lines:[
   {k:"Helicopters \u2014 lease deposits & delivery", lo:900000, hi:3500000, cat:"capex", drv:"Twin-engine IFR-capable airframes. Single-engine is cheaper and closes most HEMS work to you."},
   {k:"Medical interior, STC & equipment", lo:350000, hi:1400000, cat:"capex", drv:"Tighter cabin volume than fixed wing makes the installation harder, not easier, and the STC scarcer."},
@@ -196,6 +235,18 @@ const JKV = {
           {
             id:"group", label:"Scheduled group", sub:"20+ aircraft, multi-base",
             note:"A multi-base regional operator, possibly multi-AOC. At this scale the binding constraint is treasury and lessor appetite rather than any single capital line.",
+            revenue:{
+              basis:"Aircraft \u00d7 sectors \u00d7 seats \u00d7 load factor \u00d7 fare",
+              note:"Same capacity calculation as a regional carrier, at a scale where a point of load factor is worth more than most cost programmes.",
+              drivers:[
+                {id:"ac", k:"Aircraft in service", lo:8, hi:40, dflt:22, unit:"", drv:"Multi-base operation. Fleet commonality drives crew and maintenance cost more than headline count."},
+                {id:"sec", k:"Sectors per aircraft per day", lo:1, hi:10, dflt:5, unit:"", drv:"Higher utilisation than a start-up achieves, because the network supports it."},
+                {id:"days", k:"Operating days per year", lo:200, hi:365, dflt:350, unit:"", drv:"A larger fleet absorbs heavy maintenance without grounding the schedule."},
+                {id:"seats", k:"Seats per aircraft", lo:50, hi:300, dflt:150, unit:"", drv:"Narrowbody gauge across a regional network."},
+                {id:"lf", k:"Load factor", lo:30, hi:95, dflt:78, unit:"%", drv:"At this scale a single point of load factor is worth more than most cost-reduction programmes."},
+                {id:"fare", k:"Average one-way fare", lo:20, hi:600, dflt:110, unit:"USD", drv:"Blended across a network with real yield management."}
+              ]
+            },
             lines:[
   {k:"Aircraft \u2014 lease deposits & delivery", lo:7500000, hi:26000000, cat:"capex", drv:"Sale-and-leaseback and manufacturer support change the shape entirely. Deposits may be waived against a strong balance sheet."},
   {k:"Initial spares & rotables", lo:3500000, hi:12000000, cat:"capex", drv:"A main base store plus outstation kits. Power-by-the-hour moves this line to opex and should be modelled as such."},

@@ -1226,6 +1226,31 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 }
 
 /* print-only branded header (hidden on screen) */
+/* Revenue derivation, folded away by default.
+
+   Steady-state revenue held up DSCR, covenant headroom, break-even and
+   payback while being a single typed number. This derives it from the
+   drivers the operation earns on. Collapsed, because an operator with
+   a real forecast should not have to walk through a model to type it. */
+.rev-details {
+  margin-top: .7rem; border: 1px solid var(--jk-line);
+  border-radius: var(--radius-sm); padding: .6rem .8rem; background: var(--jk-parchment);
+}
+.rev-details > summary {
+  cursor: pointer; font-size: var(--fs-sm); list-style-position: outside;
+}
+.rev-details > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.rev-details[open] > summary { margin-bottom: .5rem; }
+.rev-out {
+  display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap;
+  border-top: 1px solid var(--jk-line); padding-top: .6rem; margin-top: .2rem;
+}
+.rev-out b {
+  font-size: var(--fs-lg); font-variant-numeric: tabular-nums; color: var(--jk-ink);
+}
+.rev-out span { font-size: var(--fs-xs); color: var(--jk-muted); }
+@media print { .rev-details { display: none; } }
+
 /* Executive summary — page one of any printed pack.
 
    Hidden on screen entirely. The reader scrolling the tool already has

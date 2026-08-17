@@ -34,6 +34,18 @@ function htmlFiles() {
 }
 
 const pages = htmlFiles();
+
+/* The five predefined XML entities, which is all a text node can carry.
+   Numeric references are decoded too, because &#38; is as legal as
+   &amp; and a hand-edited page may use either. */
+function decodeEntities(t) {
+  return t
+    .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(Number(d)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+}
 // Google Fonts is loaded from a CDN; in offline/sandbox CI that request can
 // fail with a cert/network error that is irrelevant to the page itself.
 const IGNORE = /ERR_CERT_AUTHORITY_INVALID|ERR_(NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION)|fonts\.googleapis|fonts\.gstatic/;
@@ -657,7 +669,15 @@ server.close();
          element's text and not the rest of the document. */
       for (const m of html.matchAll(new RegExp(`${attr}(?=[\\s>=])[^>]*>([^<]*)<`, "g"))) {
         seen++;
-        if (m[1].trim() !== truth) {
+        /* Decode before comparing. The fallback lives in HTML, where an
+           ampersand MUST be written &amp;, while data.js holds the plain
+           character — so a brand string containing "&" reported all 29
+           pages as drifted when nothing had drifted at all.
+
+           This compares what a reader sees, which is what the check is
+           actually about. It does not weaken it: any genuine difference
+           in the text still fails, as the break-test alongside shows. */
+        if (decodeEntities(m[1].trim()) !== truth) {
           fallbackIssues.push(`${file}: ${attr} falls back to "${m[1].trim()}"; data.js says "${truth}"`);
         }
       }
