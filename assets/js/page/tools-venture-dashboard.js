@@ -169,6 +169,63 @@
     $("talk").href = href; $("cta-mail").href = href;
 
     mountPrintHead("Venture Control Room", prof.name || undefined);
+    summarise({ r, mods, tl, org, ven, gate });
+  }
+
+  /* ---- answer-first opening page for the printed pack ----
+
+     This is the only surface that sees every tool at once, so it is the
+     only one that can report the findings no single tool can: that the
+     capital model and the certification plan describe different
+     ventures, or that the target date was already unreachable when it
+     was set.
+
+     Ordered by what a board can still act on. An unfunded gap and an
+     unreachable date are decisions that have to be taken now. A sector
+     mismatch outranks the readiness score rather than footnoting it,
+     because every number on this page is a roll-up: if the tools
+     disagree about which venture they describe, the index above is an
+     average of two different companies. */
+  function summarise({ r, mods, tl, org, ven, gate }) {
+    const started = mods.filter(m => m.started);
+    if (!started.length) return mountPrintSummary(null);
+
+    const f = [];
+    const secName = (JKV.sector(prof.sector) || {}).short || prof.sector;
+
+    if (ven.capital && ven.capital.gap > 0) f.push({ sev: "stop",
+      h: `Unfunded capital gap of ${fmtMoney(ven.capital.gap)}`,
+      d: `The funding stack does not cover the capital requirement. Certification burns cash against a fixed regulatory clock, so this closes before a Schedule of Events is committed rather than being discovered during one.` });
+
+    if (tl && tl.late) f.push({ sev: "stop",
+      h: "The target certificate date is already unreachable",
+      d: `${tl.monthsToTarget >= 0 ? `${tl.monthsToTarget} month${tl.monthsToTarget === 1 ? "" : "s"} remain` : "The date has passed"}, against an indicative lead band for ${secName} that would have required starting earlier. Either the date moves or the scope narrows — carrying an impossible date into a board pack costs more than resetting it.` });
+
+    const off = mods.filter(m => m.started && m.sector && m.sector !== prof.sector);
+    if (off.length) f.push({ sev: "warn",
+      h: `${off.length} tool${off.length > 1 ? "s describe" : " describes"} a different sector`,
+      d: `${off.map(m => `${m.name} (${(JKV.sector(m.sector) || {}).short || m.sector})`).join(", ")}, against a venture file set to ${secName}. The readiness index still counts ${off.length > 1 ? "them" : "it"}, so the figure above is averaging more than one venture.` });
+
+    if (org.postsTotal && org.named < org.postsTotal) f.push({ sev: "warn",
+      h: `${org.postsTotal - org.named} of ${org.postsTotal} accepted posts unnamed`,
+      d: `Certification does not proceed on a vacant accepted post, and the Authority accepts the individual rather than the job title. Recruitment lead time for a Head of Training or an Accountable Manager routinely exceeds the phase it blocks.` });
+
+    const idle = mods.filter(m => !m.started);
+    if (idle.length) f.push({ sev: "note",
+      h: `${idle.length} of ${mods.length} modules not started`,
+      d: `${idle.map(m => m.name).join("; ")}. The index scores every module, so an unstarted one reads the same as a failing one — the figure above is a floor rather than an assessment.` });
+
+    if (!f.some(x => x.sev === "stop" || x.sev === "warn"))
+      f.unshift({ sev: "ok", h: `${r.band.t} at ${r.index} of 100`,
+        d: `${r.band.d} Gate items ${gate ? gate.v : "not yet tracked"}${org.postsTotal ? `, ${org.named} of ${org.postsTotal} accepted posts named` : ""}.` });
+
+    mountPrintSummary({
+      title: `${prof.name || "Greenfield venture"} — ${(JKV.sector(prof.sector) || {}).name || prof.sector}`,
+      verdict: `Launch Readiness Index ${r.index} of 100 — ${r.band.t}.` +
+        (tl ? ` ${tl.monthsToTarget >= 0 ? `${tl.monthsToTarget} month${tl.monthsToTarget === 1 ? "" : "s"} to the target certificate date` : "The target certificate date has passed"}.` : " No target certificate date set."),
+      findings: f,
+      basis: `A roll-up of ${started.length} of ${mods.length} modules held on this device, not a separate assessment. Each module contributes its own figures; where they disagree, the disagreement is reported above rather than averaged away. Indicative lead bands are JK's planning figures for ${secName} and not an Authority commitment.`
+    });
   }
 
   /* ============================================================

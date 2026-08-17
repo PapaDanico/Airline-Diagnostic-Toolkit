@@ -1287,6 +1287,9 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   padding: .5rem 0 .5rem .9rem; border-left: 3px solid var(--jk-line);
   margin-bottom: .55rem; break-inside: avoid; page-break-inside: avoid;
 }
+/* is-note takes the default rule above deliberately: a contextual caveat
+   — "unit cost is the wrong comparator for this gauge" — is not a defect
+   and must not be ruled as one in a pack read in monochrome. */
 .print-summary .ps-item.is-stop { border-left-color: var(--jk-ink); border-left-width: 5px; }
 .print-summary .ps-item.is-warn { border-left-color: var(--jk-amber-sig); }
 .print-summary .ps-item.is-ok   { border-left-color: var(--jk-green); }

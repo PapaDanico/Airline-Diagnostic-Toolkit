@@ -519,7 +519,7 @@
     mountPrintSummary({
       title: `${s.name} — ${tier.label}`,
       verdict: headline,
-      findings: sf.slice(0, 5),
+      findings: sf,
       basis: `${tier.note} Lead time to certificate ${s.leadMonths[0]}–${s.leadMonths[1]} months. Figures are the operator's own inputs against indicative planning bands, not quotations.`
     });
     void sev;

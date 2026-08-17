@@ -926,15 +926,42 @@ function mountPrintHead(toolName, subtitle) {
    analysis and showing your answer, and they exclude analysis that does
    not support the recommendation even when it was expensive to produce.
 
-   Findings arrive already ordered by the caller, because only the tool
-   knows which of its numbers is the one that matters. Severity drives a
-   rule down the left, not a colour alone — a pack is read in monochrome
-   as often as not.
+   Findings arrive ordered by the caller, because only the tool knows
+   which of its numbers is the one that matters — but that order is then
+   stable-sorted by severity, so a passing check can never sit above a
+   failing one. Callers legitimately emit an "all clear" for the
+   dimension they consider most consequential (a corporate structure
+   leads on the ownership-and-control test whether it passes or fails),
+   and without the sort that reads as an answer-first pack opening with
+   good news while two warnings sit below the fold. Within a severity
+   the caller's sequencing is preserved untouched.
+
+   Severity drives a rule down the left, not a colour alone — a pack is
+   read in monochrome as often as not.
 
    Screen-invisible by design: this exists for the printed artefact, and
    duplicating the summary on screen would put the same words twice on a
    page the reader is already scrolling. */
-function mountPrintSummary({ title, verdict, findings = [], basis }) {
+function mountPrintSummary(spec) {
+  /* A tool whose inputs are incomplete has no answer to lead with, and a
+     summary left over from the last valid state is worse than none — it
+     would print a confident conclusion about figures no longer on the
+     page. Callers pass null from their blank/error path to withdraw it. */
+  if (!spec) {
+    const stale = document.querySelector(".print-summary");
+    if (stale) stale.remove();
+    return;
+  }
+  const { title, verdict, findings: given = [], basis } = spec;
+  /* Array.prototype.sort is specified as stable, so equal ranks keep the
+     caller's sequence. Anything unrecognised sorts with "note". */
+  const RANK = { stop: 0, warn: 1, note: 2, ok: 3 };
+  const rank = (f) => (RANK[f.sev] === undefined ? RANK.note : RANK[f.sev]);
+  /* Sorted before it is capped, never after: capping first would let a
+     blocking finding sitting sixth in the caller's order be discarded
+     in favour of a note that happened to be emitted earlier. Five is
+     what fits an opening page a reader takes in at a glance. */
+  const findings = [...given].sort((a, b) => rank(a) - rank(b)).slice(0, 5);
   let el = document.querySelector(".print-summary");
   if (!el) {
     el = document.createElement("section");

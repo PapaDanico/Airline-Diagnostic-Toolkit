@@ -134,12 +134,12 @@
 
     const kcaaPosts = s.postholders.filter(p => p.kcaa);
     let named = 0, deputised = 0, spof = 0;
-    const spofList = [];
+    const spofList = [], vacantList = [];
     s.postholders.forEach((p, i) => {
       const rec = state.people[`${s.id}|${i}`] || {};
       const hasN = !!(rec.n || "").trim(), hasD = !!(rec.dep || "").trim();
       if (!p.kcaa) return;
-      if (hasN) named++;
+      if (hasN) named++; else vacantList.push(p.r);
       if (hasD) deputised++;
       if (hasN && !hasD) { spof++; spofList.push(p.r); }
     });
@@ -202,6 +202,63 @@
       `I would like this organisation design reviewed.`;
     const href = toolMailto("Organogram", s.short + " organisation", body);
     $("talk").href = href; $("cta-mail").href = href;
+
+    summarise({ s, kcaaPosts, named, deputised, spof, spofList, vacantList, launch, pct });
+  }
+
+  /* ---- answer-first opening page for the printed pack ----
+
+     Ordered by what stops the certificate. A vacant accepted post is
+     not a staffing gap, it is a submission that cannot be made; an
+     uncovered post is a submission that can be made and then unwinds
+     the moment one person resigns. Both outrank headcount, which is a
+     budget question the board can settle at leisure.
+
+     The last finding is the one an operator almost never arrives at
+     unprompted: the accepted-post count does not scale with the fleet.
+     A three-aircraft operator carries the same named accountabilities
+     as a twenty-aircraft one, so the regulatory burden per aircraft is
+     several times heavier at the small end. That is the structural fact
+     behind most of the surprise in a first-time certification budget,
+     and the planner has always had the numbers to say it. */
+  function summarise({ s, kcaaPosts, named, deputised, spof, spofList, vacantList, launch, pct }) {
+    const vacant = kcaaPosts.length - named;
+    const f = [];
+
+    if (vacant > 0) f.push({ sev: "stop",
+      h: `${vacant} of ${kcaaPosts.length} regulator-accepted posts unnamed`,
+      d: `${vacantList.slice(0, 4).join("; ")}${vacant > 4 ? `; and ${vacant - 4} more` : ""}. Certification does not proceed on a vacant accepted post — each needs a named individual whose credentials the Authority accepts personally, not a job description.` });
+
+    /* A continuity risk, never a stop: certification proceeds on named
+       posts, and an uncovered post is a submission that unwinds later
+       rather than one that cannot be made now. The page's own verdict
+       panel has always called this "Continuity risk"; ranking it as a
+       blocker here would have the summary contradict the tool. */
+    if (spof > 0) f.push({ sev: "warn",
+      h: `${spof} named post${spof > 1 ? "s have" : " has"} no deputy`,
+      d: `${spofList.slice(0, 4).join("; ")}${spofList.length > 4 ? `; and ${spofList.length - 4} more` : ""}. Documented deputisation is expected practice, and an uncovered post becomes an operational stop the day that person is unavailable. Where the Authority accepts the individual personally, an unplanned departure can force re-approval of the whole organisation.` });
+
+    /* Density, not headcount. The ratio is what makes the case. */
+    if (launch > 0) {
+      const perPost = launch / kcaaPosts.length;
+      f.push({ sev: "note", h: `${kcaaPosts.length} accepted posts against a launch establishment of ${launch}`,
+        d: `One in every ${perPost.toFixed(1)} people carries a named regulatory accountability. That count is set by the scope of the certificate, not the size of the fleet — the same ${kcaaPosts.length} posts are required whether the operation runs three aircraft or twenty, so the compliance burden per aircraft is heaviest at the smallest scale.` });
+    }
+
+    if (!f.some(x => x.sev === "stop" || x.sev === "warn"))
+      f.unshift({ sev: "ok", h: "Every accepted post is named and covered",
+        d: `${named} of ${kcaaPosts.length} named, ${deputised} with a documented deputy. Record the deputisation arrangements in the relevant manual so they are visible to the Authority at surveillance rather than asserted at audit.` });
+
+    mountPrintSummary({
+      title: `${s.name} — organisation and postholder plan`,
+      verdict: vacant > 0
+        ? `${vacant} of ${kcaaPosts.length} accepted posts unnamed — the acceptance submission cannot be made as it stands`
+        : spof > 0
+          ? `All ${kcaaPosts.length} accepted posts named, but ${spof} carr${spof > 1 ? "y" : "ies"} no deputy — ${pct}% organisational readiness`
+          : `All ${kcaaPosts.length} accepted posts named and covered — ${pct}% organisational readiness`,
+      findings: f,
+      basis: `Readiness weights a named holder at full value and a documented deputy at half again, across the ${kcaaPosts.length} posts this certificate scope requires the Authority to accept. Launch establishment of ${launch} is the operator's own departmental figures against JK's planning baseline. Post titles follow the Kenyan requirement set; other EAC authorities differ in naming rather than in substance.`
+    });
   }
 
   $("print").addEventListener("click", () => window.print());

@@ -63,9 +63,82 @@ function recalc() {
       ? `${perLitre}, and the saving is <strong>${(low / uplift * 100).toFixed(2)}–${(high / uplift * 100).toFixed(2)} US¢ a litre</strong> — the unit a tender is argued in.`
       : "");
 }
+/* Above this many points over benchmark the gap stops reading as a
+   badly argued contract. Set at 6 rather than the first number that
+   looked wide: this page's own worked example is 6.5% against a 2%
+   benchmark and its whole call to action is a fuel tender, so a
+   threshold that caught the default example would have every visitor
+   told, on the page selling them a renegotiation, that renegotiating
+   will not work. */
+const STRUCTURAL_GAP = 6;
+
+/* ---- answer-first opening page for the printed pack ----
+
+   The saving leads in the two units the argument is actually had in:
+   dollars a year for the board paper, cents a litre for the person at
+   the tender table. Below it, the two things that most often make a
+   headline saving undeliverable — a premium so far above benchmark that
+   the gap is a supply-position problem rather than a negotiating one,
+   and a spend figure with no volume behind it to check it against. */
+function summarise() {
+  const spend  = parseFloat(document.getElementById("spend").value) || 0;
+  const prem   = parseFloat(document.getElementById("premium").value) || 0;
+  const bench  = parseFloat(document.getElementById("benchmark").value) || 0;
+  const uplift = parseFloat(document.getElementById("uplift").value) || 0;
+  if (!(spend > 0)) return mountPrintSummary(null);
+
+  const gap  = Math.max(0, prem - bench);
+  const high = spend * gap / (100 + prem);
+  const low  = high * 0.5;
+  const f    = [];
+
+  if (high > 0) {
+    f.push({ sev: gap >= STRUCTURAL_GAP ? "stop" : "warn",
+      h: `${gap.toFixed(1)} points of premium above benchmark, worth ${fmt(low)}–${fmt(high)} a year`,
+      d: `Paying ${prem.toFixed(1)}% over Platts against a ${bench.toFixed(1)}% benchmark on ${fmt(spend)} of spend — ${((high / spend) * 100).toFixed(1)}% of the fuel bill` +
+         (uplift > 0 ? `, or ${(low / uplift * 100).toFixed(2)}–${(high / uplift * 100).toFixed(2)} US¢ a litre, which is the unit the tender is argued in.` : `. Enter annual uplift to convert this into cents a litre.`) });
+  }
+
+  /* A premium this far out is rarely a negotiating failure. It usually
+     means single-supplier supply at the station, and the remedy is a
+     second into-plane provider, not a harder conversation with the
+     first. Saying "renegotiate" to an operator who cannot is advice
+     they will discard along with the rest of the pack. */
+  if (gap >= STRUCTURAL_GAP) f.push({ sev: "warn", h: "A gap this wide is usually structural, not commercial",
+    d: `${prem.toFixed(1)}% over benchmark points to a single into-plane supplier at the station rather than a poorly argued contract. The lever is a second provider or a self-handled into-plane arrangement; a renegotiation alone will not recover the full ${fmt(high)}.` });
+
+  if (uplift > 0 && spend > 0) {
+    const perLitre = spend / uplift;
+    /* Jet A-1 into-plane across East Africa has not traded below about
+       $0.40 or above about $2.50 a litre in any recent year. Outside
+       that, the spend and the volume are not describing the same thing
+       — almost always a spend entered for the fleet against uplift for
+       one station, which would misprice the cents-a-litre finding
+       above by an order of magnitude. */
+    if (perLitre < 0.40 || perLitre > 2.50) f.push({ sev: "stop",
+      h: `Spend and uplift imply $${perLitre.toFixed(3)} a litre`,
+      d: `That is outside anything Jet A-1 has traded at into-plane in the region. The two figures are probably not describing the same scope — a network spend against one station's uplift, or litres entered where US gallons were meant.` });
+  } else if (spend > 0) {
+    f.push({ sev: "note", h: "No volume entered, so the spend cannot be sense-checked",
+      d: `Annual uplift converts this result into cents a litre and is the only cross-check on the spend figure. Without it the saving is a percentage of a number nothing here can verify.` });
+  }
+
+  if (!f.length) f.push({ sev: "ok", h: `On benchmark at ${prem.toFixed(1)}% over Platts`,
+    d: `Nothing to recover by renegotiating the differential${uplift > 0 ? `, at an effective $${(spend / uplift).toFixed(3)} a litre` : ""}. The remaining exposure is price risk rather than contract terms — a hedging policy, not a tender.` });
+
+  mountPrintSummary({
+    title: `${fmt(spend)} annual fuel spend at ${prem.toFixed(1)}% over Platts`,
+    verdict: high > 0
+      ? `${fmt(low)} – ${fmt(high)} a year recoverable by closing the premium to the ${bench.toFixed(1)}% benchmark`
+      : `Contract is at or below the ${bench.toFixed(1)}% market benchmark — no differential to recover`,
+    findings: f,
+    basis: `Saving = annual spend × (contract premium − benchmark) ÷ (100 + contract premium), since the premium is already inside the spend. The range applies a 50–100% capture factor: not all of the gap is recoverable in one negotiation. Indicative only — actual terms depend on volume, supply location, credit and market conditions.`
+  });
+}
+
 ["spend","premium","benchmark","uplift"].forEach(id =>
-  document.getElementById(id).addEventListener("input", recalc));
-recalc();
+  document.getElementById(id).addEventListener("input", () => { recalc(); summarise(); }));
+recalc(); summarise();
 wireToolEnquiryForm("fuel-enquiry", "Fuel Contract Optimizer Lite",
   { downloadUrl: "../assets/docs/JK_Fuel_Tender_Spec.pdf", downloadName: "Fuel Tender Specification" });
 

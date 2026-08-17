@@ -1501,6 +1501,42 @@ server.close();
   );
 }
 
+/* ── every printable tool opens its pack with an answer ─────────────
+
+   A tool that prints without an executive summary prints a transcript:
+   every panel in screen order, with the finding somewhere in the
+   middle. The guard above checks that a reader can keep the answer at
+   all; this one checks that what they keep opens with it.
+
+   Keyed off the print control rather than off a list of tool names, so
+   a tool added later is covered the day it becomes printable and
+   nobody has to remember to extend a fixture. */
+{
+  const missing = [];
+  const printable = [];
+  const TOOL_DIR = join(ROOT, "tools");   // block-scoped in the guard above
+  for (const f of readdirSync(TOOL_DIR)) {
+    if (!f.endsWith(".html") || f === "index.html") continue;
+    const stem = `tools-${f.replace(/\.html$/, "")}`;
+    const scripts = readdirSync(join(ROOT, "assets", "js", "page"))
+      .filter((n) => n === `${stem}.js` || n.startsWith(`${stem}-`))
+      .map((n) => readFileSync(join(ROOT, "assets", "js", "page", n), "utf8"))
+      .join("\n");
+    if (!/window\.print\(\)/.test(scripts)) continue;
+    printable.push(f);
+    /* The call, not the word: a comment describing the summary is not
+       one, so the open paren is part of the pattern. */
+    if (!/mountPrintSummary\s*\(/.test(scripts)) missing.push(`tools/${f}`);
+  }
+
+  problems += missing.length ? 1 : 0;
+  console.log(
+    `\n${missing.length ? "❌" : "✅"} every printable tool opens its pack with an executive summary ` +
+      `(${printable.length} printable tools)` +
+      (missing.length ? "\n     - no summary: " + missing.join("\n     - no summary: ") : "")
+  );
+}
+
 record("audit", { passed: problems === 0, issues: problems, pages: pages.length,
   headline: `${pages.length} pages audited for dead tokens, dead CSS, palette, design-value drift and deliverables` });
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);

@@ -290,6 +290,64 @@
     } else {
       document.getElementById("top-gaps-section").style.display = "none";
     }
+
+    summarise({ assessed, gapSum, highCount, costSum, allGaps, groupStats, pct });
+  }
+
+  /* ---- answer-first opening page for the printed pack ----
+
+     A training needs analysis is read by whoever signs the budget, and
+     the figure they act on is the cost of closing the high-priority
+     gaps — not the total, which includes every nice-to-have and is
+     therefore the number that gets the whole plan deferred.
+
+     Coverage leads when it is thin. A TNA built on a third of the
+     establishment produces a confident cost for a third of the
+     organisation, and it is the unassessed remainder that turns a
+     budget request into a supplementary one three months later. */
+  function summarise({ assessed, highCount, costSum, allGaps, groupStats, pct }) {
+    if (!assessed) return mountPrintSummary(null);
+    const f = [];
+
+    if (pct < 60) f.push({ sev: "stop",
+      h: `Only ${assessed} of ${totalItems} competencies assessed`,
+      d: `The cost below covers ${pct}% of the establishment. An unassessed competency is not one without a gap — it is one nobody has looked at, and it is where the supplementary budget request comes from.` });
+
+    if (highCount) {
+      const highCost = allGaps
+        .filter(g => priority(g.gap, g.target).cls === "pri-high")
+        .reduce((a, g) => a + g.cost, 0);
+      f.push({ sev: "stop", h: `${highCount} high-priority gap${highCount > 1 ? "s" : ""} costing ${money(highCost)} to close`,
+        d: `A shortfall of two or more levels against a target of four or above — large and required at once. This is the figure to put to a budget holder: the ${money(costSum)} total includes every gap, and asking for the total is how the whole plan gets deferred.` });
+    }
+
+    /* A concentration in one group is usually a recruitment or
+       supervision question as much as a training one, and the
+       distinction changes who owns the remedy. */
+    const worst = Object.entries(groupStats)
+      .filter(([, s]) => s.assessed > 0)
+      .sort((a, b) => (b[1].gap / b[1].assessed) - (a[1].gap / a[1].assessed))[0];
+    if (worst && worst[1].gap > 0) f.push({ sev: "warn",
+      h: `${worst[0]} carries the deepest shortfall`,
+      d: `${worst[1].gap} levels across ${worst[1].assessed} assessed competencies, ${money(worst[1].cost)} to close. Training closes a gap; it does not stop one reopening, so a concentration this size is worth reading as a hiring and supervision question too.` });
+
+    if (allGaps.length && !highCount) f.push({ sev: "warn",
+      h: `${allGaps.length} gap${allGaps.length > 1 ? "s" : ""} open, none of them high priority`,
+      d: `${money(costSum)} to close everything. Nothing here is urgent by the tool's own test, so this is a development plan to schedule across the training year rather than a remediation to fund now.` });
+
+    if (!f.some(x => x.sev === "stop" || x.sev === "warn"))
+      f.unshift({ sev: "ok", h: `No gaps across ${assessed} assessed competencies`,
+        d: `Every assessed competency sits at or above its target level. The exposure now is drift — currency, turnover, and the next change of fleet or scope — rather than a present shortfall.` });
+
+    mountPrintSummary({
+      title: "Training needs analysis",
+      verdict: `${assessed} of ${totalItems} competencies assessed (${pct}%), ` +
+        `${allGaps.length} gap${allGaps.length === 1 ? "" : "s"} open` +
+        (highCount ? `, ${highCount} high priority` : "") +
+        `, ${money(costSum)} to close in full.`,
+      findings: f,
+      basis: `Gap = target level minus current level per competency, costed at the per-level figure stated against each line. Priority is high where the gap is two or more levels against a target of four or above. Levels and costs are the operator's own assessment — a planning instrument, not an audit of individual competence.`
+    });
   }
 
   function save() {
