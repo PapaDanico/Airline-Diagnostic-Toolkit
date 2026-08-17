@@ -229,12 +229,44 @@ for (const s of JKV.sectors) {
   if (!Array.isArray(s.postholders) || !s.postholders.length) fail(`${s.id}: no postholders defined`);
   if (!s.postholders.some(p => p.kcaa)) fail(`${s.id}: no regulator-accepted postholder flagged`);
 
-  // capital model
-  if (!s.capital?.lines?.length) fail(`${s.id}: no capital lines`);
-  for (const l of (s.capital?.lines || [])) {
-    if (!(l.lo >= 0) || !(l.hi >= 0)) fail(`${s.id}: capital line "${l.k}" has non-numeric bounds`);
-    if (l.hi < l.lo) fail(`${s.id}: capital line "${l.k}" has hi < lo`);
-    if (!["capex", "wc"].includes(l.cat)) fail(`${s.id}: capital line "${l.k}" has unknown cat "${l.cat}"`);
+  /* capital model — every tier, not just the first.
+
+     The capital model gained tiers because one band could not honestly
+     describe both a code-2C strip and a code-4E international field.
+     This check walked s.capital.lines and had to move with it — but the
+     interesting part is that it now has more to verify, not less:
+     a tier nobody selects is a tier nobody has ever looked at, so the
+     bounds inside it are exactly where a typo survives.
+
+     A real one did. The code-4E runway low bound was entered as 60000
+     rather than 60000000 — three orders out, invisible in the UI unless
+     you happened to open that tier, and caught here only because every
+     tier is now walked. */
+  if (!s.capital?.tiers?.length) fail(`${s.id}: no capital tiers`);
+  if (!s.capital?.scale) fail(`${s.id}: capital model has no scale axis named`);
+  const tierIds = new Set();
+  for (const t of (s.capital?.tiers || [])) {
+    if (!t.id || !t.label || !t.sub) fail(`${s.id}: a capital tier is missing id, label or sub`);
+    if (tierIds.has(t.id)) fail(`${s.id}: duplicate capital tier id "${t.id}"`);
+    tierIds.add(t.id);
+    if (!t.note) fail(`${s.id}/${t.id}: tier states no scale assumption`);
+    if (!t.lines?.length) fail(`${s.id}/${t.id}: no capital lines`);
+    let sawWc = false;
+    for (const l of (t.lines || [])) {
+      if (!(l.lo >= 0) || !(l.hi >= 0)) fail(`${s.id}/${t.id}: capital line "${l.k}" has non-numeric bounds`);
+      if (l.hi < l.lo) fail(`${s.id}/${t.id}: capital line "${l.k}" has hi < lo`);
+      if (!["capex", "wc"].includes(l.cat)) fail(`${s.id}/${t.id}: capital line "${l.k}" has unknown cat "${l.cat}"`);
+      /* Every line states what drives it. The driver is the analytical
+         half of this tool — a band with no explanation is a number the
+         reader cannot argue with, which is the opposite of the point. */
+      if (!l.drv) fail(`${s.id}/${t.id}: capital line "${l.k}" states no cost driver`);
+      if (l.cat === "wc") sawWc = true;
+      /* A band spanning more than three orders of magnitude is not a
+         planning band, it is an unconverted unit or a missing zero. */
+      if (l.lo > 0 && l.hi / l.lo > 1000)
+        fail(`${s.id}/${t.id}: capital line "${l.k}" spans ${Math.round(l.hi / l.lo)}× (${l.lo}–${l.hi}) — check for a missing zero`);
+    }
+    if (!sawWc) fail(`${s.id}/${t.id}: no working-capital line — every venture carries one`);
   }
 
   // sector-level citations must resolve
