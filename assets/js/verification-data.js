@@ -4,8 +4,8 @@ window.JK_VERIFICATION = {
   "suites": [
     {
       "suite": "e2e",
-      "headline": "571 behaviour assertions across the site",
-      "assertions": 571,
+      "headline": "578 behaviour assertions across the site",
+      "assertions": 578,
       "failures": 0
     },
     {
@@ -36,9 +36,9 @@ window.JK_VERIFICATION = {
     },
     {
       "suite": "drive",
-      "headline": "32 pages driven as a user would, 193 interactions, no console errors",
+      "headline": "32 pages driven as a user would, 200 interactions, no console errors",
       "runs": 32,
-      "interactions": 193
+      "interactions": 200
     }
   ]
 };

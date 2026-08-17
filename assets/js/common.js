@@ -913,6 +913,51 @@ function mountPrintHead(toolName, subtitle) {
   el.innerHTML = html;
 }
 
+/* ---- executive summary for a printed pack ----
+
+   The convention every consulting and banking deck follows and this
+   platform did not: an answer-first opening page. A board reader gets
+   the conclusion and the three things behind it before any working, and
+   decides from that page whether to read the rest.
+
+   Our packs printed the tool — every panel, in screen order, with the
+   headline finding somewhere in the middle. That is a transcript, not a
+   deliverable. The distinction consultants draw is between showing your
+   analysis and showing your answer, and they exclude analysis that does
+   not support the recommendation even when it was expensive to produce.
+
+   Findings arrive already ordered by the caller, because only the tool
+   knows which of its numbers is the one that matters. Severity drives a
+   rule down the left, not a colour alone — a pack is read in monochrome
+   as often as not.
+
+   Screen-invisible by design: this exists for the printed artefact, and
+   duplicating the summary on screen would put the same words twice on a
+   page the reader is already scrolling. */
+function mountPrintSummary({ title, verdict, findings = [], basis }) {
+  let el = document.querySelector(".print-summary");
+  if (!el) {
+    el = document.createElement("section");
+    el.className = "print-summary";
+    const head = document.querySelector(".print-head");
+    if (head && head.parentNode) head.parentNode.insertBefore(el, head.nextSibling);
+    else {
+      const main = document.querySelector("main") || document.body;
+      main.insertBefore(el, main.firstChild);
+    }
+  }
+  el.innerHTML =
+    `<p class="ps-label">Executive summary</p>
+     ${title ? `<h2 class="ps-title">${escapeHtml(title)}</h2>` : ""}
+     ${verdict ? `<p class="ps-verdict">${escapeHtml(verdict)}</p>` : ""}
+     ${findings.length ? `<ol class="ps-list">${findings.map(f => `
+       <li class="ps-item is-${f.sev || "note"}">
+         <b>${escapeHtml(f.h)}</b>
+         <span>${escapeHtml(f.d)}</span>
+       </li>`).join("")}</ol>` : ""}
+     ${basis ? `<p class="ps-basis">${escapeHtml(basis)}</p>` : ""}`;
+}
+
 /* ---- tagged mailto for a tool enquiry ----
    The site collects no analytics by design, so the subject tag is the
    only lead-attribution signal there is. Keep the tags stable. */

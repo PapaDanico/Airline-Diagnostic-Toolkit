@@ -894,6 +894,39 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
    A character measure also holds if the type scale ever moves. */
 .tool-head .lead { font-size: var(--fs-base); color: #45362f; max-width: 54ch; }
 
+/* Slider and number field on one row. The slider is bounded by the
+   planning band; the number field is not — an operator holding a real
+   quotation must never be told their own figure is out of range. A
+   single linear slider stretched to cover every venture size would make
+   the common case unsettable, which is why both controls exist. */
+.cx-row { display: flex; gap: .75rem; align-items: center; }
+.cx-row input[type="range"] {
+  flex: 1 1 auto; min-width: 0; accent-color: var(--accent);
+  padding: 0; border: 0; background: none;
+}
+.cx-num {
+  flex: 0 0 9.5rem; text-align: right; font-variant-numeric: tabular-nums;
+}
+@media (max-width: 560px) {
+  .cx-row { flex-wrap: wrap; }
+  .cx-num { flex: 1 1 100%; text-align: left; }
+}
+
+/* Derived figures under the capital table — read back, not typed in. */
+.cx-ratios {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1px; background: var(--jk-line); border: 1px solid var(--jk-line);
+  margin-top: 1.1rem;
+}
+.cx-ratios > div { background: var(--jk-white); padding: .7rem .8rem; }
+.cx-ratios b {
+  display: block; font-size: var(--fs-md); font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+.cx-ratios span {
+  display: block; font-size: var(--fs-xs); color: var(--jk-muted); margin-top: .1rem;
+}
+
 /* The row that lets a reader take the answer away.
 
    Five tools computed a result and offered no way to keep it — the
@@ -1193,6 +1226,41 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 }
 
 /* print-only branded header (hidden on screen) */
+/* Executive summary — page one of any printed pack.
+
+   Hidden on screen entirely. The reader scrolling the tool already has
+   these findings in front of them in their natural place; repeating
+   them at the top would be the same words twice. In print they come
+   first and the working follows, which is the order a board reads in.
+
+   Severity is a rule down the left rather than colour alone, because a
+   board pack is photocopied and faxed as often as it is read on glass. */
+.print-summary { display: none; }
+.print-summary .ps-label {
+  font-size: var(--fs-2xs); letter-spacing: .14em; text-transform: uppercase;
+  font-weight: 600; color: var(--jk-muted); margin: 0 0 .4rem;
+}
+.print-summary .ps-title {
+  font-size: var(--fs-xl); line-height: 1.15; margin: 0 0 .5rem;
+}
+.print-summary .ps-verdict {
+  font-size: var(--fs-base); line-height: 1.5; margin: 0 0 1rem; max-width: 62ch;
+}
+.print-summary .ps-list { list-style: none; padding: 0; margin: 0; }
+.print-summary .ps-item {
+  padding: .5rem 0 .5rem .9rem; border-left: 3px solid var(--jk-line);
+  margin-bottom: .55rem; break-inside: avoid; page-break-inside: avoid;
+}
+.print-summary .ps-item.is-stop { border-left-color: var(--jk-ink); border-left-width: 5px; }
+.print-summary .ps-item.is-warn { border-left-color: var(--jk-amber-sig); }
+.print-summary .ps-item.is-ok   { border-left-color: var(--jk-green); }
+.print-summary .ps-item b { display: block; font-size: var(--fs-sm); margin-bottom: .1rem; }
+.print-summary .ps-item span { display: block; font-size: var(--fs-xs); line-height: 1.45; }
+.print-summary .ps-basis {
+  font-size: var(--fs-2xs); color: var(--jk-muted); margin: 1rem 0 0;
+  padding-top: .5rem; border-top: 1px solid var(--jk-line);
+}
+
 .print-head { display: none; align-items: center; gap: 18px; padding: 0 0 14px; border-bottom: 2px solid var(--jk-ink); margin-bottom: 18px; }
 .print-head img { height: 64px; width: auto; }
 .print-head .ph-meta { font-size: var(--fs-sm); line-height: 1.4; }
@@ -1206,6 +1274,8 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   .email-capture-section, .book-cta-section, .share-bar, .shared-banner,
   #calibrate-section, #capture-nudge, .no-print { display: none !important; }
   .print-head { display: flex !important; }
+  /* Page one, and only page one — the working starts overleaf. */
+  .print-summary { display: block !important; page-break-after: always; break-after: page; }
   .score-hero, .result-panel, .band-dark, .band-ember, .hero-ink { background: #fff !important; color: #000 !important; padding: 0 0 10px !important; }
   .score-hero .eyebrow, .score-hero h1, .score-hero #index-text, .score-hero #index-band,
   .result-panel *, .band-dark *, .band-dark h2, .band-dark h3, .band-ember h2, .band-ember p,
