@@ -363,6 +363,51 @@ assert(/61\.6[0-9]%/.test(lt[0]), "founder effective interest resolves to 61.6% 
 assert(/27\.75%/.test(lt[1] || ""), "investor vehicle resolves to 27.75%");
 assert(/100\.00%/.test(await page.$eval("#lookthrough tfoot", e => e.innerText)), "chain resolves to exactly 100%");
 
+/* -- the printed pack opens with the answer, not the working --
+
+   A board reader gets the conclusion and what is behind it on page one,
+   and decides from that page whether to read further. The pack used to
+   print the tool in screen order with the headline finding somewhere in
+   the middle, which is a transcript rather than a deliverable.
+
+   Three things are asserted, and the third is the one that matters:
+   the summary exists, it is absent from the screen (the reader already
+   has these findings in place; twice is noise), and the verdict carries
+   a FIGURE. An answer-first title states the conclusion — "unfunded gap
+   of USD 5.33M" — and a title with no number in it has slid back into
+   being a topic label. */
+await page.goto(base + "/tools/venture-builder.html");
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(500);
+await page.fill("#f-equity", "1000000"); await page.waitForTimeout(400);
+{
+  const ps = await page.evaluate(() => {
+    const el = document.querySelector(".print-summary");
+    return el && {
+      onScreen: getComputedStyle(el).display !== "none",
+      verdict: el.querySelector(".ps-verdict")?.textContent.trim() || "",
+      items: [...el.querySelectorAll(".ps-item")].map(i => i.querySelector("b")?.textContent.trim() || ""),
+      sev: [...el.querySelectorAll(".ps-item")].map(i => i.className)
+    };
+  });
+  assert(!!ps, "the printed pack carries an executive summary");
+  assert(ps && !ps.onScreen, "the executive summary is print-only and does not repeat itself on screen");
+  assert(ps && /[0-9]/.test(ps.verdict),
+    `the summary verdict states a figure rather than a topic — got "${ps && ps.verdict}"`);
+  assert(ps && ps.items.length > 0, "the summary lists at least one finding");
+  assert(ps && ps.sev.some(c => /is-(stop|warn|ok)/.test(c)),
+    "each finding carries a severity, so the pack reads in monochrome");
+  /* Underfunded by 5.33M, so the gap must be the FIRST thing said. An
+     executive summary that leads with anything else is mis-ordered. */
+  assert(ps && /gap/i.test(ps.items[0]),
+    `an unfunded gap outranks every other finding — first item was "${ps && ps.items[0]}"`);
+}
+
+await page.emulateMedia({ media: "print" });
+assert(await page.evaluate(() => getComputedStyle(document.querySelector(".print-summary")).display) === "block",
+  "the executive summary appears under print media");
+await page.emulateMedia({ media: "screen" });
+
 // -- numeric clamping + honest labelling in the venture builder --
 await page.goto(base + "/tools/venture-builder.html");
 await page.evaluate(() => localStorage.clear());

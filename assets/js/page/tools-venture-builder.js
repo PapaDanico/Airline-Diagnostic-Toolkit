@@ -374,6 +374,41 @@
     const href = toolMailto("Venture", s.short + " venture model", body);
     $("talk").href = href; $("cta-mail").href = href;
 
+    /* Answer-first summary for the printed pack. Ordered by what would
+       stop the venture, not by the order the panels happen to appear in:
+       an unfunded gap outranks a covenant breach, which outranks a
+       structural observation, because that is the order in which they
+       kill the deal. */
+    const sev = gap > 0 ? "stop" : (!noTerm && baseDscr !== null && baseDscr < cov) ? "warn" : "ok";
+    const headline = gap > 0
+      ? `${fmtMoney(total)} venture with an unfunded gap of ${fmtMoney(gap)}`
+      : (!noTerm && baseDscr !== null && baseDscr < cov)
+        ? `${fmtMoney(total)} venture, fully funded, but the covenant does not hold`
+        : `${fmtMoney(total)} venture, funded and covenant-compliant on the base case`;
+
+    const sf = [];
+    if (gap > 0) sf.push({ sev: "stop", h: `Unfunded gap of ${fmtMoney(gap)}`,
+      d: `The stack covers ${fmtMoney(funded)} of a ${fmtMoney(total)} requirement. Certification burns cash on a fixed clock, so this closes before a Schedule of Events is committed, not during it.` });
+    if (debt > maxDebt && capex > 0) sf.push({ sev: "warn", h: "Senior debt exceeds the advance rate",
+      d: `At ${ltv}% of ${fmtMoney(capex)} fixed CAPEX a lender sizes at about ${fmtMoney(maxDebt)}; the model assumes ${fmtMoney(debt)}. Expect the facility to be cut or the equity cheque to grow.` });
+    if (!noTerm && baseDscr !== null && baseDscr < cov) sf.push({ sev: baseDscr < 1 ? "stop" : "warn",
+      h: `DSCR of ${fmtRatio(baseDscr)} against a ${cov.toFixed(2)}× covenant`,
+      d: baseDscr < 1 ? "Base-case earnings do not cover debt service at all." : "The base case services the debt but breaches the covenant, which is a default event before it is a cash problem." });
+    if (wc / (total || 1) < 0.15) sf.push({ sev: "warn", h: "Working capital is thin",
+      d: `${fmtMoney(wc)} of ${fmtMoney(total)} — under 15%. Lenders size term debt against fixed assets, so a shortfall here lands entirely on equity.` });
+    if (beCov && rev && rev < beCov) sf.push({ sev: "warn", h: `Revenue is below the covenant break-even`,
+      d: `${fmtMoney(rev)} assumed against ${fmtMoney(beCov)} required at a ${margin}% margin.` });
+    if (!sf.length) sf.push({ sev: "ok", h: "No blocking finding on the capital model",
+      d: `Funded to ${fmtMoney(funded)}, ${noTerm ? "with no debt to service" : `carrying ${fmtRatio(baseDscr)} against a ${cov.toFixed(2)}× covenant`}. The constraint is delivery, not capital.` });
+
+    mountPrintSummary({
+      title: `${s.name} — ${tier.label}`,
+      verdict: headline,
+      findings: sf.slice(0, 5),
+      basis: `${tier.note} Lead time to certificate ${s.leadMonths[0]}–${s.leadMonths[1]} months. Figures are the operator's own inputs against indicative planning bands, not quotations.`
+    });
+    void sev;
+
     store.save(state);
   }
 

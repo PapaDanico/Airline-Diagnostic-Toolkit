@@ -4,8 +4,8 @@ window.JK_VERIFICATION = {
   "suites": [
     {
       "suite": "e2e",
-      "headline": "571 behaviour assertions across the site",
-      "assertions": 571,
+      "headline": "578 behaviour assertions across the site",
+      "assertions": 578,
       "failures": 0
     },
     {
@@ -16,8 +16,8 @@ window.JK_VERIFICATION = {
     },
     {
       "suite": "focus",
-      "headline": "1387 focusable elements, each with a visible indicator at 3:1",
-      "elements": 1387,
+      "headline": "1391 focusable elements, each with a visible indicator at 3:1",
+      "elements": 1391,
       "minRatio": 3
     },
     {
