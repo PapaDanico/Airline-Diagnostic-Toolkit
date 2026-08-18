@@ -10,14 +10,14 @@ window.JK_VERIFICATION = {
     },
     {
       "suite": "audit",
-      "headline": "31 pages audited for dead tokens, dead CSS, palette, design-value drift and deliverables",
+      "headline": "33 pages audited for dead tokens, dead CSS, palette, design-value drift and deliverables",
       "issues": 0,
-      "pages": 31
+      "pages": 33
     },
     {
       "suite": "focus",
-      "headline": "1391 focusable elements, each with a visible indicator at 3:1",
-      "elements": 1391,
+      "headline": "1513 focusable elements, each with a visible indicator at 3:1",
+      "elements": 1513,
       "minRatio": 3
     },
     {
@@ -36,9 +36,9 @@ window.JK_VERIFICATION = {
     },
     {
       "suite": "drive",
-      "headline": "32 pages driven as a user would, 206 interactions, no console errors",
-      "runs": 32,
-      "interactions": 206
+      "headline": "34 pages driven as a user would, 278 interactions, no console errors",
+      "runs": 34,
+      "interactions": 278
     }
   ]
 };

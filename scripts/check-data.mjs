@@ -22,6 +22,7 @@ const load = (file, name) => {
 const JK  = load("data.js", "JK");
 const JKV = load("data-ventures.js", "JKV");
 const JKG = load("data-glossary.js", "JKG");
+const JKA = load("data-acquisition.js", "JKA");
 
 let failures = 0;
 const fail = (m) => { console.error("FAIL: " + m); failures++; process.exitCode = 1; };
@@ -341,6 +342,55 @@ for (const c of (JKG.cats || [])) {
   }
 }
 
+/* ---------- acquisition model ----------
+
+   The same guards the venture capital bands carry, for the same
+   reason: every band on the acquisition page is money a buyer will
+   commit, and a missing zero in a planning figure reads as authority
+   rather than as a typo. The citation check matters more here than
+   elsewhere — the page makes claims about what a regulator requires,
+   and a claim like that with no instrument behind it is the one defect
+   this whole data model exists to prevent. */
+{
+  const cite = (k) => JKV.cites[k];
+  const seen = new Set();
+
+  if (!JKA.routes.some((r) => r.keepsAoc) || !JKA.routes.some((r) => !r.keepsAoc))
+    fail("acquisition: routes must offer both a structure that keeps the certificate and one that does not — the contrast is the finding");
+
+  for (const group of ["remediation", "dealCosts"]) {
+    if (!Array.isArray(JKA[group]) || !JKA[group].length) { fail(`acquisition: ${group} is empty`); continue; }
+    for (const l of JKA[group]) {
+      if (seen.has(l.id)) fail(`acquisition: duplicate cost line id "${l.id}"`);
+      seen.add(l.id);
+      if (!l.k || !l.why) fail(`acquisition: ${group} line "${l.id}" needs both a label and a reason`);
+      if (!(l.lo >= 0) || !(l.hi > l.lo))
+        fail(`acquisition: ${group} line "${l.id}" has a band that does not ascend (${l.lo}–${l.hi})`);
+      if (l.lo > 0 && l.hi / l.lo > 1000)
+        fail(`acquisition: ${group} line "${l.id}" spans ${Math.round(l.hi / l.lo)}× (${l.lo}–${l.hi}) — check for a missing zero`);
+    }
+  }
+
+  for (const g of JKA.gates) {
+    if (!(g.lo > 0) || !(g.hi >= g.lo))
+      fail(`acquisition: gate "${g.id}" has an implausible elapsed band (${g.lo}–${g.hi})`);
+    if (g.req && !(g.c || []).length)
+      fail(`acquisition: gate "${g.id}" is stated as a requirement but cites no instrument`);
+  }
+
+  for (const f of JKA.redFlags) {
+    if (!["stop", "warn"].includes(f.sev))
+      fail(`acquisition: red flag "${f.id}" has severity "${f.sev}" — expected stop or warn`);
+    if (!f.d) fail(`acquisition: red flag "${f.id}" has no explanation`);
+  }
+
+  const everyCite = [].concat(
+    ...JKA.routes.map((r) => r.c || []), ...JKA.remediation.map((l) => l.c || []),
+    ...JKA.gates.map((g) => g.c || []), ...JKA.redFlags.map((f) => f.c || []));
+  for (const k of new Set(everyCite))
+    if (!cite(k)) fail(`acquisition: cites unknown citation key "${k}"`);
+}
+
 /* ---------- report ---------- */
 if (!failures) {
   const totalItems = JKV.sectors.reduce((n, s) => n + JKV.totalItems(s), 0);
@@ -349,6 +399,7 @@ if (!failures) {
   console.log(`         ventures: ${JKV.sectors.length} sectors, 5 phases, ${totalItems} checklist items, ` +
               `${Object.keys(JKV.cites).length} citations`);
   console.log(`         glossary: ${JKG.terms.length} terms across ${JKG.cats.length} categories, all cross-references resolve`);
+  console.log(`         acquisition: ${JKA.remediation.length + JKA.dealCosts.length} cost lines, ${JKA.gates.length} regulatory gates, ${JKA.redFlags.length} diligence findings`);
   if (unconfirmed.length) {
     console.log(`         note: ${unconfirmed.length} citation(s) flagged unconfirmed and rendered with a "?" chip: ${unconfirmed.join(", ")}`);
   }
