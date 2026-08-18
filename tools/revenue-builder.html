@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Model charter rates, block hours and retainers for African aviation ventures. Tests whether your fleet can service its capital before the appraisal does.">
+<link rel="canonical" href="https://jkassociates.enterprises/tools/revenue-builder.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JK & Associates">
+<meta property="og:title" content="Revenue Model Builder — JK & Associates">
+<meta property="og:description" content="Block hours, charter rates and contracted retainers — the revenue side of the venture file.">
+<meta property="og:url" content="https://jkassociates.enterprises/tools/revenue-builder.html">
+<meta property="og:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Revenue Model Builder — JK & Associates">
+<meta name="twitter:description" content="Block hours, charter rates and contracted retainers — the revenue side of the venture file.">
+<meta name="twitter:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<title>Revenue Model Builder — JK &amp; Associates</title>
+<link rel="icon" type="image/png" href="../assets/img/jk-badge.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#16100D">
+<link rel="apple-touch-icon" href="../assets/img/jk-badge.png">
+<link rel="preload" href="../assets/fonts/cormorant-garamond-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/dm-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="../assets/css/jk.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner>
+      <span data-logo></span>
+      <span>JK &amp; Associates<small>Revenue Model Builder</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="nav-links"></div>
+  </div>
+</nav>
+
+<main id="main">
+
+<header class="tool-head">
+  <div class="wrap">
+    <p class="ref">Tool V1 · Free</p>
+    <h1>Revenue Model Builder</h1>
+    <p class="lead">Block hours, charter rates and contracted retainers — the revenue side of the venture file. Tests whether this fleet can service its capital before the appraisal does.</p>
+  </div>
+</header>
+
+<section style="padding-top:32px;padding-bottom:0">
+  <div class="wrap">
+    <div class="card card-flat" style="display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;padding:16px 20px">
+      <div style="flex:1;min-width:0">
+        <b>Import fleet from Venture Builder</b>
+        <p class="muted" style="margin:.2rem 0 0;font-size:var(--fs-sm)">Reads aircraft values and capital structure from your saved Venture Builder model.</p>
+      </div>
+      <button class="btn btn-primary" id="import-fleet">Import fleet</button>
+      <span id="import-status" class="muted" style="font-size:var(--fs-sm)"></span>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:32px">
+  <div class="wrap">
+    <div class="tool-layout">
+      <div>
+        <p class="eyebrow">Step 1</p>
+        <h2 style="margin-bottom:.4rem">Revenue segments</h2>
+        <p class="muted" style="max-width:640px">Add each revenue-generating segment. Each card shows the aircraft, rate, hours and contract mix that drives it.</p>
+
+        <div style="margin-top:1rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+          <select id="seg-type" class="field" style="max-width:280px;margin:0">
+            <option value="">Choose segment type…</option>
+            <option value="executiveJet">Executive Jet Charter</option>
+            <option value="safariCharter">Safari / Tourism Charter</option>
+            <option value="aeromedical">Aeromedical / HEMS Retainer</option>
+            <option value="acmiWetLease">ACMI / Wet Lease</option>
+          </select>
+          <button class="btn btn-primary" id="add-seg">Add segment</button>
+        </div>
+
+        <div id="seg-cards" style="margin-top:1.4rem"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 2</p>
+        <h2 style="margin-bottom:.4rem">10-Year projection</h2>
+        <div class="table-scroll" style="margin-top:1rem">
+          <table class="dtable" id="proj-table">
+            <thead><tr>
+              <th>Year</th>
+              <th class="num">Revenue</th>
+              <th class="num">DOC</th>
+              <th class="num">Contribution</th>
+              <th class="num">Cumulative</th>
+            </tr></thead>
+            <tbody id="proj-body"></tbody>
+          </table>
+        </div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 3</p>
+        <h2 style="margin-bottom:.4rem">Break-even by aircraft</h2>
+        <div class="table-scroll" style="margin-top:1rem">
+          <table class="dtable" id="be-table">
+            <thead><tr>
+              <th>Aircraft</th>
+              <th class="num">Rate/hr</th>
+              <th class="num">DOC/hr</th>
+              <th class="num">Contribution/hr</th>
+              <th class="num">Hours to B/E (owned)</th>
+              <th class="num">Hours to B/E (leased)</th>
+            </tr></thead>
+            <tbody id="be-body"></tbody>
+          </table>
+        </div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 4</p>
+        <h2 style="margin-bottom:.4rem">Sensitivity</h2>
+        <p class="muted" style="max-width:640px">Adjust rate, utilisation and DOC to see how contribution changes.</p>
+        <div class="card card-flat" style="margin-top:1rem">
+          <div class="field-row">
+            <div class="field">
+              <label for="sens-rate">Rate adjustment (%)</label>
+              <input type="range" id="sens-rate" min="-20" max="20" step="1" value="0">
+              <div style="display:flex;justify-content:space-between;font-size:var(--fs-xs);color:var(--jk-muted)"><span>−20%</span><b id="sens-rate-v" class="tnum">0%</b><span>+20%</span></div>
+            </div>
+            <div class="field">
+              <label for="sens-util">Utilisation adjustment (%)</label>
+              <input type="range" id="sens-util" min="-20" max="20" step="1" value="0">
+              <div style="display:flex;justify-content:space-between;font-size:var(--fs-xs);color:var(--jk-muted)"><span>−20%</span><b id="sens-util-v" class="tnum">0%</b><span>+20%</span></div>
+            </div>
+            <div class="field">
+              <label for="sens-doc">DOC adjustment (%)</label>
+              <input type="range" id="sens-doc" min="-20" max="20" step="1" value="0">
+              <div style="display:flex;justify-content:space-between;font-size:var(--jk-muted)"><span>−20%</span><b id="sens-doc-v" class="tnum">0%</b><span>+20%</span></div>
+            </div>
+          </div>
+          <div style="margin-top:1rem">
+            <b>Contribution at risk: </b><span id="sens-at-risk" class="tnum">—</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="rail">
+        <div class="result-panel">
+          <p class="eyebrow" style="color:var(--jk-amber)">Revenue summary</p>
+          <div class="kpis" style="grid-template-columns:1fr 1fr">
+            <div class="kpi"><div class="kv tnum" id="r-rev">—</div><div class="kl">Annual revenue</div></div>
+            <div class="kpi"><div class="kv tnum" id="r-doc">—</div><div class="kl">Annual DOC</div></div>
+            <div class="kpi"><div class="kv tnum" id="r-contrib">—</div><div class="kl">Contribution</div></div>
+            <div class="kpi"><div class="kv tnum" id="r-10yr">—</div><div class="kl">10-yr cumulative</div></div>
+          </div>
+
+          <div id="cst-banner" style="margin-top:1.2rem"></div>
+
+          <div style="margin-top:1.2rem;display:flex;flex-direction:column;gap:.5rem">
+            <button class="btn btn-amber" id="btn-save-vf" style="justify-content:center">Save to Venture File</button>
+            <button class="btn btn-ghost-lt" id="btn-print" style="justify-content:center">Print Board Pack</button>
+            <button class="btn btn-ghost-lt" id="btn-export-json" style="justify-content:center">Export JSON</button>
+          </div>
+          <div id="save-status" class="muted" style="font-size:var(--fs-xs);margin-top:.6rem"></div>
+        </div>
+        <div class="note no-print" style="margin-top:1rem;font-size:var(--fs-xs)">
+          <b>Related tools</b>
+          <a href="venture-builder.html" data-keep-partner>Venture Builder →</a><br>
+          <a href="venture-dashboard.html" data-keep-partner>Venture Control Room →</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="sources">
+  <div class="wrap">
+    <h3 style="font-size:var(--fs-md)">Assumptions and limits</h3>
+    <p class="muted" style="font-size:var(--fs-sm);max-width:780px">
+      Rate bands are JK &amp; Associates planning ranges. Seasonality is applied to Year 1 only using monthly index factors; Years 2–10 use a flat annual average. No discounting — all figures are nominal. Break-even hours are computed as annual capital charge ÷ (rate − DOC); for leased aircraft the annual lease rental replaces the capital charge.
+    </p>
+    <p class="disclaimer" style="max-width:780px">
+      This tool is a planning aid, not investment advice, a valuation, or a substitute for a bankable financial model. Obtain independent financial and legal advice before committing capital.
+    </p>
+  </div>
+</section>
+
+<section class="band-ember no-print">
+  <div class="wrap" style="text-align:center">
+    <h2>A revenue model that survives diligence looks different from this.</h2>
+    <p style="max-width:660px;margin:0 auto 1.4rem">This tests whether the fleet can service its capital at indicative rates. A defensible revenue case needs a real demand study, contracted anchor clients and a yield model that holds under utilisation stress.</p>
+    <a class="btn btn-amber btn-lg" id="cta-mail" href="#">Build the bankable model with us</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer no-print">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <a class="brand" href="../index.html" style="color:#fff" data-keep-partner><span data-logo="light"></span><span style="color:#fff">JK &amp; Associates</span></a>
+        <p style="margin-top:1rem;max-width:320px;font-size:var(--fs-sm)">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
+      </div>
+      <div>
+        <h2>Build a venture</h2>
+        <p><a href="certification-navigator.html" data-keep-partner>Certification Navigator</a></p>
+        <p><a href="venture-builder.html" data-keep-partner>Venture Builder</a></p>
+        <p><a href="corporate-structure.html" data-keep-partner>Corporate Structure</a></p>
+        <p><a href="organogram-planner.html" data-keep-partner>Organogram Planner</a></p>
+      </div>
+      <div>
+        <h2>Operate an airline</h2>
+        <p><a href="../diagnostic.html" data-keep-partner>Health Scorecard</a></p>
+        <p><a href="cask-calculator.html" data-keep-partner>CASK Calculator</a></p>
+        <p><a href="operating-model-canvas.html" data-keep-partner>Operating Model Canvas</a></p>
+        <p><a href="fuel-optimizer.html" data-keep-partner>Fuel Optimizer</a></p>
+      </div>
+      <div>
+        <h2>Contact</h2>
+        <p><a data-email>info@aviationhubkenya.org</a></p>
+        <p data-location>2nd Avenue, Cargo Terminal, JKIA, Nairobi</p>
+        <h2 style="margin-top:1.2rem">Legal</h2>
+        <p><a href="../privacy.html">Privacy Notice</a></p>
+        <p><a href="../terms.html">Terms of Use</a></p>
+      </div>
+    </div>
+    <div class="ver">
+      <span>&copy; <span data-year></span> JK &amp; Associates · Shaping Africa's Future, Together.</span>
+      <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../methodology.html">Methodology</a> · <span data-version>v3.4 — Scheduled, Business Aviation &amp; Aeromedical</span></span>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/data-ventures.js"></script>
+<script src="../assets/js/venture-file.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/page/tools-revenue-builder.js"></script>
+</body>
+</html>

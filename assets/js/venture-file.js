@@ -49,8 +49,10 @@ const JKW = {
   /* Module weights in the Launch Readiness Index. The certificate is
      the binding constraint on a greenfield venture — no amount of
      capital substitutes for it — so it carries the most. Capital is
-     next, because certification burns cash on a fixed clock. */
-  WEIGHTS: { certnav: 40, venture: 25, organogram: 20, structure: 15 },
+     next, because certification burns cash on a fixed clock. Revenue
+     readiness is the newest dimension: it is the test an investment
+     committee asks first and the tool answered last. */
+  WEIGHTS: { certnav: 35, venture: 20, organogram: 18, structure: 12, revenue: 15 },
 
   /* ---------- raw store access (never throws) ---------- */
   read(key) {
@@ -292,6 +294,61 @@ const JKW = {
     });
   },
 
+  /* ---- 5. Revenue Model Builder ---- */
+  revenue(prof, src) {
+    src = src || this.liveSource();
+    /* Revenue Builder stores under its own key — read it from the live
+       localStorage rather than through the generic src.get(), because the
+       key does not follow the jk_*_v3 pattern used by all other tools. */
+    let st = {};
+    try { st = JSON.parse(localStorage.getItem("jk_revenue_v1")) || {}; } catch {}
+    const base = { id: "revenue", name: "Revenue Model Builder", icon: "💰",
+                   href: "revenue-builder.html", sector: null };
+    const touched = Array.isArray(st.segments) && st.segments.length > 0;
+    if (!touched) return Object.assign(base, { started: false, pct: 0, rag: "idle",
+      headline: "Not started", next: "Add revenue segments to test whether the fleet can service its capital.", facts: [] });
+
+    /* Compute year-1 revenue from the saved segments without re-importing
+       the full Revenue Builder module — use the same arithmetic but
+       inlined here so venture-file.js stays self-contained. */
+    let yr1Rev = 0, yr1Doc = 0;
+    (st.segments || []).forEach(seg => {
+      yr1Rev += (seg.rate || 0) * (seg.hours || 0);
+      yr1Doc  += (seg.doc  || 0) * (seg.hours || 0);
+    });
+    const yr1Contrib = yr1Rev - yr1Doc;
+    const tenYrContrib = yr1Contrib * 10; // simplified: no growth assumed here
+
+    /* If the Revenue Builder wrote a CST summary to the profile, use it
+       for the capital recovery test. */
+    const profile = this.read(this.PROFILE_KEY);
+    const revSaved = profile.revenue || {};
+    const capRecovery = revSaved.capRecovery || 0;
+    const ratio = capRecovery > 0 ? (revSaved.tenYrContrib || tenYrContrib) / capRecovery : null;
+
+    const rag = ratio === null ? (yr1Rev > 0 ? "amber" : "idle")
+              : ratio >= 0.8 ? "green" : ratio >= 0.5 ? "amber" : "red";
+    const pct = Math.min(100, touched ? (yr1Rev > 0 ? (ratio !== null ? Math.round(ratio * 100) : 50) : 10) : 0);
+
+    let next;
+    if (!touched) next = "Add revenue segments to test capital serviceability.";
+    else if (ratio !== null && ratio < 0.5) next = `Fleet covers ${(ratio * 100).toFixed(0)}% of capital recovery requirement — ${(1 / ratio).toFixed(1)}× shortfall. Review fleet size or capital structure.`;
+    else if (ratio !== null && ratio < 0.8) next = `Fleet covers ${(ratio * 100).toFixed(0)}% of capital recovery. Contracted anchor demand or a lease structure is recommended.`;
+    else if (ratio !== null) next = "Fleet can service its capital at projected utilisation.";
+    else next = "Save to Venture File from the Revenue Builder to run the capital service test.";
+
+    return Object.assign(base, {
+      started: true, pct, rag,
+      headline: yr1Rev > 0 ? `${fmtMoney(yr1Rev)}/year revenue, ${st.segments.length} segment${st.segments.length !== 1 ? "s" : ""}` : "Segments added — set rates and hours",
+      next,
+      facts: [
+        { k: "Yr 1 revenue",    v: fmtMoney(yr1Rev) },
+        { k: "Yr 1 contribution", v: fmtMoney(yr1Contrib) },
+        { k: "Capital coverage", v: ratio !== null ? `${(ratio * 100).toFixed(0)}%` : "—" }
+      ]
+    });
+  },
+
   /* ---- the operating-track scorecard, if the visitor has one ---- */
   scorecard() {
     const answers = (typeof loadAnswers === "function") ? loadAnswers() : {};
@@ -322,7 +379,8 @@ const JKW = {
     prof = prof || this.profile();
     src = src || this.liveSource();
     return [this.certnav(prof, src), this.venture(prof, src),
-            this.organogram(prof, src), this.structure(prof, src)];
+            this.organogram(prof, src), this.structure(prof, src),
+            this.revenue(prof, src)];
   },
 
   /* Weighted composite. Untouched modules count as zero rather than
@@ -530,9 +588,11 @@ const JKW = {
     const org = mods.find(m => m.id === "organogram");
     const str = mods.find(m => m.id === "structure");
     const cert = mods.find(m => m.id === "certnav");
+    const rev = mods.find(m => m.id === "revenue");
     const gate = cert.facts.find(f => f.k === "Gate items closed");
     const local = str.facts.find(f => f.k === "Local effective interest");
     const checks = str.facts.find(f => f.k === "Governance checks");
+    const revCoverage = rev && rev.facts.find(f => f.k === "Capital coverage");
     return {
       profile: prof, modules: mods, readiness: r,
       rows: {
@@ -553,7 +613,11 @@ const JKW = {
                     rag: org.postsTotal ? (org.spof === 0 ? "green" : "amber") : null },
         arch:     { label: "Structure", v: str.started ? str.headline : "—" },
         local:    { label: "Local effective interest", v: local ? local.v : "—" },
-        checks:   { label: "Governance checks", v: checks ? checks.v : "—" }
+        checks:   { label: "Governance checks", v: checks ? checks.v : "—" },
+        revenue:  { label: "Revenue readiness", v: rev && rev.started ? rev.headline : "—",
+                    rag: rev ? rev.rag : null },
+        revcov:   { label: "Capital coverage", v: revCoverage ? revCoverage.v : "—",
+                    rag: (revCoverage && revCoverage.v !== "—") ? (parseFloat(revCoverage.v) >= 80 ? "green" : parseFloat(revCoverage.v) >= 50 ? "amber" : "red") : null }
       }
     };
   },

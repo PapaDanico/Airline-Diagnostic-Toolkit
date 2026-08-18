@@ -123,7 +123,11 @@
   function renderCapex(s) {
     const host = $("capex-lines");
     const t = tierOf(s);
-    host.innerHTML = t.lines.map((l, i) => `
+    if (!state.phase) state.phase = {};
+    host.innerHTML = t.lines.map((l, i) => {
+      const dep = (state.phase[i] && state.phase[i].dep) || 0;
+      const bal = (state.phase[i] && state.phase[i].bal) || 0;
+      return `
       <div class="field" style="margin-bottom:16px">
         <label for="cx-${i}" style="display:flex;justify-content:space-between;gap:1rem;align-items:baseline">
           <span>${l.k}${l.cat === "wc" ? ' <span class="tag" style="vertical-align:middle">working capital</span>' : ""}</span>
@@ -138,7 +142,20 @@
           <b data-band="${i}">Planning band ${fmtMoney(l.lo)} – ${fmtMoney(l.hi)}</b>
           ${l.drv ? ` · ${l.drv}` : ""}
         </p>
-      </div>`).join("");
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px">
+          <div class="field" style="margin:0;flex:1;min-width:140px">
+            <label for="dep-${i}" style="font-size:var(--fs-xs);color:var(--jk-muted)">Deposit required (USD)</label>
+            <input type="number" id="dep-${i}" min="0" step="1000" value="${dep}"
+                   aria-label="Deposit required for ${l.k}" style="font-size:var(--fs-sm)">
+          </div>
+          <div class="field" style="margin:0;flex:1;min-width:140px">
+            <label for="bal-${i}" style="font-size:var(--fs-xs);color:var(--jk-muted)">Balance on completion (USD)</label>
+            <input type="number" id="bal-${i}" min="0" step="1000" value="${bal}"
+                   aria-label="Balance on completion for ${l.k}" style="font-size:var(--fs-sm)">
+          </div>
+        </div>
+      </div>`;
+    }).join("");
 
     t.lines.forEach((l, i) => {
       const sl = $("cx-" + i), nu = $("cxn-" + i);
@@ -165,6 +182,21 @@
       };
       sl.addEventListener("input", () => set(parseFloat(sl.value), true));
       nu.addEventListener("input", () => set(parseFloat(nu.value), false));
+
+      /* Phasing inputs — deposit and balance on completion. Both
+         are stored per CAPEX line so the phasing health indicator
+         can compare scheduled against total for each line. */
+      const depIn = $("dep-" + i), balIn = $("bal-" + i);
+      const setPhase = () => {
+        if (!state.phase) state.phase = {};
+        state.phase[i] = {
+          dep: Math.max(0, parseFloat(depIn.value) || 0),
+          bal: Math.max(0, parseFloat(balIn.value) || 0)
+        };
+        recompute();
+      };
+      if (depIn) depIn.addEventListener("input", setPhase);
+      if (balIn) balIn.addEventListener("input", setPhase);
     });
   }
 
@@ -273,6 +305,349 @@
     const out0 = $("rev-total");
     if (out0) out0.textContent = v0 ? fmtMoney(v0) : "—";
     if (state.revOpen && v0) sync();
+  }
+
+  /* ---------- cash phasing health ----------
+     Reads the deposit and balance fields from the CAPEX lines and
+     computes what share of Year 1 capital has no payment schedule.
+     An unscheduled third of the programme is not an error — it is the
+     number an investment committee will ask about, named here before
+     the appraisal does. */
+  function renderPhasingHealth(tier, total) {
+    const host = $("phasing-health");
+    if (!host) return;
+    if (!total) { host.innerHTML = ""; return; }
+
+    if (!state.phase) state.phase = {};
+    let scheduled = 0;
+    tier.lines.forEach((l, i) => {
+      const p = state.phase[i] || {};
+      scheduled += (p.dep || 0) + (p.bal || 0);
+    });
+    const unscheduled = Math.max(0, total - scheduled);
+    const pct = total > 0 ? (unscheduled / total) * 100 : 0;
+    const pctSch = 100 - pct;
+
+    let cls, msg;
+    if (pct <= 15) {
+      cls = "note ok";
+      msg = `<b>Phasing is tight but manageable</b>${(pct).toFixed(0)}% (${fmtMoney(unscheduled)}) has no phasing date yet.`;
+    } else if (pct <= 35) {
+      cls = "note warn";
+      msg = `<b>${fmtMoney(unscheduled)} unscheduled</b>Certification burns cash on a fixed clock; add a monthly draw schedule for the ${(pct).toFixed(0)}% without payment dates.`;
+    } else {
+      cls = "note warn";
+      msg = `<b>${fmtMoney(unscheduled)} unscheduled — ${(pct).toFixed(0)}% of Year 1 has no date.</b>More than a third of the programme is unphased. This is where programmes stall — a fixed regulatory clock does not pause while the draw schedule is assembled.`;
+    }
+
+    /* Inline the red border for the worst case — .note.warn already
+       shows amber; a deep-red border marks the genuine stop finding. */
+    const warnStyle = pct > 35 ? ' style="border-left-color:var(--jk-red)"' : "";
+
+    host.innerHTML = `
+      <div class="${cls}"${warnStyle}>${msg}</div>
+      <div style="margin:.6rem 0 0">
+        <div style="height:8px;border-radius:4px;overflow:hidden;background:var(--jk-parchment-2);display:flex">
+          <div style="width:${Math.min(pctSch,100).toFixed(1)}%;background:var(--jk-green);transition:width .3s"></div>
+          <div style="flex:1;background:${pct > 35 ? "var(--jk-red)" : "var(--jk-amber-sig)"}"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:var(--fs-xs);color:var(--jk-muted);margin-top:3px">
+          <span>Scheduled: ${fmtMoney(scheduled)} (${pctSch.toFixed(0)}%)</span>
+          <span>Unscheduled: ${fmtMoney(unscheduled)} (${pct.toFixed(0)}%)</span>
+        </div>
+      </div>
+      <p class="muted" style="font-size:var(--fs-xs);margin:.5rem 0 0">Enter deposit and balance amounts on each CAPEX line above to schedule them.</p>`;
+  }
+
+  /* ---------- capital service test ----------
+     The first thing an investment committee asks: can this fleet
+     generate enough revenue to service its capital? Answered here,
+     before the appraisal does it. Editable fleet rows let the operator
+     adjust type, count, rate and hours without leaving the model. */
+  function renderCapitalServiceTest(total, ds) {
+    const host = $("cst-banner");
+    if (!host) return;
+    if (!total) { host.innerHTML = ""; return; }
+
+    if (!state.cst) state.cst = {};
+    if (state.cst.margin === undefined) state.cst.margin = 35;
+    if (state.cst.overhead === undefined) state.cst.overhead = 4000000;
+    if (!Array.isArray(state.cst.fleet)) state.cst.fleet = [];
+
+    const margin = (state.cst.margin || 35) / 100;
+    const overhead = state.cst.overhead || 4000000;
+
+    /* Required annual revenue: enough to recover capital over 10 years
+       at the stated contribution margin, plus debt service, plus the
+       steady-state overhead floor. Named individually so each term is
+       inspectable rather than opaque. */
+    const capitalRecovery = total / 10 / margin;
+    const debtServiceCover = ds / margin;
+    const requiredRevenue = capitalRecovery + debtServiceCover + overhead;
+
+    /* Capacity: sum the fleet rows. Each row is an aircraft type with
+       an editable count, rate and hours. The user sets what the fleet
+       is actually earning, not a default the tool invents. */
+    const fleetRows = state.cst.fleet;
+    const capacityRevenue = fleetRows.reduce((sum, row) => {
+      return sum + (row.count || 0) * (row.rate || 0) * (row.hrs || 0);
+    }, 0);
+
+    const ratio = requiredRevenue > 0 && capacityRevenue > 0 ? capacityRevenue / requiredRevenue : 0;
+    const shortfall = ratio > 0 && ratio < 1 ? (1 / ratio).toFixed(1) : null;
+
+    let ragCls, ragMsg;
+    if (!capacityRevenue) {
+      ragCls = "note";
+      ragMsg = `<b>Add fleet rows below to test capital serviceability.</b>Enter the aircraft types and utilisation rates this venture will earn on.`;
+    } else if (ratio >= 0.8) {
+      ragCls = "note ok";
+      ragMsg = `<b>✓ The fleet can service its capital at projected utilisation</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(requiredRevenue)}/year requirement.`;
+    } else if (ratio >= 0.5) {
+      ragCls = "note warn";
+      ragMsg = `<b>⚠ The fleet is marginal</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers ${(ratio * 100).toFixed(0)}% of ${fmtMoney(requiredRevenue)}/year required. Contracted demand or a lease structure is recommended before committing capital.`;
+    } else {
+      ragCls = "note warn";
+      ragMsg = `<b>✗ The fleet cannot service its capital — ${shortfall ? shortfall + "×" : ""} shortfall</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers only ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(requiredRevenue)}/year requirement. Reduce fleet size, lease rather than own, or secure anchor contracts before proceeding.`;
+    }
+
+    const redBorder = ratio > 0 && ratio < 0.5 ? ' style="border-left-color:var(--jk-red)"' : "";
+
+    const AIRCRAFT_TYPES = [
+      { id: "jet-lr",   label: "Jet (long-range)",   rate: 9000,  hrs: 500 },
+      { id: "jet-sm",   label: "Jet (super-midsize)", rate: 5000,  hrs: 500 },
+      { id: "turboprop",label: "Turboprop",           rate: 1200,  hrs: 600 },
+      { id: "helo",     label: "Helicopter",          rate: 2000,  hrs: 400 }
+    ];
+
+    const fleetHtml = fleetRows.map((row, ri) => {
+      const typOpt = AIRCRAFT_TYPES.map(t =>
+        `<option value="${t.id}"${row.type === t.id ? " selected" : ""}>${escapeHtml(t.label)}</option>`).join("");
+      return `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+        <select data-cst-row="${ri}" data-cst-field="type" style="font-size:var(--fs-xs);flex:1;min-width:140px">${typOpt}</select>
+        <input type="number" data-cst-row="${ri}" data-cst-field="count" min="1" max="50" step="1" value="${row.count || 1}"
+               style="width:56px;font-size:var(--fs-xs)" aria-label="Aircraft count">
+        <span style="font-size:var(--fs-xs);color:var(--jk-muted)">×</span>
+        <input type="number" data-cst-row="${ri}" data-cst-field="rate" min="0" step="100" value="${row.rate || 0}"
+               style="width:90px;font-size:var(--fs-xs)" aria-label="Rate USD per hour">
+        <span style="font-size:var(--fs-xs);color:var(--jk-muted)">/hr ×</span>
+        <input type="number" data-cst-row="${ri}" data-cst-field="hrs" min="0" step="10" value="${row.hrs || 0}"
+               style="width:80px;font-size:var(--fs-xs)" aria-label="Hours per year">
+        <span style="font-size:var(--fs-xs);color:var(--jk-muted)">hrs/yr =</span>
+        <b style="font-size:var(--fs-xs);font-variant-numeric:lining-nums tabular-nums;white-space:nowrap">${fmtMoney((row.count||0)*(row.rate||0)*(row.hrs||0))}</b>
+        <button data-cst-del="${ri}" class="btn btn-ghost btn-sm" style="padding:.2rem .5rem;font-size:var(--fs-xs)">×</button>
+      </div>`;
+    }).join("");
+
+    host.innerHTML = `
+      <div class="${ragCls}"${redBorder}>${ragMsg}</div>
+      <div style="margin-top:.9rem">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;margin-bottom:.5rem">
+          <b style="font-size:var(--fs-sm)">Fleet revenue capacity</b>
+          <button id="cst-add-row" class="btn btn-ghost btn-sm" style="padding:.25rem .7rem;font-size:var(--fs-xs)">+ Add aircraft type</button>
+        </div>
+        <div id="cst-fleet-rows">${fleetHtml}</div>
+        ${!fleetRows.length ? `<p class="muted" style="font-size:var(--fs-xs)">No fleet rows. Click "Add aircraft type" to begin.</p>` : ""}
+        <div style="border-top:1px solid var(--jk-line);margin-top:.6rem;padding-top:.6rem;font-size:var(--fs-sm)">
+          <span>Total fleet capacity: <b class="tnum">${fmtMoney(capacityRevenue)}/yr</b></span>
+          <span style="margin-left:1.2rem">Required: <b class="tnum">${fmtMoney(requiredRevenue)}/yr</b></span>
+        </div>
+        <details style="margin-top:.7rem;font-size:var(--fs-xs)">
+          <summary style="cursor:pointer;color:var(--jk-muted)">Adjust contribution margin and overhead</summary>
+          <div style="margin-top:.6rem;display:flex;gap:1rem;flex-wrap:wrap">
+            <div class="field" style="margin:0;flex:1;min-width:140px">
+              <label style="font-size:var(--fs-xs)">Contribution margin (%)</label>
+              <input type="number" id="cst-margin-in" min="5" max="90" step="1" value="${state.cst.margin || 35}" style="font-size:var(--fs-sm)">
+              <p class="hint" style="font-size:var(--fs-2xs)">Default 35%. Revenue less direct operating costs as a share of revenue.</p>
+            </div>
+            <div class="field" style="margin:0;flex:1;min-width:140px">
+              <label style="font-size:var(--fs-xs)">Steady-state overhead (USD/yr)</label>
+              <input type="number" id="cst-overhead-in" min="0" step="100000" value="${state.cst.overhead || 4000000}" style="font-size:var(--fs-sm)">
+              <p class="hint" style="font-size:var(--fs-2xs)">Default $4M. Year 3 staff, admin and marketing.</p>
+            </div>
+          </div>
+          <p class="hint" style="font-size:var(--fs-2xs);margin-top:.5rem">
+            Required = (capital ÷ 10yr ÷ margin) + (debt service ÷ margin) + overhead.
+            Capital: ${fmtMoney(capitalRecovery)}/yr · Debt service cover: ${fmtMoney(debtServiceCover)}/yr · Overhead: ${fmtMoney(overhead)}/yr
+          </p>
+        </details>
+      </div>`;
+
+    /* Wire fleet row inputs — event delegation on the host */
+    const wireRows = () => {
+      host.querySelectorAll("[data-cst-row]").forEach(el => {
+        el.addEventListener("input", () => {
+          const ri2 = parseInt(el.dataset.cstRow);
+          const field = el.dataset.cstField;
+          if (!state.cst.fleet[ri2]) return;
+          if (field === "type") state.cst.fleet[ri2].type = el.value;
+          else state.cst.fleet[ri2][field] = parseFloat(el.value) || 0;
+          store.save(state);
+          recompute();
+        });
+        el.addEventListener("change", () => {
+          if (el.dataset.cstField === "type") {
+            const ri2 = parseInt(el.dataset.cstRow);
+            if (!state.cst.fleet[ri2]) return;
+            state.cst.fleet[ri2].type = el.value;
+            store.save(state);
+            recompute();
+          }
+        });
+      });
+      host.querySelectorAll("[data-cst-del]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const ri2 = parseInt(btn.dataset.cstDel);
+          state.cst.fleet.splice(ri2, 1);
+          store.save(state);
+          recompute();
+        });
+      });
+    };
+    wireRows();
+
+    const addBtn = $("cst-add-row");
+    if (addBtn) {
+      addBtn.addEventListener("click", () => {
+        const def = AIRCRAFT_TYPES[0];
+        state.cst.fleet.push({ type: def.id, count: 1, rate: def.rate, hrs: def.hrs });
+        store.save(state);
+        recompute();
+      });
+    }
+
+    const marginIn = $("cst-margin-in");
+    if (marginIn) {
+      marginIn.addEventListener("input", () => {
+        state.cst.margin = parseFloat(marginIn.value) || 35;
+        store.save(state);
+        recompute();
+      });
+    }
+    const overheadIn = $("cst-overhead-in");
+    if (overheadIn) {
+      overheadIn.addEventListener("input", () => {
+        state.cst.overhead = parseFloat(overheadIn.value) || 4000000;
+        store.save(state);
+        recompute();
+      });
+    }
+  }
+
+  /* ---------- own vs. lease ----------
+     Compares owning the aircraft fleet against an operating-lease
+     structure. Reads aircraft-category CAPEX lines from the existing
+     CAPEX table — the same values the operator has already entered.
+     The difference in capital released and annual cost difference are
+     the two numbers a transaction committee will circle. */
+  function renderOwnVsLease(total, capex, s, tier, rate, term) {
+    const host = $("ovl-panel");
+    if (!host) return;
+    if (!total) { host.innerHTML = ""; return; }
+
+    /* Sum CAPEX lines whose label contains "Aircraft" or "Helicopter"
+       — these are the acquisition or deposit lines that proxy fleet value
+       in the current CAPEX structure. */
+    let ownCapital = 0;
+    const isRotorSector = tier && (tier.id === "medevac-rw");
+    tier.lines.forEach((l, i) => {
+      if (l.cat !== "capex") return;
+      if (/aircraft|helicopter/i.test(l.k)) {
+        ownCapital += state.capex[i] || 0;
+      }
+    });
+
+    /* Allow user override via a persistent state field. */
+    if (!state.ovl) state.ovl = {};
+    if (state.ovl.ownCapitalOverride !== undefined) {
+      ownCapital = state.ovl.ownCapitalOverride;
+    }
+
+    const hurdleRate = rate || 9;
+    const loanTerm = term || 7;
+    const ownAnnual = annualDebtService(ownCapital, hurdleRate, loanTerm);
+
+    /* Lease rates: 1.00%/month for fixed-wing jets (midpoint of 0.90–1.10%),
+       1.10%/month for rotorcraft (midpoint of 1.00–1.20%). */
+    const leaseMonthly = isRotorSector ? 0.0110 : 0.0100;
+    const leaseDeposit = ownCapital * leaseMonthly * 3;  // 3 months' rent as security
+    const leaseAnnual = ownCapital * leaseMonthly * 12;
+
+    const totalCapOwn = total;
+    const totalCapLease = total - ownCapital + leaseDeposit;
+    const capDiff = ownCapital - leaseDeposit;
+    const annualDiff = ownAnnual - leaseAnnual;
+
+    const bigSaving = capDiff > 20000000;
+    const annualSaving = annualDiff > 0;
+
+    const diffStyle = (highlight, v, positive) => {
+      if (!highlight) return `<td class="num tnum">${fmtMoney(v)}</td>`;
+      const col = positive ? "var(--jk-green)" : "var(--jk-red-dk)";
+      return `<td class="num tnum" style="color:${col};font-weight:700">${fmtMoney(v)}</td>`;
+    };
+
+    host.innerHTML = `
+      <div class="card card-flat">
+        <div class="table-scroll">
+          <table class="dtable">
+            <thead><tr>
+              <th>Item</th>
+              <th class="num">Own</th>
+              <th class="num">Lease</th>
+              <th class="num">Difference</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td>Aircraft capital / deposits</td>
+                <td class="num tnum">${fmtMoney(ownCapital)}</td>
+                <td class="num tnum">${fmtMoney(leaseDeposit)}</td>
+                ${diffStyle(bigSaving, capDiff, true)}
+              </tr>
+              <tr>
+                <td>Other programme capital</td>
+                <td class="num tnum" colspan="3">${fmtMoney(total - ownCapital)} (unchanged)</td>
+              </tr>
+              <tr style="border-top:2px solid var(--jk-line-2)">
+                <td><b>Total programme capital</b></td>
+                <td class="num tnum"><b>${fmtMoney(totalCapOwn)}</b></td>
+                <td class="num tnum"><b>${fmtMoney(totalCapLease)}</b></td>
+                ${diffStyle(bigSaving, totalCapOwn - totalCapLease, true)}
+              </tr>
+              <tr>
+                <td>Annual debt service / lease rental</td>
+                <td class="num tnum">${fmtMoney(ownAnnual)}</td>
+                <td class="num tnum">${fmtMoney(leaseAnnual)}</td>
+                ${diffStyle(annualSaving, annualDiff, annualSaving)}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        ${bigSaving ? `<div class="note ok" style="margin-top:.8rem"><b>Lease releases ${fmtMoney(capDiff)}</b>Moving from own to lease reduces the capital commitment by more than $20M. That is capital available for working capital, growth or covenant headroom.</div>` : ""}
+        ${annualSaving ? `<div class="note ok" style="margin-top:.6rem"><b>Leasing costs ${fmtMoney(annualDiff)}/year less in annual charges</b>${fmtMoney(annualDiff)} of annual cash saved against ownership debt service.</div>` : ""}
+        <div style="margin-top:.9rem;font-size:var(--fs-xs)">
+          <details>
+            <summary style="cursor:pointer;color:var(--jk-muted)">Override aircraft fleet value</summary>
+            <div class="field" style="margin:.6rem 0 0;max-width:300px">
+              <label style="font-size:var(--fs-xs)">Aircraft fleet value to compare (USD)</label>
+              <input type="number" id="ovl-override" min="0" step="100000" value="${ownCapital}"
+                     placeholder="Reads from CAPEX table if blank" style="font-size:var(--fs-sm)">
+              <p class="hint" style="font-size:var(--fs-2xs)">Default is the sum of aircraft CAPEX lines above. Enter a value to override (e.g. full purchase price).</p>
+            </div>
+          </details>
+          <p class="muted" style="margin-top:.5rem">Lease rate ${(leaseMonthly * 100).toFixed(2)}%/month · Security deposit 3 months · Debt service on ${hurdleRate}% over ${loanTerm} years. For ${isRotorSector ? "rotorcraft" : "fixed-wing"}.</p>
+        </div>
+      </div>`;
+
+    const ovlOvr = $("ovl-override");
+    if (ovlOvr) {
+      ovlOvr.addEventListener("input", () => {
+        const v = parseFloat(ovlOvr.value);
+        state.ovl.ownCapitalOverride = isFinite(v) && v >= 0 ? v : undefined;
+        store.save(state);
+        recompute();
+      });
+    }
   }
 
   /* ---------- capital analysis ----------
@@ -523,6 +898,11 @@
       basis: `${tier.note} Lead time to certificate ${s.leadMonths[0]}–${s.leadMonths[1]} months. Figures are the operator's own inputs against indicative planning bands, not quotations.`
     });
     void sev;
+
+    // Cash Phasing Health, Capital Service Test and Own vs. Lease
+    renderPhasingHealth(tier, total);
+    renderCapitalServiceTest(total, ds);
+    renderOwnVsLease(total, capex, s, tier, rate, term);
 
     store.save(state);
   }
