@@ -9,7 +9,6 @@
 
   const $ = id => document.getElementById(id);
   const RAG = { green: "var(--jk-green)", amber: "var(--jk-amber-sig)", red: "var(--jk-red)", idle: "var(--jk-muted)" };
-  const fmtDate = d => d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
   /* ---------- identity fields ---------- */
   JKV.sectors.forEach(s => {

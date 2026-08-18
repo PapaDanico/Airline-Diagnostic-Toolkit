@@ -23,12 +23,18 @@
   const store = toolStore("implementation");
   let state = store.load();
   const $ = id => document.getElementById(id);
-  state.ev = state.ev || {};        // "<gateId>|<index>" -> true
+  state.ev = state.ev || {};        // "<gateId>|<hash of criterion>" -> true
   state.cap = state.cap || {};      // gateId -> capital committed
   state.ws = state.ws || {};        // workstream id -> status
 
   const WS_STATUS = ["Not started", "Under way", "On track", "At risk"];
-  const PHASE_OF = { pre: 0, apply: 1, doc: 2, demo: 3, cert: 4 };
+  /* Gate phases carry this tool's own short names; the schedule is built
+     from JKV.phaseSpine, which uses the Authority's. Mapped by id rather
+     than by position: the first version indexed tl.phases numerically,
+     which was right only for as long as nobody inserted or reordered a
+     phase in the spine. The day someone did, every gate date would have
+     moved one phase to the left without raising anything. */
+  const SPINE_OF = { pre: "pre", apply: "formal", doc: "docs", demo: "demo", cert: "cert" };
 
   /* ---------- venture file ---------- */
   $("vf-sector").innerHTML = JKV.sectors.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
@@ -47,11 +53,40 @@
      is what closes a phase rather than what opens one. */
   function gateDate(g, tl) {
     if (!tl) return null;
-    const p = tl.phases[PHASE_OF[g.phase]];
+    const p = tl.phases.find(x => x.id === SPINE_OF[g.phase]);
     return p ? p.to : null;
   }
 
-  const evidenceDone = g => g.evidence.filter((_, i) => state.ev[`${g.id}|${i}`]).length;
+  /* Evidence ticks are keyed by the criterion, not by its position in the
+     list. Keying by index meant that inserting or reordering a criterion
+     silently moved every tick below it onto a different line, so a saved
+     programme would show evidence in hand against something nobody had
+     confirmed — the one failure a gate register cannot have. Hashing the
+     text also drops a tick when the criterion is reworded, which is the
+     behaviour you want: what was confirmed is no longer what is asked. */
+  const fnv = str => {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+    return (h >>> 0).toString(36);
+  };
+  const evKey = (g, text) => `${g.id}|${fnv(text)}`;
+
+  /* Ticks saved under the old index keys, moved across once. Without this
+     the fix reads to a user as "the tool forgot my progress". */
+  (function migrateEvidenceKeys() {
+    let moved = false;
+    JKI.gates.forEach(g => g.evidence.forEach((text, i) => {
+      const old = `${g.id}|${i}`;
+      if (Object.prototype.hasOwnProperty.call(state.ev, old)) {
+        if (state.ev[old]) state.ev[evKey(g, text)] = true;
+        delete state.ev[old];
+        moved = true;
+      }
+    }));
+    if (moved) store.save(state);
+  })();
+
+  const evidenceDone = g => g.evidence.filter(text => state.ev[evKey(g, text)]).length;
   const gateReady = g => evidenceDone(g) === g.evidence.length;
   const capOf = g => +state.cap[g.id] || 0;
   /* Committed without the evidence that justifies it. The whole point. */
@@ -73,7 +108,7 @@
         </div>
         <div class="muted" style="font-size:.84rem;margin-bottom:.7rem"><b>Releases:</b> ${escapeHtml(g.release)}</div>
         ${g.evidence.map((e, i) => {
-          const k = `${g.id}|${i}`, on = !!state.ev[k];
+          const k = evKey(g, e), on = !!state.ev[k];
           return `<label class="chk${on ? " done" : ""}" data-ev="${k}" style="border:1px solid var(--jk-line);margin-bottom:6px">
               <input type="checkbox" ${on ? "checked" : ""}>
               <span class="chk-t"><b style="font-weight:500">${escapeHtml(e)}</b></span>
@@ -192,7 +227,7 @@
     $("status-qual").textContent = v.q;
 
     const acts = [];
-    if (current) current.evidence.filter((_, i) => !state.ev[`${current.id}|${i}`])
+    if (current) current.evidence.filter(text => !state.ev[evKey(current, text)])
       .forEach(e => acts.push([current.n.split(" — ")[0], e]));
     wsRisk.forEach(w => acts.push(["At risk", `${w.n} — ${w.owner} to report at the next ${w.cadence.toLowerCase()} review`]));
     wsIdle.filter(w => w.lead).forEach(w => acts.push(["Critical path", `${w.n} has not started, and it cannot be compressed later`]));
@@ -231,7 +266,7 @@
       d: `${a.wsRisk.map(w => `${w.n} (${w.owner})`).join("; ")}. Each needs a recovery position at the next review, not a status update.` });
 
     if (a.current) f.push({ sev: "note", h: `Current gate: ${a.current.n}`,
-      d: `${a.current.evidence.filter((_, i) => !state.ev[`${a.current.id}|${i}`]).slice(0, 3).join("; ")}${a.current.evidence.length - evidenceDone(a.current) > 3 ? "; and more" : ""}. Releases ${a.current.release.toLowerCase()}.` });
+      d: `${a.current.evidence.filter(text => !state.ev[evKey(a.current, text)]).slice(0, 3).join("; ")}${a.current.evidence.length - evidenceDone(a.current) > 3 ? "; and more" : ""}. Releases ${a.current.release.toLowerCase()}.` });
 
     if (!f.some(x => x.sev === "stop" || x.sev === "warn"))
       f.unshift({ sev: "ok", h: a.current ? `On plan at ${a.pct}% of evidence assembled` : "Every gate cleared",
