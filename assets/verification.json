@@ -35,9 +35,9 @@
     },
     {
       "suite": "drive",
-      "headline": "34 pages driven as a user would, 1240 interactions, no console errors",
+      "headline": "34 pages driven as a user would, over 1,000 interactions, no console errors",
       "runs": 34,
-      "interactions": 1240
+      "interactions": 1000
     }
   ]
 }
