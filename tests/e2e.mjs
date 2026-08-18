@@ -2484,6 +2484,88 @@ await page.click("#mro-reset"); await page.waitForTimeout(200);
 assert(await page.$eval("#mro-index", e => e.textContent.trim()) === "—", "index resets to — after clearing answers");
 assert(await page.$$eval(".mro-q select", sels => sels.every(s => s.value === "")), "all selects cleared after reset");
 
+/* ─── 23b. The two tools added with the acquisition work ───
+
+   Both shipped with no assertions at all, and one of them shipped
+   broken: the planner called fmtDate, which was a const private to the
+   venture dashboard's IIFE rather than a shared helper, so every gate
+   date threw. Nothing caught it because the throw needs a target date
+   to be set, and no suite set one — drive.mjs loads each page in its
+   default state, where the timeline is deliberately absent.
+
+   So these assertions deliberately exercise the interaction rather than
+   the load: set a date, commit capital, and read what comes back. */
+section("Implementation & Programme Planner");
+await page.evaluate(() => {
+  localStorage.removeItem("jk_implementation_v3");
+  localStorage.removeItem("jk_venture_file_v3");
+});
+await page.goto(base + "/tools/implementation-planner.html"); await page.waitForTimeout(300);
+assert(await page.$$eval("#gates .chk", e => e.length) === 20, "renders 20 evidence criteria across the gates");
+assert(/set a target date/.test(await page.$eval("#gates", e => e.textContent)),
+  "gates read 'set a target date' before one is given");
+
+/* The exact path that threw in production. */
+await page.fill("#vf-target", "2028-06-01");
+await page.dispatchEvent("#vf-target", "input");
+await page.waitForTimeout(400);
+{
+  const dated = await page.$eval("#gates", e => e.textContent);
+  assert(!/set a target date/.test(dated), "every gate takes a date once the target is set");
+  assert(/\d{1,2}\s\w{3}\s20\d\d/.test(dated), "and the date is formatted, not a raw Date or NaN");
+}
+
+/* Capital at risk — the one figure this tool exists for. */
+await page.fill("#cap-g3", "12355000");
+await page.dispatchEvent("#cap-g3", "input");
+await page.waitForTimeout(300);
+assert(/12\.4M|12,355,000/.test(await page.$eval("#prog-kpis", e => e.textContent)),
+  "capital committed against an unevidenced gate is reported as at risk");
+assert(/ahead of its evidence/i.test(await page.$eval("#status-band", e => e.textContent)),
+  "and the verdict leads on it rather than on the schedule");
+
+section("AOC Acquisition Analyser");
+await page.evaluate(() => localStorage.removeItem("jk_tool_acquisition"));
+await page.goto(base + "/tools/aoc-acquisition.html"); await page.waitForTimeout(300);
+assert(await page.$$eval("#route-seg .seg", e => e.length) === 2, "offers both deal structures");
+{
+  /* An asset purchase does not acquire the certificate, and the tool
+     must refuse to evaluate it on price. */
+  await page.click('[data-route="asset"]'); await page.waitForTimeout(300);
+  assert(/No certificate/i.test(await page.$eval("#verdict-head", e => e.textContent)),
+    "an asset purchase is reported as acquiring no certificate");
+  assert(/n\/a/i.test(await page.$eval("#deal-kpis", e => e.textContent)),
+    "and no certificate premium is priced against it");
+  await page.click('[data-route="share"]'); await page.waitForTimeout(300);
+}
+{
+  /* The premium is the tool's central number: price less net tangible. */
+  await page.fill("#a-price", "4387206");
+  await page.fill("#a-owned", "3787206");
+  await page.fill("#a-cash", "0"); await page.fill("#a-debt", "0"); await page.fill("#a-lease", "0");
+  await page.waitForTimeout(300);
+  assert(/USD 600K/.test(await page.$eval("#premium-table", e => e.textContent)),
+    "certificate premium computes to price less net tangible assets");
+}
+{
+  /* Below net tangible assets there is no premium, and the figure must
+     not be presented as one. The prose note always handled this; the
+     KPI tile and the printed summary did not, and they are the two
+     places a reader meets the number without the explanation. */
+  await page.fill("#a-price", "0");
+  await page.fill("#a-owned", "40000000");
+  await page.fill("#a-cash", "5000000");
+  await page.waitForTimeout(300);
+  assert(!/-\s*USD|USD\s*-/.test(await page.$eval("#deal-kpis", e => e.textContent)),
+    "a negative premium is never shown as a negative figure in the KPI tiles");
+  assert(/None/.test(await page.$eval("#deal-kpis", e => e.textContent)),
+    "the premium tile reads None when the price is below net tangible assets");
+  assert(/Discount to net tangible assets/.test(await page.$eval("#premium-table", e => e.textContent)),
+    "and the build-up names it a discount rather than a negative premium");
+  assert(/below net tangible assets/.test(await page.$eval(".print-summary", e => e.textContent)),
+    "the printed summary says so too, since the pack is read away from the note");
+}
+
 /* ─── 24. Content-Security-Policy ─── */
 section("Content-Security-Policy");
 {

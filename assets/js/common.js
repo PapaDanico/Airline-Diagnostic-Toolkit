@@ -819,6 +819,24 @@ function escapeHtml(s) {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+/* ---- date formatting ----
+
+   Shared because it was not, and that shipped a broken tool. The
+   venture dashboard defined fmtDate as a const inside its own IIFE;
+   the implementation planner called fmtDate assuming it was a platform
+   helper like fmtMoney beside it. It is not, so every gate date and
+   every timeline verdict on that page threw the moment a target date
+   was set — reachable only through an interaction no suite performed,
+   which is why it reached production.
+
+   One definition, next to the other formatters, where a page script
+   looking for one will find it. */
+function fmtDate(d) {
+  const date = d instanceof Date ? d : new Date(d);
+  if (!(date instanceof Date) || isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
 /* ---- money formatting ----
    Compact for headline figures (USD 8.4M), grouped for tables.
    Always explicit about the unit — an unlabelled number in a capital
@@ -1154,7 +1172,7 @@ if (typeof window !== "undefined") {
        right and the list was three short, which is exactly the
        drift a derived figure cannot have. */
     TOOL_MENU,
-    toolStore, fmtMoney, fmtNum, fmtRatio, clampNum, escapeHtml, mountReveal,
+    toolStore, fmtMoney, fmtNum, fmtRatio, fmtDate, clampNum, escapeHtml, mountReveal,
     citeChip, citeChips, mountPrintHead, toolMailto, wireDisclosure,
     annualDebtService, lookThrough });
 }

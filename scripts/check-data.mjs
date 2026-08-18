@@ -23,6 +23,7 @@ const JK  = load("data.js", "JK");
 const JKV = load("data-ventures.js", "JKV");
 const JKG = load("data-glossary.js", "JKG");
 const JKA = load("data-acquisition.js", "JKA");
+const JKI = load("data-implementation.js", "JKI");
 
 let failures = 0;
 const fail = (m) => { console.error("FAIL: " + m); failures++; process.exitCode = 1; };
@@ -391,6 +392,72 @@ for (const c of (JKG.cats || [])) {
     if (!cite(k)) fail(`acquisition: cites unknown citation key "${k}"`);
 }
 
+/* ---------- implementation programme ----------
+
+   This file shipped with no validation at all, which is how the planner
+   came to depend on JKV.phaseSpine's ordering without anything saying so.
+   The guards below assert the couplings that are real: gate phases must
+   name phases that exist, and evidence criteria must be unique inside a
+   gate because a saved tick is now keyed by the criterion's text. */
+{
+  if (!Array.isArray(JKI.gates) || JKI.gates.length < 3)
+    fail("implementation: fewer than three gates — a stage-gate model with two gates is a milestone list");
+
+  const SPINE = new Set(JKV.phaseSpine.map((p) => p.id));
+  /* The planner maps each gate onto a phase of the certification spine to
+     date it. A phase name that does not exist there yields no date, and
+     the gate silently loses its deadline. */
+  const PHASE_ALIAS = { pre: "pre", apply: "formal", doc: "docs", demo: "demo", cert: "cert" };
+  const seenGate = new Set();
+  for (const g of JKI.gates) {
+    if (seenGate.has(g.id)) fail(`implementation: duplicate gate id "${g.id}"`);
+    seenGate.add(g.id);
+    if (!g.n) fail(`implementation: gate "${g.id}" has no name`);
+    if (!g.release) fail(`implementation: gate "${g.id}" does not say what it releases — a gate that authorises nothing is not a gate`);
+    if (!g.fail) fail(`implementation: gate "${g.id}" has no failure path`);
+    if (!Array.isArray(g.evidence) || !g.evidence.length)
+      fail(`implementation: gate "${g.id}" has no evidence criteria`);
+    else {
+      const seenEv = new Set();
+      for (const e of g.evidence) {
+        /* Ticks are stored against a hash of this text, so two identical
+           criteria in one gate would share one tick and the gate would
+           report itself complete an item early. */
+        if (seenEv.has(e)) fail(`implementation: gate "${g.id}" repeats the evidence criterion "${e}" — ticks are keyed by the criterion, so the two would share one`);
+        seenEv.add(e);
+      }
+    }
+    const spineId = PHASE_ALIAS[g.phase];
+    if (!spineId) fail(`implementation: gate "${g.id}" sits in unknown phase "${g.phase}"`);
+    else if (!SPINE.has(spineId))
+      fail(`implementation: gate "${g.id}" maps to spine phase "${spineId}", which JKV.phaseSpine does not define — the gate would render without a date`);
+  }
+
+  if (!Array.isArray(JKI.workstreams) || !JKI.workstreams.length) fail("implementation: no workstreams");
+  else {
+    const seenWs = new Set();
+    for (const w of JKI.workstreams) {
+      if (seenWs.has(w.id)) fail(`implementation: duplicate workstream id "${w.id}"`);
+      seenWs.add(w.id);
+      for (const k of ["n", "owner", "cadence", "d"])
+        if (!w[k]) fail(`implementation: workstream "${w.id}" is missing ${k}`);
+    }
+    /* Without a lead workstream the planner has nothing to put on the
+       critical path, and every stream reads as equally urgent. */
+    if (!JKI.workstreams.some((w) => w.lead))
+      fail("implementation: no workstream marked lead — nothing would sit on the critical path");
+  }
+
+  for (const i of JKI.indicators || [])
+    for (const k of ["k", "freq", "predicts", "trigger"])
+      if (!i[k]) fail(`implementation: indicator "${i.k || "(unnamed)"}" is missing ${k} — an indicator with no trigger is a statistic`);
+  if (!(JKI.indicators || []).length) fail("implementation: no leading indicators");
+
+  for (const c of JKI.contingencies || [])
+    if (!c.when || !c.then) fail(`implementation: contingency "${c.when || "(unnamed)"}" has no response`);
+  if (!(JKI.contingencies || []).length) fail("implementation: no contingencies");
+}
+
 /* ---------- report ---------- */
 if (!failures) {
   const totalItems = JKV.sectors.reduce((n, s) => n + JKV.totalItems(s), 0);
@@ -400,6 +467,7 @@ if (!failures) {
               `${Object.keys(JKV.cites).length} citations`);
   console.log(`         glossary: ${JKG.terms.length} terms across ${JKG.cats.length} categories, all cross-references resolve`);
   console.log(`         acquisition: ${JKA.remediation.length + JKA.dealCosts.length} cost lines, ${JKA.gates.length} regulatory gates, ${JKA.redFlags.length} diligence findings`);
+  console.log(`         implementation: ${JKI.gates.length} gates, ${JKI.gates.reduce((n, g) => n + g.evidence.length, 0)} evidence criteria, ${JKI.workstreams.length} workstreams, ${JKI.indicators.length} leading indicators`);
   if (unconfirmed.length) {
     console.log(`         note: ${unconfirmed.length} citation(s) flagged unconfirmed and rendered with a "?" chip: ${unconfirmed.join(", ")}`);
   }

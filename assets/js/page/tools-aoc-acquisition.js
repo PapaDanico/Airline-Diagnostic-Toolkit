@@ -275,7 +275,12 @@
       ["Less lease liability", "(" + fmtMoney(lease) + ")"],
       ["Net tangible acquired", fmtMoney(netTangible)],
       ["Equity purchase price", fmtMoney(price)],
-      ["Premium for the certificate", fmtMoney(premium)]
+      /* A negative premium is a discount to net tangible assets, and
+         calling it a premium of minus forty-five million reads as an
+         error to anyone scanning the table. Name what it actually is. */
+      premium < 0
+        ? ["Discount to net tangible assets", fmtMoney(-premium)]
+        : ["Premium for the certificate", fmtMoney(premium)]
     ].map(([k, v], i) => {
       const strong = i >= 4;
       return `<span${strong ? ' style="font-weight:700"' : ""}>${k}</span>` +
@@ -298,7 +303,12 @@
     $("deal-kpis").innerHTML = [
       ["All-in cost", fmtMoney(allIn), allIn > gf.hi ? "is-red" : allIn > gfMid ? "is-amber" : "is-green"],
       ["Greenfield equivalent", `${fmtMoney(gf.lo)}–${fmtMoney(gf.hi)}`, ""],
-      ["Certificate premium", r.keepsAoc ? fmtMoney(premium) : "n/a", r.keepsAoc && premium > certGf.hi ? "is-amber" : ""],
+      /* The tile carries no prose, and the note explaining a negative
+         premium sits several sections below it. So the tile has to be
+         self-explanatory on its own: "none" and the discount named. */
+      r.keepsAoc && premium < 0
+        ? ["Certificate premium", "None", ""]
+        : ["Certificate premium", r.keepsAoc ? fmtMoney(premium) : "n/a", r.keepsAoc && premium > certGf.hi ? "is-amber" : ""],
       ["Months saved", r.keepsAoc ? (saved ? `${saved}+` : "None") : "None",
         !r.keepsAoc ? "is-red" : saved >= 6 ? "is-green" : saved ? "is-amber" : "is-red"]
     ].map(([l, v, c]) => `<div class="kpi ${c}"><div class="kv tnum">${v}</div><div class="kl">${l}</div></div>`).join("");
@@ -420,7 +430,11 @@
       title: `AOC acquisition — ${fmtMoney(a.price)} equity price, ${a.r.name.toLowerCase()}`,
       verdict: !a.r.keepsAoc
         ? `The structure as drawn does not acquire the operating certificate`
-        : `All-in ${fmtMoney(a.allIn)} against a greenfield range of ${fmtMoney(a.gf.lo)}–${fmtMoney(a.gf.hi)}, arriving about ${a.saved} months sooner, with a certificate premium of ${fmtMoney(a.premium)} over net tangible assets.`,
+        /* The pack is read away from the screen, so the summary cannot
+           lean on a note the reader has to scroll back to. */
+        : `All-in ${fmtMoney(a.allIn)} against a greenfield range of ${fmtMoney(a.gf.lo)}–${fmtMoney(a.gf.hi)}, arriving about ${a.saved} months sooner, ${a.premium < 0
+            ? `at ${fmtMoney(-a.premium)} below net tangible assets — the certificate carries no premium at this price.`
+            : `with a certificate premium of ${fmtMoney(a.premium)} over net tangible assets.`}`,
       findings: f,
       basis: `Buy-or-build compares all-in acquisition cost against this site's published greenfield capital bands for a ${tier().label.toLowerCase()} operation, and against the ${SECTOR.leadMonths[0]}–${SECTOR.leadMonths[1]} month certification lead. Time saved is measured against the fast end of that lead, not the slow end. Regulatory gates run concurrently, so the longest governs. Bands are JK planning figures, not quotations, and this is not a valuation: no comparable-transaction data sits behind any figure here.`
     });
