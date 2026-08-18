@@ -36,9 +36,9 @@ window.JK_VERIFICATION = {
     },
     {
       "suite": "drive",
-      "headline": "32 pages driven as a user would, 206 interactions, no console errors",
-      "runs": 32,
-      "interactions": 206
+      "headline": "34 pages driven as a user would, 278 interactions, no console errors",
+      "runs": 34,
+      "interactions": 278
     }
   ]
 };
