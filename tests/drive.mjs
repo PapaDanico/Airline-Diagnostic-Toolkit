@@ -294,8 +294,30 @@ if (problems.length) {
    first re-render threw and were swallowed, and a floor that low could
    not tell the difference. */
 const tooLittle = driven < 30 || interactions < 900;
-record('drive', { passed: !tooLittle, runs: driven, interactions,
-  headline: `${driven} pages driven as a user would, ${interactions} interactions, no console errors` });
+
+/* Published coarse, deliberately.
+
+   The count used to be deterministic because it counted the controls
+   the page *had*: nums.length + sels.length + ... . It now counts the
+   actions that actually landed, which is the honest number and a racy
+   one — an action can miss its 400ms window, and a control revealed in
+   round one can appear a beat later in one run than another. Two runs
+   of the same commit came out at 1,239 and 1,241 here, and CI produced
+   a third figure.
+
+   verification.json exists to be exact: the collector fails the build
+   when the committed file and the run disagree, which is the whole
+   point of it. A published figure that drifts by a few counts a run
+   turns that guarantee into a coin toss — this went green on the pull
+   request and red on main, from the same commit.
+
+   So the published figure is floored to the nearest 250 and worded as a
+   floor. It stays stable across the noise, and it still collapses if
+   the sweep does — and the hard gate above, which fails outright below
+   900, is the real tripwire either way. */
+const publishedInteractions = Math.floor(interactions / 250) * 250;
+record('drive', { passed: !tooLittle, runs: driven, interactions: publishedInteractions,
+  headline: `${driven} pages driven as a user would, over ${publishedInteractions.toLocaleString('en-GB')} interactions, no console errors` });
 if (tooLittle) {
   console.log(`❌  too little was actually driven (${driven} runs, ${interactions} interactions) — the sweep is not proving anything`);
   process.exit(1);
