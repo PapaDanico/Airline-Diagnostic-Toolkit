@@ -93,6 +93,14 @@
 
   /* ---------- remediation & transaction cost ---------- */
   const COST_LINES = () => JKA.remediation.concat(JKA.dealCosts);
+  /* One definition of a line's value, used by the slider and by the
+     total alike. They previously disagreed: the slider fell back to the
+     band mid-point for a line the saved state had never seen, while the
+     total fell back to zero. A cost line added to the data model after
+     a visitor last saved would therefore show 57,500 on screen and
+     contribute nothing to the figure underneath it — a money total
+     quietly short by the amount displayed above it. */
+  const valueOf = (l) => state.remed[l.id] ?? Math.round((l.lo + l.hi) / 2);
 
   function seedRemed() {
     state.remed = {};
@@ -102,7 +110,7 @@
 
   function renderRemediation() {
     $("remediation-lines").innerHTML = COST_LINES().map(l => {
-      const v = state.remed[l.id] ?? Math.round((l.lo + l.hi) / 2);
+      const v = valueOf(l);
       return `
       <div class="field" style="margin-bottom:16px">
         <label for="rm-${l.id}" style="display:flex;justify-content:space-between;gap:1rem;align-items:baseline">
@@ -234,7 +242,7 @@
     const price = num("a-price"), owned = num("a-owned"), cash = num("a-cash");
     const debt = num("a-debt"), lease = num("a-lease");
 
-    const remedTotal = COST_LINES().reduce((a, l) => a + (state.remed[l.id] || 0), 0);
+    const remedTotal = COST_LINES().reduce((a, l) => a + valueOf(l), 0);
     $("remed-total").textContent = fmtMoney(remedTotal);
 
     const allIn       = price + remedTotal;
