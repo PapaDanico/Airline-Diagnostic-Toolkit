@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Buy an existing AOC or certify a new one? Value the certificate premium, structure the deal so the certificate survives it, sequence the regulatory gates and price the remediation. Free and private.">
+<link rel="canonical" href="https://jkassociates.enterprises/tools/aoc-acquisition.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JK &amp; Associates">
+<meta property="og:title" content="AOC Acquisition Analyser — JK &amp; Associates">
+<meta property="og:description" content="Buy or build? Value the certificate premium, structure the deal, sequence the regulatory gates.">
+<meta property="og:url" content="https://jkassociates.enterprises/tools/aoc-acquisition.html">
+<meta property="og:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AOC Acquisition Analyser — JK &amp; Associates">
+<meta name="twitter:description" content="What a certificate is really worth, and what the deal has to look like to keep it.">
+<meta name="twitter:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<title>AOC Acquisition Analyser | JK &amp; Associates</title>
+<link rel="icon" type="image/png" href="../assets/img/jk-badge.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#16100D">
+<link rel="apple-touch-icon" href="../assets/img/jk-badge.png">
+<link rel="preload" href="../assets/fonts/cormorant-garamond-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/dm-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="../assets/css/jk.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<form name="tool-enquiry" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text" name="bot-field"><input type="hidden" name="tool">
+  <input type="text" name="name"><input type="email" name="email">
+  <input type="text" name="airline"><input type="text" name="concern">
+</form>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner>
+      <span data-logo></span>
+      <span>JK &amp; Associates<small>AOC Acquisition</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="nav-links"></div>
+  </div>
+</nav>
+
+<main id="main">
+
+<header class="tool-head">
+  <div class="wrap">
+    <p class="ref">Tool V3 · Free</p>
+    <h1>AOC Acquisition Analyser</h1>
+    <p class="lead">An Air Operator Certificate cannot be bought. It is issued to a named company against a named organisation, and it does not travel with a fleet or a customer list — so what is actually for sale is the company, and everything else that company is. This values the certificate premium, tests whether the deal structure keeps the certificate at all, sequences the gates with the Authority, and prices what it costs to make an acquired certificate usable.</p>
+  </div>
+</header>
+
+<section style="padding-top:40px">
+  <div class="wrap">
+    <p class="eyebrow">Step 1</p>
+    <h2 style="margin-bottom:.4rem">How is the deal structured?</h2>
+    <p class="muted" style="max-width:720px">This is the first question, not a legal detail to settle later. One of these keeps the certificate and one destroys it.</p>
+    <div class="segmented" id="route-seg" style="margin-top:1.2rem" role="group" aria-label="Deal structure"></div>
+    <div id="route-note" style="margin-top:1.1rem"></div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="calc">
+      <div>
+        <p class="eyebrow">Step 2</p>
+        <h2 style="margin-bottom:.4rem">What is on the table?</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:640px">The headline price and the balance sheet behind it. Everything else on this page is derived from these.</p>
+        <div class="card" style="margin-top:1.2rem">
+          <div class="field">
+            <label for="a-tier">Comparable operation, if you certified it yourself</label>
+            <select id="a-tier"></select>
+            <div class="hint">What you would have to build from scratch to replace this target. Sets the buy-or-build comparator and the cost of earning a certificate rather than buying one.</div>
+          </div>
+          <div class="field">
+            <label for="a-price">Equity purchase price (USD)</label>
+            <input type="number" id="a-price" min="0" step="50000" value="2500000">
+            <div class="hint">What the shares cost. Excludes debt you assume by acquiring the company.</div>
+          </div>
+          <div class="field">
+            <label for="a-owned">Owned aircraft, spares and ground equipment (USD)</label>
+            <input type="number" id="a-owned" min="0" step="50000" value="1800000">
+            <div class="hint">Market value of assets the company owns outright, not the ones it leases.</div>
+          </div>
+          <div class="field">
+            <label for="a-cash">Cash and collectable receivables (USD)</label>
+            <input type="number" id="a-cash" min="0" step="10000" value="150000">
+          </div>
+          <div class="field">
+            <label for="a-debt">Debt assumed (USD)</label>
+            <input type="number" id="a-debt" min="0" step="50000" value="600000">
+            <div class="hint">Borrowings that stay with the company. In a share purchase you acquire these whether you fund them or not.</div>
+          </div>
+          <div class="field">
+            <label for="a-lease">Reported lease liability (USD)</label>
+            <input type="number" id="a-lease" min="0" step="50000" value="900000">
+            <div class="hint" id="a-lease-hint">If the accounts are IFRS 16, the leased fleet is already on the balance sheet here — do not also apply a rent multiple.</div>
+          </div>
+        </div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 3</p>
+        <h2 style="margin-bottom:.4rem">What it costs to make it usable</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:640px">None of this is on the seller's balance sheet. All of it is funded by the buyer in year one.</p>
+        <div class="card" style="margin-top:1.2rem">
+          <div id="remediation-lines"></div>
+          <div class="flex between items-center" style="margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--jk-line)">
+            <span class="muted" style="font-size:var(--fs-sm)">Remediation and transaction costs</span>
+            <b class="tnum" id="remed-total" style="font-size:var(--fs-lg);font-family:var(--serif)">&mdash;</b>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="reset-remed" style="margin-top:.9rem">Reset to planning mid-points</button>
+        </div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 4</p>
+        <h2 style="margin-bottom:.4rem">What diligence found</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:640px">Tick what is true of the target. Four of these are reasons to renegotiate or walk rather than reasons to adjust the price.</p>
+        <div id="redflags" style="margin-top:1.2rem"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 5</p>
+        <h2 style="margin-bottom:.4rem">Ownership after completion</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:640px">An air service licence carries an ownership-and-control test that a share purchase can quietly break. Set the cap table as it will stand on the day after closing.</p>
+        <div class="card" style="margin-top:1.2rem">
+          <div id="holders"></div>
+          <button class="btn btn-ghost btn-sm" id="add-holder" style="margin-top:.6rem">Add a shareholder</button>
+          <div id="control-note" style="margin-top:1.1rem"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="result-panel">
+          <p class="eyebrow" style="color:var(--jk-amber)">Buy or build</p>
+          <div class="rng" id="verdict-head">&mdash;</div>
+          <p id="verdict-band" style="font-weight:700;margin:.2rem 0 .6rem">Enter the deal to compare it against certifying from scratch.</p>
+          <p class="qual" id="verdict-qual"></p>
+          <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
+          <div class="kpis" id="deal-kpis"></div>
+        </div>
+
+        <div class="result-panel" style="margin-top:1rem">
+          <p class="eyebrow" style="color:var(--jk-amber)">What you are paying for the certificate</p>
+          <div id="premium-table" style="display:grid;grid-template-columns:1fr auto;gap:.35rem .9rem;font-size:var(--fs-sm);margin:0 0 .9rem"></div>
+          <p class="qual" id="premium-note" style="margin:0"></p>
+        </div>
+
+        <div class="card card-flat" style="margin-top:1rem">
+          <p class="eyebrow">Gates with the Authority</p>
+          <p class="muted" style="font-size:var(--fs-sm);margin:0 0 .9rem">These run concurrently, so the elapsed time is the longest of them, not the sum. The notifications are requirements; the elapsed bands are JK planning figures.</p>
+          <div id="gate-list"></div>
+        </div>
+
+        <div class="tool-actions">
+          <button class="btn btn-amber" id="print">Print / save as PDF</button>
+          <button class="btn btn-ghost" id="reset">Reset</button>
+        </div>
+
+        <div class="guarantee" style="margin-top:1.4rem">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <div>
+            <strong>Have JK run the diligence.</strong>
+            <p style="margin:.4rem 0 .8rem;font-size:var(--fs-sm)">Technical and regulatory due diligence on a target certificate: finding register, records position, Ops Specs against the fleet, postholder standing and the change-of-control pathway. The stream buyers skip and then fund twice.</p>
+            <form id="acq-enquiry" class="grid g2" style="gap:10px">
+              <input type="hidden" name="tool" value="AOC Acquisition Analyser">
+              <input name="name" placeholder="Name" required>
+              <input name="airline" placeholder="Airline / Organisation">
+              <input name="email" type="email" placeholder="Work email" required>
+              <select name="concern">
+                <option value="">Primary concern</option>
+                <option>Cost reduction</option><option>Safety / Regulatory</option>
+                <option>Revenue growth</option><option>AOC startup</option><option>Strategy</option>
+              </select>
+              <button type="submit" class="btn btn-amber" style="grid-column:1/-1">Talk to JK about this target &rarr;</button>
+              <p class="enq-msg" style="font-size:var(--fs-sm);margin-top:.6rem;grid-column:1/-1"></p>
+            </form>
+            <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain>info@aviationhubkenya.org</span></p>
+          </div>
+        </div>
+
+        <p class="disclaimer" style="margin-top:1rem">Structural and commercial orientation only — not legal, tax, accounting or regulatory advice, and not a valuation. Bands are JK planning figures for a small East African commercial operator, not quotations. Thresholds and regulations change: confirm the current position with counsel and the Authority before committing to a transaction. Nothing you enter leaves this browser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> JK &amp; Associates · <a data-email>info@aviationhubkenya.org</a></span>
+    <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../methodology.html">Methodology</a> · <span data-version>v3.4 — Scheduled, Business Aviation &amp; Aeromedical</span></span>
+  </div></div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/data-ventures.js"></script>
+<script src="../assets/js/data-acquisition.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/page/tools-aoc-acquisition.js"></script>
+</body>
+</html>

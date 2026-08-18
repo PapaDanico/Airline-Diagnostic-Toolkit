@@ -1336,6 +1336,37 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
      print blank. */
   .has-reveal .will-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   .card, .entity, .pgate { box-shadow: none !important; }
+
+  /* ---- pagination ----
+
+     A printed pack is a paginated document, and the defects that make
+     one look unfinished are all pagination defects rather than styling
+     ones: a table whose header sits on the page before its rows, a
+     heading stranded at the foot of a page, a single line of a
+     paragraph carried over alone, a column clipped at the page edge.
+
+     thead as a header-group is the one that matters most. Without it a
+     table spanning a page break loses its column headings entirely,
+     and the reader is left with a grid of unlabelled numbers — which
+     is precisely the moment a client stops trusting the document. */
+  @page { size: A4; margin: 14mm; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  tr { break-inside: avoid; page-break-inside: avoid; }
+  h3, h4, caption, .eyebrow { break-after: avoid; page-break-after: avoid; }
+  p, li { orphans: 3; widows: 3; }
+  /* A trailing disclaimer is not worth a page of its own. Pulled back
+     onto the page it qualifies, where a reader will actually see it. */
+  .disclaimer, .cta-alt { break-before: avoid; page-break-before: avoid; }
+  /* Tables are laid out to the page rather than to a minimum width: a
+     min-width set for comfortable on-screen scrolling becomes a clipped
+     column on paper, because paper cannot scroll. */
+  /* auto layout, not fixed: fixed distributes columns equally and
+     squeezes a narrow one until its words break mid-syllable
+     ("Optimisti / c"). Auto sizes to content and still fits the page
+     once the screen min-width is lifted. */
+  table { min-width: 0 !important; width: 100%; table-layout: auto; overflow-wrap: break-word; }
+  .table-scroll, .scroll { overflow: visible !important; break-inside: auto; }
 }
 
 /* ============================================================

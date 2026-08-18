@@ -2,6 +2,8 @@
 /certify                /tools/certification-navigator.html 301
 /venture                /tools/venture-builder.html        301
 /structure              /tools/corporate-structure.html    301
+/acquire                /tools/aoc-acquisition.html        301
+/implement              /tools/implementation-planner.html 301
 /org                    /tools/organogram-planner.html     301
 /scorecard              /diagnostic.html                   301
 /results                /results.html                      301
@@ -16,6 +18,8 @@
 /tools/certification-navigator /tools/certification-navigator.html 200
 /tools/venture-builder  /tools/venture-builder.html        200
 /tools/corporate-structure /tools/corporate-structure.html 200
+/tools/aoc-acquisition  /tools/aoc-acquisition.html      200
+/tools/implementation-planner /tools/implementation-planner.html 200
 /tools/organogram-planner /tools/organogram-planner.html   200
 /tools/cask-calculator  /tools/cask-calculator.html        200
 /tools/route-economics  /tools/route-economics.html        200

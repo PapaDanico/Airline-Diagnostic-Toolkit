@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Run an aviation certification programme by gate rather than by date. Stage gates with evidence criteria, capital-at-risk tracking, six concurrent workstreams, leading indicators and pre-agreed contingencies. Free, private, on your device.">
+<link rel="canonical" href="https://jkassociates.enterprises/tools/implementation-planner.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JK &amp; Associates">
+<meta property="og:title" content="Implementation &amp; Programme Planner — JK &amp; Associates">
+<meta property="og:description" content="Manage a certification programme by gate, not by date. Stage gates, capital at risk, workstreams and leading indicators.">
+<meta property="og:url" content="https://jkassociates.enterprises/tools/implementation-planner.html">
+<meta property="og:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Implementation &amp; Programme Planner — JK &amp; Associates">
+<meta name="twitter:description" content="The milestones belong to the Authority. Plan against the gates.">
+<meta name="twitter:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<title>Implementation &amp; Programme Planner | JK &amp; Associates</title>
+<link rel="icon" type="image/png" href="../assets/img/jk-badge.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#16100D">
+<link rel="apple-touch-icon" href="../assets/img/jk-badge.png">
+<link rel="preload" href="../assets/fonts/cormorant-garamond-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/dm-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="../assets/css/jk.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<form name="tool-enquiry" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text" name="bot-field"><input type="hidden" name="tool">
+  <input type="text" name="name"><input type="email" name="email">
+  <input type="text" name="airline"><input type="text" name="concern">
+</form>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner>
+      <span data-logo></span>
+      <span>JK &amp; Associates<small>Implementation Planner</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="nav-links"></div>
+  </div>
+</nav>
+
+<main id="main">
+
+<header class="tool-head">
+  <div class="wrap">
+    <p class="ref">Tool V3 · Free</p>
+    <h1>Implementation &amp; Programme Planner</h1>
+    <p class="lead">Certification programmes do not fail on cost. They fail on sequencing — capital committed against a scope the Authority has not yet accepted, and a plan that reports green until the week a gate does not open. The milestones here belong to the regulator, not to you, so this plans against gate criteria rather than dates: what must be true before the next gate opens, what capital each one releases, and which indicator tells you weeks early that it will not.</p>
+  </div>
+</header>
+
+<section style="padding-top:40px">
+  <div class="wrap">
+    <p class="eyebrow">Step 1</p>
+    <h2 style="margin-bottom:.4rem">The venture</h2>
+    <p class="muted" style="max-width:700px">Shared with the rest of the platform. Set it once here and the Control Room and every other tool opens on the same venture.</p>
+    <div class="grid g3" style="gap:14px;margin-top:1.2rem;max-width:820px">
+      <div class="field"><label for="vf-name">Venture name</label><input id="vf-name" type="text" placeholder="Working name"></div>
+      <div class="field"><label for="vf-sector">Sector</label><select id="vf-sector"></select></div>
+      <div class="field"><label for="vf-target">Target certificate date</label><input id="vf-target" type="date"></div>
+    </div>
+    <div id="tl-note" style="margin-top:1.1rem"></div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="calc">
+      <div>
+        <p class="eyebrow">Step 2</p>
+        <h2 style="margin-bottom:.4rem">Stage gates</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:640px">Tick the evidence you actually hold, and record the capital you have committed at each gate. Capital committed ahead of its evidence is capital at risk, and this is the panel that says how much.</p>
+        <div id="gates" style="margin-top:1.3rem"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 3</p>
+        <h2 style="margin-bottom:.4rem">Workstreams</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:640px">Six, run concurrently. In series this programme takes roughly twice as long, and the usual casualties are people and commercial — started late because the regulatory work never feels far enough along.</p>
+        <div id="workstreams" style="margin-top:1.3rem"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 4</p>
+        <h2 style="margin-bottom:.4rem">Leading indicators</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:640px">A programme reporting only percentage-complete is reporting the past. Each of these is observable weeks before the measure it predicts.</p>
+        <div id="indicators" style="margin-top:1.3rem"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 5</p>
+        <h2 style="margin-bottom:.4rem">Contingencies, agreed in advance</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:640px">The value of a contingency plan is entirely in having decided before the pressure arrives.</p>
+        <div id="contingencies" style="margin-top:1.3rem"></div>
+      </div>
+
+      <div>
+        <div class="result-panel">
+          <p class="eyebrow" style="color:var(--jk-amber)">Programme status</p>
+          <div class="rng" id="status-head">&mdash;</div>
+          <p id="status-band" style="font-weight:700;margin:.2rem 0 .6rem">Set a target date and work the gates.</p>
+          <p class="qual" id="status-qual"></p>
+          <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
+          <div class="kpis" id="prog-kpis"></div>
+        </div>
+
+        <div class="result-panel" style="margin-top:1rem">
+          <p class="eyebrow" style="color:var(--jk-amber)">Next actions</p>
+          <div id="next-actions"></div>
+        </div>
+
+        <div class="tool-actions">
+          <button class="btn btn-amber" id="print">Print / save as PDF</button>
+          <button class="btn btn-ghost" id="reset">Reset</button>
+        </div>
+
+        <div class="guarantee" style="margin-top:1.4rem">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <div>
+            <strong>Have JK run the programme with you.</strong>
+            <p style="margin:.4rem 0 .8rem;font-size:var(--fs-sm)">Schedule of Events agreed with the Authority, weekly gate reporting, manual development managed to acceptance rather than submission, and a draw schedule that follows the gates. The difference between a certificate in twelve months and one in twenty-four is almost never money.</p>
+            <form id="impl-enquiry" class="grid g2" style="gap:10px">
+              <input type="hidden" name="tool" value="Implementation &amp; Programme Planner">
+              <input name="name" placeholder="Name" required>
+              <input name="airline" placeholder="Airline / Organisation">
+              <input name="email" type="email" placeholder="Work email" required>
+              <select name="concern">
+                <option value="">Primary concern</option>
+                <option>Cost reduction</option><option>Safety / Regulatory</option>
+                <option>Revenue growth</option><option>AOC startup</option><option>Strategy</option>
+              </select>
+              <button type="submit" class="btn btn-amber" style="grid-column:1/-1">Talk to JK about delivery &rarr;</button>
+              <p class="enq-msg" style="font-size:var(--fs-sm);margin-top:.6rem;grid-column:1/-1"></p>
+            </form>
+            <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain>info@aviationhubkenya.org</span></p>
+          </div>
+        </div>
+
+        <p class="disclaimer" style="margin-top:1rem">A planning instrument, not a regulatory submission and not a substitute for the Schedule of Events agreed with your Authority. Gate criteria reflect JK practice; the phases follow the Kenyan five-phase process. Everything you enter stays in this browser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> JK &amp; Associates · <a data-email>info@aviationhubkenya.org</a></span>
+    <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../methodology.html">Methodology</a> · <span data-version>v3.4 — Scheduled, Business Aviation &amp; Aeromedical</span></span>
+  </div></div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/data-ventures.js"></script>
+<script src="../assets/js/data-implementation.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/venture-file.js"></script>
+<script src="../assets/js/page/tools-implementation-planner.js"></script>
+</body>
+</html>
