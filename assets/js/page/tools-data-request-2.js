@@ -81,5 +81,65 @@
     URL.revokeObjectURL(url);
   });
 
+  /* ---- answer-first opening page for the printed pack ----
+
+     A collection checklist printed as a percentage is a progress bar on
+     paper. What the person chasing it needs is which lines are still
+     out, and the two facts that decide whether the diagnostic can
+     start: whether the priority items have landed, and whether any one
+     section has returned nothing at all.
+
+     A section at zero is a different problem from the same number of
+     ticks missing across five sections. It usually means one team never
+     received the request, and it is invisible in a completion figure
+     that averages every section together. */
+  function summarise() {
+    const data = rows();
+    if (!data.length) return mountPrintSummary(null);
+
+    const outstanding = data.filter((r) => r.collected === "no");
+    const priorityOut = outstanding.filter((r) => r.priority);
+    const collected = data.length - outstanding.length;
+    const pct = Math.round((collected / data.length) * 100);
+
+    const sections = [...new Set(data.map((r) => r.section))].filter(Boolean);
+    const silent = sections.filter((s) =>
+      data.filter((r) => r.section === s).every((r) => r.collected === "no"));
+
+    const f = [];
+
+    if (priorityOut.length) f.push({ sev: "stop",
+      h: `${priorityOut.length} priority item${priorityOut.length > 1 ? "s" : ""} still outstanding`,
+      d: `${priorityOut.slice(0, 3).map((r) => r.item).join("; ")}${priorityOut.length > 3 ? `; and ${priorityOut.length - 3} more` : ""}. These are the lines the baseline is built from — the diagnostic can begin without the rest and cannot begin without these.` });
+
+    if (silent.length) f.push({ sev: "warn",
+      h: `${silent.length} section${silent.length > 1 ? "s have" : " has"} returned nothing at all`,
+      d: `${silent.join("; ")}. A section at zero usually means the request never reached the team that owns it rather than that the team is slow — worth a call before the next chase.` });
+
+    if (outstanding.length && !priorityOut.length) f.push({ sev: "warn",
+      h: `${outstanding.length} of ${data.length} items outstanding`,
+      d: `Every priority line is in, so the baseline can be built. The remainder deepen it: ${outstanding.slice(0, 3).map((r) => r.item).join("; ")}${outstanding.length > 3 ? `; and ${outstanding.length - 3} more` : ""}.` });
+
+    if (!outstanding.length) f.push({ sev: "ok", h: `All ${data.length} items collected`,
+      d: `The data pack is complete across ${sections.length} sections. Nothing in the baseline is now waiting on the operator.` });
+
+    mountPrintSummary({
+      title: "Baseline diagnostic data pack",
+      verdict: `${collected} of ${data.length} items collected (${pct}%)` +
+        (priorityOut.length
+          ? ` — ${priorityOut.length} priority line${priorityOut.length > 1 ? "s" : ""} still out`
+          : outstanding.length ? " — every priority line in" : " — complete"),
+      findings: f,
+      basis: `Collection status as ticked on this device, across ${sections.length} sections and ${data.length} items. Priority lines are those the baseline analysis cannot be built without. Export the CSV to send this out with an owner and a deadline against each line.`
+    });
+  }
+
+  /* Wired here rather than into the progress counter in the IIFE above:
+     that one owns the saved ticks and this one owns the deliverable, and
+     reaching across between them is how one ends up silently unwired. */
+  document.querySelectorAll('.dr-item input[type="checkbox"]')
+    .forEach((c) => c.addEventListener("change", summarise));
+  summarise();
+
   document.getElementById("print").addEventListener("click", () => window.print());
 })();

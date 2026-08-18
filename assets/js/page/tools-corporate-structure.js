@@ -199,7 +199,77 @@
     const href = toolMailto("Structure", st.name, body);
     $("talk").href = href; $("cta-mail").href = href;
 
+    summarise({ st, sec, grand, localPct, entries, needsControl, offshore, done, checksList });
     store.save(state);
+  }
+
+  /* ---- answer-first opening page for the printed pack ----
+
+     An unresolved chain leads, and everything else is suppressed behind
+     it: if the tiers do not sum to 100 then the local interest figure,
+     the control test and the concentration reading are all computed off
+     a broken cascade, and printing them under a confident heading is
+     how a pack gets taken into a board meeting and believed.
+
+     Once the chain resolves, the ownership-and-control test leads,
+     because it is the one finding here that company law will not catch.
+     A structure can be perfectly valid at the registry and still fail
+     the air-service licence, and that failure surfaces after
+     incorporation — when it is expensive to unwind. */
+  function summarise({ st, sec, grand, localPct, entries, needsControl, offshore, done, checksList }) {
+    const f = [];
+    const broken = Math.abs(grand - 100) > 1;
+
+    if (broken) {
+      f.push({ sev: "stop", h: `Ownership chain resolves to ${grand.toFixed(2)}%, not 100%`,
+        d: `Effective interests across the cascade do not close. Every figure below it — local interest, the control test, concentration — is computed from this chain, so none of them can be relied on until each tier's holdings sum to 100.` });
+    } else {
+      if (needsControl) f.push({ sev: localPct < 50 ? "stop" : "ok",
+        h: localPct < 50
+          ? `Local effective interest ${localPct.toFixed(1)}% — below the ownership-and-control threshold`
+          : `Local effective interest ${localPct.toFixed(1)}%`,
+        d: localPct < 50
+          ? `Air-service licensing commonly requires substantial ownership and effective control by nationals. This structure can satisfy company law and still fail the aviation test, and it fails it after incorporation — confirm the current threshold and how the Authority measures it before the entities exist.`
+          : `Above a simple majority on the economics. Effective control is measured on more than shareholding: voting rights, board composition, veto rights and who appoints the Accountable Manager all count, and a structure can clear the percentage and fail on those.` });
+      else f.push({ sev: "note", h: `${sec ? sec.short : "This sector"} carries no air-service control test`,
+        d: `Local effective interest is ${localPct.toFixed(1)}%. The ownership-and-control requirement attaches to the air-service licence rather than to this certificate, though a meaningful local stake still helps with beneficial-ownership disclosure and any preferential tax status.` });
+
+      /* A single holder above 50% is a governance fact worth stating
+         even when the licensing test passes: it decides who can be
+         outvoted, which is what diligence is actually asking. */
+      const top = entries[0];
+      if (top && top.total > 50) f.push({ sev: "note",
+        /* Name in the description, not the heading: holder names are
+           visitor-typed and may be singular or plural, and "Founders
+           holds 60%" is the kind of sentence that makes a board pack
+           look machine-generated. */
+        h: `A single party controls ${top.total.toFixed(2)}% on a look-through basis`,
+        d: `${top.n}${top.indirect ? `, with ${top.indirect.toFixed(2)} points of that held indirectly through the chain rather than on the operating company's register` : ""}. Diligence will ask who can be outvoted before it asks anything about the percentages.` });
+    }
+
+    const openChecks = checksList.length - done;
+    if (openChecks > 0) f.push({ sev: done < checksList.length / 2 ? "warn" : "note",
+      h: `${openChecks} of ${checksList.length} governance checks unaddressed`,
+      d: `${checksList.filter(c => !state.checks[c.id]).slice(0, 3).map(c => c.t).join("; ")}${openChecks > 3 ? `; and ${openChecks - 3} more` : ""}. These are the questions diligence asks first, and they are cheap to answer before incorporation and expensive afterwards.` });
+
+    if (offshore) f.push({ sev: "warn",
+      h: `${offshore} offshore entit${offshore > 1 ? "ies carry" : "y carries"} an annual substance cost of ${fmtMoney(offshore * SUBSTANCE_PER_ENTITY)}`,
+      d: `Economic-substance regimes require real presence — directors, premises, decision-making in the jurisdiction — not a registered office. Budget it from incorporation: retrofitting substance after a regulator or a bank asks is materially more expensive than building it in.` });
+
+    if (!f.some(x => x.sev === "stop" || x.sev === "warn"))
+      f.unshift({ sev: "ok", h: `${st.name} is coherent as drawn`,
+        d: `Chain resolves to 100%, ${done} of ${checksList.length} governance checks addressed${offshore ? "" : " and no offshore substance burden"}. The remaining work is documentary rather than structural.` });
+
+    mountPrintSummary({
+      title: `${st.name} — ${sec ? sec.name : state.sector}`,
+      verdict: broken
+        ? `Ownership chain does not resolve — nothing below can be relied on until the tiers sum to 100%`
+        : needsControl && localPct < 50
+          ? `${localPct.toFixed(1)}% local effective interest against an ownership-and-control test this structure does not currently pass`
+          : `${st.tiers.length}-tier structure, ${localPct.toFixed(1)}% local effective interest, ${done} of ${checksList.length} governance checks addressed`,
+      findings: f,
+      basis: `Effective interests are computed by look-through across every tier of the chain as drawn, not from the operating company's register alone. Substance cost is an indicative ${fmtMoney(SUBSTANCE_PER_ENTITY)} per offshore entity per year. Structural orientation only — not legal, tax or licensing advice, and thresholds change: confirm the current position with counsel in each jurisdiction before incorporating.`
+    });
   }
 
   $("print").addEventListener("click", () => window.print());

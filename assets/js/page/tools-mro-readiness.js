@@ -83,6 +83,7 @@ function recalc() {
     idxEl.textContent = "—";
     bandEl.textContent = "Answer all 20 questions to see your index.";
     qualEl.textContent = "";
+    mountPrintSummary(null);
     return;
   }
   const index = Math.round(weighted / wsum);
@@ -93,6 +94,82 @@ function recalc() {
   bandEl.style.color = v.color;
   const sorted = [...domainPcts].sort((a, b) => a.pct - b.pct);
   qualEl.innerHTML = `Widest gaps: <strong>${sorted[0].name}</strong> (${sorted[0].pct}%) and <strong>${sorted[1].name}</strong> (${sorted[1].pct}%).`;
+  summarise(index, v, domainPcts, sorted);
+}
+
+/* ---- answer-first opening page for the printed pack ----
+
+   The screen reports domains; a technical improvement plan is built
+   from questions. A Chief Engineer told "Technical Records is at 40%"
+   knows only that something in there is wrong — the four items behind
+   the score are what actually get assigned to someone. The summary
+   therefore names the individual questions scored at or below "basic",
+   which the tool has always known and never said out loud.
+
+   Airworthiness leads regardless of whether it is the lowest domain.
+   Every other gap here costs money; that one carries the certificate,
+   and a pack that ranks a 45% compliance score below a 40% sourcing
+   score has ordered the findings by arithmetic rather than by
+   consequence. */
+function summarise(index, v, domainPcts, sorted) {
+  const f = [];
+  const pctOfDomain = (id) => {
+    const d = DOMAINS.findIndex(x => x.id === id);
+    return d < 0 ? null : domainPcts[d].pct;
+  };
+  const comp = pctOfDomain("compliance");
+
+  if (comp !== null && comp < 65) f.push({ sev: comp < 45 ? "stop" : "warn",
+    h: `Airworthiness and compliance at ${comp}%`,
+    d: comp < 45
+      ? `The heaviest-weighted domain and the one a regulator or lessor opens first. At this level the exposure is the certificate, not the cost base — AD close-out, CAMO oversight and occurrence reporting come before any optimisation work.`
+      : `Adequate but not audit-proof. The gap here is the one that converts into findings at an audit rather than into cost, so it is sequenced ahead of the commercial domains whatever their scores.` });
+
+  /* The specific items, named. Anything at 0 or 1 is "no capability" or
+     "basic / informal" on the page's own scale — not a weakness to
+     monitor but a task to assign. */
+  const weak = [];
+  DOMAINS.forEach(d => (answers[d.id] || []).forEach((val, qi) => {
+    if (Number.isInteger(val) && val <= 1) weak.push({ q: d.qs[qi], d: d.name, val });
+  }));
+  weak.sort((a, b) => a.val - b.val);
+  if (weak.length) f.push({ sev: weak.some(w => w.val === 0) ? "stop" : "warn",
+    h: `${weak.length} item${weak.length === 1 ? " is" : "s are"} at or below "basic / informal"`,
+    d: weak.slice(0, 3).map(w => `${w.q} (${SCALE[w.val].toLowerCase()})`).join("; ") +
+       (weak.length > 3 ? `; and ${weak.length - 3} more.` : ".") +
+       ` These are the first entries on a technical improvement plan — each is a named owner and a date, not a programme.` });
+
+  /* The widest domain gap, unless airworthiness has already been
+     reported above and is that gap — saying it twice wastes the page. */
+  const COMPLIANCE_NAME = DOMAINS.find(d => d.id === "compliance").name;
+  if (sorted[0].pct < 65 && !(comp !== null && comp < 65 && sorted[0].name === COMPLIANCE_NAME))
+    f.push({ sev: "warn", h: `${sorted[0].name} is the widest gap at ${sorted[0].pct}%`,
+      d: `Next widest is ${sorted[1].name} at ${sorted[1].pct}%. Both sit below the level at which the domain supports the rest of the operation rather than draining it.` });
+
+  /* "Widest gap" is the wrong phrase when the lowest domain is strong,
+     and absurd when every domain ties at 100% — the earlier wording
+     reported a best-in-class operation as having its widest gap in
+     airworthiness at 100%. Above 80 the lowest domain is the thinnest
+     margin, not a gap; a tie has no lowest at all. */
+  const tied = sorted[0].pct === sorted[sorted.length - 1].pct;
+  const lowest = tied
+    ? `all five domains level at ${sorted[0].pct}%`
+    : sorted[0].pct >= 80
+      ? `thinnest margin ${sorted[0].name} at ${sorted[0].pct}%`
+      : `widest gap ${sorted[0].name} at ${sorted[0].pct}%`;
+
+  if (!f.some(x => x.sev === "stop" || x.sev === "warn"))
+    f.push({ sev: "ok", h: `No domain below 65% and no item below "developing"`,
+      d: tied
+        ? `Every domain scores ${sorted[0].pct}%, so there is no weakest link to attack. The work is defending the position: the discipline that produced these scores has to survive fleet growth and the next change of postholder.`
+        : `The weakest domain is ${sorted[0].name} at ${sorted[0].pct}%, which is an optimisation target rather than a gap. Nothing here blocks an audit or a lessor inspection.` });
+
+  mountPrintSummary({
+    title: `Technical Readiness Index ${index} — ${v.band}`,
+    verdict: `${v.text} Weighted across five domains, ${lowest}.`,
+    findings: f,
+    basis: `Twenty questions across five weighted domains — airworthiness and compliance 25%, reliability 20%, MEL and dispatch 20%, sourcing 20%, technical records 15% — each scored 0–4 and normalised to 100. A self-assessment screening tool, not a compliance audit: the scores are the operator's own reading of their operation.`
+  });
 }
 recalc();
 

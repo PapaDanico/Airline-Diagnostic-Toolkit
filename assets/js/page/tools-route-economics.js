@@ -109,7 +109,60 @@ function calculate() {
 
   render({ stage, seats, caskC, fare, anc, cargo, lfPct, ask, tripCost, revPerPax,
            pax, paxRev, totalRev, contrib, margin, raskC, yieldC, blf, beFare, cautions });
-  renderFleet({ stage, seats, caskC, revPerPax, cargo, lfPct });
+  const fleet = renderFleet({ stage, seats, caskC, revPerPax, cargo, lfPct });
+  summarise({ stage, seats, caskC, fare, cargo, lfPct, tripCost, totalRev, revPerPax,
+              contrib, margin, raskC, blf, beFare, ask, cautions, fleet });
+}
+
+/* ---- answer-first opening page for the printed pack ----
+
+   Ordered the way the findings kill the route: a sector that cannot
+   break even at any load factor is not a margin problem, and a negative
+   contribution is not a tolerance problem. Below those sit the two
+   findings an operator most often gets wrong on their own — a break-even
+   sitting just under the expected load factor, which reads as a pass
+   until one soft month, and a fleet choice made on unit cost when unit
+   cost is not what pays for the sector. */
+function summarise(r) {
+  const f = [];
+  const cannot = r.blf === null || r.blf > 100;
+  const headroom = r.blf === null ? null : r.lfPct - r.blf;
+
+  if (cannot) f.push({ sev: "stop", h: "The sector cannot break even at this fare",
+    d: `A full aircraft still leaves ${usd(r.tripCost - (r.seats * r.revPerPax + r.cargo))} uncovered at the entered fare. No load factor fixes this: the fare, the unit cost or the aircraft has to change.` });
+  else if (r.contrib < 0) f.push({ sev: "stop", h: `Loses ${usd(-r.contrib)} a departure at ${r.lfPct.toFixed(0)}% load factor`,
+    d: `Break-even is ${r.blf.toFixed(1)}%, ${Math.abs(headroom).toFixed(1)} points above the load factor expected — about ${Math.abs(Math.round(r.seats * headroom / 100))} seats a departure. Flown daily that is ${usd(Math.abs(r.contrib * 365))} a year of lost contribution.` });
+
+  if (!cannot && r.contrib >= 0 && headroom !== null && headroom < 5)
+    f.push({ sev: "warn", h: `Only ${headroom.toFixed(1)} points of load-factor headroom`,
+      d: `Break-even at ${r.blf.toFixed(1)}% against ${r.lfPct.toFixed(0)}% expected leaves about ${Math.round(r.seats * headroom / 100)} seats between profit and loss. One soft month puts the sector under water.` });
+
+  /* The divergence this tool exists to expose: the aircraft with the
+     lowest unit cost is not the one that pays best on a thin sector. */
+  if (r.fleet && r.fleet.divergent)
+    f.push({ sev: "warn", h: "Lowest unit cost is not the best aircraft here",
+      d: `${r.fleet.bestCask.name} is cheaper per ASK at ${r.fleet.bestCask.caskC.toFixed(2)}¢, but ${r.fleet.bestContrib.name} contributes ${usd(r.fleet.bestContrib.contrib - r.fleet.bestCask.contrib)} more a departure. CASK rewards the largest gauge you can fill; this sector does not fill it.` });
+
+  if (!cannot && r.beFare !== null && r.beFare > r.fare)
+    f.push({ sev: "warn", h: `Fare is ${usd(r.beFare - r.fare)} short of the break-even fare`,
+      d: `At ${r.lfPct.toFixed(0)}% load factor the sector needs ${usd(r.beFare)} against the ${usd(r.fare)} entered — a ${((r.beFare - r.fare) / r.fare * 100).toFixed(0)}% increase, before any competitive response.` });
+
+  if (r.cautions.length) f.push({ sev: "warn", h: "An input looks out of range",
+    d: `${r.cautions[0]} The figures here are calculated exactly as entered.` });
+
+  if (!f.length) f.push({ sev: "ok", h: `Contributes ${usd(r.contrib)} a departure`,
+    d: `Break-even at ${r.blf.toFixed(1)}% against ${r.lfPct.toFixed(0)}% expected — ${headroom.toFixed(1)} points of headroom, about ${Math.round(r.seats * headroom / 100)} seats. Flown daily the sector returns ${usd(r.contrib * 365)} a year.` });
+
+  mountPrintSummary({
+    title: `${Math.round(r.stage).toLocaleString("en-US")} km sector, ${r.seats} seats`,
+    verdict: cannot
+      ? `Break-even load factor exceeds 100% — the sector does not cover its cost at any occupancy`
+      : `${usd(r.contrib)} contribution a departure at ${r.lfPct.toFixed(0)}% load factor` +
+        (r.margin === null ? "" : `, a ${r.margin.toFixed(1)}% margin`) +
+        `, against a ${r.blf.toFixed(1)}% break-even`,
+    findings: f,
+    basis: `RASK ${cents(r.raskC)} against CASK ${cents(r.caskC)} per ASK on ${Math.round(r.ask).toLocaleString("en-US")} available seat-km. Single-sector arithmetic on the operator's own inputs — no demand forecast, no payload-range check and no schedule. Break-even bands are JK's reading, stated on the page, not a published standard.`
+  });
 }
 
 /* ---- which aircraft on this sector ----
@@ -147,7 +200,7 @@ function renderFleet(base) {
     });
   }
 
-  if (rows.length < 2) { panel.hidden = true; return; }
+  if (rows.length < 2) { panel.hidden = true; return null; }
   panel.hidden = false;
 
   const bestContrib = rows.reduce((a, b) => (b.contrib > a.contrib ? b : a));
@@ -187,6 +240,10 @@ function renderFleet(base) {
     parts.push(`It wins on unit cost and trip cost together, so the choice is not close on economics — capability, range and fleet commonality decide the rest.`);
   }
   document.getElementById("re-fleet-verdict").innerHTML = parts.join(" ");
+
+  /* Handed back so the executive summary can carry the divergence
+     finding rather than recomputing the comparison from scratch. */
+  return { bestContrib, bestCask, bestTrip, allLose, divergent: bestCask !== bestContrib };
 }
 
 function blank() {
@@ -200,6 +257,7 @@ function blank() {
   document.getElementById("re-contrib").textContent = "Enter your figures to see the sector result.";
   document.getElementById("re-levers").textContent =
     "Enter your figures to see the fare and load factor this sector needs.";
+  mountPrintSummary(null);
 }
 
 /* Bands on the break-even load factor.

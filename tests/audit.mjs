@@ -34,6 +34,18 @@ function htmlFiles() {
 }
 
 const pages = htmlFiles();
+
+/* The five predefined XML entities, which is all a text node can carry.
+   Numeric references are decoded too, because &#38; is as legal as
+   &amp; and a hand-edited page may use either. */
+function decodeEntities(t) {
+  return t
+    .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(Number(d)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+}
 // Google Fonts is loaded from a CDN; in offline/sandbox CI that request can
 // fail with a cert/network error that is irrelevant to the page itself.
 const IGNORE = /ERR_CERT_AUTHORITY_INVALID|ERR_(NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION)|fonts\.googleapis|fonts\.gstatic/;
@@ -657,7 +669,15 @@ server.close();
          element's text and not the rest of the document. */
       for (const m of html.matchAll(new RegExp(`${attr}(?=[\\s>=])[^>]*>([^<]*)<`, "g"))) {
         seen++;
-        if (m[1].trim() !== truth) {
+        /* Decode before comparing. The fallback lives in HTML, where an
+           ampersand MUST be written &amp;, while data.js holds the plain
+           character — so a brand string containing "&" reported all 29
+           pages as drifted when nothing had drifted at all.
+
+           This compares what a reader sees, which is what the check is
+           actually about. It does not weaken it: any genuine difference
+           in the text still fails, as the break-test alongside shows. */
+        if (decodeEntities(m[1].trim()) !== truth) {
           fallbackIssues.push(`${file}: ${attr} falls back to "${m[1].trim()}"; data.js says "${truth}"`);
         }
       }
@@ -1478,6 +1498,42 @@ server.close();
     `\n${naked.length ? "❌" : "✅"} every tool lets a reader keep the answer ` +
       `(${readdirSync(TOOL_DIR).filter((f) => f.endsWith(".html") && f !== "index.html").length} tools)` +
       (naked.length ? "\n     - no deliverable: " + naked.join("\n     - no deliverable: ") : "")
+  );
+}
+
+/* ── every printable tool opens its pack with an answer ─────────────
+
+   A tool that prints without an executive summary prints a transcript:
+   every panel in screen order, with the finding somewhere in the
+   middle. The guard above checks that a reader can keep the answer at
+   all; this one checks that what they keep opens with it.
+
+   Keyed off the print control rather than off a list of tool names, so
+   a tool added later is covered the day it becomes printable and
+   nobody has to remember to extend a fixture. */
+{
+  const missing = [];
+  const printable = [];
+  const TOOL_DIR = join(ROOT, "tools");   // block-scoped in the guard above
+  for (const f of readdirSync(TOOL_DIR)) {
+    if (!f.endsWith(".html") || f === "index.html") continue;
+    const stem = `tools-${f.replace(/\.html$/, "")}`;
+    const scripts = readdirSync(join(ROOT, "assets", "js", "page"))
+      .filter((n) => n === `${stem}.js` || n.startsWith(`${stem}-`))
+      .map((n) => readFileSync(join(ROOT, "assets", "js", "page", n), "utf8"))
+      .join("\n");
+    if (!/window\.print\(\)/.test(scripts)) continue;
+    printable.push(f);
+    /* The call, not the word: a comment describing the summary is not
+       one, so the open paren is part of the pattern. */
+    if (!/mountPrintSummary\s*\(/.test(scripts)) missing.push(`tools/${f}`);
+  }
+
+  problems += missing.length ? 1 : 0;
+  console.log(
+    `\n${missing.length ? "❌" : "✅"} every printable tool opens its pack with an executive summary ` +
+      `(${printable.length} printable tools)` +
+      (missing.length ? "\n     - no summary: " + missing.join("\n     - no summary: ") : "")
   );
 }
 

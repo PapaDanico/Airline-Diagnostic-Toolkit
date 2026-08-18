@@ -182,15 +182,21 @@
     const s = JKV.sector(state.sector);
     if (!s) return;
     let all = 0, allDone = 0, crit = 0, critDone = 0, currentPhase = null;
+    /* Per-phase detail, retained for the executive summary: which gate
+       items are still open, and how much work has been ticked in phases
+       beyond the one the applicant is actually in. */
+    const phaseStats = [];
 
     JKV.phaseSpine.forEach(p => {
       const items = s.items[p.id] || [];
       let pDone = 0, pCrit = 0, pCritDone = 0;
+      const openCrit = [];
       items.forEach((it, i) => {
         const on = !!state.checked[key(s.id, p.id, i)];
         all++; if (on) { allDone++; pDone++; }
-        if (it.crit) { crit++; pCrit++; if (on) { critDone++; pCritDone++; } }
+        if (it.crit) { crit++; pCrit++; if (on) { critDone++; pCritDone++; } else openCrit.push(it.t); }
       });
+      phaseStats.push({ p, total: items.length, done: pDone, crit: pCrit, openCrit });
       const gate = document.querySelector(`.pgate[data-phase="${p.id}"]`);
       if (gate) {
         const done = pCrit > 0 && pCritDone === pCrit;
@@ -229,6 +235,56 @@
     const href = toolMailto("Certification", s.short + " pathway", body);
     $("talk").href = href;
     $("cta-mail").href = href;
+
+    summarise({ s, pct, crit, critDone, all, allDone, currentPhase, phaseStats });
+  }
+
+  /* ---- answer-first opening page for the printed pack ----
+
+     The open gate leads, named item by named item, because a
+     certification programme does not progress on percentage complete —
+     it progresses one gate at a time, and the Authority will not look
+     at Phase 4 while Phase 2 is open.
+
+     The second finding is the one applicants pay for and rarely see in
+     time. Work ticked in phases beyond the current gate feels like
+     progress and is the commonest way a first-time applicant loses
+     months: manuals written before the scope in the PASI is accepted
+     get rewritten, and proving procedures before the manual is approved
+     proves the wrong procedures. A percentage-complete meter actively
+     rewards this, because out-of-sequence ticks move it up. */
+  function summarise({ s, pct, crit, critDone, all, allDone, currentPhase, phaseStats }) {
+    const f = [];
+    const cur = currentPhase && phaseStats.find(x => x.p.id === currentPhase.id);
+
+    if (cur && cur.openCrit.length) f.push({ sev: "stop",
+      h: `${cur.openCrit.length} gate item${cur.openCrit.length > 1 ? "s" : ""} open in Phase ${cur.p.n} — ${cur.p.t}`,
+      d: `${cur.openCrit.slice(0, 3).join("; ")}${cur.openCrit.length > 3 ? `; and ${cur.openCrit.length - 3} more` : ""}. ${cur.p.gate} Nothing in a later phase is assessed until this gate closes.` });
+
+    /* Work banked beyond the gate the applicant has not yet cleared. */
+    if (currentPhase) {
+      const idx = phaseStats.findIndex(x => x.p.id === currentPhase.id);
+      const ahead = phaseStats.slice(idx + 1).filter(x => x.done > 0);
+      const aheadItems = ahead.reduce((a, x) => a + x.done, 0);
+      if (aheadItems > 0) f.push({ sev: "warn",
+        h: `${aheadItems} item${aheadItems > 1 ? "s" : ""} completed in phases beyond the open gate`,
+        d: `${ahead.map(x => `Phase ${x.p.n} (${x.done}/${x.total})`).join(", ")}. This reads as progress and frequently is not: work done before the preceding gate closes is done against a scope the Authority has not yet accepted, and the part of it that has to be redone is not visible until it is.` });
+    }
+
+    if (!currentPhase) f.push({ sev: "ok", h: "Every gate closed",
+      d: `All ${crit} gate items complete across ${phaseStats.length} phases, ${allDone} of ${all} checklist items in total. The pathway is at certificate stage — what remains is the Authority's own timetable rather than the applicant's.` });
+    else if (crit - critDone > (cur ? cur.openCrit.length : 0)) f.push({ sev: "note",
+      h: `${crit - critDone} of ${crit} gate items remain across the whole pathway`,
+      d: `Beyond the current phase, the gates still to clear are ${phaseStats.filter(x => x.openCrit.length && x.p.id !== currentPhase.id).map(x => `Phase ${x.p.n} (${x.openCrit.length})`).join(", ")}. Gate items are weighted at twice a supporting item in the readiness figure, because closing one is what actually moves a certificate.` });
+
+    mountPrintSummary({
+      title: `${s.name} — certification pathway`,
+      verdict: currentPhase
+        ? `${pct}% ready — currently in Phase ${currentPhase.n}, ${currentPhase.t}, with ${crit - critDone} of ${crit} gate items still open`
+        : `${pct}% ready — every gate closed, ${allDone} of ${all} checklist items complete`,
+      findings: f,
+      basis: `Readiness weights gate items at twice a supporting item, because a flat percentage flatters a badly sequenced applicant. Checklist and phase structure follow the Kenyan requirement set; ${JKV.CITE_META.note} Citations last checked against the public gazette record on ${JKV.CITE_META.verifiedOn}.`
+    });
   }
 
   /* ---------- actions ---------- */

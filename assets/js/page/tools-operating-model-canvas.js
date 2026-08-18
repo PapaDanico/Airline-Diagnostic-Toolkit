@@ -33,13 +33,13 @@ PANELS.forEach((panel, i) => {
   grid.appendChild(cell);
   const ta = cell.querySelector("textarea");
   ta.value = state[panel.id] || "";
-  ta.addEventListener("input", () => { state[panel.id] = ta.value; save(state); flashSaved(); });
+  ta.addEventListener("input", () => { state[panel.id] = ta.value; save(state); flashSaved(); summarise(); });
 });
 
 // airline name field
 const airline = document.getElementById("airline");
 airline.value = state.__airline || "";
-airline.addEventListener("input", () => { state.__airline = airline.value; save(state); flashSaved(); syncPrintHead(); });
+airline.addEventListener("input", () => { state.__airline = airline.value; save(state); flashSaved(); syncPrintHead(); summarise(); });
 
 // "Saved" feedback
 const savedEl = document.getElementById("saved");
@@ -59,6 +59,72 @@ document.getElementById("ph-date").textContent =
   new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 syncPrintHead();
 
+/* ---- answer-first opening page for the printed pack ----
+
+   This tool computes nothing, so the only honest thing a summary can
+   lead with is whether the canvas is finished — and where it is not,
+   what that specific hole costs the reader. A blank Cost Structure is
+   not one missing paragraph of nine: paired with a blank Revenue Model
+   it means the document says nothing about whether the airline makes
+   money, which is the first question anyone opening it will ask.
+
+   The thinness check is the other half. Nine panels each holding one
+   line reads as complete to a counter and as unfinished to a reader,
+   and the counter is what a completeness score would otherwise be. */
+const THIN_CHARS = 80;
+
+function summarise() {
+  const filled = PANELS.filter(p => (state[p.id] || "").trim().length > 0);
+  const blank  = PANELS.filter(p => !(state[p.id] || "").trim().length);
+  const thin   = filled.filter(p => (state[p.id] || "").trim().length < THIN_CHARS);
+  if (!filled.length) return mountPrintSummary(null);
+
+  const has = (id) => !!(state[id] || "").trim();
+  const f = [];
+
+  if (blank.length > PANELS.length / 2) f.push({ sev: "stop",
+    h: `${blank.length} of ${PANELS.length} panels are empty`,
+    d: `A canvas this sparse describes an intention rather than an operating model. The gaps are ${blank.slice(0, 4).map(p => p.t).join("; ")}${blank.length > 4 ? `; and ${blank.length - 4} more` : ""}.` });
+
+  /* The pairings that make a hole consequential rather than merely
+     incomplete. Each is a question the reader will ask that the
+     document cannot answer. */
+  const PAIRS = [
+    { a: "revenue", b: "cost",       q: "whether the airline makes money",
+      why: "They are the two halves of the same question, and a canvas missing either cannot be taken to a board or a lender." },
+    { a: "fleet",   b: "network",    q: "whether the fleet suits the network",
+      why: "Gauge and range are chosen against the sectors actually flown, so neither panel explains the aircraft decision on its own." },
+    { a: "operations", b: "people",  q: "who is accountable for safety",
+      why: "The operating model and the organisation behind it are read together at any audit, and separately by nobody." }
+  ];
+  PAIRS.forEach(pr => {
+    if (!has(pr.a) && !has(pr.b)) f.push({ sev: "warn",
+      h: `The canvas does not say ${pr.q}`,
+      d: `${PANELS.find(p => p.id === pr.a).t} and ${PANELS.find(p => p.id === pr.b).t} are both empty. ${pr.why}` });
+  });
+
+  if (blank.length && blank.length <= PANELS.length / 2) f.push({ sev: "warn",
+    h: `${blank.length} panel${blank.length > 1 ? "s" : ""} still empty`,
+    d: `${blank.map(p => p.t).join("; ")}. Every panel a reader has to fill in for themselves is a place the model will be assumed rather than understood.` });
+
+  if (thin.length) f.push({ sev: "note",
+    h: `${thin.length} panel${thin.length > 1 ? "s are" : " is"} answered in a single line`,
+    d: `${thin.slice(0, 4).map(p => p.t).join("; ")}${thin.length > 4 ? `; and ${thin.length - 4} more` : ""}. Short enough to count as complete and too short to be read as an answer — the usual sign of a panel filled in to clear the grid.` });
+
+  if (!f.some(x => x.sev === "stop" || x.sev === "warn"))
+    f.unshift({ sev: "ok", h: "All nine panels answered",
+      d: `The canvas is complete as a document. What it cannot tell you is whether the nine answers are consistent with each other — that is the reading, and it is the work an outside pair of eyes is for.` });
+
+  mountPrintSummary({
+    title: `${(state.__airline || "").trim() ? (state.__airline || "").trim() + " — " : ""}Operating Model Canvas`,
+    verdict: `${filled.length} of ${PANELS.length} panels answered` +
+      (thin.length ? `, ${thin.length} of them in a single line` : "") +
+      (blank.length ? `. ${blank.length} remain${blank.length === 1 ? "s" : ""} empty.` : ` — complete.`),
+    findings: f,
+    basis: `A structured capture of the operator's own description of their business across nine dimensions. Nothing here is computed, benchmarked or verified: the canvas records what the operator states, and its value is in what the nine statements reveal when read against one another.`
+  });
+}
+
 // actions
 document.getElementById("print").addEventListener("click", () => window.print());
 document.getElementById("clear").addEventListener("click", () => {
@@ -69,8 +135,10 @@ document.getElementById("clear").addEventListener("click", () => {
   airline.value = "";
   syncPrintHead();
   flashSaved();
+  summarise();
 });
 
+summarise();
 wireToolEnquiryForm("canvas-enquiry", "Operating Model Canvas");
 // live-sync the enquiry form's airline field from the canvas's own airline
 // input, until the visitor edits the enquiry field directly (a naive

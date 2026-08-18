@@ -169,12 +169,85 @@ function publishCask() {
   caskStore.save({ caskCents: (op / ask) * 100, fleetType: document.getElementById("fleetType").value });
 }
 
-const recalcAll = () => { recalc(); recalcFuel(); publishCask(); };
+/* ---- answer-first opening page for the printed pack ----
+
+   The cost gap leads, because it is the only finding here with a
+   currency figure attached and the only one a board acts on. Beneath it
+   sits the reconciliation: four independent share fields that sum past
+   100 make every priced cost line wrong, and a reader who takes the
+   breakdown into a meeting without noticing has been misled by their
+   own inputs rather than by the arithmetic.
+
+   The gauge caveat comes last and is deliberately not a defect. On a
+   turboprop or regional type a high CASK is structural, not a finding,
+   and a pack that reports it as overspend argues for the wrong
+   remedy — the page says so in its fleet note and the summary should
+   not contradict it. */
+function summarise() {
+  const op = parseFloat(document.getElementById("opcost").value) || 0;
+  const ask = parseFloat(document.getElementById("ask").value) || 0;
+  if (op <= 0 || ask <= 0) return mountPrintSummary(null);
+
+  const targetCents = (parseFloat(document.getElementById("target").value) > 0)
+    ? parseFloat(document.getElementById("target").value) : 9;
+  const caskCents = (op / ask) * 100;
+  const gapCents  = caskCents - targetCents;
+  const gapHigh   = (gapCents / 100) * ask;
+  const type      = document.getElementById("fleetType").value;
+  const stated    = COST_LINES.reduce((n, l) => n + pctOf(l.id), 0);
+  const fuelPct   = pctOf("fuelPct");
+  const f = [];
+
+  if (gapCents > 0) {
+    const urgent = caskCents > 13;
+    f.push({ sev: urgent ? "stop" : "warn",
+      h: `${gapCents.toFixed(2)}¢ above the ${targetCents.toFixed(1)}¢ target, worth ${fmtUsd(gapHigh * 0.5)}–${fmtUsd(gapHigh)} a year`,
+      d: `${caskCents.toFixed(2)}¢ against a ${targetCents.toFixed(1)}¢ competitive target across ${Math.round(ask).toLocaleString("en-US")} ASK. The range is a 50–100% capture of the gap, not a forecast${urgent ? " — at this level the gap is structural and will not close on procurement alone" : ""}.` });
+  }
+
+  if (stated > 100) f.push({ sev: "stop", h: `Cost shares sum to ${stated.toFixed(0)}%`,
+    d: `Fuel, crew, maintenance and airport/nav cannot together exceed 100% of operating cost. Every line in the breakdown is priced off the ${caskCents.toFixed(2)}¢ CASK as entered, so at least one is overstated.` });
+
+  if (stated <= 100 && fuelPct > 0) {
+    const fuelCask = caskCents * fuelPct / 100;
+    const allowed  = targetCents * TARGET_FUEL_SHARE / 100;
+    if (fuelCask > allowed) f.push({ sev: "warn",
+      h: `Fuel runs ${(fuelCask - allowed).toFixed(2)}¢ above the target allowance`,
+      d: `${fuelCask.toFixed(2)}¢/ASK at a ${fuelPct}% share against the ${allowed.toFixed(2)}¢ that a ${TARGET_FUEL_SHARE}% share of a ${targetCents.toFixed(1)}¢ CASK allows — about ${fmtUsd((fuelCask - allowed) / 100 * ask)} a year${gapCents > 0 ? ", which is part of the total gap above and not additional to it" : ""}.` });
+  }
+
+  if (/^(ATR72|DH8D|E190)$/.test(type)) f.push({ sev: "note",
+    h: "Unit cost is the wrong comparator for this gauge",
+    d: `${type} is a ${type === "E190" ? "regional jet" : "turboprop"}: a structurally higher CASK is the price of the gauge, not overspend. Benchmark trip cost and contribution on the thin sectors this type is bought for — the route calculator carries this figure across.` });
+
+  /* Keyed off stop/warn rather than an empty list: the gauge caveat is a
+     note, and a turboprop operator sitting inside their target should
+     still be told so rather than handed a pack whose only finding is a
+     caveat about how to read a number the summary never states. */
+  if (!f.some(x => x.sev === "stop" || x.sev === "warn"))
+    f.unshift({ sev: "ok", h: `At ${caskCents.toFixed(2)}¢/ASK, on or inside the target`,
+    d: `A competitive unit-cost position against the ${targetCents.toFixed(1)}¢ target. The exposure now is protecting it through growth — stage-length mix, gauge and overhead creep are what move it back.` });
+
+  mountPrintSummary({
+    title: `${fmtUsd(op)} operating cost over ${Math.round(ask).toLocaleString("en-US")} ASK`,
+    verdict: gapCents > 0
+      ? `${caskCents.toFixed(2)} US¢/ASK — ${bandFor(caskCents / 100, targetCents / 100).txt.toLowerCase()}, with ${fmtUsd(gapHigh * 0.5)}–${fmtUsd(gapHigh)} of annual cost in the gap to target`
+      : `${caskCents.toFixed(2)} US¢/ASK — at or below the ${targetCents.toFixed(1)}¢ competitive target`,
+    findings: f,
+    basis: `CASK = total operating cost ÷ available seat-kilometres, on the operator's own figures. The ${targetCents.toFixed(1)}¢ target is JK's competitive benchmark and is editable on the page, not a published standard. Context: African carriers' unit costs run close to double the rest of the world (IATA, Cost Disadvantage of African Airlines, 2025).`
+  });
+}
+
+const recalcAll = () => { recalc(); recalcFuel(); publishCask(); summarise(); };
 ["opcost","ask","target"].forEach(id =>
   document.getElementById(id).addEventListener("input", recalcAll));
-document.getElementById("fleetType").addEventListener("change", publishCask);
+/* fleetType and the cost-line shares reach the summary too: the gauge
+   caveat turns on the type, and the reconciliation finding turns on the
+   shares. Wiring them to their own panel alone is how three of these
+   four fields came to be inert in the first place. */
+document.getElementById("fleetType").addEventListener("change", () => { publishCask(); summarise(); });
 COST_LINES.forEach(l =>
-  document.getElementById(l.id).addEventListener("input", recalcFuel));
+  document.getElementById(l.id).addEventListener("input", () => { recalcFuel(); summarise(); }));
 recalcAll();
 wireToolEnquiryForm("cask-enquiry", "CASK Benchmarking Calculator");
 
