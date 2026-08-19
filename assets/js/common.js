@@ -153,7 +153,8 @@ const TOOL_MENU = [
     { file: "tools/certification-navigator.html", label: "KCAA Certification Navigator" },
     { file: "tools/venture-builder.html",         label: "Greenfield Venture Builder" },
     { file: "tools/corporate-structure.html",     label: "Corporate Structure Designer" },
-    { file: "tools/organogram-planner.html",      label: "Organogram & Postholder Planner" }
+    { file: "tools/organogram-planner.html",      label: "Organogram & Postholder Planner" },
+    { file: "tools/revenue-builder.html",         label: "Revenue Model Builder" }
   ]},
   { group: "Operate an airline", items: [
     { file: "diagnostic.html",                    label: "Airline Health Scorecard" },

@@ -168,7 +168,8 @@
     $("talk").href = href; $("cta-mail").href = href;
 
     mountPrintHead("Venture Control Room", prof.name || undefined);
-    summarise({ r, mods, tl, org, ven, gate });
+    const rev = mods.find(m => m.id === "revenue");
+    summarise({ r, mods, tl, org, ven, gate, rev });
   }
 
   /* ---- answer-first opening page for the printed pack ----
@@ -191,10 +192,19 @@
 
     const f = [];
     const secName = (JKV.sector(prof.sector) || {}).short || prof.sector;
+    const rev = mods.find(m => m.id === "revenue");
 
     if (ven.capital && ven.capital.gap > 0) f.push({ sev: "stop",
       h: `Unfunded capital gap of ${fmtMoney(ven.capital.gap)}`,
       d: `The funding stack does not cover the capital requirement. Certification burns cash against a fixed regulatory clock, so this closes before a Schedule of Events is committed rather than being discovered during one.` });
+
+    if (rev && rev.started && rev.rag === "red") f.push({ sev: "stop",
+      h: "The fleet cannot service its capital at projected utilisation",
+      d: rev.next });
+
+    if (rev && rev.started && rev.rag === "amber") f.push({ sev: "warn",
+      h: "Revenue readiness is marginal",
+      d: rev.next });
 
     if (tl && tl.late) f.push({ sev: "stop",
       h: "The target certificate date is already unreachable",

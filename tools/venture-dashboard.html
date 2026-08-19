@@ -49,12 +49,11 @@
   @media (max-width: 760px) { .vf-bar { grid-template-columns: 1fr; } }
 
   /* ---- module cards ----
-     Four modules, so a two-by-two block rather than auto-fit: auto-fit
-     put three across and left the fourth stranded on its own row, which
-     reads as an afterthought instead of the fourth quarter of one
-     picture. */
-  .mods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
-  @media (max-width: 720px) { .mods { grid-template-columns: 1fr; } }
+     Five modules: a 2-column grid still works — the fifth card gets its
+     own row and auto-fills to half width. auto-fill with a minmax floor
+     handles both 4 and 5 without either leaving a stranded card on
+     mobile or cramming five across a 1400px screen. */
+  .mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 20px; }
   .mod { background: #fff; border: 1px solid var(--jk-line); border-left: 4px solid var(--jk-line-2);
          border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: .6rem; }
   .mod.is-green { border-left-color: var(--jk-green); }
@@ -165,7 +164,7 @@
   <div class="wrap">
     <p class="ref">Tool V0 · Free</p>
     <h1>Venture Control Room</h1>
-    <p class="lead">Four tools, one venture. This page reads everything you have already done in the Certification Navigator, Venture Builder, Corporate Structure Designer and Organogram Planner, and answers the only question an investment committee actually asks: how ready is this, and what is stopping it.</p>
+    <p class="lead">Five tools, one venture. This page reads everything you have already done in the Certification Navigator, Venture Builder, Revenue Model Builder, Corporate Structure Designer and Organogram Planner, and answers the only question an investment committee actually asks: how ready is this, and what is stopping it.</p>
     <div class="trust-strip">
       <div class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 10V8a6 6 0 1 1 12 0v2h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1Zm2 0h8V8a4 4 0 0 0-8 0v2Zm4 5a1.6 1.6 0 0 0-.8 3v1.4a.8.8 0 0 0 1.6 0V18a1.6 1.6 0 0 0-.8-3Z"/></svg> Stays on your device</div>
       <div class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2c1.9 0 3.6.65 4.95 1.75L5.75 16.95A7.95 7.95 0 0 1 12 4Zm0 16a7.9 7.9 0 0 1-4.95-1.75L18.25 7.05A7.95 7.95 0 0 1 12 20Z"/></svg> No signup</div>
@@ -220,7 +219,7 @@
       </div>
     </div>
     <p class="muted" style="font-size:var(--fs-xs);margin:1.6rem 0 0;max-width:760px">
-      The index is a weighted composite — certification <b>40</b>, capital <b>25</b>, organisation <b>20</b>, structure <b>15</b>.
+      The index is a weighted composite — certification <b>35</b>, capital <b>20</b>, organisation <b>18</b>, structure <b>12</b>, revenue <b>15</b>.
       The certificate carries the most because no amount of capital substitutes for it. A module you have not opened counts as zero,
       deliberately: an unanswered question is not a passed one.
     </p>
@@ -231,7 +230,7 @@
 <section>
   <div class="wrap">
     <p class="eyebrow">Where the venture stands</p>
-    <h2 style="margin-bottom:.4rem">The four build modules</h2>
+    <h2 style="margin-bottom:.4rem">The five build modules</h2>
     <p class="muted" style="max-width:700px;margin-bottom:1.6rem">Each card reads that tool's saved work on this device. Nothing is duplicated — open a tool, change something, come back and this updates.</p>
     <div class="mods" id="mods"></div>
     <div id="scorecard-x" style="margin-top:1.8rem"></div>
