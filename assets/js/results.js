@@ -81,7 +81,7 @@
   const ring = document.getElementById("index-ring");
   ring.style.setProperty("--p", s.index);
   ring.style.setProperty("--ring-color",
-    s.index < 45 ? "var(--jk-red)" : s.index < 65 ? "var(--jk-amber)" : "var(--jk-amber)");
+    s.index < 45 ? "var(--jk-red)" : s.index < 65 ? "var(--jk-amber)" : "var(--jk-green)");
   document.getElementById("index-val").textContent = s.index;
   document.getElementById("index-band").textContent = v.band;
   document.getElementById("index-band").style.color = v.color;
