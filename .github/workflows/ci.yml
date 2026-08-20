@@ -1,5 +1,20 @@
 name: CI
 
+# This workflow is a SECOND OPINION, not the deploy gate.
+#
+# Production is deployed directly to Netlify from an artifact built by
+# scripts/package-deploy.mjs, which runs these same suites locally and
+# refuses to write the artifact if any of them fail. That script is what
+# stands between a broken tree and the live site; this workflow re-runs
+# the same checks on GitHub's runners so the two can be compared.
+#
+# A green run here does not deploy anything, and a red one does not stop
+# a deploy. If this workflow and package-deploy.mjs ever disagree about
+# the same commit, that disagreement is itself the bug — investigate it
+# rather than picking whichever answer is more convenient.
+#
+# See README → Deployment.
+
 on:
   # push is main-only on purpose. It used to include "claude/**", and
   # every branch with an open PR then ran the whole suite TWICE for one

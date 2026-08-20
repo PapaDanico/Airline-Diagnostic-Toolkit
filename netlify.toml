@@ -1,4 +1,19 @@
 # Netlify configuration — JK & Associates aviation advisory platform (static site)
+#
+# DEPLOYMENT POLICY: production is deployed DIRECTLY to Netlify — the
+# artifact is built by scripts/package-deploy.mjs and uploaded by hand.
+# Netlify does not build this site from a git push.
+#
+# The [build] block below therefore describes how the uploaded tree is
+# served, not a build Netlify runs. It still matters: a manual upload is
+# served under these same settings, and _headers and _redirects ship
+# inside the artifact.
+#
+# Because the pull request is no longer in the path to production, the
+# test suite that used to gate a merge now gates the artifact instead —
+# package-deploy.mjs writes no zip unless every suite passes. Deploying
+# a tree that has not been through it means deploying something nothing
+# has checked. See README → Deployment.
 [build]
   publish = "."
   # No build step: vanilla HTML/CSS/JS, served as-is.
