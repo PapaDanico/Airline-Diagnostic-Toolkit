@@ -322,7 +322,7 @@ const JKW = {
                    href: "revenue-builder.html", sector: null };
     const touched = Array.isArray(st.segments) && st.segments.length > 0;
     if (!touched) return Object.assign(base, { started: false, pct: 0, rag: "idle",
-      headline: "Not started", next: "Add revenue segments to test whether the fleet can service its capital.", facts: [] });
+      headline: "Not started", next: "Add revenue segments to test whether the model recovers its capital.", facts: [] });
 
     /* The saved summary is what the Revenue Builder itself computed and
        wrote when the operator pressed Save; it is the figure the tool
@@ -350,7 +350,7 @@ const JKW = {
                                : Math.max(0, Math.min(100, Math.round(ratio * 100)));
 
     let next;
-    if (ratio === null) next = "Save to Venture File from the Revenue Builder to run the capital service test.";
+    if (ratio === null) next = "Save to Venture File from the Revenue Builder to run the capital recovery test.";
     else if (ratio < 0.5) {
       /* Guarded: a model with segments but no contribution gives ratio
          zero, and 1/0 printed "a Infinity\u00D7 shortfall". */
@@ -358,7 +358,7 @@ const JKW = {
       next = `Fleet covers ${(ratio * 100).toFixed(0)}% of the capital recovery requirement \u2014 ${gap}. Review fleet size or capital structure.`;
     }
     else if (ratio < 0.8) next = `Fleet covers ${(ratio * 100).toFixed(0)}% of capital recovery. Contracted anchor demand or a lease structure is recommended.`;
-    else next = "Fleet can service its capital at projected utilisation.";
+    else next = "Model recovers its capital at projected utilisation.";
 
     return Object.assign(base, {
       started: true, pct, rag,

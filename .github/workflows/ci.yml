@@ -35,6 +35,14 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    # Capped on purpose. This job had no timeout, so it inherited
+    # GitHub's default of 360 minutes — a hung `npm`, a wedged node
+    # process or a network stall in any step could bill six hours of
+    # runner time against a private repository's metered minutes before
+    # anything killed it. Every step here is seconds' work on a healthy
+    # runner; ten minutes is already an order of magnitude of headroom,
+    # and a job that exceeds it is hung, not slow.
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 

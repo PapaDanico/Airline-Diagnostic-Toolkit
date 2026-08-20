@@ -46,6 +46,21 @@
       seasonality: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     }
   };
+  /* Indicative planning defaults, NOT sourced benchmarks.
+
+     Everything in SEGMENT_TYPES above and AIRCRAFT_VALUES below is an
+     order-of-magnitude starting point, carried here so a new segment
+     arrives with something to argue with rather than an empty form.
+     None of it is attributed, because none of it comes from a named
+     publication — unlike the benchmarks in data.js, which check-data
+     requires to name a source and a date.
+
+     That distinction has to survive contact with a board pack, so it
+     is stated three times where it can be read: on the page beside the
+     segment editor, in the basis line of the printed pack, and here.
+     Every one of these values is editable in the UI, and the figure
+     that drives the model is whatever the operator enters. Do not
+     promote these into data.js or cite them as evidence of anything. */
   const AIRCRAFT_VALUES = {
     "Dassault Falcon 7X": 22000000,
     "Cessna Citation Sovereign": 10000000,
@@ -195,9 +210,14 @@
      in the field. So the shell is built once and only the verdict line
      is rewritten. There is then nothing to restore and nothing to drop. */
   function buildCstShell(host) {
-    host.innerHTML = `<div id="cst-msg"></div>
+    host.innerHTML = `<p class="eyebrow" style="margin:0 0 .5rem">Capital recovery test</p>
+      <div id="cst-msg"></div>
       <div class="muted" style="margin-top:.8rem;font-size:var(--fs-xs)">
         Capital recovery requirement = programme total + (annual debt service \u00D7 10).
+        This asks whether the contribution this model earns pays the capital back over ten years.
+        The Venture Builder asks a different question of the same venture \u2014 whether the planned
+        fleet can generate the <i>revenue</i> that capital requires \u2014 so the two can disagree,
+        and a venture usually needs to satisfy both.
         <a href="#" id="cst-edit-toggle">Edit programme figures \u25BE</a>
       </div>
       <div id="cst-inputs" style="display:none;margin-top:.8rem">
@@ -254,16 +274,16 @@
     let cls, msg;
     if (ratio >= 0.8) {
       cls = "note ok";
-      msg = `<b>\u2713 This fleet can service its capital</b>10-year contribution of ${fmtMoney(tenYrContrib)} covers ${(ratio * 100).toFixed(0)}% of the capital recovery requirement of ${fmtMoney(capRecovery)}.`;
+      msg = `<b>\u2713 This model recovers its capital</b>10-year contribution of ${fmtMoney(tenYrContrib)} covers ${(ratio * 100).toFixed(0)}% of the capital recovery requirement of ${fmtMoney(capRecovery)}.`;
     } else if (ratio >= 0.5) {
       cls = "note warn";
-      msg = `<b>\u26A0 This fleet is marginal</b>10-year contribution of ${fmtMoney(tenYrContrib)} covers ${(ratio * 100).toFixed(0)}% of ${fmtMoney(capRecovery)}. Contracted demand or lease structure recommended.`;
+      msg = `<b>\u26A0 This model is marginal against its capital</b>10-year contribution of ${fmtMoney(tenYrContrib)} covers ${(ratio * 100).toFixed(0)}% of ${fmtMoney(capRecovery)}. Contracted demand or lease structure recommended.`;
     } else {
       /* Guarded: a model with segments but no contribution gives ratio
          zero, and 1/0 printed "a Infinity\u00D7 shortfall". */
       const shortfall = ratio > 0 ? `a ${(1 / ratio).toFixed(1)}\u00D7 shortfall` : "no contribution against it at all";
       cls = "note";
-      msg = `<b>\u2717 This fleet cannot service its capital</b>10-year contribution of ${fmtMoney(tenYrContrib || 0)} covers only ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(capRecovery)} capital recovery requirement \u2014 ${shortfall}. Reduce fleet, lease rather than own, or secure anchor contracts.`;
+      msg = `<b>\u2717 This model does not recover its capital</b>10-year contribution of ${fmtMoney(tenYrContrib || 0)} covers only ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(capRecovery)} capital recovery requirement \u2014 ${shortfall}. Reduce fleet, lease rather than own, or secure anchor contracts.`;
     }
 
     const style = ratio < 0.5 ? ` style="border-left-color:var(--jk-red);background:var(--jk-parchment)"` : "";
@@ -466,9 +486,9 @@
 
     const verdict = ratio === null
       ? `${fmtMoney(yr1.rev)} Year 1 revenue across ${state.segments.length} segment${state.segments.length !== 1 ? "s" : ""}`
-      : ratio >= 0.8 ? "This fleet can service its capital at projected utilisation"
-      : ratio >= 0.5 ? "This fleet is marginal against its capital"
-      : "This fleet cannot service its capital";
+      : ratio >= 0.8 ? "This revenue model recovers its capital at projected utilisation"
+      : ratio >= 0.5 ? "This revenue model is marginal against its capital"
+      : "This revenue model does not recover its capital";
 
     mountPrintSummary({
       title: `Revenue model \u2014 ${state.segments.length} segment${state.segments.length !== 1 ? "s" : ""}`,

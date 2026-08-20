@@ -413,6 +413,7 @@
      figures. Inputs are never replaced while someone is typing. */
   function buildCstShell(host) {
     host.innerHTML = `
+      <p style="margin:0 0 .5rem;font-size:var(--fs-xs);font-weight:600">Capital service test</p>
       <div id="cst-msg"></div>
       <div style="margin-top:.9rem">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;margin-bottom:.5rem">
@@ -440,6 +441,12 @@
             </div>
           </div>
           <p class="hint muted" id="cst-formula" style="font-size:var(--fs-2xs);margin-top:.5rem"></p>
+          <p class="hint muted" style="font-size:var(--fs-2xs);margin-top:.4rem">
+            This asks whether the planned fleet can generate the <i>revenue</i> the capital requires.
+            The Revenue Model Builder asks whether the contribution a built model earns pays that capital
+            back over ten years. They are different tests, they can disagree, and a venture usually needs
+            to satisfy both.
+          </p>
         </details>
       </div>`;
 
@@ -539,14 +546,14 @@
       ragMsg = `<b>Add fleet rows below to test capital serviceability.</b>Enter the aircraft types and utilisation rates this venture will earn on.`;
     } else if (ratio >= 0.8) {
       ragCls = "note ok";
-      ragMsg = `<b>\u2713 The fleet can service its capital at projected utilisation</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(requiredRevenue)}/year requirement.`;
+      ragMsg = `<b>\u2713 The planned fleet can generate the revenue its capital requires</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(requiredRevenue)}/year requirement.`;
     } else if (ratio >= 0.5) {
       ragCls = "note warn";
-      ragMsg = `<b>\u26A0 The fleet is marginal</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers ${(ratio * 100).toFixed(0)}% of ${fmtMoney(requiredRevenue)}/year required. Contracted demand or a lease structure is recommended before committing capital.`;
+      ragMsg = `<b>\u26A0 The planned fleet is marginal against its capital</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers ${(ratio * 100).toFixed(0)}% of ${fmtMoney(requiredRevenue)}/year required. Contracted demand or a lease structure is recommended before committing capital.`;
     } else {
       const shortfall = ratio > 0 ? ` \u2014 ${(1 / ratio).toFixed(1)}\u00D7 shortfall` : "";
       ragCls = "note warn";
-      ragMsg = `<b>\u2717 The fleet cannot service its capital${shortfall}</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers only ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(requiredRevenue)}/year requirement. Reduce fleet size, lease rather than own, or secure anchor contracts before proceeding.`;
+      ragMsg = `<b>\u2717 The planned fleet cannot generate the revenue its capital requires${shortfall}</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers only ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(requiredRevenue)}/year requirement. Reduce fleet size, lease rather than own, or secure anchor contracts before proceeding.`;
     }
     const redBorder = ratio > 0 && ratio < 0.5 ? ' style="border-left-color:var(--jk-red)"' : "";
     $("cst-msg").innerHTML = `<div class="${ragCls}"${redBorder}>${ragMsg}</div>`;
