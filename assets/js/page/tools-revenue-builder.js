@@ -2,7 +2,15 @@
   applyPartner(); mountChrome();
 
   const $ = id => document.getElementById(id);
-  const STORE_KEY = "jk_revenue_v1";
+  /* Storage goes through toolStore, like every other venture-track tool.
+     It was "jk_revenue_v1" and hand-rolled, which put this tool outside
+     the jk_*_v3 namespace the Venture File reads, exports and snapshots
+     — so venture-file.js had to special-case it, and that special case
+     read live localStorage instead of the source it was handed, which
+     made every saved scenario show today's revenue figures. Naming it
+     the way the platform names things removes the special case rather
+     than working around it. */
+  const store = toolStore("revenue");
   const REVENUE_SEGMENTS = {
     executiveJet: {
       label: "Executive Jet Charter",
@@ -53,17 +61,29 @@
     "Boeing 737-800": 45000000
   };
 
+  /* One-time adoption of anything saved under the old key, so the move
+     to the platform namespace does not cost a visitor the model they
+     built before it. The old key is left in place rather than deleted:
+     it costs a few hundred bytes and means a half-finished migration
+     never lands between the two. */
   function loadState() {
-    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
+    const cur = store.load();
+    if (Object.keys(cur).length) return cur;
+    try {
+      const legacy = JSON.parse(localStorage.getItem("jk_revenue_v1"));
+      if (legacy && typeof legacy === "object") return legacy;
+    } catch {}
+    return {};
   }
-  function saveState(st) {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(st)); } catch {}
-  }
+  /* reportingWrite (via toolStore.save), not a bare catch. A silently
+     dropped write here loses the whole revenue model on reload with
+     nothing on screen — the failure tests/storage.mjs exists to catch. */
+  function saveState(st) { return store.save(st); }
 
   let state = loadState();
   if (!Array.isArray(state.segments)) state.segments = [];
   if (!state.sens) state.sens = { rate: 0, util: 0, doc: 0 };
-  if (!state.cst) state.cst = { programmeTotal: 0, annualDebtService: 0, margin: 35 };
+  if (!state.cst) state.cst = { programmeTotal: 0, annualDebtService: 0 };
 
   let _nextId = Date.now();
   function newId() { return "s" + (_nextId++).toString(36); }
@@ -144,67 +164,110 @@
     return rows;
   }
 
+  /* The capital a ten-year contribution stream has to recover: the
+     programme total plus ten years of debt service.
+
+     This was computed one way here (divided by a contribution margin),
+     described a second way in the caption directly beneath it, and
+     saved to the Venture File a third way — so the banner, its own
+     explanation and the dashboard disagreed about the single number
+     this tool exists to produce.
+
+     The margin divisor was the error. It is the right term in the
+     Venture Builder's test, which compares a *revenue* capacity against
+     a revenue requirement. Here the numerator is already contribution —
+     revenue less direct operating cost, from the operator's own segment
+     figures — so dividing the requirement by margin as well counts the
+     margin twice. At the 35% default it inflated the requirement almost
+     threefold and reported "cannot service its capital" against models
+     that comfortably could. Contribution is compared against capital
+     directly, which is also what the caption always claimed. */
+  function capitalRecovery(programmeTotal, annualDebtService) {
+    return (programmeTotal || 0) + (annualDebtService || 0) * 10;
+  }
+
+  /* The verdict re-renders on every keystroke; the controls do not.
+
+     This block used to rebuild its own innerHTML on each recompute(),
+     which destroyed the input being typed into: focus fell to <body>,
+     the panel folded shut, and characters typed into the node that was
+     about to be replaced went with it — entering "50000000" left "50"
+     in the field. So the shell is built once and only the verdict line
+     is rewritten. There is then nothing to restore and nothing to drop. */
+  function buildCstShell(host) {
+    host.innerHTML = `<div id="cst-msg"></div>
+      <div class="muted" style="margin-top:.8rem;font-size:var(--fs-xs)">
+        Capital recovery requirement = programme total + (annual debt service \u00D7 10).
+        <a href="#" id="cst-edit-toggle">Edit programme figures \u25BE</a>
+      </div>
+      <div id="cst-inputs" style="display:none;margin-top:.8rem">
+        <div class="field-row">
+          <div class="field"><label for="cst-pt">Programme total (USD)</label>
+            <input type="number" id="cst-pt" min="0" step="1000000"></div>
+          <div class="field"><label for="cst-ds">Annual debt service (USD)</label>
+            <input type="number" id="cst-ds" min="0" step="100000"></div>
+        </div>
+      </div>`;
+
+    const tog = $("cst-edit-toggle");
+    tog.addEventListener("click", e => {
+      e.preventDefault();
+      state.cst.open = !state.cst.open;
+      $("cst-inputs").style.display = state.cst.open ? "block" : "none";
+      tog.textContent = `Edit programme figures ${state.cst.open ? "\u25B4" : "\u25BE"}`;
+      saveState(state);
+    });
+
+    /* No contribution-margin field: the segments already carry the
+       operator's own direct operating cost, so the margin is an output
+       of this model, not an input to it. */
+    ["cst-pt", "cst-ds"].forEach(id => {
+      $(id).addEventListener("input", e => {
+        if (id === "cst-pt") state.cst.programmeTotal = parseFloat(e.target.value) || 0;
+        else state.cst.annualDebtService = parseFloat(e.target.value) || 0;
+        saveState(state);
+        recompute();
+      });
+    });
+  }
+
   function renderCapitalServiceTest(tenYrContrib) {
     const host = $("cst-banner");
     if (!host) return;
     const pt = state.cst.programmeTotal || 0;
     const ds = state.cst.annualDebtService || 0;
-    if (!pt && !ds) { host.innerHTML = ""; return; }
+    if (!pt && !ds && !state.cst.open) { host.innerHTML = ""; host.dataset.built = ""; return; }
 
-    const margin = (state.cst.margin || 35) / 100;
-    const capRecovery = (pt / margin) + (ds * 10 / margin);
-    const ratio = tenYrContrib > 0 ? tenYrContrib / capRecovery : 0;
+    if (host.dataset.built !== "1") { buildCstShell(host); host.dataset.built = "1"; }
+
+    /* Write a value back only when the field is not the one being typed
+       into, so a half-entered figure is never overwritten mid-keystroke. */
+    const ptIn = $("cst-pt"), dsIn = $("cst-ds");
+    if (document.activeElement !== ptIn && ptIn.value !== String(pt)) ptIn.value = pt;
+    if (document.activeElement !== dsIn && dsIn.value !== String(ds)) dsIn.value = ds;
+    $("cst-inputs").style.display = state.cst.open ? "block" : "none";
+    $("cst-edit-toggle").textContent = `Edit programme figures ${state.cst.open ? "\u25B4" : "\u25BE"}`;
+
+    const capRecovery = capitalRecovery(pt, ds);
+    const ratio = capRecovery > 0 && tenYrContrib > 0 ? tenYrContrib / capRecovery : 0;
 
     let cls, msg;
     if (ratio >= 0.8) {
       cls = "note ok";
-      msg = `<b>✓ This fleet can service its capital</b>10-year contribution of ${fmtMoney(tenYrContrib)} covers ${(ratio * 100).toFixed(0)}% of the capital recovery requirement of ${fmtMoney(capRecovery)}.`;
+      msg = `<b>\u2713 This fleet can service its capital</b>10-year contribution of ${fmtMoney(tenYrContrib)} covers ${(ratio * 100).toFixed(0)}% of the capital recovery requirement of ${fmtMoney(capRecovery)}.`;
     } else if (ratio >= 0.5) {
       cls = "note warn";
-      msg = `<b>⚠ This fleet is marginal</b>10-year contribution of ${fmtMoney(tenYrContrib)} covers ${(ratio * 100).toFixed(0)}% of ${fmtMoney(capRecovery)}. Contracted demand or lease structure recommended.`;
+      msg = `<b>\u26A0 This fleet is marginal</b>10-year contribution of ${fmtMoney(tenYrContrib)} covers ${(ratio * 100).toFixed(0)}% of ${fmtMoney(capRecovery)}. Contracted demand or lease structure recommended.`;
     } else {
-      const shortfall = ratio > 0 ? (1 / ratio).toFixed(1) : "∞";
+      /* Guarded: a model with segments but no contribution gives ratio
+         zero, and 1/0 printed "a Infinity\u00D7 shortfall". */
+      const shortfall = ratio > 0 ? `a ${(1 / ratio).toFixed(1)}\u00D7 shortfall` : "no contribution against it at all";
       cls = "note";
-      msg = `<b>✗ This fleet cannot service its capital</b>10-year contribution of ${fmtMoney(tenYrContrib || 0)} covers only ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(capRecovery)} capital recovery requirement — a ${shortfall}× shortfall. Reduce fleet, lease rather than own, or secure anchor contracts.`;
+      msg = `<b>\u2717 This fleet cannot service its capital</b>10-year contribution of ${fmtMoney(tenYrContrib || 0)} covers only ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(capRecovery)} capital recovery requirement \u2014 ${shortfall}. Reduce fleet, lease rather than own, or secure anchor contracts.`;
     }
 
     const style = ratio < 0.5 ? ` style="border-left-color:var(--jk-red);background:var(--jk-parchment)"` : "";
-    host.innerHTML = `<div class="${cls}"${style}>${msg}</div>
-      <div style="margin-top:.8rem;font-size:var(--fs-xs);color:var(--jk-muted)">
-        Capital recovery requirement = programme total + (annual debt service × 10).
-        <a href="#" id="cst-edit-toggle">Edit programme figures ▾</a>
-      </div>
-      <div id="cst-inputs" style="display:none;margin-top:.8rem">
-        <div class="field-row">
-          <div class="field"><label for="cst-pt">Programme total (USD)</label>
-            <input type="number" id="cst-pt" min="0" step="1000000" value="${pt}"></div>
-          <div class="field"><label for="cst-ds">Annual debt service (USD)</label>
-            <input type="number" id="cst-ds" min="0" step="100000" value="${ds}"></div>
-        </div>
-        <div class="field"><label for="cst-margin-in">Contribution margin (%)</label>
-          <input type="number" id="cst-margin-in" min="5" max="80" step="1" value="${state.cst.margin || 35}" style="max-width:140px"></div>
-      </div>`;
-
-    const tog = $("cst-edit-toggle");
-    if (tog) {
-      tog.addEventListener("click", e => {
-        e.preventDefault();
-        const box = $("cst-inputs");
-        box.style.display = box.style.display === "none" ? "block" : "none";
-        tog.textContent = box.style.display === "none" ? "Edit programme figures ▾" : "Edit programme figures ▴";
-      });
-    }
-    ["cst-pt", "cst-ds", "cst-margin-in"].forEach(id => {
-      const el = $(id);
-      if (!el) return;
-      el.addEventListener("input", () => {
-        if (id === "cst-pt") state.cst.programmeTotal = parseFloat(el.value) || 0;
-        else if (id === "cst-ds") state.cst.annualDebtService = parseFloat(el.value) || 0;
-        else if (id === "cst-margin-in") state.cst.margin = parseFloat(el.value) || 35;
-        saveState(state);
-        recompute();
-      });
-    });
+    $("cst-msg").innerHTML = `<div class="${cls}"${style}>${msg}</div>`;
   }
 
   function importFleet() {
@@ -367,6 +430,54 @@
     </div>`;
   }
 
+  /* The printed pack opened with the segment cards, which is the
+     working, not the answer: a reader reached the verdict on page
+     three. This puts it on the opening page, and withdraws it entirely
+     when there is no model to have a verdict about. */
+  function renderPrintSummary(proj) {
+    if (!state.segments.length) { mountPrintSummary(null); return; }
+
+    const yr1 = proj[0] || { rev: 0, contrib: 0 };
+    const tenYr = proj.length ? proj[proj.length - 1].cumulative : 0;
+    const capRecovery = capitalRecovery(state.cst.programmeTotal, state.cst.annualDebtService);
+    const ratio = capRecovery > 0 && tenYr > 0 ? tenYr / capRecovery : null;
+
+    const f = [];
+    if (ratio === null) {
+      f.push({ sev: "note", h: "No capital programme entered",
+        d: "Enter the programme total and annual debt service, or import them from the Venture Builder, to test whether this revenue model recovers the capital behind it. Without them this pack is a revenue projection, not a serviceability test." });
+    } else if (ratio < 0.5) {
+      f.push({ sev: "stop", h: `Capital recovery covered ${(ratio * 100).toFixed(0)}%`,
+        d: `Ten-year contribution of ${fmtMoney(tenYr)} against a capital recovery requirement of ${fmtMoney(capRecovery)}. Reduce fleet size, lease rather than own, or secure anchor contracts before committing capital.` });
+    } else if (ratio < 0.8) {
+      f.push({ sev: "warn", h: `Capital recovery covered ${(ratio * 100).toFixed(0)}% \u2014 marginal`,
+        d: `Ten-year contribution of ${fmtMoney(tenYr)} against ${fmtMoney(capRecovery)}. Contracted demand or a lease structure is the usual route to closing a gap this size.` });
+    } else {
+      f.push({ sev: "ok", h: `Capital recovery covered ${(ratio * 100).toFixed(0)}%`,
+        d: `Ten-year contribution of ${fmtMoney(tenYr)} against a requirement of ${fmtMoney(capRecovery)}, at the utilisation entered here.` });
+    }
+
+    if (yr1.contrib <= 0) f.push({ sev: "stop", h: "Year 1 contribution is not positive",
+      d: "At the rates, utilisation and direct operating costs entered, the first year does not cover its own variable cost. Nothing downstream of this line is worth reading until it does." });
+
+    const sens = state.sens || {};
+    if (sens.rate || sens.util || sens.doc) f.push({ sev: "note", h: "Figures carry a sensitivity adjustment",
+      d: `Rate ${sens.rate > 0 ? "+" : ""}${sens.rate || 0}%, utilisation ${sens.util > 0 ? "+" : ""}${sens.util || 0}%, direct cost ${sens.doc > 0 ? "+" : ""}${sens.doc || 0}%. This pack is not the unadjusted base case.` });
+
+    const verdict = ratio === null
+      ? `${fmtMoney(yr1.rev)} Year 1 revenue across ${state.segments.length} segment${state.segments.length !== 1 ? "s" : ""}`
+      : ratio >= 0.8 ? "This fleet can service its capital at projected utilisation"
+      : ratio >= 0.5 ? "This fleet is marginal against its capital"
+      : "This fleet cannot service its capital";
+
+    mountPrintSummary({
+      title: `Revenue model \u2014 ${state.segments.length} segment${state.segments.length !== 1 ? "s" : ""}`,
+      verdict,
+      findings: f,
+      basis: "Ten-year projection from the operator's own rates, utilisation and direct operating costs. Segment defaults are indicative planning figures, not quotations. Capital recovery requirement = programme total + (annual debt service \u00D7 10)."
+    });
+  }
+
   function recompute() {
     const sa = {
       rate: 1 + (state.sens.rate || 0) / 100,
@@ -378,6 +489,7 @@
     renderBreakEvenTable(state.segments);
     renderRail(proj, sa);
     renderCapitalServiceTest(proj.length ? proj[proj.length - 1].cumulative : 0);
+    renderPrintSummary(proj);
     saveState(state);
   }
 
@@ -458,13 +570,13 @@
 
   $("btn-save-vf").addEventListener("click", () => {
     try {
-      const profile = JSON.parse(localStorage.getItem("jk_venture_file_v3") || "{}");
+      const profile = JKW.read(JKW.PROFILE_KEY);
       const proj = computeProjection(state.segments, { rate: 1, util: 1, doc: 1 });
       const yr1 = proj[0] || { rev: 0, contrib: 0 };
       const tenYr = proj.reduce((a, r) => a + r.contrib, 0);
       const pt = state.cst.programmeTotal || 0;
       const ds = state.cst.annualDebtService || 0;
-      const capRecovery = pt + ds * 10;
+      const capRecovery = capitalRecovery(pt, ds);
       const ratio = capRecovery > 0 ? tenYr / capRecovery : null;
       const rag = ratio === null ? "idle" : ratio >= 0.8 ? "green" : ratio >= 0.5 ? "amber" : "red";
       profile.revenue = {
@@ -477,8 +589,15 @@
         rag,
         segCount: state.segments.length
       };
-      localStorage.setItem("jk_venture_file_v3", JSON.stringify(profile));
-      $("save-status").textContent = "Saved to venture file.";
+      /* Read-modify-write on the raw profile rather than JKW.saveProfile:
+         that helper normalises the profile down to its four declared
+         fields, which would drop this key on the next tool to touch it.
+         reportingWrite so a refused write is surfaced, not swallowed. */
+      const ok = reportingWrite(() =>
+        localStorage.setItem(JKW.PROFILE_KEY, JSON.stringify(profile)));
+      $("save-status").textContent = ok === false
+        ? "Could not save \u2014 storage is blocked in this browser."
+        : "Saved to venture file.";
       setTimeout(() => { $("save-status").textContent = ""; }, 3000);
     } catch (e) {
       $("save-status").textContent = "Could not save.";

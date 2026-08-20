@@ -1313,7 +1313,13 @@ server.close();
   /* 207 → 208. The route panel's sourcing note is separated by the same
      rgba(255,255,255,.15) rule the CASK panel beside it already uses —
      one more use of a literal already in the sheet, no new colour. */
-  const CEILING = { colourUses: 208, colourDistinct: 64, fontUses: 9, fontDistinct: 9 };
+  /* 208 → 210. The Revenue Model Builder is a fifteenth tool page, and
+     its footer carries the same two style="color:#fff" brand marks every
+     other tool footer carries. Two more uses of the one literal this
+     file already names as the exception, no new colour and no new
+     distinct value — colourDistinct is unchanged at 64, which is the
+     number that would have moved had the page invented a palette. */
+  const CEILING = { colourUses: 210, colourDistinct: 64, fontUses: 9, fontDistinct: 9 };
 
   const jkCss = readFileSync(join(ROOT, "assets", "css", "jk.css"), "utf8");
   const rootBlock = jkCss.slice(jkCss.indexOf(":root"), jkCss.indexOf("/* ---------- reset"));

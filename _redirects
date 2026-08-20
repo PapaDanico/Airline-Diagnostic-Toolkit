@@ -5,6 +5,7 @@
 /acquire                /tools/aoc-acquisition.html        301
 /implement              /tools/implementation-planner.html 301
 /org                    /tools/organogram-planner.html     301
+/revenue                /tools/revenue-builder.html        301
 /scorecard              /diagnostic.html                   301
 /results                /results.html                      301
 /cask                   /tools/cask-calculator.html        301
@@ -21,6 +22,7 @@
 /tools/aoc-acquisition  /tools/aoc-acquisition.html      200
 /tools/implementation-planner /tools/implementation-planner.html 200
 /tools/organogram-planner /tools/organogram-planner.html   200
+/tools/revenue-builder  /tools/revenue-builder.html       200
 /tools/cask-calculator  /tools/cask-calculator.html        200
 /tools/route-economics  /tools/route-economics.html        200
 /tools/fuel-optimizer   /tools/fuel-optimizer.html         200

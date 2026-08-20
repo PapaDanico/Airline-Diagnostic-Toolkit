@@ -460,7 +460,10 @@ await page.evaluate(() => localStorage.clear());
 await page.reload(); await page.waitForTimeout(450);
 assert(await crIndex() === 0, "empty workspace reads 0 on the readiness index");
 assert(/Concept/.test(await page.$eval("#ring-band", e => e.textContent)), "empty workspace is banded 'Concept'");
-assert(await page.$$eval(".mod", e => e.length) === 4, "four build modules rendered");
+/* Five cards, four of them scored. The Revenue Model Builder reports
+   here but carries no weight in the index — see JKW.WEIGHTS — so the
+   ladder below still runs 40 → 60 → 85 → 100 on the original four. */
+assert(await page.$$eval(".mod", e => e.length) === 5, "five build modules rendered");
 assert(await page.$$eval(".mod .m-pct", e => e.every(x => x.textContent.trim() === "—")),
   "an untouched module shows '—', not a red 0%");
 assert(/Set a target certificate date/.test(await page.$eval("#cp-host", e => e.innerText)),
