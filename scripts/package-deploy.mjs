@@ -55,6 +55,41 @@ const sha = run("git rev-parse --short HEAD").trim();
 const branch = run("git rev-parse --abbrev-ref HEAD").trim();
 const subject = run("git log -1 --pretty=%s").trim();
 
+/* ---- 1b. Is this commit actually on the default branch? ---------------
+   A manual deploy sets production to this artifact but does not move any
+   branch. If the commit being packaged is not on main, then main still
+   holds something else — and because the Netlify project is still linked
+   to git, the next push to main republishes THAT, silently replacing
+   this deploy. Nothing fails when it happens; the site just quietly goes
+   back to whatever main says.
+
+   That is the one failure mode of direct deployment with no automation
+   behind it, so it is checked here rather than left to memory. It is a
+   warning, not a refusal: deploying a branch build ahead of merging is a
+   legitimate thing to do deliberately. */
+let driftWarning = null;
+try {
+  run("git rev-parse --verify --quiet origin/main");
+  try {
+    run(`git merge-base --is-ancestor HEAD origin/main`);
+  } catch {
+    /* The number that matters is what main is MISSING, not what it has.
+       origin/main..HEAD counts the commits in this artifact that main
+       does not carry — i.e. exactly the work that a push to main would
+       throw away. HEAD..origin/main is usually 0 on a branch cut from
+       main and says nothing useful. */
+    const ahead = run("git rev-list --count origin/main..HEAD").trim();
+    driftWarning =
+      `${sha} is NOT on origin/main.\n` +
+      `   main is missing ${ahead} commit(s) that this artifact contains, and the Netlify project\n` +
+      `   still builds from git — so the next push to main republishes main WITHOUT them,\n` +
+      `   silently replacing this deploy. Merge the branch, or deploy knowing that.`;
+  }
+} catch {
+  driftWarning = "could not check against origin/main (no remote ref fetched) — " +
+    "cannot tell whether a push to main would replace this deploy.";
+}
+
 /* ---- 2. The gate ------------------------------------------------------
    The same suites CI ran, in the same order, plus the manifest check
    that asserts the published verification figures came from this run. */
@@ -113,6 +148,7 @@ const mb = (statSync(zip).size / 1048576).toFixed(1);
 
 console.log(`✅  dist/jkassociates-site-${sha}.zip  (${mb} MB, ${files})`);
 console.log(`    ${branch} @ ${sha} — ${subject}`);
+if (driftWarning) console.log(`\n⚠️  ${driftWarning}`);
 console.log(`
 Deploy it:
   Netlify → Deploys → "Deploy manually" drop zone, and drag the zip in.
@@ -120,8 +156,4 @@ Deploy it:
 
   or:  npx netlify-cli deploy --prod --dir . --site <site-id>
        (from a clean clone, never from a working directory)
-
-Then remember: a manual deploy does not move the default branch. If the
-branch this came from is not merged, the next push to it deploys whatever
-that branch holds instead, and this artifact is silently replaced.
 `);
