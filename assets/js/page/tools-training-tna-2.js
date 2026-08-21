@@ -426,4 +426,5 @@
   renderBasis();
   recompute();
   wireToolEnquiryForm("tna-enquiry", "Training Needs Analysis");
+  mountPrintHead("Training Needs Analysis");
 })();

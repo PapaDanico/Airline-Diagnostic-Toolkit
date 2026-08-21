@@ -1303,6 +1303,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .print-head { display: none; align-items: center; gap: 18px; padding: 0 0 14px; border-bottom: 2px solid var(--jk-ink); margin-bottom: 18px; }
 .print-head img { height: 64px; width: auto; }
 .print-head .ph-meta { font-size: var(--fs-sm); line-height: 1.4; }
+.print-head .ph-src { font-size: var(--fs-xs); }
 
 @media print {
   @page { margin: 14mm; }

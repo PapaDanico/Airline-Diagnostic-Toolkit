@@ -152,3 +152,7 @@ if (enquiryAirline) {
     if (!userEditedEnquiry) enquiryAirline.value = airline.value;
   });
 }
+
+/* Letterhead on the printed canvas: logo, date, contact and the URL it
+   came from. Without it the pack prints as an untitled grid. */
+mountPrintHead("Operating Model Canvas");
