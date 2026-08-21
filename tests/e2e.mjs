@@ -2456,6 +2456,36 @@ assert(await page.$("#canvas-enquiry [name=email]") !== null, "canvas page: enqu
 assert(await page.$("#contact-cta") === null, "canvas page: bare mailto CTA removed");
 await assertEnquiryFormSubmits(page, "#canvas-enquiry", "canvas page");
 
+/* ─── 23b-ii. Every remaining tool captures a lead ───
+   Eight tools gained a capture form on 21 August: the six venture-track
+   tools, which had converted by mailto only, plus the data request and
+   the training needs analysis, which had converted by nothing at all.
+   They were verified by hand on the day and nothing guarded them
+   afterwards, which is how a working thing quietly stops working.
+
+   A mailto is not a conversion: it dies on mobile, needs a configured
+   mail client, and leaves the practice nothing it owns. So the assertion
+   is not merely that a form exists but that submitting it produces a
+   visible outcome — a silent throw looks identical to success to
+   everyone except the person waiting for a reply that never comes. */
+section("Every tool captures a lead");
+for (const [path, sel, label] of [
+  ["/tools/certification-navigator.html", "#cert-enquiry",   "certification navigator"],
+  ["/tools/corporate-structure.html",     "#struct-enquiry", "corporate structure"],
+  ["/tools/organogram-planner.html",      "#org-enquiry",    "organogram planner"],
+  ["/tools/revenue-builder.html",         "#rev-enquiry",    "revenue builder"],
+  ["/tools/venture-builder.html",         "#vent-enquiry",   "venture builder"],
+  ["/tools/venture-dashboard.html",       "#dash-enquiry",   "venture dashboard"],
+  ["/tools/data-request.html",            "#dr-enquiry",     "data request"],
+  ["/tools/training-tna.html",            "#tna-enquiry",    "training TNA"],
+]) {
+  await page.goto(base + path); await page.waitForTimeout(300);
+  assert(await page.$(`${sel} [name=email]`) !== null, `${label}: capture form present`);
+  assert(await page.$(`${sel} [name=tool]`) !== null,
+    `${label}: the hidden tool field is what tells a lead apart from the other fourteen`);
+  await assertEnquiryFormSubmits(page, sel, label);
+}
+
 /* ─── 23c. How It Works page ─── */
 section("How It Works page");
 await page.goto(base + "/how-it-works.html"); await page.waitForTimeout(300);
