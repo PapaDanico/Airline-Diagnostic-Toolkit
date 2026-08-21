@@ -920,13 +920,22 @@ function citeChips(keys) {
    Injected once per tool page so a printed pack carries the mark, the
    tool name and the date it was produced. Board packs get circulated
    detached from their source; the header is what makes them traceable. */
+/* A printed pack is the one thing this site produces that travels. It
+   gets mailed to a CFO, tabled at a board, forwarded to a lender — read
+   by exactly the people the practice wants, in rooms it is not in. It
+   carried the practice's name and email but never said where it came
+   from, so nobody holding one could go and run their own.
+   The canonical URL is already absolute on every page for crawlers;
+   this puts it on the paper too. Screen-invisible: .ph-src only renders
+   inside .print-head, which is display:none until @media print. */
 function mountPrintHead(toolName, subtitle) {
+  const src = (document.querySelector('link[rel="canonical"]') || {}).href || "";
   const html =
     `<img src="${ASSET_BASE}assets/img/jk-logo-full.png" width="522" height="400" loading="lazy" decoding="async" alt="JK &amp; Associates">
      <div class="ph-meta"><strong>${escapeHtml(toolName)}</strong><br>
        ${subtitle ? escapeHtml(subtitle) + "<br>" : ""}
        Prepared ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
-       · JK &amp; Associates · ${escapeHtml(JK.brand.email)}</div>`;
+       · JK &amp; Associates · ${escapeHtml(JK.brand.email)}${src ? `<br><span class="ph-src">Produced with the JK ${escapeHtml(toolName)} · ${escapeHtml(src)}</span>` : ""}</div>`;
   // Rewrite in place rather than bailing out when a header already exists —
   // these tools call this again on every sector change, and an early return
   // would leave a printed AOC pack captioned with whichever sector happened
