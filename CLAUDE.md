@@ -133,4 +133,24 @@ two cannot currently be told apart from the inside.
 
 Every tool that produces a result a buyer would act on should end in a
 capture form, not a `mailto:`. A `mailto:` is unmeasurable, dies on
-mobile, and leaves nothing you own.
+mobile, and leaves nothing you own. As of 21 August all fifteen tools
+capture; none converts by `mailto:` alone.
+
+**Netlify form notifications are enabled.** Recorded because a previous
+session concluded the opposite and was wrong. The reasoning was: the
+Netlify account is registered to a mailbox that has never received a
+single email from Netlify, therefore the alert is probably unset. That
+does not follow. The forms have had zero submissions, and zero
+submissions produce zero notifications whether the setting is on or off
+— the absence of email was fully explained by the absence of leads, and
+carried no information about the setting at all.
+
+The lesson generalises beyond this one fact: an absent signal only tells
+you something if the signal would have been present under the
+alternative. Check that before reasoning from silence.
+
+The recovery line on every confirmation — "not heard back within a
+working day, write to us and quote the tool name" — stays. Its original
+justification was that mistaken inference, but it stands on its own:
+notification mail can be filtered, buried or missed, and a lead that can
+chase its own follow-up costs nothing to keep.
