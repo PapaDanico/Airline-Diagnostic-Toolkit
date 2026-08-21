@@ -757,6 +757,15 @@ function wireToolEnquiryForm(formId, toolName, opts) {
   opts = opts || {};
   const form = document.getElementById(formId);
   if (!form) return;
+
+  /* Idempotent on purpose. Several tool pages call this from inside a
+     render path that re-runs on every input change; without this guard
+     each re-render would attach another submit handler and one click
+     would POST the same lead three or four times. Binding once also
+     means a page may safely call this at init AND on re-render. */
+  if (form.dataset.enqWired === "1") return;
+  form.dataset.enqWired = "1";
+
   form.addEventListener("submit", async e => {
     e.preventDefault();
     // .enq-msg must live inside the <form> — form.querySelector only

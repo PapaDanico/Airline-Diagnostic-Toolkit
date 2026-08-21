@@ -105,6 +105,7 @@ const SUITES = [
   ["offline", "node tests/offline.mjs"],
   ["drive", "node tests/drive.mjs"],
   ["storage", "node tests/storage.mjs"],
+  ["sliders", "node tests/sliders.mjs"],
   ["verification manifest", "node scripts/build-verification.mjs --check"]
 ];
 

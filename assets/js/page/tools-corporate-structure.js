@@ -198,6 +198,7 @@
       `\n\nI would like this structure reviewed.`;
     const href = toolMailto("Structure", st.name, body);
     $("talk").href = href; $("cta-mail").href = href;
+    wireToolEnquiryForm("struct-enquiry", "Corporate Structure Designer");
 
     summarise({ st, sec, grand, localPct, entries, needsControl, offshore, done, checksList });
     store.save(state);

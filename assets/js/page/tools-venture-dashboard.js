@@ -166,6 +166,7 @@
       `\n\nI would like this venture reviewed.`;
     const href = toolMailto("Control Room", prof.name || "Greenfield venture", body);
     $("talk").href = href; $("cta-mail").href = href;
+    wireToolEnquiryForm("dash-enquiry", "Venture Dashboard");
 
     mountPrintHead("Venture Control Room", prof.name || undefined);
     const rev = mods.find(m => m.id === "revenue");

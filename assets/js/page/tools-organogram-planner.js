@@ -202,6 +202,7 @@
       `I would like this organisation design reviewed.`;
     const href = toolMailto("Organogram", s.short + " organisation", body);
     $("talk").href = href; $("cta-mail").href = href;
+    wireToolEnquiryForm("org-enquiry", "Organogram Planner");
 
     summarise({ s, kcaaPosts, named, deputised, spof, spofList, vacantList, launch, pct });
   }
