@@ -425,4 +425,5 @@
 
   renderBasis();
   recompute();
+  wireToolEnquiryForm("tna-enquiry", "Training Needs Analysis");
 })();
