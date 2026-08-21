@@ -888,6 +888,7 @@
       `I would like this model pressure-tested.`;
     const href = toolMailto("Venture", s.short + " venture model", body);
     $("talk").href = href; $("cta-mail").href = href;
+    wireToolEnquiryForm("vent-enquiry", "Greenfield Venture Builder");
 
     /* Answer-first summary for the printed pack. Ordered by what would
        stop the venture, not by the order the panels happen to appear in:

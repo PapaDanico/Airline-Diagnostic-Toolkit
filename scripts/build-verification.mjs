@@ -53,7 +53,7 @@ const check = process.argv.includes("--check");
    suite here without hooking it makes the build fail, which is the
    right way round: the list is the claim, and the records are the
    evidence for it. */
-const EXPECTED = ["e2e", "audit", "focus", "csp", "offline", "storage", "drive"];
+const EXPECTED = ["e2e", "audit", "focus", "csp", "offline", "storage", "drive", "sliders"];
 
 if (!existsSync(RECORDS)) {
   console.error("❌ no verification records — run the test suites first (npm test)");

@@ -308,6 +308,8 @@
   });
 
   /* ---------- restore ---------- */
+  wireToolEnquiryForm("cert-enquiry", "Certification Navigator");
+
   const fromUrl = new URLSearchParams(location.search).get("sector");
   const initial = (fromUrl && JKV.sector(fromUrl)) ? fromUrl : state.sector;
   if (initial && JKV.sector(initial)) select(initial, false);

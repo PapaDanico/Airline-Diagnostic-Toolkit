@@ -653,4 +653,5 @@
 
   const href = toolMailto("Revenue", "Revenue model", "I would like help building a bankable revenue model.");
   $("cta-mail").href = href;
+  wireToolEnquiryForm("rev-enquiry", "Revenue Model Builder");
 })();

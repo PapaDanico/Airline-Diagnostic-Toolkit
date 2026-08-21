@@ -43,6 +43,14 @@
 
 <main id="main">
 
+<form name="tool-enquiry" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text"  name="bot-field">
+  <input type="hidden" name="tool">
+  <input type="text"  name="name">
+  <input type="email" name="email">
+  <input type="text"  name="airline">
+  <input type="text"  name="concern">
+</form>
 <header class="tool-head">
   <div class="wrap">
     <p class="ref">Tool V1 · Free</p>
@@ -194,7 +202,27 @@
   <div class="wrap" style="text-align:center">
     <h2>A revenue model that survives diligence looks different from this.</h2>
     <p style="max-width:660px;margin:0 auto 1.4rem">This tests whether the fleet can service its capital at indicative rates. A defensible revenue case needs a real demand study, contracted anchor clients and a yield model that holds under utilisation stress.</p>
-    <a class="btn btn-amber btn-lg" id="cta-mail" href="#">Build the bankable model with us</a>
+    <div class="guarantee" style="max-width:620px;margin:0 auto;text-align:left">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <div>
+        <strong>Get the Bankable Revenue Case Checklist</strong>
+        <p style="margin:.4rem 0 .8rem;font-size:var(--fs-sm)">What a lender or DFI tests before underwriting a revenue projection — demand evidence, contracted anchor share, and the sensitivities they run themselves. Enter your details and it’s yours immediately.</p>
+        <form id="rev-enquiry" class="grid g2" style="gap:10px">
+          <input type="hidden" name="tool" value="Revenue Model Builder">
+          <input name="name" placeholder="Name" required>
+          <input name="airline" placeholder="Airline / Organisation">
+          <input name="email" type="email" placeholder="Work email" required>
+          <select name="concern">
+            <option value="">Primary concern</option>
+            <option>AOC startup</option><option>Safety / Regulatory</option>
+            <option>Cost reduction</option><option>Revenue growth</option><option>Strategy</option>
+          </select>
+          <button type="submit" class="btn btn-amber" style="grid-column:1/-1">Send me the Bankable Revenue Case Checklist →</button>
+          <p class="enq-msg" style="font-size:var(--fs-sm);margin-top:.6rem;grid-column:1/-1"></p>
+        </form>
+        <p class="cta-alt" style="margin-top:.8rem">Prefer email? <a id="cta-mail" href="#">Build the bankable model with us</a></p>
+      </div>
+    </div>
   </div>
 </section>
 

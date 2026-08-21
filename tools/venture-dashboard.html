@@ -160,6 +160,14 @@
 
 <main id="main">
 
+<form name="tool-enquiry" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text"  name="bot-field">
+  <input type="hidden" name="tool">
+  <input type="text"  name="name">
+  <input type="email" name="email">
+  <input type="text"  name="airline">
+  <input type="text"  name="concern">
+</form>
 <header class="tool-head">
   <div class="wrap">
     <p class="ref">Tool V0 · Free</p>
@@ -313,7 +321,27 @@
   <div class="wrap" style="text-align:center">
     <h2>A readiness score is not a plan.</h2>
     <p style="max-width:640px;margin:0 auto 1.4rem">These tools tell you where the gaps are. Closing them is the engagement — the Schedule of Events, the manual set, the postholder submissions, the regulator relationship and the capital story that survives diligence.</p>
-    <a class="btn btn-amber btn-lg" id="cta-mail" href="#">Talk to us about your venture</a>
+    <div class="guarantee" style="max-width:620px;margin:0 auto;text-align:left">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <div>
+        <strong>Get the Investment Readiness Review</strong>
+        <p style="margin:.4rem 0 .8rem;font-size:var(--fs-sm)">We read your venture file and come back with the three things most likely to stall it at diligence, and what closing each one takes. Enter your details and it’s yours immediately.</p>
+        <form id="dash-enquiry" class="grid g2" style="gap:10px">
+          <input type="hidden" name="tool" value="Venture Dashboard">
+          <input name="name" placeholder="Name" required>
+          <input name="airline" placeholder="Airline / Organisation">
+          <input name="email" type="email" placeholder="Work email" required>
+          <select name="concern">
+            <option value="">Primary concern</option>
+            <option>AOC startup</option><option>Safety / Regulatory</option>
+            <option>Cost reduction</option><option>Revenue growth</option><option>Strategy</option>
+          </select>
+          <button type="submit" class="btn btn-amber" style="grid-column:1/-1">Send me the Investment Readiness Review →</button>
+          <p class="enq-msg" style="font-size:var(--fs-sm);margin-top:.6rem;grid-column:1/-1"></p>
+        </form>
+        <p class="cta-alt" style="margin-top:.8rem">Prefer email? <a id="cta-mail" href="#">Talk to us about your venture</a></p>
+      </div>
+    </div>
   </div>
 </section>
 

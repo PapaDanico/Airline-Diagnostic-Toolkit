@@ -172,6 +172,14 @@ jobs:
       - name: A refused storage write is reported
         run: node tests/storage.mjs
 
+      # Synthetic input events prove a handler is wired and prove nothing
+      # about whether a person can move the control. A slider under an
+      # overlay, or one stamped back over by a re-render, passes every
+      # other check here and is dead under a cursor. This clicks each
+      # track at both ends with a real mouse.
+      - name: Every slider answers a real mouse
+        run: node tests/sliders.mjs
+
       # Last, because it asserts that every suite above it actually ran.
       # The published figures on the site are generated from these
       # records, so a suite that is skipped, or fails, or whose numbers

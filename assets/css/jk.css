@@ -1553,6 +1553,20 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
    ring on cards, and repeating it here would be careless.
    ============================================================ */
 .band-ember.band-ember :focus-visible { outline-color: var(--jk-sand); }
+
+/* A .guarantee dropped into an ember band brings its own light amber
+   background, so both the ink and the focus ring have to be re-asserted.
+   .band-ember paints every <p> white — 1.11:1 on amber-lt — and swaps the
+   focus ring to sand for the gradient, which is 1.43:1 on that same amber.
+   This is the identical problem the .note override solves further up, and
+   it takes the identical shape. Without it the lead-capture copy on six
+   venture-track tools is unreadable and its ring invisible. */
+.band-ember .guarantee,
+.band-ember .guarantee p,
+.band-ember .guarantee strong { color: var(--jk-ink); }
+.band-ember .guarantee a { color: var(--accent-deep); }
+.band-ember .guarantee .cta-alt { color: var(--jk-muted); }
+.band-ember.band-ember .guarantee :focus-visible { outline-color: var(--accent); }
 .score-hero.score-hero :focus-visible { outline-color: var(--jk-amber); }
 
 /* A range input has no border to recolour, so the rule above leaves it
