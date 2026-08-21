@@ -786,9 +786,18 @@ function wireToolEnquiryForm(formId, toolName, opts) {
       if (!resp.ok) throw new Error(resp.status);
       form.style.display = "none";
       if (msg) {
-        msg.innerHTML = opts.downloadUrl
+        /* The lead reached Netlify — that much is confirmed by the 200.
+           Whether anyone is told it arrived depends on a notification
+           configured outside this codebase, which nothing here can
+           verify. So the confirmation carries a direct address: if the
+           alert never fires, the person who just spent twenty minutes
+           on a model can still chase it, and a dead alert costs a
+           follow-up rather than the whole lead. Additive on purpose —
+           the 24-hour commitment is unchanged. */
+        const chase = `<br><span class="cta-alt">Not heard back within a working day? Write to <a href="mailto:${JK.brand.email}">${JK.brand.email}</a> and quote ${escapeHtml(toolName)}.</span>`;
+        msg.innerHTML = (opts.downloadUrl
           ? `✓ Received — a JK consultant will follow up within 24 hours. <a href="${opts.downloadUrl}" download>Download your copy of the ${opts.downloadName || "spec"} now →</a>`
-          : "✓ Received — a JK consultant will follow up within 24 hours.";
+          : "✓ Received — a JK consultant will follow up within 24 hours.") + chase;
         msg.style.color = "var(--jk-green)";
       }
     } catch {
