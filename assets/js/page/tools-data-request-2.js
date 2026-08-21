@@ -142,4 +142,5 @@
   summarise();
 
   document.getElementById("print").addEventListener("click", () => window.print());
+  wireToolEnquiryForm("dr-enquiry", "48-Hour Data Request");
 })();
