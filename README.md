@@ -170,6 +170,58 @@ No build step. `netlify.toml` publishes the repo root as-is, with clean-URL
 redirects (`/certify`, `/venture`, `/structure`, `/org`, `/scorecard`, `/cask`, `/fuel`, …) and
 security headers including scoped `frame-ancestors`.
 
+## Deployment
+
+**Production is deployed directly to Netlify.** The artifact is built here and
+uploaded to Netlify by hand; Netlify does not build this site from a git push.
+
+```bash
+cd tests && npm install && cd ..        # once
+node scripts/package-deploy.mjs         # verifies, then writes dist/<sha>.zip
+```
+
+Then drag `dist/jkassociates-site-<sha>.zip` onto the **Deploy manually** drop
+zone at [Netlify → Deploys](https://app.netlify.com/projects/jkconsultancydiagnostictoolkit/deploys).
+No build runs on Netlify's side — the zip is served as uploaded, `_headers` and
+`_redirects` included.
+
+From a machine with the Netlify CLI, the equivalent is:
+
+```bash
+npx netlify-cli deploy --prod --dir . --site <site-id>
+```
+
+Run it **from a clean clone, never from a working directory.** The publish root
+is `.`, so deploying a working directory uploads `tests/node_modules` — 18 MB of
+Playwright — into the public site root. `scripts/package-deploy.mjs` uses
+`git archive` precisely so this cannot happen by accident.
+
+### The gate moved
+
+Direct deployment takes the pull request out of the path to production, and with
+it the CI run that used to be the last thing between a broken tree and the live
+site. That check has not been dropped, it has moved: `package-deploy.mjs` runs
+the full suite and **writes no zip if anything fails.** There is deliberately
+nothing to upload after a failure.
+
+This matters more than it sounds. Two AI-copilot pull requests were merged into
+this repository with that suite red — five audit failures and nine end-to-end
+failures — and everything they broke reached the live site, including a tool
+that could not be typed into and a capital test that was wrong by roughly 3×.
+The suite caught all of it and was overridden. Under direct deployment there is
+no one to override it except the person running the command.
+
+`--skip-tests` exists for the case where the suite was just run by hand. It
+prints a warning and stamps the artifact unverified. It is the exception, not
+the habit.
+
+### After a manual deploy
+
+A manual deploy sets production to the uploaded zip. It does **not** move the
+default branch. If the commit you deployed is not on `main`, the next push to
+`main` replaces your deploy with whatever `main` holds — silently, and without
+anything failing. Land the branch, or know that you have not.
+
 ## Moving to a custom domain
 
 Canonical / Open Graph / Twitter URLs are absolute (crawlers need them). To repoint everything —
@@ -205,6 +257,11 @@ to catch, before it counts as working.
 
 ## CI
 
+CI is a **second opinion, not the deploy gate** — see [Deployment](#deployment)
+for the gate, which runs locally in `scripts/package-deploy.mjs`. The workflow
+runs the same suites, so a green run here and a green package there should agree;
+if they ever disagree, that disagreement is the bug.
+
 `.github/workflows/ci.yml` runs on every push/PR:
 - **validate** — JS syntax, `manifest.json` validation, data-model integrity (scorecard **and**
   venture model: sectors, phases, citation-key resolution, capital bounds, headcount monotonicity),
@@ -213,7 +270,7 @@ to catch, before it counts as working.
 
 ## SEO
 
-`sitemap.xml` (29 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
+`sitemap.xml` (30 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
 JSON-LD on three pages: `Organization` + two `WebApplication` entries on the landing page, a
 `WebApplication` on the venture dashboard, and a `WebPage` on the sample report whose `mainEntity`
 is the scorecard. `tests/audit.mjs` asserts every block parses, that its numbers match the product,

@@ -49,10 +49,23 @@ const JKW = {
   /* Module weights in the Launch Readiness Index. The certificate is
      the binding constraint on a greenfield venture — no amount of
      capital substitutes for it — so it carries the most. Capital is
-     next, because certification burns cash on a fixed clock. Revenue
-     readiness is the newest dimension: it is the test an investment
-     committee asks first and the tool answered last. */
-  WEIGHTS: { certnav: 35, venture: 20, organogram: 18, structure: 12, revenue: 15 },
+     next, because certification burns cash on a fixed clock.
+
+     The Revenue Model Builder is deliberately NOT in this map. It reads
+     and reports like the other modules and gets its own card, but it
+     does not score. Adding it at 15 and shaving the other four to fit
+     re-scored every venture already on the platform downward by up to
+     15 points overnight, and capped a venture that had genuinely
+     finished all four original modules at 85 — it could no longer reach
+     "Application complete" at all. A tool added later must not change
+     what the headline number meant before it existed.
+
+     readiness() weights by `WEIGHTS[m.id] || 0`, so an id absent here is
+     excluded from both the numerator and the divisor rather than
+     counting as a zero. Revenue therefore costs a venture nothing for
+     not having opened it — which is the correct treatment for a
+     dimension the index has never claimed to measure. */
+  WEIGHTS: { certnav: 40, venture: 25, organogram: 20, structure: 15 },
 
   /* ---------- raw store access (never throws) ---------- */
   read(key) {
@@ -297,54 +310,64 @@ const JKW = {
   /* ---- 5. Revenue Model Builder ---- */
   revenue(prof, src) {
     src = src || this.liveSource();
-    /* Revenue Builder stores under its own key — read it from the live
-       localStorage rather than through the generic src.get(), because the
-       key does not follow the jk_*_v3 pattern used by all other tools. */
-    let st = {};
-    try { st = JSON.parse(localStorage.getItem("jk_revenue_v1")) || {}; } catch {}
+    /* src.get, not localStorage. Reading the live store directly here
+       meant every saved scenario and every imported workspace rendered
+       the revenue module from whatever is on this device right now — so
+       a three-week-old snapshot showed today's figures, and the
+       scenario comparison showed the same revenue row against every
+       scenario in it. Both the tool's store and the profile come from
+       the source, so a snapshot reads as the snapshot. */
+    const st = src.get("jk_revenue_v3");
     const base = { id: "revenue", name: "Revenue Model Builder", icon: "💰",
                    href: "revenue-builder.html", sector: null };
     const touched = Array.isArray(st.segments) && st.segments.length > 0;
     if (!touched) return Object.assign(base, { started: false, pct: 0, rag: "idle",
-      headline: "Not started", next: "Add revenue segments to test whether the fleet can service its capital.", facts: [] });
+      headline: "Not started", next: "Add revenue segments to test whether the model recovers its capital.", facts: [] });
 
-    /* Compute year-1 revenue from the saved segments without re-importing
-       the full Revenue Builder module — use the same arithmetic but
-       inlined here so venture-file.js stays self-contained. */
+    /* The saved summary is what the Revenue Builder itself computed and
+       wrote when the operator pressed Save; it is the figure the tool
+       stands behind. The segment sum below is only a fallback headline
+       for a model that has segments but has not been saved yet — it is
+       deliberately not used for the capital test, so this file never
+       publishes a verdict the tool has not published itself. */
+    const saved = (src.get(this.PROFILE_KEY) || {}).revenue || {};
     let yr1Rev = 0, yr1Doc = 0;
     (st.segments || []).forEach(seg => {
       yr1Rev += (seg.rate || 0) * (seg.hours || 0);
-      yr1Doc  += (seg.doc  || 0) * (seg.hours || 0);
+      yr1Doc += (seg.doc || 0) * (seg.hours || 0);
     });
-    const yr1Contrib = yr1Rev - yr1Doc;
-    const tenYrContrib = yr1Contrib * 10; // simplified: no growth assumed here
+    if (typeof saved.yr1Rev === "number") yr1Rev = saved.yr1Rev;
+    const yr1Contrib = typeof saved.yr1Contrib === "number" ? saved.yr1Contrib : (yr1Rev - yr1Doc);
 
-    /* If the Revenue Builder wrote a CST summary to the profile, use it
-       for the capital recovery test. */
-    const profile = this.read(this.PROFILE_KEY);
-    const revSaved = profile.revenue || {};
-    const capRecovery = revSaved.capRecovery || 0;
-    const ratio = capRecovery > 0 ? (revSaved.tenYrContrib || tenYrContrib) / capRecovery : null;
+    const ratio = (typeof saved.ratio === "number" && isFinite(saved.ratio)) ? saved.ratio : null;
 
     const rag = ratio === null ? (yr1Rev > 0 ? "amber" : "idle")
               : ratio >= 0.8 ? "green" : ratio >= 0.5 ? "amber" : "red";
-    const pct = Math.min(100, touched ? (yr1Rev > 0 ? (ratio !== null ? Math.round(ratio * 100) : 50) : 10) : 0);
+    /* An unsaved model is half-credit, not a score derived from a ratio
+       that does not exist yet. Capped at 100 so a model that overshoots
+       its capital requirement does not out-weight the other modules. */
+    const pct = ratio === null ? (yr1Rev > 0 ? 50 : 10)
+                               : Math.max(0, Math.min(100, Math.round(ratio * 100)));
 
     let next;
-    if (!touched) next = "Add revenue segments to test capital serviceability.";
-    else if (ratio !== null && ratio < 0.5) next = `Fleet covers ${(ratio * 100).toFixed(0)}% of capital recovery requirement — ${(1 / ratio).toFixed(1)}× shortfall. Review fleet size or capital structure.`;
-    else if (ratio !== null && ratio < 0.8) next = `Fleet covers ${(ratio * 100).toFixed(0)}% of capital recovery. Contracted anchor demand or a lease structure is recommended.`;
-    else if (ratio !== null) next = "Fleet can service its capital at projected utilisation.";
-    else next = "Save to Venture File from the Revenue Builder to run the capital service test.";
+    if (ratio === null) next = "Save to Venture File from the Revenue Builder to run the capital recovery test.";
+    else if (ratio < 0.5) {
+      /* Guarded: a model with segments but no contribution gives ratio
+         zero, and 1/0 printed "a Infinity\u00D7 shortfall". */
+      const gap = ratio > 0 ? `a ${(1 / ratio).toFixed(1)}\u00D7 shortfall` : "no contribution against it at all";
+      next = `Fleet covers ${(ratio * 100).toFixed(0)}% of the capital recovery requirement \u2014 ${gap}. Review fleet size or capital structure.`;
+    }
+    else if (ratio < 0.8) next = `Fleet covers ${(ratio * 100).toFixed(0)}% of capital recovery. Contracted anchor demand or a lease structure is recommended.`;
+    else next = "Model recovers its capital at projected utilisation.";
 
     return Object.assign(base, {
       started: true, pct, rag,
-      headline: yr1Rev > 0 ? `${fmtMoney(yr1Rev)}/year revenue, ${st.segments.length} segment${st.segments.length !== 1 ? "s" : ""}` : "Segments added — set rates and hours",
+      headline: yr1Rev > 0 ? `${fmtMoney(yr1Rev)}/year revenue, ${st.segments.length} segment${st.segments.length !== 1 ? "s" : ""}` : "Segments added \u2014 set rates and hours",
       next,
       facts: [
-        { k: "Yr 1 revenue",    v: fmtMoney(yr1Rev) },
+        { k: "Yr 1 revenue", v: fmtMoney(yr1Rev) },
         { k: "Yr 1 contribution", v: fmtMoney(yr1Contrib) },
-        { k: "Capital coverage", v: ratio !== null ? `${(ratio * 100).toFixed(0)}%` : "—" }
+        { k: "Capital coverage", v: ratio !== null ? `${(ratio * 100).toFixed(0)}%` : "\u2014" }
       ]
     });
   },

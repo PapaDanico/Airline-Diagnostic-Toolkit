@@ -364,37 +364,181 @@
      generate enough revenue to service its capital? Answered here,
      before the appraisal does it. Editable fleet rows let the operator
      adjust type, count, rate and hours without leaving the model. */
+  /* Aircraft categories offered as fleet rows. Module scope so the
+     shell builder and the per-render update both see one list. The
+     rates and hours are indicative planning defaults the operator is
+     expected to overwrite with their own — every row is editable, and
+     the figure that drives the test is whatever they enter. */
+  const AIRCRAFT_TYPES = [
+    { id: "jet-lr",    label: "Jet (long-range)",     rate: 9000, hrs: 500 },
+    { id: "jet-sm",    label: "Jet (super-midsize)",  rate: 5000, hrs: 500 },
+    { id: "turboprop", label: "Turboprop",            rate: 1200, hrs: 600 },
+    { id: "helo",      label: "Helicopter",           rate: 2000, hrs: 400 }
+  ];
+
+  const rowTotal = r => (r.count || 0) * (r.rate || 0) * (r.hrs || 0);
+
+  function fleetRowHtml(row, ri) {
+    const typOpt = AIRCRAFT_TYPES.map(t =>
+      `<option value="${t.id}"${row.type === t.id ? " selected" : ""}>${escapeHtml(t.label)}</option>`).join("");
+    return `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <select data-cst-row="${ri}" data-cst-field="type" style="font-size:var(--fs-xs);flex:1;min-width:140px">${typOpt}</select>
+      <input type="number" data-cst-row="${ri}" data-cst-field="count" min="1" max="50" step="1" value="${row.count || 1}"
+             style="width:56px;font-size:var(--fs-xs)" aria-label="Aircraft count">
+      <span class="muted" style="font-size:var(--fs-xs)">\u00D7</span>
+      <input type="number" data-cst-row="${ri}" data-cst-field="rate" min="0" step="100" value="${row.rate || 0}"
+             style="width:90px;font-size:var(--fs-xs)" aria-label="Rate USD per hour">
+      <span class="muted" style="font-size:var(--fs-xs)">/hr \u00D7</span>
+      <input type="number" data-cst-row="${ri}" data-cst-field="hrs" min="0" step="10" value="${row.hrs || 0}"
+             style="width:80px;font-size:var(--fs-xs)" aria-label="Hours per year">
+      <span class="muted" style="font-size:var(--fs-xs)">hrs/yr =</span>
+      <b data-cst-rowtotal="${ri}" style="font-size:var(--fs-xs);font-variant-numeric:lining-nums tabular-nums;white-space:nowrap">${fmtMoney(rowTotal(row))}</b>
+      <button data-cst-del="${ri}" class="btn btn-ghost-lt btn-sm" style="padding:.2rem .5rem;font-size:var(--fs-xs)"
+              aria-label="Remove this aircraft row">\u00D7</button>
+    </div>`;
+  }
+
+  /* The figures re-render on every keystroke; the controls do not.
+
+     This block used to rebuild its whole innerHTML on each recompute(),
+     which destroyed the input being typed into. Focus fell to <body>
+     after one character, and because the element was replaced between
+     keystrokes the characters typed into the old node went with it —
+     "5500" into a rate field landed as something else entirely. The
+     rate field could not be filled in at all.
+
+     So the shell is built once, the fleet rows are rebuilt only when a
+     row is added or removed, and every render after that writes only
+     derived text: the verdict, the row totals and the two summary
+     figures. Inputs are never replaced while someone is typing. */
+  function buildCstShell(host) {
+    host.innerHTML = `
+      <p style="margin:0 0 .5rem;font-size:var(--fs-xs);font-weight:600">Capital service test</p>
+      <div id="cst-msg"></div>
+      <div style="margin-top:.9rem">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;margin-bottom:.5rem">
+          <b style="font-size:var(--fs-sm)">Fleet revenue capacity</b>
+          <button id="cst-add-row" class="btn btn-ghost-lt btn-sm" style="padding:.25rem .7rem;font-size:var(--fs-xs)">+ Add aircraft type</button>
+        </div>
+        <div id="cst-fleet-rows"></div>
+        <p class="muted" id="cst-empty" style="font-size:var(--fs-xs);display:none">No fleet rows. Click "Add aircraft type" to begin.</p>
+        <div style="border-top:1px solid var(--jk-line);margin-top:.6rem;padding-top:.6rem;font-size:var(--fs-sm)">
+          <span>Total fleet capacity: <b class="tnum" id="cst-cap">\u2014</b></span>
+          <span style="margin-left:1.2rem">Required: <b class="tnum" id="cst-req">\u2014</b></span>
+        </div>
+        <details style="margin-top:.7rem;font-size:var(--fs-xs)">
+          <summary class="muted" style="cursor:pointer">Adjust contribution margin and overhead</summary>
+          <div style="margin-top:.6rem;display:flex;gap:1rem;flex-wrap:wrap">
+            <div class="field" style="margin:0;flex:1;min-width:140px">
+              <label for="cst-margin-in" style="font-size:var(--fs-xs)">Contribution margin (%)</label>
+              <input type="number" id="cst-margin-in" min="5" max="90" step="1" style="font-size:var(--fs-sm)">
+              <p class="hint muted" style="font-size:var(--fs-2xs)">Default 35%. Revenue less direct operating costs as a share of revenue.</p>
+            </div>
+            <div class="field" style="margin:0;flex:1;min-width:140px">
+              <label for="cst-overhead-in" style="font-size:var(--fs-xs)">Steady-state overhead (USD/yr)</label>
+              <input type="number" id="cst-overhead-in" min="0" step="100000" style="font-size:var(--fs-sm)">
+              <p class="hint muted" style="font-size:var(--fs-2xs)">Default $4M. Year 3 staff, admin and marketing.</p>
+            </div>
+          </div>
+          <p class="hint muted" id="cst-formula" style="font-size:var(--fs-2xs);margin-top:.5rem"></p>
+          <p class="hint muted" style="font-size:var(--fs-2xs);margin-top:.4rem">
+            This asks whether the planned fleet can generate the <i>revenue</i> the capital requires.
+            The Revenue Model Builder asks whether the contribution a built model earns pays that capital
+            back over ten years. They are different tests, they can disagree, and a venture usually needs
+            to satisfy both.
+          </p>
+        </details>
+      </div>`;
+
+    $("cst-add-row").addEventListener("click", () => {
+      const def = AIRCRAFT_TYPES[0];
+      state.cst.fleet.push({ type: def.id, count: 1, rate: def.rate, hrs: def.hrs });
+      store.save(state);
+      recompute();
+    });
+    $("cst-margin-in").addEventListener("input", e => {
+      state.cst.margin = parseFloat(e.target.value) || 35;
+      store.save(state); recompute();
+    });
+    $("cst-overhead-in").addEventListener("input", e => {
+      state.cst.overhead = parseFloat(e.target.value) || 4000000;
+      store.save(state); recompute();
+    });
+  }
+
+  /* Rebuilt only when the number of rows changes, so the listeners are
+     attached to nodes that then stay put for the life of the row set. */
+  function renderFleetRows(host) {
+    const rows = state.cst.fleet;
+    $("cst-fleet-rows").innerHTML = rows.map(fleetRowHtml).join("");
+    $("cst-empty").style.display = rows.length ? "none" : "";
+
+    host.querySelectorAll("[data-cst-row]").forEach(el => {
+      const apply = () => {
+        const ri = parseInt(el.dataset.cstRow, 10);
+        const row = state.cst.fleet[ri];
+        if (!row) return;
+        if (el.dataset.cstField === "type") row.type = el.value;
+        else row[el.dataset.cstField] = parseFloat(el.value) || 0;
+        store.save(state);
+        recompute();
+      };
+      el.addEventListener("input", apply);
+      if (el.tagName === "SELECT") el.addEventListener("change", apply);
+    });
+    host.querySelectorAll("[data-cst-del]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.cst.fleet.splice(parseInt(btn.dataset.cstDel, 10), 1);
+        store.save(state);
+        recompute();
+      });
+    });
+  }
+
   function renderCapitalServiceTest(total, ds) {
     const host = $("cst-banner");
     if (!host) return;
-    if (!total) { host.innerHTML = ""; return; }
+    if (!total) { host.innerHTML = ""; host.dataset.built = ""; return; }
 
     if (!state.cst) state.cst = {};
     if (state.cst.margin === undefined) state.cst.margin = 35;
     if (state.cst.overhead === undefined) state.cst.overhead = 4000000;
     if (!Array.isArray(state.cst.fleet)) state.cst.fleet = [];
 
+    if (host.dataset.built !== "1") { buildCstShell(host); host.dataset.built = "1"; host.dataset.rows = "-1"; }
+    if (host.dataset.rows !== String(state.cst.fleet.length)) {
+      renderFleetRows(host);
+      host.dataset.rows = String(state.cst.fleet.length);
+    }
+
     const margin = (state.cst.margin || 35) / 100;
     const overhead = state.cst.overhead || 4000000;
 
-    /* Required annual revenue: enough to recover capital over 10 years
+    /* Required annual revenue: enough to recover capital over ten years
        at the stated contribution margin, plus debt service, plus the
-       steady-state overhead floor. Named individually so each term is
-       inspectable rather than opaque. */
+       steady-state overhead floor. Compared against a *revenue*
+       capacity, so dividing by margin is correct here — unlike the
+       Revenue Model Builder's test, whose numerator is contribution. */
     const capitalRecovery = total / 10 / margin;
     const debtServiceCover = ds / margin;
     const requiredRevenue = capitalRecovery + debtServiceCover + overhead;
-
-    /* Capacity: sum the fleet rows. Each row is an aircraft type with
-       an editable count, rate and hours. The user sets what the fleet
-       is actually earning, not a default the tool invents. */
-    const fleetRows = state.cst.fleet;
-    const capacityRevenue = fleetRows.reduce((sum, row) => {
-      return sum + (row.count || 0) * (row.rate || 0) * (row.hrs || 0);
-    }, 0);
-
+    const capacityRevenue = state.cst.fleet.reduce((sum, r) => sum + rowTotal(r), 0);
     const ratio = requiredRevenue > 0 && capacityRevenue > 0 ? capacityRevenue / requiredRevenue : 0;
-    const shortfall = ratio > 0 && ratio < 1 ? (1 / ratio).toFixed(1) : null;
+
+    /* Derived text only — never the inputs themselves. */
+    state.cst.fleet.forEach((r, ri) => {
+      const b = host.querySelector(`[data-cst-rowtotal="${ri}"]`);
+      if (b) b.textContent = fmtMoney(rowTotal(r));
+    });
+    $("cst-cap").textContent = `${fmtMoney(capacityRevenue)}/yr`;
+    $("cst-req").textContent = `${fmtMoney(requiredRevenue)}/yr`;
+    $("cst-formula").textContent =
+      `Required = (capital \u00F7 10yr \u00F7 margin) + (debt service \u00F7 margin) + overhead. ` +
+      `Capital: ${fmtMoney(capitalRecovery)}/yr \u00B7 Debt service cover: ${fmtMoney(debtServiceCover)}/yr \u00B7 Overhead: ${fmtMoney(overhead)}/yr`;
+
+    const mIn = $("cst-margin-in"), oIn = $("cst-overhead-in");
+    if (document.activeElement !== mIn && mIn.value !== String(state.cst.margin)) mIn.value = state.cst.margin;
+    if (document.activeElement !== oIn && oIn.value !== String(state.cst.overhead)) oIn.value = state.cst.overhead;
 
     let ragCls, ragMsg;
     if (!capacityRevenue) {
@@ -402,136 +546,17 @@
       ragMsg = `<b>Add fleet rows below to test capital serviceability.</b>Enter the aircraft types and utilisation rates this venture will earn on.`;
     } else if (ratio >= 0.8) {
       ragCls = "note ok";
-      ragMsg = `<b>✓ The fleet can service its capital at projected utilisation</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(requiredRevenue)}/year requirement.`;
+      ragMsg = `<b>\u2713 The planned fleet can generate the revenue its capital requires</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(requiredRevenue)}/year requirement.`;
     } else if (ratio >= 0.5) {
       ragCls = "note warn";
-      ragMsg = `<b>⚠ The fleet is marginal</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers ${(ratio * 100).toFixed(0)}% of ${fmtMoney(requiredRevenue)}/year required. Contracted demand or a lease structure is recommended before committing capital.`;
+      ragMsg = `<b>\u26A0 The planned fleet is marginal against its capital</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers ${(ratio * 100).toFixed(0)}% of ${fmtMoney(requiredRevenue)}/year required. Contracted demand or a lease structure is recommended before committing capital.`;
     } else {
+      const shortfall = ratio > 0 ? ` \u2014 ${(1 / ratio).toFixed(1)}\u00D7 shortfall` : "";
       ragCls = "note warn";
-      ragMsg = `<b>✗ The fleet cannot service its capital — ${shortfall ? shortfall + "×" : ""} shortfall</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers only ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(requiredRevenue)}/year requirement. Reduce fleet size, lease rather than own, or secure anchor contracts before proceeding.`;
+      ragMsg = `<b>\u2717 The planned fleet cannot generate the revenue its capital requires${shortfall}</b>Capacity of ${fmtMoney(capacityRevenue)}/year covers only ${(ratio * 100).toFixed(0)}% of the ${fmtMoney(requiredRevenue)}/year requirement. Reduce fleet size, lease rather than own, or secure anchor contracts before proceeding.`;
     }
-
     const redBorder = ratio > 0 && ratio < 0.5 ? ' style="border-left-color:var(--jk-red)"' : "";
-
-    const AIRCRAFT_TYPES = [
-      { id: "jet-lr",   label: "Jet (long-range)",   rate: 9000,  hrs: 500 },
-      { id: "jet-sm",   label: "Jet (super-midsize)", rate: 5000,  hrs: 500 },
-      { id: "turboprop",label: "Turboprop",           rate: 1200,  hrs: 600 },
-      { id: "helo",     label: "Helicopter",          rate: 2000,  hrs: 400 }
-    ];
-
-    const fleetHtml = fleetRows.map((row, ri) => {
-      const typOpt = AIRCRAFT_TYPES.map(t =>
-        `<option value="${t.id}"${row.type === t.id ? " selected" : ""}>${escapeHtml(t.label)}</option>`).join("");
-      return `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
-        <select data-cst-row="${ri}" data-cst-field="type" style="font-size:var(--fs-xs);flex:1;min-width:140px">${typOpt}</select>
-        <input type="number" data-cst-row="${ri}" data-cst-field="count" min="1" max="50" step="1" value="${row.count || 1}"
-               style="width:56px;font-size:var(--fs-xs)" aria-label="Aircraft count">
-        <span style="font-size:var(--fs-xs);color:var(--jk-muted)">×</span>
-        <input type="number" data-cst-row="${ri}" data-cst-field="rate" min="0" step="100" value="${row.rate || 0}"
-               style="width:90px;font-size:var(--fs-xs)" aria-label="Rate USD per hour">
-        <span style="font-size:var(--fs-xs);color:var(--jk-muted)">/hr ×</span>
-        <input type="number" data-cst-row="${ri}" data-cst-field="hrs" min="0" step="10" value="${row.hrs || 0}"
-               style="width:80px;font-size:var(--fs-xs)" aria-label="Hours per year">
-        <span style="font-size:var(--fs-xs);color:var(--jk-muted)">hrs/yr =</span>
-        <b style="font-size:var(--fs-xs);font-variant-numeric:lining-nums tabular-nums;white-space:nowrap">${fmtMoney((row.count||0)*(row.rate||0)*(row.hrs||0))}</b>
-        <button data-cst-del="${ri}" class="btn btn-ghost btn-sm" style="padding:.2rem .5rem;font-size:var(--fs-xs)">×</button>
-      </div>`;
-    }).join("");
-
-    host.innerHTML = `
-      <div class="${ragCls}"${redBorder}>${ragMsg}</div>
-      <div style="margin-top:.9rem">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;margin-bottom:.5rem">
-          <b style="font-size:var(--fs-sm)">Fleet revenue capacity</b>
-          <button id="cst-add-row" class="btn btn-ghost btn-sm" style="padding:.25rem .7rem;font-size:var(--fs-xs)">+ Add aircraft type</button>
-        </div>
-        <div id="cst-fleet-rows">${fleetHtml}</div>
-        ${!fleetRows.length ? `<p class="muted" style="font-size:var(--fs-xs)">No fleet rows. Click "Add aircraft type" to begin.</p>` : ""}
-        <div style="border-top:1px solid var(--jk-line);margin-top:.6rem;padding-top:.6rem;font-size:var(--fs-sm)">
-          <span>Total fleet capacity: <b class="tnum">${fmtMoney(capacityRevenue)}/yr</b></span>
-          <span style="margin-left:1.2rem">Required: <b class="tnum">${fmtMoney(requiredRevenue)}/yr</b></span>
-        </div>
-        <details style="margin-top:.7rem;font-size:var(--fs-xs)">
-          <summary style="cursor:pointer;color:var(--jk-muted)">Adjust contribution margin and overhead</summary>
-          <div style="margin-top:.6rem;display:flex;gap:1rem;flex-wrap:wrap">
-            <div class="field" style="margin:0;flex:1;min-width:140px">
-              <label style="font-size:var(--fs-xs)">Contribution margin (%)</label>
-              <input type="number" id="cst-margin-in" min="5" max="90" step="1" value="${state.cst.margin || 35}" style="font-size:var(--fs-sm)">
-              <p class="hint" style="font-size:var(--fs-2xs)">Default 35%. Revenue less direct operating costs as a share of revenue.</p>
-            </div>
-            <div class="field" style="margin:0;flex:1;min-width:140px">
-              <label style="font-size:var(--fs-xs)">Steady-state overhead (USD/yr)</label>
-              <input type="number" id="cst-overhead-in" min="0" step="100000" value="${state.cst.overhead || 4000000}" style="font-size:var(--fs-sm)">
-              <p class="hint" style="font-size:var(--fs-2xs)">Default $4M. Year 3 staff, admin and marketing.</p>
-            </div>
-          </div>
-          <p class="hint" style="font-size:var(--fs-2xs);margin-top:.5rem">
-            Required = (capital ÷ 10yr ÷ margin) + (debt service ÷ margin) + overhead.
-            Capital: ${fmtMoney(capitalRecovery)}/yr · Debt service cover: ${fmtMoney(debtServiceCover)}/yr · Overhead: ${fmtMoney(overhead)}/yr
-          </p>
-        </details>
-      </div>`;
-
-    /* Wire fleet row inputs — event delegation on the host */
-    const wireRows = () => {
-      host.querySelectorAll("[data-cst-row]").forEach(el => {
-        el.addEventListener("input", () => {
-          const ri2 = parseInt(el.dataset.cstRow);
-          const field = el.dataset.cstField;
-          if (!state.cst.fleet[ri2]) return;
-          if (field === "type") state.cst.fleet[ri2].type = el.value;
-          else state.cst.fleet[ri2][field] = parseFloat(el.value) || 0;
-          store.save(state);
-          recompute();
-        });
-        el.addEventListener("change", () => {
-          if (el.dataset.cstField === "type") {
-            const ri2 = parseInt(el.dataset.cstRow);
-            if (!state.cst.fleet[ri2]) return;
-            state.cst.fleet[ri2].type = el.value;
-            store.save(state);
-            recompute();
-          }
-        });
-      });
-      host.querySelectorAll("[data-cst-del]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const ri2 = parseInt(btn.dataset.cstDel);
-          state.cst.fleet.splice(ri2, 1);
-          store.save(state);
-          recompute();
-        });
-      });
-    };
-    wireRows();
-
-    const addBtn = $("cst-add-row");
-    if (addBtn) {
-      addBtn.addEventListener("click", () => {
-        const def = AIRCRAFT_TYPES[0];
-        state.cst.fleet.push({ type: def.id, count: 1, rate: def.rate, hrs: def.hrs });
-        store.save(state);
-        recompute();
-      });
-    }
-
-    const marginIn = $("cst-margin-in");
-    if (marginIn) {
-      marginIn.addEventListener("input", () => {
-        state.cst.margin = parseFloat(marginIn.value) || 35;
-        store.save(state);
-        recompute();
-      });
-    }
-    const overheadIn = $("cst-overhead-in");
-    if (overheadIn) {
-      overheadIn.addEventListener("input", () => {
-        state.cst.overhead = parseFloat(overheadIn.value) || 4000000;
-        store.save(state);
-        recompute();
-      });
-    }
+    $("cst-msg").innerHTML = `<div class="${ragCls}"${redBorder}>${ragMsg}</div>`;
   }
 
   /* ---------- own vs. lease ----------
