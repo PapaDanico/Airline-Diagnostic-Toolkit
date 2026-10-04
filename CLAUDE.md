@@ -52,7 +52,7 @@ that selective.
 ## 3. The deploy gate lives in the packager, not in CI
 
 Production is deployed direct to Netlify. `scripts/package-deploy.mjs`
-runs the same twelve checks CI runs and **writes no artifact if any
+runs the same thirteen checks CI runs and **writes no artifact if any
 fail** — there is deliberately nothing to upload after a failure. It also
 refuses a dirty tree and warns when the packaged commit is not on `main`.
 

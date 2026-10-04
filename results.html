@@ -154,7 +154,7 @@
           <input type="text"  id="capture-name" placeholder="Your Name" autocomplete="name" required>
           <input type="email" id="capture-email" placeholder="Work Email" autocomplete="email" required>
           <input type="text"  id="capture-airline" placeholder="Airline Name" autocomplete="organization" required>
-          <select id="capture-fleet" required>
+          <select id="capture-fleet" aria-label="Fleet size" required>
             <option value="" disabled selected>Fleet Size</option>
             <option value="1–2 aircraft">1–2 aircraft</option>
             <option value="3–5 aircraft">3–5 aircraft</option>
@@ -203,7 +203,7 @@
             <input required name="name" id="db-name" placeholder="Your name">
             <input required type="email" name="email" id="db-email" placeholder="Work email">
             <input required name="airline" id="db-airline" placeholder="Airline / organisation">
-            <select name="role" id="db-role">
+            <select name="role" id="db-role" aria-label="Your role">
               <option value="">Your role</option>
               <option>CEO / Accountable Manager</option>
               <option>COO / Operations</option>
@@ -213,7 +213,7 @@
               <option>Consultant / Advisor</option>
               <option>Other</option>
             </select>
-            <select name="preferred_week" id="db-week">
+            <select name="preferred_week" id="db-week" aria-label="Preferred week">
               <option value="">Preferred week</option>
               <option>This week</option>
               <option>Next week</option>

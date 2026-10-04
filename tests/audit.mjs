@@ -103,6 +103,22 @@ for (const pg of pages) {
       h1: document.querySelectorAll("h1").length,
       imgsNoAlt: [...document.querySelectorAll("img")].filter(i => !i.hasAttribute("alt")).length,
       btnsNoName: [...document.querySelectorAll("button")].filter(b => !(b.textContent.trim() || b.getAttribute("aria-label"))).length,
+      /* A control with no accessible name is announced as just "combo box"
+         or "edit text". Buttons were checked and controls never were, which
+         is how sixteen "Primary concern" dropdowns, three on the results
+         page and twenty-one on the MRO tool shipped unnamed. Placeholder
+         is accepted as a name for text inputs because the site uses it
+         throughout; a <select> has no placeholder, so it never qualifies.
+         Hidden controls are out of the accessibility tree and exempt. */
+      ctlsNoName: [...document.querySelectorAll("input,select,textarea")].filter(e =>
+        e.type !== "hidden" && !e.hidden && !e.closest("[hidden]") &&
+        !e.labels?.length && !e.getAttribute("aria-label") && !e.getAttribute("aria-labelledby") &&
+        !(e.tagName !== "SELECT" && e.placeholder)
+      ).map(e => `${e.tagName.toLowerCase()}${e.id ? "#" + e.id : e.name ? "[name=" + e.name + "]" : ""}`),
+      /* A skip link whose target does not exist goes nowhere, silently. */
+      deadAnchors: [...new Set([...document.querySelectorAll('a[href^="#"]')]
+        .map(a => a.getAttribute("href")).filter(h => h.length > 1 && !document.getElementById(h.slice(1)) &&
+          !document.getElementsByName(h.slice(1)).length))],
       dupes: [...new Set(ids.filter((x, i) => ids.indexOf(x) !== i))],
       links: [...new Set([...document.querySelectorAll("a[href]")].map(a => a.getAttribute("href")).filter(h => h && !/^(https?:|mailto:|#|tel:|data:)/.test(h)))],
       hasChrome: !!document.querySelector("[data-year]"),
@@ -139,6 +155,8 @@ for (const pg of pages) {
   if (r.h1 !== 1) issues.push(`h1=${r.h1}`);
   if (r.imgsNoAlt) issues.push(`imgsNoAlt=${r.imgsNoAlt}`);
   if (r.btnsNoName) issues.push(`btnNoName=${r.btnsNoName}`);
+  if (r.ctlsNoName.length) issues.push(`controlsNoName=${JSON.stringify(r.ctlsNoName.slice(0, 4))}${r.ctlsNoName.length > 4 ? ` (+${r.ctlsNoName.length - 4})` : ""}`);
+  if (r.deadAnchors.length) issues.push(`DEAD ANCHORS=${JSON.stringify(r.deadAnchors)}`);
   if (r.dupes.length) issues.push(`DUP IDs=${JSON.stringify(r.dupes)}`);
   if (broken.length) issues.push(`BROKEN LINKS=${JSON.stringify(broken)}`);
   if (deskOX > 0) issues.push(`deskOverflowX=${deskOX}`);

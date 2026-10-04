@@ -52,7 +52,12 @@ DOMAINS.forEach(d => {
     const wrap = document.createElement("div");
     wrap.className = "mro-q";
     const opts = SCALE.map((s, si) => `<option value="${si}">${si} — ${s}</option>`).join("");
-    wrap.innerHTML = `<label>${q}</label><select data-d="${d.id}" data-q="${qi}"><option value="">Not answered</option>${opts}</select>`;
+    /* The label was a sibling with no `for`, so none of these 21 selects had
+       an accessible name: a screen reader announced "combo box" with no
+       question. Tying them by id fixes that and makes the question text
+       itself a click target for the control. */
+    const sid = `mro-${d.id}-${qi}`;
+    wrap.innerHTML = `<label for="${sid}">${q}</label><select id="${sid}" data-d="${d.id}" data-q="${qi}"><option value="">Not answered</option>${opts}</select>`;
     panel.appendChild(wrap);
     const sel = wrap.querySelector("select");
     sel.value = (answers[d.id] || [])[qi] ?? "";

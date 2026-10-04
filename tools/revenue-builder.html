@@ -81,7 +81,7 @@
         <p class="muted" style="max-width:640px">Add each revenue-generating segment. Each card shows the aircraft, rate, hours and contract mix that drives it.</p>
 
         <div style="margin-top:1rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
-          <select id="seg-type" class="field" style="max-width:280px;margin:0">
+          <select id="seg-type" aria-label="Segment type to add" class="field" style="max-width:280px;margin:0">
             <option value="">Choose segment type…</option>
             <option value="executiveJet">Executive Jet Charter</option>
             <option value="safariCharter">Safari / Tourism Charter</option>
@@ -212,7 +212,7 @@
           <input name="name" placeholder="Name" required>
           <input name="airline" placeholder="Airline / Organisation">
           <input name="email" type="email" placeholder="Work email" required>
-          <select name="concern">
+          <select name="concern" aria-label="Primary concern">
             <option value="">Primary concern</option>
             <option>AOC startup</option><option>Safety / Regulatory</option>
             <option>Cost reduction</option><option>Revenue growth</option><option>Strategy</option>
