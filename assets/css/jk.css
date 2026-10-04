@@ -1314,10 +1314,21 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   .email-capture-section, .book-cta-section, .share-bar, .shared-banner,
   #calibrate-section, #capture-nudge, .no-print { display: none !important; }
   .print-head { display: flex !important; }
+  /* The pack is the answer and its working. The page's own introduction
+     and its enquiry form are for the person at the screen: printed, they
+     were a second cover and a form nobody can fill in on paper. */
+  .diag-head, .guarantee:has(form), form, .cta-alt { display: none !important; }
+  .result-panel { break-inside: avoid; page-break-inside: avoid; }
+  /* The working is a record of what was entered, not a form to fill:
+     tighten it so a one-answer tool does not spill its disclaimer onto
+     a page of its own. */
+  .calc .card { padding: 12px 16px !important; }
+  .calc .field { margin-bottom: .55rem !important; }
+  .calc .field input, .calc .field select { padding: 4px 8px !important; }
   /* Page one, and only page one — the working starts overleaf. */
   .print-summary { display: block !important; page-break-after: always; break-after: page; }
   .score-hero, .result-panel, .band-dark, .band-ember, .hero-ink { background: #fff !important; color: #000 !important; padding: 0 0 10px !important; }
-  .score-hero .eyebrow, .score-hero h1, .score-hero #index-text, .score-hero #index-band,
+  .score-hero .eyebrow, .score-hero h1, .score-hero p, .score-hero #index-text, .score-hero #index-band,
   .result-panel *, .band-dark *, .band-dark h2, .band-dark h3, .band-ember h2, .band-ember p,
   .hero-ink *, .result-panel .kpi .kv, .result-panel .kpi .kl,
   .score-hero .kpi .kv, .score-hero .kpi .kl, .score-hero h2 { color: var(--jk-ink) !important; }
