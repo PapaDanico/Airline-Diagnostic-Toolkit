@@ -2843,6 +2843,35 @@ section("Incorporation status is disclosed");
   await noJs.close();
 }
 
+/* ─── Printed pages are legible ───
+   A scorecard printed with its verdict in #dcdcdc on white was
+   screen-tuned light-on-dark ink that nobody had looked at on paper.
+   The print block repaints the hero white, so any text colour that was
+   set for the dark ground has to be repainted too. The assertion is on
+   paper's own terms: every visible text run, in print media, clears
+   4.5:1 against white. */
+section("Printed pages are legible");
+for (const path of ["/demo-results.html", "/tools/fuel-optimizer.html"]) {
+  const pp = await browser.newPage({ reducedMotion: "reduce" });
+  await pp.goto(base + path); await pp.waitForTimeout(500);
+  await pp.emulateMedia({ media: "print" });
+  const faint = await pp.evaluate(() => {
+    const lum = c => { const [r, g, b] = c.match(/[\d.]+/g).slice(0, 3).map(Number).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * r + .7152 * g + .0722 * b; };
+    const out = [];
+    for (const el of document.querySelectorAll("body *")) {
+      if (!el.childNodes.length || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+      const cs = getComputedStyle(el); const r = el.getBoundingClientRect();
+      if (cs.display === "none" || cs.visibility === "hidden" || !r.width || !r.height || el.closest(".index-ring")) continue;
+      const m = cs.color.match(/[\d.]+/g); if (m[3] !== undefined && +m[3] < 1) continue;
+      const cr = 1.05 / (lum(cs.color) + .05);
+      if (cr < 4.5) out.push(el.tagName + ":" + el.textContent.trim().slice(0, 40) + " " + cr.toFixed(2));
+    }
+    return out;
+  });
+  assert(faint.length === 0, `${path}: every printed text run clears 4.5:1 on white (${faint.slice(0, 3).join(" | ") || "none faint"})`);
+  await pp.close();
+}
+
 /* ─── 25. No JS errors ─── */
 section("JavaScript errors");
 assert(errs.length === 0, `no uncaught page errors (${errs.length ? errs.join(" | ") : "none"})`);

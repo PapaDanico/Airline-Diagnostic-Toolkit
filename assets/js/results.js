@@ -819,7 +819,7 @@
             <p class="eyebrow" style="margin-top:0">Data-calibrated view <span style="background:var(--jk-green);color:#fff;border-radius:999px;padding:1px 10px;font-size:.72rem;margin-left:6px">✓ computed from your figures</span></p>
             <table style="width:100%;border-collapse:collapse;font-size:.94rem">
               <tr><td style="padding:6px 0"><b>Passenger load factor</b></td><td>${lf.toFixed(1)}%</td>
-                  <td>${cmp(lf, 74.5, true, "the 74.5% African average (AFRAA 2024)")}</td></tr>
+                  <td>${cmp(lf, 74.9, true, "the 74.9% African average (AFRAA, 2025)")}</td></tr>
               <tr><td style="padding:6px 0"><b>Unit cost (CASK)</b></td><td>${cask.toFixed(2)} US¢</td>
                   <td><a href="tools/cask-calculator.html${partnerQS}">benchmark in detail with the CASK calculator →</a></td></tr>
               <tr><td style="padding:6px 0"><b>Fuel share of opex</b></td><td>${fs.toFixed(1)}%</td>
