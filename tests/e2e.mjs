@@ -2843,6 +2843,24 @@ section("Incorporation status is disclosed");
   await noJs.close();
 }
 
+/* ─── Large numbers are readable while typing ───
+   The echo sits beneath the field and rewrites only its own text. The
+   assertion that matters is the second one: the field still holds every
+   keystroke, because the failure this guards against is a control that
+   is rebuilt under the cursor and drops characters. */
+section("Large number inputs echo with separators");
+{
+  const np = await browser.newPage({ reducedMotion: "reduce" });
+  await np.goto(base + "/tools/fuel-optimizer.html"); await np.waitForTimeout(400);
+  await np.click("#spend", { clickCount: 3 });
+  await np.keyboard.type("50000000", { delay: 20 });
+  assert((await np.$eval("#spend", e => e.value)) === "50000000", "the field keeps every keystroke (50000000)");
+  assert((await np.$eval("#spend", e => e.nextElementSibling?.textContent)) === "= 50,000,000",
+    "the echo beneath it reads = 50,000,000");
+  assert(await np.evaluate(() => document.activeElement?.id === "spend"), "focus stays on the field while typing");
+  await np.close();
+}
+
 /* ─── Printed pages are legible ───
    A scorecard printed with its verdict in #dcdcdc on white was
    screen-tuned light-on-dark ink that nobody had looked at on paper.

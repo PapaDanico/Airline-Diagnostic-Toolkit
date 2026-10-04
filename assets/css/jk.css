@@ -940,13 +940,15 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .field { margin-bottom: 18px; }
 .field label { display: block; font-weight: 600; font-size: var(--fs-sm); margin-bottom: .35rem; }
 .field .hint { font-size: var(--fs-xs); color: var(--jk-muted); margin-top: .25rem; }
-.field input, .field select, .field textarea {
+.num-echo { display: block; font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: var(--jk-muted); margin-top: .2rem; min-height: 1.2em; }
+@media print { .num-echo { display: none; } }
+.field input, .field select, .field textarea, select.field, input.field, textarea.field {
   width: 100%; padding: .78rem 1rem; border: 1px solid var(--jk-line-2);
   border-radius: var(--radius-sm); font-size: var(--fs-base); font-family: var(--sans);
   background: #fff; color: var(--jk-ink);
   transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
-.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+.field input:focus, .field select:focus, .field textarea:focus, select.field:focus, input.field:focus, textarea.field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
 .field input[type="number"] { font-variant-numeric: tabular-nums; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .field-row > * { min-width: 0; }
@@ -1152,7 +1154,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .dtable th, .dtable td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--jk-line); vertical-align: top; }
 .dtable th { font-size: var(--fs-2xs); letter-spacing: .06em; text-transform: uppercase; color: var(--jk-muted); font-weight: 700; background: var(--jk-parchment); }
 .dtable tbody tr:hover td { background: var(--jk-parchment); }
-.dtable td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.dtable td.num, .dtable th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .dtable tfoot td { font-weight: 700; border-top: 2px solid var(--jk-line-2); border-bottom: 0; }
 
 /* ---------- corporate structure diagram ---------- */

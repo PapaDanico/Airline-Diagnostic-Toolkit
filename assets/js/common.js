@@ -1190,6 +1190,44 @@ if (typeof navigator !== "undefined" && "serviceWorker" in navigator &&
   });
 }
 
+/* Large number inputs echo their value with separators beneath them.
+
+   24000000 is unreadable at a glance and a type="number" field cannot
+   hold "24,000,000" — and swapping the field for text would mean
+   rewriting the control under the user's cursor, which is the defect
+   this codebase keeps fixing. So the control is left exactly as it is
+   and a read-only line beneath it carries the formatted figure.
+
+   Delegated rather than wired per field, so inputs a page builds later
+   (fleet rows, scenario tables) are covered without each page asking.
+   The echo is created on first need and only its text is rewritten. */
+function wireNumberEcho() {
+  if (typeof document === "undefined" || document.documentElement.dataset.numEcho) return;
+  document.documentElement.dataset.numEcho = "1";
+  const big = el => el.type === "number" && !el.closest("[hidden]") &&
+    (Number(el.step) >= 1000 || Math.abs(Number(el.value)) >= 100000);
+  const paint = el => {
+    if (!big(el)) return;
+    let echo = el.nextElementSibling;
+    if (!echo || !echo.classList.contains("num-echo")) {
+      echo = document.createElement("span");
+      echo.className = "num-echo";
+      echo.setAttribute("aria-hidden", "true");
+      el.insertAdjacentElement("afterend", echo);
+    }
+    const n = Number(el.value);
+    echo.textContent = el.value !== "" && Number.isFinite(n) && Math.abs(n) >= 1000
+      ? "= " + n.toLocaleString("en-US") : "";
+  };
+  document.addEventListener("input", e => { if (e.target instanceof HTMLInputElement) paint(e.target); });
+  document.addEventListener("focusin", e => { if (e.target instanceof HTMLInputElement) paint(e.target); });
+  document.querySelectorAll("input[type=number]").forEach(paint);
+}
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wireNumberEcho);
+  else wireNumberEcho();
+}
+
 if (typeof window !== "undefined") {
   Object.assign(window, { STORE_KEY, JK_LOGO, JK_LOGO_LIGHT, applyPartner, mountChrome, isEmbedded, applyEmbedMode,
     saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel,
