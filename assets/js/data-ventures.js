@@ -858,14 +858,14 @@ const JKV = {
      Refresh these with each IATA/AFRAA release.
      --------------------------------------------------------- */
   market: {
-    asOf: "IATA December 2025 outlook for 2026; AFRAA 2024–25 data",
+    asOf: "IATA Global Outlook, June 2026; AFRAA 2024–25 data",
     stats: [
-      { v:"$1.3",  l:"Net profit per passenger, African carriers", sub:"vs $7.9 globally", src:"IATA 2026 outlook" },
-      { v:"1.3%",  l:"Net margin — the world's thinnest",          sub:"$0.2bn on 6% traffic growth", src:"IATA 2026 outlook" },
+      { v:"$0.40", l:"Net profit per passenger, African carriers", sub:"2026 forecast, down from $2.10 in 2025", src:"IATA June 2026" },
+      { v:"0.2%",  l:"Net margin — the world's thinnest",          sub:"$100M forecast, halved from December", src:"IATA June 2026" },
       { v:"~2×",   l:"African unit cost vs industry average",      sub:"~140 US¢ per ATK", src:"IATA" },
       { v:"110+",  l:"New intra-African routes under SAATM",       sub:"incl. 19 fifth-freedom services", src:"AFCAC / SAATM" }
     ],
-    narrative: "Demand is not the constraint. African traffic is growing around 6% a year and SAATM has opened more than 110 new intra-African routes. The constraint is execution: unit costs roughly double the global average, the thinnest margins of any region, and a certification pathway that quietly consumes the runway of well-funded ventures before they ever carry a passenger."
+    narrative: "Demand is not the constraint. African traffic grew 7.8% in 2025 and SAATM has opened more than 110 new intra-African routes. The constraint is execution: unit costs roughly double the global average, the thinnest margins of any region, and a certification pathway that quietly consumes the runway of well-funded ventures before they ever carry a passenger."
   },
 
   /* helpers ------------------------------------------------- */

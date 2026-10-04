@@ -83,6 +83,25 @@ if (questions !== 40) fail(`total questions ${questions} (expected 40)`);
    here rather than quietly deleted, because a benchmark an operator has
    been reading for months should not vanish without someone deciding it
    should. */
+/* The venture track's market card is a second place the same figure lives.
+   The guard below read only the scorecard, so the home page kept quoting
+   the December 2025 outlook ($1.30 a passenger, 1.3%) for four months
+   after the June 2026 edition made it $0.40 and 0.2%. A citation of an
+   IATA December edition is superseded the moment the following June
+   edition is out; it is a failure, not a warning, because the number is
+   wrong by a factor of three rather than merely old. */
+{
+  const before = failures;
+  const m = JKV.market || {};
+  const cited = [m.asOf, ...(m.stats || []).map((x) => x.src)].filter(Boolean);
+  for (const c of cited) {
+    const dec = /IATA[^;]*December (\d{4})/.exec(c);
+    if (dec && Date.now() >= Date.UTC(+dec[1] + 1, 5, 7)) {
+      fail(`market card cites "${c}" — the June ${+dec[1] + 1} edition has superseded it`);
+    }
+  }
+  if (failures === before) console.log("  ✓ venture market card cites no superseded IATA edition");
+}
 const CYCLE_DAYS = { annual: 365, semiannual: 182 };
 const CYCLES_BEFORE_STALE = 2;
 const UNATTRIBUTED = /^Industry (planning target|range)$/;
