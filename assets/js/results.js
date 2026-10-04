@@ -633,15 +633,15 @@
           body: body.toString()
         });
         if (!resp.ok) throw new Error(resp.status);
-        msg.textContent = "✓ Sent — your Executive Brief & 90-Day Roadmap will arrive in your inbox.";
+        msg.textContent = "✓ Received — a JK consultant will come back within one working day. Not heard back? Write to " + JK.brand.email + " and quote “scorecard”. Your scorecard is ready to save as a PDF now.";
         msg.style.color = "var(--jk-green)";
-        submitBtn.textContent = "✓ Executive Brief Requested";
+        submitBtn.textContent = "✓ Roadmap briefing requested";
         sessionSet("dn_report_sent", "1");
       } catch {
         msg.innerHTML = `Could not send — email us at <a href="mailto:${JK.brand.email}">${JK.brand.email}</a>`;
         msg.style.color = "var(--jk-red)";
         submitBtn.disabled = false;
-        submitBtn.textContent = "Send Executive Brief & Roadmap (PDF) →";
+        submitBtn.textContent = "Request the roadmap briefing →";
       }
     });
   }
