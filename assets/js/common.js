@@ -1228,6 +1228,42 @@ if (typeof document !== "undefined") {
   else wireNumberEcho();
 }
 
+/* The working in a printed pack is a record of what was entered, and a
+   form control is the wrong way to show one: a number field prints as a
+   boxed "2500000", an empty date as "mm/dd/yyyy". Paper cannot be typed
+   into, so at print time each field is read and a formatted line stands in
+   for it, then removed afterwards so the control under the user's cursor is
+   never rewritten while they work. beforeprint fires for the browser's print
+   dialog and for PDF generation alike. */
+function wirePrintValues() {
+  if (typeof window === "undefined" || window.__printValues) return;
+  window.__printValues = true;
+  const SKIP = new Set(["hidden", "checkbox", "radio", "range", "button", "submit", "reset", "file", "image"]);
+  const show = el => {
+    const t = (el.type || "text").toLowerCase();
+    const v = el.value;
+    if (t === "number" && v !== "" && Number.isFinite(Number(v))) return Number(v).toLocaleString("en-GB", { maximumFractionDigits: 6 });
+    if (t === "date" && v) return fmtDate(v);
+    if (v === "") return "\u2014";
+    return v;
+  };
+  window.addEventListener("beforeprint", () => {
+    document.querySelectorAll("main input, main textarea").forEach(el => {
+      if (SKIP.has((el.type || "").toLowerCase()) || el.closest("form, [hidden]") || el.dataset.pv) return;
+      const span = document.createElement("span");
+      span.className = "print-val";
+      span.textContent = show(el);
+      el.dataset.pv = "1";
+      el.insertAdjacentElement("afterend", span);
+    });
+  });
+  window.addEventListener("afterprint", () => {
+    document.querySelectorAll(".print-val").forEach(n => n.remove());
+    document.querySelectorAll("[data-pv]").forEach(el => el.removeAttribute("data-pv"));
+  });
+}
+if (typeof document !== "undefined") wirePrintValues();
+
 if (typeof window !== "undefined") {
   Object.assign(window, { STORE_KEY, JK_LOGO, JK_LOGO_LIGHT, applyPartner, mountChrome, isEmbedded, applyEmbedMode,
     saveAnswers, loadAnswers, clearAnswers, computeScores, indexVerdict, drawRadar, wrapLabel,

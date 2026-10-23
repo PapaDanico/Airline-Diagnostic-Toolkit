@@ -940,8 +940,14 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .field { margin-bottom: 18px; }
 .field label { display: block; font-weight: 600; font-size: var(--fs-sm); margin-bottom: .35rem; }
 .field .hint { font-size: var(--fs-xs); color: var(--jk-muted); margin-top: .25rem; }
+.print-val { display: none; }
 .num-echo { display: block; font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: var(--jk-muted); margin-top: .2rem; min-height: 1.2em; }
-@media print { .num-echo { display: none; } }
+@media print {
+  .num-echo { display: none; }
+  /* a field's stand-in on paper: the value, formatted, and no box */
+  input[data-pv], textarea[data-pv] { display: none !important; }
+  .print-val { display: block; font-weight: 600; font-variant-numeric: tabular-nums; }
+}
 .field input, .field select, .field textarea, select.field, input.field, textarea.field {
   width: 100%; padding: .78rem 1rem; border: 1px solid var(--jk-line-2);
   border-radius: var(--radius-sm); font-size: var(--fs-base); font-family: var(--sans);

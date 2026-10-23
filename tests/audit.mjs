@@ -83,6 +83,8 @@ await new Promise(r => server.listen(0, "127.0.0.1", r));
 const BASE = `http://127.0.0.1:${server.address().port}/`;
 const b = await chromium.launch(execPath ? { executablePath: execPath } : {});
 let problems = 0;
+const PACK_CEILING = 9;
+const packSheets = {};
 let scoringModel = null;
 let mroModel = null;
 
@@ -93,8 +95,12 @@ for (const pg of pages) {
   const errs = [];
   p.on("pageerror", e => errs.push("JS: " + e.message));
   p.on("console", m => { if (m.type() === "error" && !IGNORE.test(m.text())) errs.push("console: " + m.text()); });
-  if (pg === "results.html") await p.addInitScript(() => localStorage.setItem("dn_airline_scorecard_v2",
-    JSON.stringify({ safety: [2, 2, 2, 2, 2], ops: [2, 2, 2, 2, 2], fleet: [2, 2, 2, 2, 2], cost: [2, 2, 2, 2, 2], revenue: [2, 2, 2, 2, 2], commercial: [2, 2, 2, 2, 2], people: [2, 2, 2, 2, 2], finance: [2, 2, 2, 2, 2] })));
+  if (pg === "results.html") await p.addInitScript(() => localStorage.setItem("jk_airline_scorecard_v3",
+    /* The key this audit seeded for months was "dn_airline_scorecard_v2",
+       which nothing has read since the rebrand — so the report's populated
+       state was never audited, only its empty one. Varied scores, so the
+       report has critical, attention and strong rows to render. */
+    JSON.stringify({ safety: [1, 2, 3, 2, 4], ops: [2, 2, 1, 3, 2], fleet: [3, 3, 2, 3, 3], cost: [1, 1, 2, 1, 2], revenue: [2, 3, 3, 2, 2], commercial: [3, 2, 3, 4, 3], people: [1, 2, 1, 2, 1], finance: [3, 3, 4, 3, 3] })));
   await p.goto(BASE + pg); await p.waitForTimeout(300);
   const deskOX = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   const r = await p.evaluate(() => {
@@ -148,9 +154,49 @@ for (const pg of pages) {
   if (r.mro && !mroModel) mroModel = r.mro;
   await p.setViewportSize({ width: 390, height: 800 }); await p.waitForTimeout(150);
   const mobOX = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  /* ---- the same page, on paper ----
+
+     Everything above looks at a screen. The packs this site produces are
+     read on paper, and three defects shipped to production that no screen
+     check could see: a stat tile printing through its neighbour, a print
+     header whose logo was never fetched, and a report that ran to ten
+     pages because one column was squeezed. Each is guarded here, in print
+     media at A4 width, over HTTP so the web fonts are the real ones —
+     under file:// they are blocked and every measurement is wrong. */
+  const printIssues = [];
+  await p.setViewportSize({ width: 794, height: 1123 });
+  await p.emulateMedia({ media: "print" });
+  await p.waitForTimeout(150);
+  const paper = await p.evaluate(() => {
+    const out = { clipped: [], logo: null };
+    document.querySelectorAll(".kv, .kpi *, .metrics .v, .stack-row .sv, .meter-val").forEach(e => {
+      if (!e.offsetParent) return;
+      const par = e.closest(".kpi, .m, .stack-row") || e.parentElement;
+      if (!par) return;
+      const a = e.getBoundingClientRect(), c = par.getBoundingClientRect();
+      if (a.width > 0 && (a.right > c.right + 1 || e.scrollWidth > e.clientWidth + 1))
+        out.clipped.push((e.textContent || "").trim().slice(0, 30));
+    });
+    const img = document.querySelector(".print-head img");
+    if (img) out.logo = img.complete && img.naturalWidth > 0;
+    return out;
+  });
+  if (paper.clipped.length) printIssues.push(`PRINT: figure leaves its tile ${JSON.stringify([...new Set(paper.clipped)].slice(0, 3))}`);
+  if (paper.logo === false) printIssues.push("PRINT: the pack's logo did not load, so every printed sheet opens with a blank");
+  /* Pack length. A tool's pack is an answer and its working; past nine
+     sheets it has stopped being either. Long reference pages (the FAQ,
+     the regulatory index) are documents, not packs, and are not capped. */
+  if (/^tools\/(?!index)|^results\.html$|^demo-results\.html$/.test(pg)) {
+    const pdf = (await p.pdf({ format: "A4", printBackground: true })).toString("latin1");
+    const sheets = (pdf.match(/\/Type\s*\/Page(?![s])/g) || []).length;
+    packSheets[pg] = sheets;
+    if (sheets > PACK_CEILING) printIssues.push(`PRINT: pack runs to ${sheets} sheets (ceiling ${PACK_CEILING})`);
+  }
+  await p.emulateMedia({ media: "screen" });
+
   const broken = r.links.filter(l => { const c = l.split("#")[0].split("?")[0]; return c && !existsSync(normalize(join(ROOT, dir, c))); });
 
-  const issues = [];
+  const issues = [...printIssues];
   if (errs.length) issues.push(...errs);
   if (r.h1 !== 1) issues.push(`h1=${r.h1}`);
   if (r.imgsNoAlt) issues.push(`imgsNoAlt=${r.imgsNoAlt}`);
@@ -166,6 +212,7 @@ for (const pg of pages) {
   console.log(`${issues.length ? "❌" : "✅"} ${pg}` + (issues.length ? "\n     - " + issues.join("\n     - ") : ""));
   await ctx.close();
 }
+console.log("   pack lengths (sheets): " + Object.entries(packSheets).map(([k, v]) => k.replace("tools/", "").replace(".html", "") + " " + v).join(" · "));
 await b.close();
 server.close();
 
