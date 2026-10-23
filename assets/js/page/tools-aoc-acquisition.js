@@ -302,7 +302,7 @@
        buyer thinks they are doing. */
     $("deal-kpis").innerHTML = [
       ["All-in cost", fmtMoney(allIn), allIn > gf.hi ? "is-red" : allIn > gfMid ? "is-amber" : "is-green"],
-      ["Greenfield equivalent", `${fmtMoney(gf.lo)}–${fmtMoney(gf.hi)}`, ""],
+      ["Greenfield equivalent", `<span class="nb">${fmtMoney(gf.lo)}–</span><wbr><span class="nb">${fmtMoney(gf.hi)}</span>`, ""],
       /* The tile carries no prose, and the note explaining a negative
          premium sits several sections below it. So the tile has to be
          self-explanatory on its own: "none" and the discount named. */

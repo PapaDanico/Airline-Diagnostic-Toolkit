@@ -940,7 +940,7 @@ function citeChips(keys) {
 function mountPrintHead(toolName, subtitle) {
   const src = (document.querySelector('link[rel="canonical"]') || {}).href || "";
   const html =
-    `<img src="${ASSET_BASE}assets/img/jk-logo-full.png" width="522" height="400" loading="lazy" decoding="async" alt="JK &amp; Associates">
+    `<img src="${ASSET_BASE}assets/img/jk-logo-full.png" width="522" height="400" alt="JK &amp; Associates">
      <div class="ph-meta"><strong>${escapeHtml(toolName)}</strong><br>
        ${subtitle ? escapeHtml(subtitle) + "<br>" : ""}
        Prepared ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
