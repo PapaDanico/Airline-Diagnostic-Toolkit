@@ -109,6 +109,20 @@
         <h2 style="margin-bottom:.4rem">What the business must be worth</h2>
         <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Cash flow over five years rarely repays the capital. The rest of the return has to come from what the business is worth at the end. This is that value for your hurdle and for two either side.</p>
         <div id="rs-tv" style="margin-top:1rem"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 6</p>
+        <h2 style="margin-bottom:.4rem">How wrong can the inputs be?</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Say how far you think revenue, margin and interest could miss. The first table moves each input alone and ranks them by how much the debt capacity swings. The second moves them together, 2,000 times, with the same seed every time, and reports the cautious (P10), middle (P50) and generous (P90) outcomes.</p>
+        <div class="card" style="margin-top:1.2rem">
+          <div class="grid g3" style="gap:12px">
+            <div class="field"><label for="rs-urev">Revenue could miss by (±%)</label><input type="number" id="rs-urev" min="0" max="80" step="1" value="20"></div>
+            <div class="field"><label for="rs-umg">Margin could miss by (± points)</label><input type="number" id="rs-umg" min="0" max="40" step="0.5" value="5"></div>
+            <div class="field"><label for="rs-urate">Interest could miss by (± points)</label><input type="number" id="rs-urate" min="0" max="15" step="0.25" value="3"></div>
+          </div>
+          <div class="hint">Ranges are yours and are drawn as symmetric triangles around your figures, independently. If you have no view, the defaults are wide enough to be uncomfortable, which is the point.</div>
+        </div>
+        <div id="rs-tornado" style="margin-top:1rem"></div>
+        <div id="rs-mc" style="margin-top:1rem"></div>
       </div>
 
       <div>

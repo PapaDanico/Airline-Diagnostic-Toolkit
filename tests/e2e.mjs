@@ -2922,6 +2922,20 @@ section("Returns & Reverse-Solve");
   const yrs = await txt("rs-years");
   for (const w of ["0.28×", "0.42×", "0.63×", "0.90×", "1.25×"]) assert(yrs.includes(w), `returns: year-by-year cover omits ${w} — got ${yrs}`);
   assert(/fails in the ramp/i.test(await txt("rs-findings")), "returns: debt sized to year 5 that fails in the ramp is not flagged");
+  /* sensitivity: the tornado ranks inputs by swing, the simulation is seeded.
+     With zero spreads every draw equals the base case, so P10 = P50 = P90 = 31.9;
+     that fixes the simulation to the solver's own number rather than to itself. */
+  const mc = await txt("rs-mc"), tor = await txt("rs-tornado");
+  const pcs = [...mc.matchAll(/USD ([\d.,]+)m/g)].map((x) => parseFloat(x[1].replace(/,/g, "")));
+  assert(pcs.length >= 3 && pcs[0] < pcs[1] && pcs[1] < pcs[2], `returns: P10 < P50 < P90 expected, got ${pcs}`);
+  assert(/^Input moved Range Debt capacity, low case High case Swing EBITDA margin/i.test(tor), `returns: tornado should rank margin first at the defaults — got ${tor.slice(0, 160)}`);
+  await page.reload(); await page.waitForTimeout(350);
+  assert((await txt("rs-mc")) === mc, "returns: the same inputs gave different percentiles on reload (seed not fixed)");
+  await set("rs-urev", "0"); await set("rs-umg", "0"); await set("rs-urate", "0"); await page.waitForTimeout(250);
+  const flat = [...(await txt("rs-mc")).matchAll(/USD ([\d.,]+)m/g)].map((x) => parseFloat(x[1]));
+  assert(flat[0] === 31.9 && flat[1] === 31.9 && flat[2] === 31.9, `returns: with zero spread the percentiles should all be 31.9 — got ${flat}`);
+  await set("rs-urev", "20"); await set("rs-umg", "5"); await set("rs-urate", "3"); await page.waitForTimeout(200);
+  assert(/breaches the covenant in \d+% of draws/i.test(await txt("rs-mc")), "returns: planned debt should report a covenant-breach share");
   await set("rs-debt", "40"); await page.waitForTimeout(200);
   assert(/exceeds what the cash flow carries/i.test(await txt("rs-findings")), "returns: planned debt above capacity is not flagged");
   await page.selectOption("#rs-phase", "start"); await page.waitForTimeout(200);

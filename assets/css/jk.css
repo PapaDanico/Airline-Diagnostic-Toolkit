@@ -819,6 +819,8 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .gap-table th, .gap-table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--jk-line); }
 .gap-table th { font-family: var(--sans); font-size: var(--fs-xs); letter-spacing: .06em; text-transform: uppercase; color: var(--jk-muted); }
 .gap-table tr:hover td { background: var(--jk-parchment); }
+.rs-bar { height: 6px; background: var(--jk-line); border-radius: 3px; margin-bottom: 4px; min-width: 60px; }
+.rs-bar span { display: block; height: 100%; background: var(--jk-amber); border-radius: 3px; }
 .barcell { min-width: 160px; }
 .bar { height: 10px; background: var(--jk-parchment-2); border-radius: 99px; overflow: hidden; }
 .bar > i { display: block; height: 100%; border-radius: 99px; }
