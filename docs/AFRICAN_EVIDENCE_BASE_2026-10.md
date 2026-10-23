@@ -25,6 +25,9 @@ Public evidence gathered by web search on 23 October 2026 to ground the platform
 | EV-17 | Customer standards | Basic Aviation Risk Standard (BARS) for mining and energy; UN air-operations assessments for NGO and UN flying; JKIA executive-terminal and CIP-terminal tenders by Kenya Airports Authority. | Flight Safety Foundation; UN aviation standards; KAA tenders, 2025–2026 | B |
 | EV-18 | Competition | Air Excel reported at about nine aircraft. No public fleet, yield or financial data found for Sandpiper or SAMEL. | Trade press, 2025–2026 | C |
 | EV-19 | Finance | Cape Town Convention: Kenya is listed among African states that had ratified by 2017; a law-firm note puts Tanzania's ratification in force on 1 May 2009. Whether Tanzania is party to the Aircraft Protocol was not confirmed. | ICAO presentation, 2017; law-firm note; search, Oct 2026 | C |
+| EV-20 | People | Kenya Airways first officers are estimated at about KES 315,000–517,000 a month and captains at about KES 1.0–2.0 million (blog and aggregator estimates, no official scale). A 2026 article puts pre-Covid captain pay at about KES 1.6 million. Union testimony (older) gave Boeing pilots KES 483,350 gross. The same carrier reported losing 130 pilots to Middle East airlines in one year. No business-aviation pay data found. | Aviation A2Z, Sep 2026; Business Daily (KQ pilot losses; older); Paylab and Rotatepilot aggregators | C |
+| EV-21 | MRO | In 2019 the KCAA told Wilson Airport-based operators that repairs on aircraft above seven tonnes would move away from Wilson, with larger-aircraft maintenance falling to facilities run by Kenya Airways, African Express and JetLink. Whether the directive is still in force was not confirmed. No list of approved maintenance organisations for business jets or helicopters was found. | Business Daily and Daily Nation reporting, 2019; ch-aviation | C |
+| EV-22 | Insurance | No 2025–2026 pricing found for business-aviation hull, liability or war-risk cover in East Africa. Background sources say African local insurance capacity is limited and African operators pay higher premiums. | Africa Re aviation pool page (undated); Business Insurance (undated) | C |
 
 ## Open items (not found in the sources reached)
 
@@ -33,5 +36,6 @@ Public evidence gathered by web search on 23 October 2026 to ground the platform
 - Whether Tanzania is party to the Cape Town Aircraft Protocol.
 - USD aircraft-finance pricing for East African operators (structure evidence exists; price evidence does not).
 - Business-aviation and rotary safety statistics for Africa (published series cover commercial airlines).
-- Current Nairobi Jet A-1 price and business-aviation pilot pay.
+- Current Nairobi Jet A-1 price; business-aviation pilot pay (only airline estimates found).
+- Business-aviation insurance pricing, and the current status of the Wilson Airport repair directive.
 - Business-aviation Part 145 competitors in Nairobi.
