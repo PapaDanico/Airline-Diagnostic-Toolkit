@@ -118,6 +118,18 @@ need one are marked and left as decisions.
 | 6 | **Tornado and a small Monte Carlo** (client-side, seeded, P10/P50/P90) on the capital and revenue models | Not found at any peer | Closes dimension 5, and is a visible differentiator. |
 | 7 | **Safety mapping** — tag each checklist item to the ICAO critical element and the IOSA/BARS area it evidences; add an SMS risk register with a bow-tie view | IOSA, BARS, USOAP | Closes dimension 8, and the BARS mapping unlocks mining/NGO customers' language. |
 
+### Status at 23 October 2026
+
+| # | Item | State |
+|---|---|---|
+| 1 | Reverse-solve | **Shipped** as `tools/returns-solver.html` (capital and hurdle in; debt capacity, DSCR by year and margin, required exit value out). |
+| 2 | Plan Integrity Linter | **Shipped in first form** as `tools/plan-consistency.html` (claims ledger and sum checks). The structured "plan passport" with typed rules is not yet built. |
+| 3 | Fleet unit-economics | **Partly shipped** as `tools/fleet-crew.html` (crew pools, 24/7 operations-control FTE, hours per tail). Per-tail yield, reserves and third-party cost libraries are not built. |
+| 4 | Report architecture | **Partly shipped**: print-pack ceiling, running footer and page numbers, print-value substitution and guards. Assumptions table and sources appendix per tool are not yet standard. |
+| 5, 6, 7 | Assumption register, tornado / Monte Carlo, safety mapping | **Not built.** |
+
+Evidence for default values is catalogued in `docs/AFRICAN_EVIDENCE_BASE_2026-10.md`. Nothing from it has entered `data.js` until confirmed from its primary document.
+
 ### Tier 2 — structural; needs the constraint or a data source revisited
 
 | # | Item | Needs |

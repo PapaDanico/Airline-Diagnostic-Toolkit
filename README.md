@@ -36,6 +36,9 @@ footer.
 | `tools/venture-builder.html` | **Greenfield Venture Builder (V2)** — sector CAPEX bands, capital-stack construction, funding-gap detection, lender advance-rate check, level-payment debt service, DSCR sensitivity across four scenarios, and revenue break-even. |
 | `tools/corporate-structure.html` | **Corporate Structure Designer (V3)** — HoldCo / SPV / OpCo archetypes with a **look-through effective-interest cascade**, ownership-and-control testing, offshore substance costing, and the governance / lender-conflict checks institutional diligence applies. |
 | `tools/organogram-planner.html` | **Organogram & Postholder Planner (V4)** — the posts a regulator must accept for each sector, holder and deputy assignment, single-point-of-failure detection, departmental scaffold and a launch→Y5 headcount ramp. |
+| `tools/plan-consistency.html` | **Plan Consistency Check (V7)** — enter what a business plan says page by page; finds the same fact stated two ways and totals that do not add up, with a rounding tolerance, CSV export and a printed findings pack. |
+| `tools/returns-solver.html` | **Returns & Reverse-Solve (V8)** — starts from the capital and the hurdle and asks what must be true: debt capacity at the covenant floor, DSCR by year and margin, and the exit value required, with capital at the start or phased. |
+| `tools/fleet-crew.html` | **Fleet & Crew Planner (V9)** — tails with type, seats and entry quarter; pilots required per type pool at a chosen coverage, 24/7 operations-control FTE and hours per tail, with the duty-day arithmetic shown. |
 
 ### Operate track (Toolbox A — free)
 
@@ -270,7 +273,7 @@ if they ever disagree, that disagreement is the bug.
 
 ## SEO
 
-`sitemap.xml` (30 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
+`sitemap.xml` (33 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
 JSON-LD on three pages: `Organization` + two `WebApplication` entries on the landing page, a
 `WebApplication` on the venture dashboard, and a `WebPage` on the sample report whose `mainEntity`
 is the scorecard. `tests/audit.mjs` asserts every block parses, that its numbers match the product,

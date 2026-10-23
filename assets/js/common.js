@@ -154,7 +154,10 @@ const TOOL_MENU = [
     { file: "tools/venture-builder.html",         label: "Greenfield Venture Builder" },
     { file: "tools/corporate-structure.html",     label: "Corporate Structure Designer" },
     { file: "tools/organogram-planner.html",      label: "Organogram & Postholder Planner" },
-    { file: "tools/revenue-builder.html",         label: "Revenue Model Builder" }
+    { file: "tools/revenue-builder.html",         label: "Revenue Model Builder" },
+    { file: "tools/returns-solver.html",          label: "Returns & Reverse-Solve" },
+    { file: "tools/fleet-crew.html",              label: "Fleet & Crew Planner" },
+    { file: "tools/plan-consistency.html",        label: "Plan Consistency Check" }
   ]},
   { group: "Operate an airline", items: [
     { file: "diagnostic.html",                    label: "Airline Health Scorecard" },

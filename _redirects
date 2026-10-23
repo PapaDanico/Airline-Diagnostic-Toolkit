@@ -10,6 +10,9 @@
 /results                /results.html                      301
 /cask                   /tools/cask-calculator.html        301
 /route                  /tools/route-economics.html        301
+/returns                /tools/returns-solver.html         301
+/fleet-crew             /tools/fleet-crew.html             301
+/consistency            /tools/plan-consistency.html       301
 /fuel                   /tools/fuel-optimizer.html         301
 /canvas                 /tools/operating-model-canvas.html 301
 /data                   /tools/data-request.html           301
@@ -25,6 +28,9 @@
 /tools/revenue-builder  /tools/revenue-builder.html       200
 /tools/cask-calculator  /tools/cask-calculator.html        200
 /tools/route-economics  /tools/route-economics.html        200
+/tools/returns-solver   /tools/returns-solver.html         200
+/tools/fleet-crew       /tools/fleet-crew.html             200
+/tools/plan-consistency /tools/plan-consistency.html       200
 /tools/fuel-optimizer   /tools/fuel-optimizer.html         200
 /tools/operating-model-canvas /tools/operating-model-canvas.html 200
 /tools/data-request     /tools/data-request.html           200

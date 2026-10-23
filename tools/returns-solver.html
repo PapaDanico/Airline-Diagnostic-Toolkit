@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Test an investment case by asking what you would have to believe. Debt capacity at the lender's covenant, the margin a return needs and the exit value a hurdle rate demands. Free, private, on your device.">
+<link rel="canonical" href="https://jkassociates.enterprises/tools/returns-solver.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JK &amp; Associates">
+<meta property="og:title" content="Returns &amp; Reverse-Solve — JK &amp; Associates">
+<meta property="og:description" content="What you would have to believe for the capital to earn its keep.">
+<meta property="og:url" content="https://jkassociates.enterprises/tools/returns-solver.html">
+<meta property="og:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Returns &amp; Reverse-Solve — JK &amp; Associates">
+<meta name="twitter:description" content="Ask what must be true, not what the answer is.">
+<meta name="twitter:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<title>Returns &amp; Reverse-Solve | JK &amp; Associates</title>
+<link rel="icon" type="image/png" href="../assets/img/jk-badge.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#16100D">
+<link rel="apple-touch-icon" href="../assets/img/jk-badge.png">
+<link rel="preload" href="../assets/fonts/cormorant-garamond-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/dm-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="../assets/css/jk.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<form name="tool-enquiry" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text" name="bot-field"><input type="hidden" name="tool">
+  <input type="text" name="name"><input type="email" name="email">
+  <input type="text" name="airline"><input type="text" name="concern">
+</form>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner>
+      <span data-logo></span>
+      <span>JK &amp; Associates<small>Returns Solver</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="nav-links"></div>
+  </div>
+</nav>
+
+<main id="main">
+
+<header class="tool-head">
+  <div class="wrap">
+    <p class="ref">Tool V8 · Free</p>
+    <h1>Returns &amp; Reverse-Solve</h1>
+    <p class="lead">A capital plan usually shows revenue and capital and stops, leaving the reader to wonder whether the numbers earn anything. This turns the question round. Given the revenue and the capital, it asks what you would have to believe: how much debt the cash flow will carry at the lender's covenant, what margin a given return needs, and what the business must be worth at the end for a hurdle rate to be met. It is arithmetic on your figures, built to be argued with.</p>
+  </div>
+</header>
+
+<section style="padding-top:40px">
+  <div class="wrap">
+    <div class="calc">
+      <div>
+        <p class="eyebrow">Step 1</p>
+        <h2 style="margin-bottom:.4rem">Capital and revenue</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Five years of revenue and the capital deployed to earn it, in USD millions. Use the plan's own figures, not yours: the point is to test them.</p>
+        <div class="card" style="margin-top:1.2rem">
+          <div class="field"><label for="rs-capital">Capital deployed (USD m)</label>
+            <input type="number" id="rs-capital" min="0" step="1" value="100">
+            <div class="hint">Everything the plan spends before the operation earns: aircraft, acquisitions, facilities, working capital.</div></div>
+          <div class="field"><label for="rs-phase">When the capital goes out</label>
+            <select id="rs-phase"><option value="even">Evenly across years 1 to 3</option><option value="start">All at the start (the upper bound)</option></select>
+            <div class="hint">Spreading it lowers the exit value the return needs. The upper bound is the cautious reading.</div></div>
+          <div class="grid g3" style="gap:12px">
+            <div class="field"><label for="rs-r1">Revenue, year 1</label><input type="number" id="rs-r1" min="0" step="0.1" value="8"></div>
+            <div class="field"><label for="rs-r2">Year 2</label><input type="number" id="rs-r2" min="0" step="0.1" value="12"></div>
+            <div class="field"><label for="rs-r3">Year 3</label><input type="number" id="rs-r3" min="0" step="0.1" value="18"></div>
+            <div class="field"><label for="rs-r4">Year 4</label><input type="number" id="rs-r4" min="0" step="0.1" value="26"></div>
+            <div class="field"><label for="rs-r5">Year 5</label><input type="number" id="rs-r5" min="0" step="0.1" value="36"></div>
+          </div>
+          <div class="field"><label for="rs-margin">EBITDA margin (%)</label>
+            <input type="number" id="rs-margin" min="-100" max="95" step="0.5" value="22">
+            <div class="hint">The plan's own margin. If it states none, that is itself the finding. 22% is the JK planning default for a first-pass test, a house assumption and not a published benchmark.</div></div>
+        </div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 2</p>
+        <h2 style="margin-bottom:.4rem">Debt and the return you need</h2>
+        <div class="card" style="margin-top:1.2rem">
+          <div class="grid g2" style="gap:12px">
+            <div class="field"><label for="rs-rate">Interest rate (% p.a.)</label><input type="number" id="rs-rate" min="0" max="40" step="0.25" value="9"></div>
+            <div class="field"><label for="rs-term">Repayment term (years)</label><input type="number" id="rs-term" min="1" max="50" step="1" value="7"></div>
+            <div class="field"><label for="rs-cov">Covenant floor (× cover)</label><input type="number" id="rs-cov" min="0.5" max="5" step="0.05" value="1.25"></div>
+            <div class="field"><label for="rs-debt">Debt you plan to draw (USD m)</label><input type="number" id="rs-debt" min="0" step="1" value="30"></div>
+            <div class="field"><label for="rs-hurdle">Return you need (% p.a.)</label><input type="number" id="rs-hurdle" min="0" max="50" step="0.5" value="10"></div>
+            <div class="field"><label for="rs-yield">EBITDA yield you want on capital (%)</label><input type="number" id="rs-yield" min="0" max="100" step="0.5" value="15"></div>
+          </div>
+        </div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 3</p>
+        <h2 style="margin-bottom:.4rem">Debt service cover, year by year</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">A facility sized to the final year's cash flow is repaid from every year's. This shows the cover in each, because debt that works at the end state can fail in the ramp.</p>
+        <div id="rs-years" style="margin-top:1rem"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 4</p>
+        <h2 style="margin-bottom:.4rem">Cover in the final year, by debt and margin</h2>
+        <div id="rs-grid" style="margin-top:1rem"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 5</p>
+        <h2 style="margin-bottom:.4rem">What the business must be worth</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Cash flow over five years rarely repays the capital. The rest of the return has to come from what the business is worth at the end. This is that value for your hurdle and for two either side.</p>
+        <div id="rs-tv" style="margin-top:1rem"></div>
+      </div>
+
+      <div>
+        <div class="result-panel">
+          <p class="eyebrow" style="color:var(--jk-amber)">What you would have to believe</p>
+          <div class="rng" id="rs-head">&mdash;</div>
+          <p id="rs-band" style="font-weight:700;margin:.2rem 0 .6rem">Enter the plan's revenue and capital.</p>
+          <p class="qual" id="rs-qual"></p>
+          <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
+          <div class="kpis" id="rs-kpis"></div>
+        </div>
+
+        <div class="result-panel" style="margin-top:1rem">
+          <p class="eyebrow" style="color:var(--jk-amber)">Findings</p>
+          <div id="rs-findings"></div>
+        </div>
+
+        <div class="tool-actions">
+          <button class="btn btn-amber" id="print">Print / save as PDF</button>
+          <button class="btn btn-ghost" id="reset">Reset to the example</button>
+        </div>
+
+        <div class="guarantee" style="margin-top:1.4rem">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <div>
+            <strong>Have JK build the investment case behind the numbers.</strong>
+            <p style="margin:.4rem 0 .8rem;font-size:var(--fs-sm)">This tests a case in an afternoon. A JK engagement builds it: revenue tail by tail from actual hours and yield, funding structure and covenants, a downside case, and a 13-week and 24-month cash view the Board can approve capital against.</p>
+            <form id="rs-enquiry" class="grid g2" style="gap:10px">
+              <input type="hidden" name="tool" value="Returns &amp; Reverse-Solve">
+              <input name="name" placeholder="Name" required>
+              <input name="airline" placeholder="Airline / Organisation">
+              <input name="email" type="email" placeholder="Work email" required>
+              <select name="concern" aria-label="Primary concern">
+                <option value="">Primary concern</option>
+                <option>Investment case</option><option>Funding structure</option><option>Lender discussions</option><option>Board approval</option><option>Just exploring</option>
+              </select>
+              <button type="submit" class="btn btn-amber" style="grid-column:1/-1">Talk to JK about the investment case &rarr;</button>
+              <p class="enq-msg" style="font-size:var(--fs-sm);margin-top:.6rem;grid-column:1/-1"></p>
+            </form>
+            <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain>info@aviationhubkenya.org</span></p>
+          </div>
+        </div>
+
+        <p class="disclaimer" style="margin-top:1rem">A test of an investment case, not a valuation, a forecast or investment advice. Figures are the ones you enter; nothing here is a benchmark unless it says so. Debt is a level payment (principal and interest) over the term, a first-pass sanity check and not a bankable model. Everything you enter stays in this browser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> JK &amp; Associates · <a data-email>info@aviationhubkenya.org</a></span>
+    <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../methodology.html">Methodology</a> · <span data-version>v3.4 — Scheduled, Business Aviation &amp; Aeromedical</span></span>
+  </div></div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/page/tools-returns-solver.js"></script>
+</body>
+</html>
