@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Build a hazard register with a 5×5 risk matrix and bow-tie barriers, tag each barrier to an ICAO Annex 19 SMS element and an IOSA functional area, and see where assurance is missing. Free, private, on your device.">
+<link rel="canonical" href="https://jkassociates.enterprises/tools/safety-map.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JK &amp; Associates">
+<meta property="og:title" content="Safety Assurance Map — JK &amp; Associates">
+<meta property="og:description" content="A hazard register, a risk matrix and a map of which SMS elements your barriers actually evidence.">
+<meta property="og:url" content="https://jkassociates.enterprises/tools/safety-map.html">
+<meta property="og:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Safety Assurance Map — JK &amp; Associates">
+<meta name="twitter:description" content="Which barriers do you have, and which are only on paper?">
+<meta name="twitter:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<title>Safety Assurance Map | JK &amp; Associates</title>
+<link rel="icon" type="image/png" href="../assets/img/jk-badge.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#16100D">
+<link rel="apple-touch-icon" href="../assets/img/jk-badge.png">
+<link rel="preload" href="../assets/fonts/cormorant-garamond-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/dm-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="../assets/css/jk.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<form name="tool-enquiry" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text" name="bot-field"><input type="hidden" name="tool">
+  <input type="text" name="name"><input type="email" name="email">
+  <input type="text" name="airline"><input type="text" name="concern">
+</form>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner>
+      <span data-logo></span>
+      <span>JK &amp; Associates<small>Safety Map</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="nav-links"></div>
+  </div>
+</nav>
+
+<main id="main">
+
+<header class="tool-head">
+  <div class="wrap">
+    <p class="ref">Tool V10 · Free</p>
+    <h1>Safety Assurance Map</h1>
+    <p class="lead">A risk register that lists hazards and a rating is a list, not assurance. What makes a risk acceptable is the barriers between the hazard and the harm, and whether each one is really in place. Enter the hazards, rate them before and after controls, and name the barriers on both sides of the top event. Each barrier is tagged to the SMS element that manages it and the functional area it sits in, so the map shows where assurance is evidenced and where it is only intended.</p>
+  </div>
+</header>
+
+<section style="padding-top:40px">
+  <div class="wrap">
+    <div class="calc">
+      <div>
+        <p class="eyebrow">Step 1</p>
+        <h2 style="margin-bottom:.4rem">How much risk is tolerable?</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Risk is rated likelihood (1 to 5) times severity (1 to 5). The cut-offs below are a common 5×5 convention, not a regulatory limit: set the tolerability your own SMS and Accountable Manager have adopted.</p>
+        <div class="card" style="margin-top:1.2rem">
+          <div class="grid g2" style="gap:12px">
+            <div class="field"><label for="sf-acc">Acceptable up to a score of</label><input type="number" id="sf-acc" min="1" max="24" step="1" value="4"><div class="hint">At or below this, no action beyond monitoring.</div></div>
+            <div class="field"><label for="sf-tol">Tolerable with mitigation up to</label><input type="number" id="sf-tol" min="2" max="24" step="1" value="12"><div class="hint">Above this the risk is intolerable until reduced.</div></div>
+          </div>
+          <p class="hint" style="margin-top:.8rem">Likelihood: 5 frequent, 4 occasional, 3 remote, 2 improbable, 1 extremely improbable. Severity: 5 catastrophic, 4 hazardous, 3 major, 2 minor, 1 negligible.</p>
+        </div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 2</p>
+        <h2 style="margin-bottom:.4rem">The hazards and their barriers</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Each hazard has a top event, the thing that goes wrong. Preventive barriers stand between the threats and the top event. Recovery barriers stand between the top event and the consequences. A barrier counts as evidence only when its status is In place.</p>
+        <div class="flex between items-center" style="margin:1rem 0 .6rem;flex-wrap:wrap;gap:.6rem">
+          <div class="flex items-center" style="gap:.6rem;flex-wrap:wrap">
+            <label for="sf-lib" class="muted" style="font-size:var(--fs-sm)">Start from a common hazard</label>
+            <select id="sf-lib" aria-label="Hazard library"><option value="">Choose&hellip;</option></select>
+            <button type="button" class="btn btn-ghost btn-sm" id="add-lib">Add it</button>
+          </div>
+          <div class="flex items-center" style="gap:.6rem;flex-wrap:wrap">
+            <button type="button" class="btn btn-ghost btn-sm" id="add-haz">+ Add a blank hazard</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="load-example">Load a worked example</button>
+          </div>
+        </div>
+        <div id="hazards"></div>
+      </div>
+
+      <div>
+        <div class="result-panel">
+          <p class="eyebrow" style="color:var(--jk-amber)">Where the risk stands</p>
+          <div class="rng" id="sf-head">&mdash;</div>
+          <p id="sf-band" style="font-weight:700;margin:.2rem 0 .6rem">Add a hazard.</p>
+          <p class="qual" id="sf-qual"></p>
+          <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
+          <div class="kpis" id="sf-kpis"></div>
+        </div>
+
+        <div class="result-panel" style="margin-top:1rem">
+          <p class="eyebrow" style="color:var(--jk-amber)">Risk matrix (after controls)</p>
+          <div id="sf-matrix"></div>
+        </div>
+
+        <div class="result-panel" style="margin-top:1rem">
+          <p class="eyebrow" style="color:var(--jk-amber)">Findings</p>
+          <div id="sf-findings"></div>
+        </div>
+
+        <div class="result-panel" style="margin-top:1rem">
+          <p class="eyebrow" style="color:var(--jk-amber)">Which SMS elements the barriers evidence</p>
+          <div id="sf-cover" class="table-scroll"></div>
+        </div>
+
+        <div class="result-panel" style="margin-top:1rem">
+          <p class="eyebrow" style="color:var(--jk-amber)">Bow-tie view</p>
+          <div id="sf-bowtie"></div>
+        </div>
+
+        <div class="tool-actions">
+          <button class="btn btn-amber" id="print">Print / save as PDF</button>
+          <button class="btn btn-ghost" id="reset">Reset</button>
+        </div>
+
+        <div class="guarantee" style="margin-top:1.4rem">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <div>
+            <strong>Have JK build the register your Authority will test.</strong>
+            <p style="margin:.4rem 0 .8rem;font-size:var(--fs-sm)">A hazard log tied to your operation, barrier owners and evidence, a safety-performance indicator set, and a management-of-change route that keeps the register alive after certification.</p>
+            <form id="sf-enquiry" class="grid g2" style="gap:10px">
+              <input type="hidden" name="tool" value="Safety Assurance Map">
+              <input name="name" placeholder="Name" required>
+              <input name="airline" placeholder="Airline / Organisation">
+              <input name="email" type="email" placeholder="Work email" required>
+              <select name="concern" aria-label="Primary concern">
+                <option value="">Primary concern</option>
+                <option>SMS for certification</option><option>Hazard register</option><option>Safety assurance and audit</option><option>Customer safety standards</option><option>Just exploring</option>
+              </select>
+              <button type="submit" class="btn btn-amber" style="grid-column:1/-1">Talk to JK about safety assurance &rarr;</button>
+              <p class="enq-msg" style="font-size:var(--fs-sm);margin-top:.6rem;grid-column:1/-1"></p>
+            </form>
+            <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain>info@aviationhubkenya.org</span></p>
+          </div>
+        </div>
+
+        <p class="disclaimer" style="margin-top:1rem">An organiser for your own judgements, not an SMS and not an assessment of one. The ratings, barriers and statuses are what you enter; the tool does not verify them. SMS elements follow the ICAO Annex 19 framework (four components, twelve elements) and functional areas use the IOSA section names as a neutral index; mapping to IS-BAO, BARS or an Authority's own checklist is a separate exercise. A barrier is tagged to the element that manages or evidences it, which is a working convention, not a clause-by-clause compliance mapping. Everything you enter stays in this browser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> JK &amp; Associates · <a data-email>info@aviationhubkenya.org</a></span>
+    <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../methodology.html">Methodology</a> · <span data-version>v3.4 — Scheduled, Business Aviation &amp; Aeromedical</span></span>
+  </div></div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/page/tools-safety-map.js"></script>
+</body>
+</html>

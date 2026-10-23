@@ -12,6 +12,7 @@
 /route                  /tools/route-economics.html        301
 /returns                /tools/returns-solver.html         301
 /fleet-crew             /tools/fleet-crew.html             301
+/safety-map             /tools/safety-map.html             301
 /consistency            /tools/plan-consistency.html       301
 /fuel                   /tools/fuel-optimizer.html         301
 /canvas                 /tools/operating-model-canvas.html 301
@@ -30,6 +31,7 @@
 /tools/route-economics  /tools/route-economics.html        200
 /tools/returns-solver   /tools/returns-solver.html         200
 /tools/fleet-crew       /tools/fleet-crew.html             200
+/tools/safety-map       /tools/safety-map.html             200
 /tools/plan-consistency /tools/plan-consistency.html       200
 /tools/fuel-optimizer   /tools/fuel-optimizer.html         200
 /tools/operating-model-canvas /tools/operating-model-canvas.html 200
