@@ -3003,6 +3003,140 @@ section("Fleet & Crew Planner");
   await assertEnquiryFormSubmits(page, "#fc-enquiry", "fleet");
 }
 
+/* Safety Assurance Map, worked example: six hazards, fifteen barriers.
+   Residual (after controls) scores: H1 2x4=8, H2 3x3=9, H3 2x5=10, H4 2x5=10,
+   H5 3x2=6, H6 3x5=15. At the default limits (Low to 4, Medium to 12) that is
+   one High (H6) and five Medium. Initial scores 16, 12, 15, 10, 12, 15.
+   Barriers: 15 named, 7 in place, 5 planned, 3 not in place. In-place barriers
+   are tagged to SMS elements 2.2, 3.1 and 4.1 only: 3 of 12 evidenced.
+   H4 has no barrier at all and no reduction; H5 claims 12 to 6 on barriers that
+   are all Planned; H6 has no recovery barrier. */
+section("Safety Assurance Map");
+{
+  const set = async (id, v) => { await page.$eval("#" + id, (e, x) => { e.value = x; e.dispatchEvent(new Event("input", { bubbles: true })); }, v); };
+  const txt = async (id) => (await page.$eval("#" + id, (e) => e.innerText)).replace(/\s+/g, " ");
+  await page.goto(base + "/tools/safety-map.html"); await page.evaluate(() => localStorage.clear());
+  await page.goto(base + "/tools/safety-map.html"); await page.waitForTimeout(300);
+  assert((await txt("sf-head")) === "—", "safety: with no hazards the tool should say nothing");
+  /* no hazards yet, so loading the example asks nothing: a stray one-shot dialog handler here would swallow a later page's confirm */
+  await page.click("#load-example"); await page.waitForTimeout(300);
+  assert((await txt("sf-head")) === "1 above tolerance", `safety: expected "1 above tolerance" — got ${await txt("sf-head")}`);
+  assert((await txt("sf-band")) === "6 hazards · 1 High · 5 Medium · 0 Low", `safety: band wrong — got ${await txt("sf-band")}`);
+  const kp = await txt("sf-kpis");
+  assert(kp.includes("7 of 15") && kp.includes("3 of 12"), `safety: expected 7 of 15 barriers in place and 3 of 12 elements — got ${kp}`);
+  const fd = await txt("sf-findings");
+  assert(/H6 Fuel contamination or miscalculation is above tolerance after controls/.test(fd), `safety: the High hazard is not a Stop finding — got ${fd}`);
+  assert(/H4 Loss of control in flight has no barrier named/.test(fd), "safety: a hazard with no barriers is not flagged");
+  assert(/H6 Fuel contamination or miscalculation has no recovery barrier/.test(fd), "safety: a missing recovery side is not flagged");
+  assert(/H5 Ground collision or ramp event: the reduction from 12 to 6 rests on barriers that are not yet in place/.test(fd), `safety: a reduction resting on planned barriers is not flagged — got ${fd}`);
+  assert(/3 of 12 SMS elements are evidenced/.test(fd) && /No barrier in place is tagged to 1\.1, 1\.2/.test(fd), "safety: uncovered elements are not listed");
+  { const f = fd.toLowerCase(); assert(f.indexOf("stop") < f.indexOf("warning") && f.indexOf("warning") < f.lastIndexOf("note"), "safety: findings are not ordered Stop, Warning, Note"); }
+  assert(await page.$$eval("#sf-matrix .rm td", (e) => e.length) === 25, "safety: the risk matrix should have 25 cells");
+  assert(await page.$$eval("#sf-bowtie .bt", (e) => e.length) === 6, "safety: one bow-tie per hazard");
+  assert(await page.evaluate(() => !!document.querySelector(".print-summary")), "safety: the printed pack carries an executive summary");
+  /* tolerability limits are inputs, and move the bands */
+  await set("sf-tol", "20"); await page.waitForTimeout(200);
+  assert((await txt("sf-head")) === "0 above tolerance", "safety: raising the tolerable limit to 20 should clear the High");
+  await set("sf-tol", "12"); await set("sf-acc", "8"); await page.waitForTimeout(200);
+  assert((await txt("sf-band")) === "6 hazards · 1 High · 3 Medium · 2 Low", `safety: acceptable-to-8 should give 1 High, 3 Medium, 2 Low — got ${await txt("sf-band")}`);
+  await set("sf-acc", "4"); await page.waitForTimeout(200);
+  /* a claimed reduction with nothing under it is caught */
+  await page.evaluate(() => { const c = document.querySelectorAll(".sf-haz")[3]; const s = [...c.querySelectorAll("select")].find((x) => x.getAttribute("aria-label") === "Likelihood after controls"); s.value = "1"; s.dispatchEvent(new Event("change", { bubbles: true })); });
+  await page.waitForTimeout(200);
+  assert(/H4 Loss of control in flight claims a reduction from 10 to 5 with no barrier named/.test(await txt("sf-findings")), "safety: a reduction with no barrier named is not flagged");
+  /* typing into a new barrier keeps focus and every character */
+  await page.evaluate(() => { [...document.querySelectorAll(".sf-haz")[0].querySelectorAll("button")].find((b) => b.textContent === "+ Preventive barrier").click(); });
+  await page.keyboard.type("Test barrier");
+  assert((await page.evaluate(() => document.activeElement.value)) === "Test barrier", "safety: typing a barrier lost characters or focus");
+  assert((await txt("sf-kpis")).includes("7 of 16"), "safety: a new Planned barrier should count as named but not in place");
+  assert(!/NaN|Infinity|undefined/.test(await txt("sf-matrix") + await txt("sf-kpis") + await txt("sf-cover") + await txt("sf-bowtie")), "safety: a result carries a non-number");
+  await assertEnquiryFormSubmits(page, "#sf-enquiry", "safety");
+}
+
+/* The platform's own navigation counts itself. The company profile already
+   derives every figure from the registries (charter rule 10); the home page
+   stat band and the tools index did not, and both still said "12" with
+   eighteen tools live. Tool reference numbers collided too: V1 and V3 were
+   each held by three tools. Result access on a phone, and empty panels, are
+   behaviour the pages must keep. */
+section("Platform navigation, counts and tool-page UX");
+{
+  const reg = async () => page.evaluate(() => ({
+    n: TOOL_MENU.reduce((a, g) => a + g.items.length, 0),
+    build: TOOL_MENU[0].items.map(i => i.file),
+    operate: TOOL_MENU[1].items.map(i => i.file),
+    all: TOOL_MENU.flatMap(g => g.items.map(i => i.file))
+  }));
+  await page.goto(base + "/index.html"); await page.waitForTimeout(400);
+  const R = await reg();
+  const stat = await page.evaluate(() => { const m = [...document.querySelectorAll(".metrics .m")].find(x => /free tools/i.test(x.textContent)); return m ? m.querySelector(".v").textContent.trim() : null; });
+  assert(stat === String(R.n), `home: the "Free tools" stat should be ${R.n} (the registry) — it says ${stat}`);
+  const homeBuild = await page.$$eval("#build-tools a", (a) => a.map((x) => x.getAttribute("href")));
+  const missBuild = R.build.filter((f) => !homeBuild.includes(f));
+  assert(missBuild.length === 0, `home: build-track tools missing from the home grid: ${missBuild.join(", ")}`);
+
+  await page.goto(base + "/tools/index.html"); await page.waitForTimeout(400);
+  const sub = await page.evaluate(() => document.querySelector(".tool-head p, header p, main p").textContent);
+  const body = await page.evaluate(() => document.body.innerText);
+  assert(new RegExp(`\\b${R.n} (client-side |free )?tools`, "i").test(body), `tools index: should state ${R.n} tools`);
+  const cardLinks = await page.$$eval(".toolcard2 a, .toolcard a, main a.btn", (a) => a.map((x) => x.getAttribute("href").replace(/^\.\.\//, "").replace(/^(?!diagnostic)/, "tools/")));
+  const missCards = R.all.filter((f) => !cardLinks.some((l) => l.endsWith(f.replace(/^tools\//, "")) ));
+  assert(missCards.length === 0, `tools index: no card for ${missCards.join(", ")}`);
+
+  /* unique tool reference numbers: read from the files, since fetch is not available under file:// */
+  {
+    const refs = {};
+    for (const f of R.all.filter((x) => x.startsWith("tools/"))) {
+      const m = readFileSync(resolve(ROOT, f), "utf8").match(/class="ref">Tool (V\d+)/);
+      if (m) (refs[m[1]] = refs[m[1]] || []).push(f);
+    }
+    const dup = Object.entries(refs).filter(([, v]) => v.length > 1);
+    assert(Object.keys(refs).length >= 10, `tool reference numbers: expected at least 10 tools to carry one, found ${Object.keys(refs).length}`);
+    assert(dup.length === 0, `tool reference numbers are reused: ${dup.map(([k, v]) => k + " by " + v.join(" and ")).join("; ")}`);
+  }
+
+  /* filter chips */
+  const chips = await page.$$eval("#tool-filter button", (b) => b.map((x) => x.textContent.trim()));
+  assert(chips.length >= 4 && /all/i.test(chips[0]), `tools index: filter chips missing — got ${JSON.stringify(chips)}`);
+  if (chips.length >= 4) {
+    const vis = () => page.$$eval(".toolcard2", (c) => c.filter((x) => x.offsetParent !== null).length);
+    const total = await vis();
+    await page.click("#tool-filter button:nth-child(4)"); await page.waitForTimeout(150);
+    const rev = await vis();
+    assert(rev > 0 && rev < total, `tools index: "Review a plan" should narrow ${total} cards, shows ${rev}`);
+    assert((await page.$eval("#tool-filter button:nth-child(4)", (b) => b.getAttribute("aria-pressed"))) === "true", "tools index: the active chip is not exposed with aria-pressed");
+    assert(/\d+ tools?/i.test(await page.$eval("#tool-filter-count", (e) => e.textContent)), "tools index: the filter does not announce how many tools it shows");
+    await page.click("#tool-filter button:nth-child(1)"); await page.waitForTimeout(150);
+    assert((await vis()) === total, "tools index: All should restore every card");
+  }
+
+  /* a phone shows the result without scrolling for it */
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+  const m = await ctx.newPage();
+  await m.goto(base + "/tools/returns-solver.html"); await m.waitForTimeout(500);
+  const chip = await m.evaluate(() => { const c = document.querySelector(".result-chip"); if (!c) return null; const r = c.getBoundingClientRect(); return { shown: c.offsetParent !== null || getComputedStyle(c).position === "fixed", bottom: Math.round(innerHeight - r.bottom), text: c.textContent.replace(/\s+/g, " ").trim(), head: document.querySelector(".result-panel .rng").textContent.trim() }; });
+  assert(chip && chip.text.includes(chip.head), `result chip: should carry the headline figure on a phone — got ${JSON.stringify(chip)}`);
+  if (chip) {
+    await m.click(".result-chip button"); await m.waitForTimeout(400);
+    const inView = await m.evaluate(() => { const r = document.querySelector(".result-panel").getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; });
+    assert(inView, "result chip: its button should bring the result panel into view");
+    const hidden = await m.evaluate(() => getComputedStyle(document.querySelector(".result-chip")).display === "none" || document.querySelector(".result-chip").hidden || getComputedStyle(document.querySelector(".result-chip")).visibility === "hidden" || document.querySelector(".result-chip").classList.contains("is-away"));
+    assert(hidden, "result chip: it should step aside once the result is on screen");
+  }
+  await ctx.close();
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await page.goto(base + "/tools/returns-solver.html"); await page.waitForTimeout(400);
+  assert(await page.evaluate(() => { const c = document.querySelector(".result-chip"); return !c || getComputedStyle(c).display === "none"; }), "result chip: should not appear on a desktop viewport");
+
+  /* empty result panels do not sit on the page as empty dark boxes */
+  await page.goto(base + "/tools/safety-map.html"); await page.evaluate(() => localStorage.clear());
+  await page.goto(base + "/tools/safety-map.html"); await page.waitForTimeout(300);
+  const emptyShown = await page.evaluate(() => [...document.querySelectorAll(".result-panel")].filter((p) => p.offsetParent !== null && !p.querySelector(".rng") && !p.textContent.replace(/\s+/g, "").replace(/Riskmatrix\(aftercontrols\)|Findings|WhichSMSelementsthebarriersevidence|Bow-tieview/gi, "")).length);
+  assert(emptyShown === 0, `safety map: ${emptyShown} empty result panels are showing before any hazard is entered`);
+  const hint = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector("p.hint")).fontSize));
+  assert(hint < 15, `safety map: the scale key under Step 1 renders at ${hint}px, larger than the other hints`);
+}
+
 /* Plan Consistency, worked example. Five facts are stated more than one
    way (launch date, fleet size, terminal opening, FY2027 headcount,
    acquisition price) and one total does not add up (the headcount chart:

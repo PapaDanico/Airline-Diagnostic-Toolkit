@@ -20,7 +20,11 @@
   @media (max-width: 360px) { .toolgrid { grid-template-columns: 1fr; } }
   .toolcard2 { background: #fff; border: 1px solid #e6e3db; border-radius: var(--radius, 12px); padding: 24px; display: flex; flex-direction: column; gap: .55rem; transition: box-shadow .2s, transform .2s; }
   .toolcard2:hover, .toolcard2:focus-within { box-shadow: 0 10px 30px rgba(0,0,0,.08); transform: translateY(-2px); }
-  .toolcard2 .ico { font-size: var(--fs-3xl); }
+  .toolcard2 .ico { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; border-radius: 10px; background: var(--jk-sand-lt); color: var(--jk-terracotta); }
+  .toolcard2 .ico svg { display: block; }
+  .flagship .ico { background: var(--jk-ink-soft); color: var(--jk-amber); }
+  .toolcard2 .ico svg { fill: none; stroke: currentColor; }
+  .toolcard2[hidden], .toolsec[hidden] { display: none; }
   .toolcard2 h3 { margin: 0; font-size: var(--fs-md); }
   .flagship h3 { color: #fff; }
   /* The flagship card is an ink-to-brown gradient, so the default
@@ -37,6 +41,7 @@
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><symbol id="i-venture-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 12l3-3 3 2 4-4"/></symbol><symbol id="i-certification-navigator" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></symbol><symbol id="i-venture-builder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V4M16 20v-7M2 20h20"/></symbol><symbol id="i-corporate-structure" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 12 4l9 6H3zM5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></symbol><symbol id="i-implementation-planner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-9 5 9 5 9-5-9-5zM3 13l9 5 9-5"/></symbol><symbol id="i-aoc-acquisition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h13l-3-3M18 16H5l3 3"/></symbol><symbol id="i-revenue-builder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M5 16l4-5 4 3 6-8"/></symbol><symbol id="i-returns-solver" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></symbol><symbol id="i-fleet-crew" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></symbol><symbol id="i-plan-consistency" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="m16 16 5 5"/></symbol><symbol id="i-safety-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="i-organogram-planner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="17" cy="9" r="2.2"/><path d="M16 14.2c2.8 0 5 2 5 5.3"/></symbol><symbol id="i-diagnostic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="m12 16 4-5"/><path d="M3 20h18"/></symbol><symbol id="i-cask-calculator" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.2c-.6-.8-1.5-1.2-2.6-1.2-1.6 0-2.7.8-2.7 2 0 3 5.6 1.5 5.6 4.3 0 1.2-1.2 2-2.9 2-1.2 0-2.3-.5-2.9-1.4M12 6v2M12 16v2"/></symbol><symbol id="i-route-economics" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2"/><circle cx="19" cy="6" r="2"/><path d="M7 18h6a3 3 0 0 0 0-6h-2a3 3 0 0 1 0-6h6"/></symbol><symbol id="i-fuel-optimizer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/></symbol><symbol id="i-operating-model-canvas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></symbol><symbol id="i-mro-readiness" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3 17.8 6.2 21l6.3-6.3a4 4 0 0 0 5.2-5.4l-2.6 2.6-2.5-.7-.7-2.5z"/></symbol><symbol id="i-data-request" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></symbol><symbol id="i-training-tna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m2 9 10-5 10 5-10 5z"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5"/></symbol><symbol id="i-regulations" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7h14M5 7l-3 7a3.5 3.5 0 0 0 6 0zM19 7l-3 7a3.5 3.5 0 0 0 6 0zM8 21h8"/></symbol></defs></svg>
 <a class="skip-link" href="#main">Skip to content</a>
 
 
@@ -59,178 +64,213 @@
   <div class="wrap">
     <p class="eyebrow">Toolboxes A &amp; V · Free forever</p>
     <h1 style="margin:0">The Free Diagnostic Tools</h1>
-    <p class="muted">Twelve client-side tools across both tracks. No signup, no upload — everything runs and stays in your browser.</p>
+    <p class="muted"><span data-tool-count>20</span> client-side tools across both tracks. No signup, no upload — everything runs and stays in your browser.</p>
   </div>
 </header>
 
+<section class="filter-bar" aria-label="Filter the tools">
+  <div class="wrap">
+    <div id="tool-filter" class="chips" role="group" aria-label="Show tools for">
+      <button type="button" class="chip" data-filter="all" aria-pressed="true">All tools</button>
+      <button type="button" class="chip" data-filter="build" aria-pressed="false">Build a venture</button>
+      <button type="button" class="chip" data-filter="operate" aria-pressed="false">Operate an airline</button>
+      <button type="button" class="chip" data-filter="review" aria-pressed="false">Review a plan</button>
+    </div>
+    <p id="tool-filter-count" class="muted" role="status" aria-live="polite">20 tools</p>
+  </div>
+</section>
+
 <section>
   <div class="wrap">
+    <div class="toolsec">
     <h2 style="margin:0 0 .3rem">Build a venture</h2>
     <p class="muted" style="max-width:700px;margin-bottom:1.6rem">For investors and founders taking a greenfield aviation project from capital to certificate — across six sectors in Kenya and the region.</p>
     <div class="toolgrid">
 
-      <div class="toolcard2 flagship">
-        <span class="ico">🛰️</span>
+      <div class="toolcard2 flagship" data-track="build">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-venture-dashboard"/></svg></span>
         <h3>Venture Control Room</h3>
-        <p>The four build tools in one view. A single Launch Readiness Index across certification, capital, structure and postholders; the critical path scheduled backwards from your target certificate date; the one thing to do next in each module; and the whole workspace exportable to a file you keep. Print it and you have the board pack.</p>
+        <p>Every build tool in one view. A single Launch Readiness Index across certification, capital, structure and postholders; the critical path scheduled backwards from your target certificate date; the one thing to do next in each module; and the whole workspace exportable to a file you keep. Print it and you have the board pack.</p>
         <span class="meta">reads your saved work · export &amp; import · board-pack print</span>
         <a class="btn btn-amber" href="venture-dashboard.html" data-keep-partner>Open the Control Room →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">🧭</span>
+      <div class="toolcard2" data-track="build">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-certification-navigator"/></svg></span>
         <h3>KCAA Certification Navigator</h3>
         <p>The five-phase certification and approval process, mapped for six sectors — airline, training organisation, maintenance, ground handling, aerodrome and drone operations. Gate-by-gate checklists, required postholders, the document set, and every requirement carrying its regulatory citation.</p>
         <span class="meta">~20 min · saves progress · 6 sectors</span>
-        <a class="btn btn-primary" href="certification-navigator.html" data-keep-partner>Open the Navigator →</a>
+        <a class="btn btn-ghost" href="certification-navigator.html" data-keep-partner>Open the Navigator →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">📊</span>
+      <div class="toolcard2" data-track="build">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-venture-builder"/></svg></span>
         <h3>Greenfield Venture Builder</h3>
         <p>Size the capital requirement by sector, build the funding stack, sanity-test senior-debt capacity against a DSCR covenant, and find the revenue break-even — before you commission a feasibility study.</p>
         <span class="meta">~15 min · indicative planning model</span>
-        <a class="btn btn-primary" href="venture-builder.html" data-keep-partner>Open the builder →</a>
+        <a class="btn btn-ghost" href="venture-builder.html" data-keep-partner>Open the builder →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">🏛️</span>
+      <div class="toolcard2" data-track="build">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-revenue-builder"/></svg></span>
+        <h3>Revenue Model Builder</h3>
+        <p>Model charter rates, block hours and retainers for an aviation venture, and test whether the fleet can service its capital before the lender's appraisal does.</p>
+        <span class="meta">~15 min · charter, hours and retainers</span>
+        <a class="btn btn-ghost" href="revenue-builder.html" data-keep-partner>Open the builder →</a>
+      </div>
+
+      <div class="toolcard2" data-track="build">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-corporate-structure"/></svg></span>
         <h3>Corporate Structure Designer</h3>
         <p>Model a HoldCo / SPV / OpCo chain and see the look-through effective interest each party really holds. Tests ownership-and-control exposure, flags lender-conflict and substance obligations, and prices the offshore burden.</p>
         <span class="meta">~15 min · three archetypes</span>
-        <a class="btn btn-primary" href="corporate-structure.html" data-keep-partner>Open the designer →</a>
+        <a class="btn btn-ghost" href="corporate-structure.html" data-keep-partner>Open the designer →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">🗂️</span>
+      <div class="toolcard2" data-track="build">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-implementation-planner"/></svg></span>
         <h3>Implementation &amp; Programme Planner</h3>
         <p>Run the programme by gate rather than by date. Five stage gates with the evidence each needs before it opens, the capital each releases, and the one figure no cost model shows — money committed ahead of the evidence that justifies it.</p>
         <span class="meta">~20 min · gates, not dates</span>
-        <a class="btn btn-primary" href="implementation-planner.html" data-keep-partner>Open the planner →</a>
+        <a class="btn btn-ghost" href="implementation-planner.html" data-keep-partner>Open the planner →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">🤝</span>
+      <div class="toolcard2" data-track="build" data-use="review">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-aoc-acquisition"/></svg></span>
         <h3>AOC Acquisition Analyser</h3>
         <p>Buying a certificate instead of earning one. Values the premium over net tangible assets, tests whether the deal structure keeps the certificate at all, prices the remediation no seller puts on the balance sheet, and compares the whole thing against certifying from scratch.</p>
         <span class="meta">~20 min · buy-or-build, priced</span>
-        <a class="btn btn-primary" href="aoc-acquisition.html" data-keep-partner>Open the analyser →</a>
+        <a class="btn btn-ghost" href="aoc-acquisition.html" data-keep-partner>Open the analyser →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">🎯</span>
+      <div class="toolcard2" data-track="build" data-use="review">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-returns-solver"/></svg></span>
         <h3>Returns &amp; Reverse-Solve</h3>
         <p>Ask what you would have to believe. Given a plan's revenue and capital, how much debt the cash flow carries at the lender's covenant, the margin a return needs, and what the business must be worth at the end for a hurdle rate to be met.</p>
         <span class="meta">~10 min · the Board's first question</span>
-        <a class="btn btn-primary" href="returns-solver.html" data-keep-partner>Open the solver →</a>
+        <a class="btn btn-ghost" href="returns-solver.html" data-keep-partner>Open the solver →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">🛩️</span>
+      <div class="toolcard2" data-track="build" data-use="review">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-fleet-crew"/></svg></span>
         <h3>Fleet &amp; Crew Planner</h3>
         <p>From an entry-into-service list to aircraft-years, the pilots each type pool needs and what a round-the-clock control room costs in people. Shows where a single-tail type has no cover and whether a headcount ceiling was ever derived.</p>
         <span class="meta">~15 min · crew by type, not by tail</span>
-        <a class="btn btn-primary" href="fleet-crew.html" data-keep-partner>Open the planner →</a>
+        <a class="btn btn-ghost" href="fleet-crew.html" data-keep-partner>Open the planner →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">🔍</span>
+      <div class="toolcard2" data-track="build" data-use="review">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-plan-consistency"/></svg></span>
         <h3>Plan Consistency Check</h3>
         <p>Find the contradictions in a plan before the Board does: the same fact stated two ways, and totals that do not add up. In a recent 37-page board deck it found thirteen.</p>
         <span class="meta">~15 min · enter what the plan says</span>
-        <a class="btn btn-primary" href="plan-consistency.html" data-keep-partner>Open the check →</a>
+        <a class="btn btn-ghost" href="plan-consistency.html" data-keep-partner>Open the check →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">👥</span>
+      <div class="toolcard2" data-track="build">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-safety-map"/></svg></span>
+        <h3>Safety Assurance Map</h3>
+        <p>A hazard register is a list until the barriers under each rating are shown to exist. Rate each hazard before and after controls, name the barriers either side of the top event, and see which SMS elements the barriers in place actually evidence and where a reduction rests on a plan.</p>
+        <span class="meta">~20 min · an organiser, not an SMS audit</span>
+        <a class="btn btn-ghost" href="safety-map.html" data-keep-partner>Open the map →</a>
+      </div>
+
+      <div class="toolcard2" data-track="build">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-organogram-planner"/></svg></span>
         <h3>Organogram &amp; Postholder Planner</h3>
         <p>The posts the Authority must accept for your sector, who holds each one, who deputises — plus single-point-of-failure detection and a headcount ramp from launch to year five.</p>
         <span class="meta">~15 min · names stay in your browser</span>
-        <a class="btn btn-primary" href="organogram-planner.html" data-keep-partner>Open the planner →</a>
+        <a class="btn btn-ghost" href="organogram-planner.html" data-keep-partner>Open the planner →</a>
       </div>
 
     </div>
 
+    </div>
+    <div class="toolsec">
     <h2 style="margin:3rem 0 .3rem">Operate an airline</h2>
     <p class="muted" style="max-width:700px;margin-bottom:1.6rem">For carriers already flying — benchmark performance, find the gaps, and size the opportunity.</p>
     <div class="toolgrid">
 
-      <div class="toolcard2 flagship">
-        <span class="ico">🎯</span>
+      <div class="toolcard2 flagship" data-track="operate">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-diagnostic"/></svg></span>
         <h3>Airline Health Scorecard</h3>
         <p>The flagship diagnostic: 40 questions across 8 weighted domains produce a 0–100 Health Index, a domain radar, gap analysis and a prescribed action shortlist. Start here — every other tool digs deeper into a gap this one finds.</p>
         <span class="meta">~15–30 min · saves progress automatically</span>
         <a class="btn btn-amber" href="../diagnostic.html" data-keep-partner>Start the Scorecard →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">💸</span>
+      <div class="toolcard2" data-track="operate">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-cask-calculator"/></svg></span>
         <h3>CASK Benchmarking Calculator</h3>
         <p>Enter your operating cost lines and capacity to compute CASK, compare against peer-group benchmarks and see which cost buckets sit furthest from par.</p>
         <span class="meta">~10 min · needs cost + ASK figures</span>
-        <a class="btn btn-primary" href="cask-calculator.html" data-keep-partner>Open calculator →</a>
+        <a class="btn btn-ghost" href="cask-calculator.html" data-keep-partner>Open calculator →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">🛫</span>
+      <div class="toolcard2" data-track="operate">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-route-economics"/></svg></span>
         <h3>Route Economics &amp; Break-even</h3>
         <p>The other half of the unit-cost argument: contribution per sector, the load factor a route must fill to cover its own cost, and the fare that would break even at the load factor you actually expect. Carries your CASK across automatically.</p>
         <span class="meta">~5 min · needs a sector, a fare and your CASK</span>
-        <a class="btn btn-primary" href="route-economics.html" data-keep-partner>Open calculator →</a>
+        <a class="btn btn-ghost" href="route-economics.html" data-keep-partner>Open calculator →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">⛽</span>
+      <div class="toolcard2" data-track="operate">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-fuel-optimizer"/></svg></span>
         <h3>Fuel Contract Optimizer Lite</h3>
         <p>Model your fuel contract terms — differentials, hedging bands, into-plane fees — and estimate the annual saving available from renegotiation.</p>
         <span class="meta">~10 min · needs contract terms</span>
-        <a class="btn btn-primary" href="fuel-optimizer.html" data-keep-partner>Open optimizer →</a>
+        <a class="btn btn-ghost" href="fuel-optimizer.html" data-keep-partner>Open optimizer →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">🗺️</span>
+      <div class="toolcard2" data-track="operate">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-operating-model-canvas"/></svg></span>
         <h3>Operating Model Canvas</h3>
         <p>A structured one-page canvas to map how your airline actually runs — value streams, capabilities, decisions and gaps — before you redesign anything.</p>
         <span class="meta">~30–45 min · workshop-ready</span>
-        <a class="btn btn-primary" href="operating-model-canvas.html" data-keep-partner>Open canvas →</a>
+        <a class="btn btn-ghost" href="operating-model-canvas.html" data-keep-partner>Open canvas →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">🔧</span>
+      <div class="toolcard2" data-track="operate">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-mro-readiness"/></svg></span>
         <h3>MRO &amp; Technical Readiness Diagnostic</h3>
         <p>20 questions across airworthiness compliance, technical records, reliability, MEL/dispatch and MRO sourcing — built for Chief Engineers and CAMO Managers, not a generic CMMS checklist.</p>
         <span class="meta">~15 min · for maintenance/technical leads</span>
-        <a class="btn btn-primary" href="mro-readiness.html" data-keep-partner>Open diagnostic →</a>
+        <a class="btn btn-ghost" href="mro-readiness.html" data-keep-partner>Open diagnostic →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">📦</span>
+      <div class="toolcard2" data-track="operate">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-data-request"/></svg></span>
         <h3>48-Hour Data Request Pack</h3>
         <p>The exact checklist of data JK requests before an engagement — use it to test how quickly your organisation can actually produce its own numbers.</p>
         <span class="meta">~5 min to review · tick-list format</span>
-        <a class="btn btn-primary" href="data-request.html" data-keep-partner>Open checklist →</a>
+        <a class="btn btn-ghost" href="data-request.html" data-keep-partner>Open checklist →</a>
       </div>
 
-      <div class="toolcard2">
-        <span class="ico">🎓</span>
+      <div class="toolcard2" data-track="operate">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-training-tna"/></svg></span>
         <h3>Training Needs Analysis</h3>
         <p>Rate current vs target competency for pilots, cabin crew, engineers and ground ops across 39 items; get gap priorities and a costed training budget.</p>
         <span class="meta">~20 min · exports a summary</span>
-        <a class="btn btn-primary" href="training-tna.html" data-keep-partner>Open TNA →</a>
+        <a class="btn btn-ghost" href="training-tna.html" data-keep-partner>Open TNA →</a>
       </div>
 
     </div>
 
+    </div>
+    <div class="toolsec">
     <h2 style="margin:3rem 0 .3rem">Reference</h2>
     <p class="muted" style="max-width:700px;margin-bottom:1.6rem">The sourced material the tools are built on, published openly.</p>
     <div class="toolgrid">
-      <div class="toolcard2">
-        <span class="ico">⚖️</span>
+      <div class="toolcard2" data-track="reference">
+        <span class="ico" aria-hidden="true"><svg width="28" height="28"><use href="#i-regulations"/></svg></span>
         <h3>Kenya Aviation Regulatory Index</h3>
         <p>Every instrument behind the toolkit — Legal Notice number, instrument title, source link, which sectors it binds, and an explicit verified-or-unconfirmed status for each. Including the trap that a regulation titled "…2025" carries a 2026 Legal Notice.</p>
         <span class="meta">reference · filterable by sector</span>
-        <a class="btn btn-primary" href="../regulations.html">Open the index →</a>
+        <a class="btn btn-ghost" href="../regulations.html">Open the index →</a>
       </div>
+    </div>
+
     </div>
 
     <p class="muted" style="margin-top:2rem;max-width:680px">Toolboxes B, C and D — the deep-dive diagnostic, prioritisation and implementation instruments — are unlocked during a JK engagement. See how it all fits together on the <a href="../methodology.html">methodology page</a>.</p>

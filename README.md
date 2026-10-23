@@ -36,8 +36,12 @@ footer.
 | `tools/venture-builder.html` | **Greenfield Venture Builder (V2)** — sector CAPEX bands, capital-stack construction, funding-gap detection, lender advance-rate check, level-payment debt service, DSCR sensitivity across four scenarios, and revenue break-even. |
 | `tools/corporate-structure.html` | **Corporate Structure Designer (V3)** — HoldCo / SPV / OpCo archetypes with a **look-through effective-interest cascade**, ownership-and-control testing, offshore substance costing, and the governance / lender-conflict checks institutional diligence applies. |
 | `tools/organogram-planner.html` | **Organogram & Postholder Planner (V4)** — the posts a regulator must accept for each sector, holder and deputy assignment, single-point-of-failure detection, departmental scaffold and a launch→Y5 headcount ramp. |
+| `tools/revenue-builder.html` | **Revenue Model Builder (V5)** — charter rates, block hours and retainers, tested against the capital the fleet must service. |
+| `tools/implementation-planner.html` | **Implementation & Programme Planner (V6)** — stage gates with evidence criteria, capital-at-risk tracking, six concurrent workstreams, leading indicators and pre-agreed contingencies. |
+| `tools/aoc-acquisition.html` | **AOC Acquisition Analyser (V11)** — buy an existing AOC or certify a new one: certificate premium, deal structure, regulatory gates and remediation priced. |
 | `tools/plan-consistency.html` | **Plan Consistency Check (V7)** — enter what a business plan says page by page; finds the same fact stated two ways and totals that do not add up, with a rounding tolerance, CSV export and a printed findings pack. |
 | `tools/returns-solver.html` | **Returns & Reverse-Solve (V8)** — starts from the capital and the hurdle and asks what must be true: debt capacity at the covenant floor, DSCR by year and margin, and the exit value required, with capital at the start or phased. |
+| `tools/safety-map.html` | **Safety Assurance Map (V10)** — hazards rated before and after controls on a 5×5 matrix, barriers on both sides of the top event tagged to an ICAO Annex 19 SMS element and a functional area, findings where a reduction has no barrier in place under it, and a bow-tie view. An organiser of judgements, not an SMS assessment. |
 | `tools/fleet-crew.html` | **Fleet & Crew Planner (V9)** — tails with type, seats and entry quarter; pilots required per type pool at a chosen coverage, 24/7 operations-control FTE and hours per tail, with the duty-day arithmetic shown. |
 
 ### Operate track (Toolbox A — free)
@@ -273,7 +277,7 @@ if they ever disagree, that disagreement is the bug.
 
 ## SEO
 
-`sitemap.xml` (33 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
+`sitemap.xml` (34 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
 JSON-LD on three pages: `Organization` + two `WebApplication` entries on the landing page, a
 `WebApplication` on the venture dashboard, and a `WebPage` on the sample report whose `mainEntity`
 is the scorecard. `tests/audit.mjs` asserts every block parses, that its numbers match the product,

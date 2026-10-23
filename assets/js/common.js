@@ -155,9 +155,12 @@ const TOOL_MENU = [
     { file: "tools/corporate-structure.html",     label: "Corporate Structure Designer" },
     { file: "tools/organogram-planner.html",      label: "Organogram & Postholder Planner" },
     { file: "tools/revenue-builder.html",         label: "Revenue Model Builder" },
+    { file: "tools/implementation-planner.html",  label: "Implementation & Programme Planner" },
+    { file: "tools/plan-consistency.html",        label: "Plan Consistency Check" },
     { file: "tools/returns-solver.html",          label: "Returns & Reverse-Solve" },
     { file: "tools/fleet-crew.html",              label: "Fleet & Crew Planner" },
-    { file: "tools/plan-consistency.html",        label: "Plan Consistency Check" }
+    { file: "tools/safety-map.html",              label: "Safety Assurance Map" },
+    { file: "tools/aoc-acquisition.html",         label: "AOC Acquisition Analyser" }
   ]},
   { group: "Operate an airline", items: [
     { file: "diagnostic.html",                    label: "Airline Health Scorecard" },
@@ -363,6 +366,38 @@ function mountFooterLearn() {
 }
 
 /* ---- nav (mobile toggle) + brand/footer injection ---- */
+
+/* On a phone the result sits under every input, so a visitor types a figure
+   and sees nothing change. This is a small bar fixed to the foot of the screen
+   that carries the headline figure and a button to the result. It shows only
+   while the result panel is still below the fold on a narrow screen, and it
+   steps aside once the panel is on screen or has been scrolled past, so it
+   never covers the result it points at or follows the visitor to the footer.
+   It is built once and only its text is rewritten, so typing in an input is
+   never disturbed; focus targets are kept clear of it with scroll-padding. */
+function mountResultChip() {
+  if (typeof document === "undefined" || document.querySelector(".result-chip")) return;
+  const panel = document.querySelector(".calc .result-panel");
+  const head = panel && panel.querySelector(".rng");
+  if (!panel || !head || typeof IntersectionObserver === "undefined") return;
+  const chip = document.createElement("div");
+  chip.className = "result-chip"; chip.hidden = true;
+  chip.setAttribute("role", "region"); chip.setAttribute("aria-label", "Result summary");
+  const txt = document.createElement("span"); txt.className = "rc-text";
+  const btn = document.createElement("button"); btn.type = "button"; btn.className = "btn btn-amber btn-sm"; btn.textContent = "See result";
+  chip.append(txt, btn); document.body.appendChild(chip);
+  const sync = () => { txt.textContent = head.textContent.trim(); };
+  sync(); new MutationObserver(sync).observe(head, { childList: true, characterData: true, subtree: true });
+  new IntersectionObserver(([en]) => {
+    const below = en.boundingClientRect.top >= (en.rootBounds ? en.rootBounds.height : window.innerHeight);
+    chip.hidden = en.isIntersecting || !below;
+  }).observe(panel);
+  btn.addEventListener("click", () => {
+    const calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    panel.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" });
+  });
+}
+
 function mountChrome() {
   // Embedded pages get the class before anything else renders, so the
   // chrome is hidden by CSS rather than built and then removed — which
@@ -394,6 +429,7 @@ function mountChrome() {
   try { mountFooterLearn(); } catch (e) { console.error("footer learn:", e); }
   // Last, so the columns and the strip above it both count as "already linked".
   try { dedupeVersionLine(); } catch (e) { console.error("footer dedupe:", e); }
+  try { mountResultChip(); } catch (e) { console.error("result chip:", e); }
 
   // Propagate ?partner= across every internal link in one pass — the generated
   // nav plus any data-keep-partner links in the page body/footer. Done here

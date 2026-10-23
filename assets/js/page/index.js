@@ -14,20 +14,34 @@ document.getElementById("market-stats").innerHTML = JKV.market.stats.map(s =>
    </div>`).join("");
 document.getElementById("market-src").textContent = "Source: " + JKV.market.asOf;
 
-/* build-track tool cards */
-const BUILD = [
-  { href: "tools/venture-dashboard.html",       ref: "V0", n: "Venture Control Room",    d: "All four tools in one Launch Readiness Index, with the critical path scheduled back from your target date." },
-  { href: "tools/certification-navigator.html", ref: "V1", n: "Certification Navigator", d: "Six sectors mapped to the five-phase KCAA process, gate by gate, every requirement cited." },
-  { href: "tools/venture-builder.html",         ref: "V2", n: "Venture Builder",         d: "CAPEX by sector, capital stack, senior-debt sizing, DSCR sensitivity and break-even." },
-  { href: "tools/corporate-structure.html",     ref: "V3", n: "Corporate Structure",     d: "HoldCo / SPV / OpCo layering with look-through economics and lender-conflict checks." },
-  { href: "tools/organogram-planner.html",      ref: "V4", n: "Organogram Planner",      d: "Required postholders, deputy cover, single-point-of-failure detection and headcount ramp." }
-];
-document.getElementById("build-tools").innerHTML = BUILD.map(t =>
-  `<a class="card" href="${t.href}" style="color:inherit;display:block" data-keep-partner>
-     <span class="ref">${t.ref} · Free</span>
-     <h3 style="font-size:1.15rem;margin:.35rem 0 .4rem">${t.n}</h3>
-     <p class="muted" style="font-size:.87rem;margin:0">${t.d}</p>
-   </a>`).join("");
+/* build-track tool cards: the list is the menu's own Build group, so a tool
+   added to the menu appears here and in the count without a second edit. The
+   text and reference numbers are kept per file; a tool with none still gets
+   a card with its menu label. */
+const BUILD_COPY = {
+  "tools/venture-dashboard.html":       ["V0",  "All the build tools in one Launch Readiness Index, with the critical path scheduled back from your target date."],
+  "tools/certification-navigator.html": ["V1",  "Six sectors mapped to the five-phase KCAA process, gate by gate, every requirement cited."],
+  "tools/venture-builder.html":         ["V2",  "CAPEX by sector, capital stack, senior-debt sizing, DSCR sensitivity and break-even."],
+  "tools/corporate-structure.html":     ["V3",  "HoldCo / SPV / OpCo layering with look-through economics and lender-conflict checks."],
+  "tools/organogram-planner.html":      ["V4",  "Required postholders, deputy cover, single-point-of-failure detection and headcount ramp."],
+  "tools/revenue-builder.html":         ["V5",  "Charter rates, block hours and retainers, tested against the capital they must service."],
+  "tools/implementation-planner.html":  ["V6",  "Run the programme by gate rather than by date, with capital released only against evidence."],
+  "tools/plan-consistency.html":        ["V7",  "Find the same fact stated two ways and the totals that do not add up, before the Board does."],
+  "tools/returns-solver.html":          ["V8",  "Start from the capital and the hurdle and ask what must be true: debt capacity, margin, exit value."],
+  "tools/fleet-crew.html":              ["V9",  "Pilots by type pool, aircraft-years and control-room staffing from an entry-into-service list."],
+  "tools/safety-map.html":              ["V10", "Hazards, barriers and which SMS elements the barriers in place actually evidence."],
+  "tools/aoc-acquisition.html":         ["V11", "Buy an existing certificate or earn a new one: premium, deal structure and remediation priced."]
+};
+const TOOL_TOTAL = TOOL_MENU.reduce((n, g) => n + g.items.length, 0);
+document.querySelectorAll("[data-tool-count]").forEach(el => { el.textContent = TOOL_TOTAL; });
+document.getElementById("build-tools").innerHTML = TOOL_MENU[0].items.map(t => {
+  const c = BUILD_COPY[t.file] || ["", ""];
+  return `<a class="card" href="${t.file}" style="color:inherit;display:block" data-keep-partner>
+     <span class="ref">${c[0] ? c[0] + " · " : ""}Free</span>
+     <h3 style="font-size:1.15rem;margin:.35rem 0 .4rem">${t.label}</h3>
+     ${c[1] ? `<p class="muted" style="font-size:.87rem;margin:0">${c[1]}</p>` : ""}
+   </a>`;
+}).join("");
 
 /* sample radar — an illustrative mid-transformation carrier, with a dashed
    overlay drawn from public AFRAA/IATA aggregates (see the methodology page) */

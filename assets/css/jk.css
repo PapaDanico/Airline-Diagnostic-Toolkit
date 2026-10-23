@@ -819,8 +819,55 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .gap-table th, .gap-table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--jk-line); }
 .gap-table th { font-family: var(--sans); font-size: var(--fs-xs); letter-spacing: .06em; text-transform: uppercase; color: var(--jk-muted); }
 .gap-table tr:hover td { background: var(--jk-parchment); }
+/* tools index filter chips */
+.filter-bar { padding: 18px 0 0; }
+.filter-bar .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: inherit; font-size: var(--fs-sm); font-weight: 600; padding: .5rem 1rem; border-radius: 999px; border: 1px solid var(--jk-line-2); background: var(--jk-white); color: var(--jk-ink); cursor: pointer; min-height: 40px; }
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--jk-ink); border-color: var(--jk-ink); color: var(--jk-white); }
+.filter-bar .muted { margin: 0; font-size: var(--fs-sm); }
+
+/* result chip (phones): see mountResultChip in common.js */
+.result-chip { display: none; }
+@media (max-width: 900px) {
+  .result-chip:not([hidden]) { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 40; padding: 10px 12px 10px 16px; background: var(--jk-ink); color: var(--jk-white); border-radius: 14px; box-shadow: var(--shadow-lg); }
+  .result-chip .rc-text { font-family: var(--serif); font-weight: 700; font-size: var(--fs-lg); color: var(--jk-amber); line-height: 1.15; min-width: 0; overflow-wrap: anywhere; }
+  html:has(.result-chip:not([hidden])) { scroll-padding-bottom: 84px; }
+}
+@media print { .result-chip { display: none !important; } }
+
+/* a result panel with nothing to show yet is not drawn as an empty dark box */
+.result-panel.is-empty { display: none; }
+
 .rs-bar { height: 6px; background: var(--jk-line); border-radius: 3px; margin-bottom: 4px; min-width: 60px; }
 .rs-bar span { display: block; height: 100%; background: var(--jk-amber); border-radius: 3px; }
+
+/* Safety Assurance Map: risk matrix and bow-tie. These sit inside the dark
+   result panel, so every surface here brings its own light background and
+   its own ink, and a marker is told apart by border style as well as by
+   position, so nothing depends on colour or on the panel's white text. */
+.rm { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: var(--fs-xs); background: var(--jk-white); color: var(--jk-ink); }
+.rm th { padding: 6px 4px; font-weight: 600; color: var(--jk-ink); background: var(--jk-parchment-2); text-align: center; font-size: var(--fs-2xs); line-height: 1.25; }
+.rm th[scope="row"] { text-align: left; width: 22%; padding-left: 8px; }
+.rm td { height: 58px; vertical-align: top; padding: 4px; border: 1px solid var(--jk-white); text-align: center; color: var(--jk-ink); }
+.rm-low { background: var(--jk-green-lt); } .rm-med { background: var(--jk-amber-lt); } .rm-high { background: var(--jk-red-lt); }
+.rm-s { display: block; font-size: var(--fs-2xs); color: var(--jk-ink); text-align: left; opacity: .8; }
+.rm-h, .rm-i { display: inline-block; margin: 2px; padding: 1px 6px; border-radius: 99px; background: var(--jk-white); color: var(--jk-ink); font-size: var(--fs-xs); font-style: normal; }
+.rm-h { border: 2px solid var(--jk-ink); font-weight: 700; }
+.rm-i { border: 1px dashed var(--jk-ink); }
+.bt { background: var(--jk-white); color: var(--jk-ink); border-radius: var(--radius-sm); padding: 12px; margin: 0 0 12px; }
+.bt-h { margin-bottom: 8px; font-size: var(--fs-sm); }
+.bt-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.bt h4 { font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .08em; color: var(--jk-muted); margin: 0 0 4px; }
+.bt ul { margin: 0; padding-left: 1.1em; font-size: var(--fs-xs); }
+.bt li { margin: 0 0 4px; }
+.bt-top { background: var(--jk-parchment); border: 1px solid var(--jk-line-2); border-radius: var(--radius-sm); padding: 6px 8px; }
+.bt-top p { margin: 0; font-weight: 600; font-size: var(--fs-xs); color: var(--jk-ink); }
+.bt-st { font-weight: 700; font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .05em; }
+.bt-tag { display: inline-block; border: 1px solid var(--jk-line-2); border-radius: 4px; padding: 0 4px; font-size: var(--fs-2xs); }
+.bt-none { font-size: var(--fs-xs); color: var(--jk-muted); font-style: italic; margin: 0; }
+@media (max-width: 760px) { .bt-grid { grid-template-columns: 1fr; } }
 .barcell { min-width: 160px; }
 .bar { height: 10px; background: var(--jk-parchment-2); border-radius: 99px; overflow: hidden; }
 .bar > i { display: block; height: 100%; border-radius: 99px; }
