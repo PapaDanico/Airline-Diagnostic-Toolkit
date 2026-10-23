@@ -59,7 +59,25 @@ it is for.
   existing "every printable tool opens with an executive summary" guard is true
   and was passing on the packs above while their logo was missing.
 
-## 5. Recommended additions to the suite
+## 5. Suite additions — built and watched failing
+
+Shipped in `tests/audit.mjs` as a print pass over every page, in print media at
+A4 width over HTTP. Each was **seen to fail on the condition it claims to
+catch** before it was trusted (README, `docs/VERIFICATION.md`):
+
+| Guard | Watched failing on | Note |
+|---|---|---|
+| A figure may not leave its tile | the old tile CSS together with the old plain-text markup: flagged "USD 3.20M–USD 9.45M" | Restoring the old CSS alone did **not** fail it, because the new `.nb`/`<wbr>` markup wraps without the CSS. The guard was only proven against the true original (CSS + markup). |
+| Print-header logo present | `loading="lazy"` put back: all 15 tool packs and the report flagged | A first version checked only that the image had loaded and **passed with the bug present**: emulating print makes the header visible, so a lazy image loads, whereas a PDF is cut before it does. The guard now checks the attribute, which is the defect. |
+| Pack-length ceiling (9 sheets) | the full print-table revert: the report ran to 10 sheets | A first partial revert did not fail it; only the full original reproduced the 10 sheets. |
+
+Also found and fixed on the way: **the audit seeded `results.html` under a dead
+storage key** (`dn_airline_scorecard_v2`, unread since the rebrand), so only
+the report's empty state had ever been audited. It now seeds the live key with
+varied scores and audits the populated report. `npm test` also omitted
+`storage.mjs`, which CI and the packager both run; it now matches.
+
+## 6. Still recommended
 
 Each must be **watched to fail first** (`docs/VERIFICATION.md`).
 

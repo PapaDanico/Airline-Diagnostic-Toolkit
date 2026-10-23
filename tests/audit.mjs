@@ -178,11 +178,16 @@ for (const pg of pages) {
         out.clipped.push((e.textContent || "").trim().slice(0, 30));
     });
     const img = document.querySelector(".print-head img");
-    if (img) out.logo = img.complete && img.naturalWidth > 0;
+    /* Loaded is not enough. Emulating print makes the header visible, and a
+       lazy image then loads — so this passes in a test that a real PDF fails:
+       the print header is display:none on screen, a hidden lazy image is
+       never fetched, and a PDF is cut before it is. The attribute is the
+       defect, so the attribute is what is checked. */
+    if (img) out.logo = img.loading !== "lazy" && img.complete && img.naturalWidth > 0;
     return out;
   });
   if (paper.clipped.length) printIssues.push(`PRINT: figure leaves its tile ${JSON.stringify([...new Set(paper.clipped)].slice(0, 3))}`);
-  if (paper.logo === false) printIssues.push("PRINT: the pack's logo did not load, so every printed sheet opens with a blank");
+  if (paper.logo === false) printIssues.push("PRINT: the pack's logo is lazy or unloaded, so every printed sheet opens with a blank");
   /* Pack length. A tool's pack is an answer and its working; past nine
      sheets it has stopped being either. Long reference pages (the FAQ,
      the regulatory index) are documents, not packs, and are not capped. */
