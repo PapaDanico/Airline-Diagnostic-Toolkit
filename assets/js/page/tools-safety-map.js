@@ -199,8 +199,13 @@
     $("sf-head").textContent = "—"; $("sf-band").textContent = "Add a hazard.";
     $("sf-qual").textContent = "The matrix, findings and SMS map appear once at least one hazard is entered.";
     ["sf-kpis", "sf-matrix", "sf-findings", "sf-cover", "sf-bowtie"].forEach(id => { $(id).innerHTML = ""; });
+    panels(true);
     mountPrintSummary(null);
   }
+
+  /* Until a hazard exists the four detail panels have nothing to show, and an
+     empty dark box is worse than none. They are shown and hidden, never rebuilt. */
+  function panels(empty) { ["sf-matrix", "sf-findings", "sf-cover", "sf-bowtie"].forEach(id => $(id).closest(".result-panel").classList.toggle("is-empty", empty)); }
 
   const BANDCLS = { Low: "rm-low", Medium: "rm-med", High: "rm-high" };
   function matrix(M) {
@@ -253,6 +258,7 @@
 
   function render(M) {
     const F = findings(M);
+    panels(false);
     $("sf-head").textContent = `${M.nHigh} above tolerance`;
     $("sf-band").textContent = `${M.hz.length} hazard${M.hz.length === 1 ? "" : "s"} · ${M.nHigh} High · ${M.nMed} Medium · ${M.nLow} Low`;
     $("sf-qual").textContent = `Ratings are those entered, after controls. ${M.inPlace} of ${M.bars.length} named barrier${M.bars.length === 1 ? " is" : "s are"} in place; the rest are planned or absent and are not credited.`;

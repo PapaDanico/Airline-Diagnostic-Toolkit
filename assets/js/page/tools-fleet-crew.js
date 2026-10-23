@@ -102,10 +102,16 @@
     $("fc-head").textContent = "—"; $("fc-band").textContent = "Add the aircraft.";
     $("fc-qual").textContent = "Aircraft-years and crew pools appear once at least one aircraft has a type and an entry year.";
     ["fc-kpis", "fc-years", "fc-findings"].forEach(id => { $(id).innerHTML = ""; });
+    panels(true);
     mountPrintSummary(null);
   }
 
+  /* With no aircraft the year table and findings have nothing to show; the
+     panels are hidden rather than drawn as empty dark boxes, and never rebuilt. */
+  function panels(empty) { ["fc-years", "fc-findings"].forEach(id => $(id).closest(".result-panel").classList.toggle("is-empty", empty)); }
+
   function render(M) {
+    panels(false);
     const last = M.years.length - 1;
     $("fc-head").textContent = M.required[last] + " pilots";
     $("fc-band").textContent = `Required in ${M.years[last]} across ${M.pools.length} type pool${M.pools.length === 1 ? "" : "s"}`;

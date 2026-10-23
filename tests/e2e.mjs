@@ -3053,6 +3053,90 @@ section("Safety Assurance Map");
   await assertEnquiryFormSubmits(page, "#sf-enquiry", "safety");
 }
 
+/* The platform's own navigation counts itself. The company profile already
+   derives every figure from the registries (charter rule 10); the home page
+   stat band and the tools index did not, and both still said "12" with
+   eighteen tools live. Tool reference numbers collided too: V1 and V3 were
+   each held by three tools. Result access on a phone, and empty panels, are
+   behaviour the pages must keep. */
+section("Platform navigation, counts and tool-page UX");
+{
+  const reg = async () => page.evaluate(() => ({
+    n: TOOL_MENU.reduce((a, g) => a + g.items.length, 0),
+    build: TOOL_MENU[0].items.map(i => i.file),
+    operate: TOOL_MENU[1].items.map(i => i.file),
+    all: TOOL_MENU.flatMap(g => g.items.map(i => i.file))
+  }));
+  await page.goto(base + "/index.html"); await page.waitForTimeout(400);
+  const R = await reg();
+  const stat = await page.evaluate(() => { const m = [...document.querySelectorAll(".metrics .m")].find(x => /free tools/i.test(x.textContent)); return m ? m.querySelector(".v").textContent.trim() : null; });
+  assert(stat === String(R.n), `home: the "Free tools" stat should be ${R.n} (the registry) — it says ${stat}`);
+  const homeBuild = await page.$$eval("#build-tools a", (a) => a.map((x) => x.getAttribute("href")));
+  const missBuild = R.build.filter((f) => !homeBuild.includes(f));
+  assert(missBuild.length === 0, `home: build-track tools missing from the home grid: ${missBuild.join(", ")}`);
+
+  await page.goto(base + "/tools/index.html"); await page.waitForTimeout(400);
+  const sub = await page.evaluate(() => document.querySelector(".tool-head p, header p, main p").textContent);
+  const body = await page.evaluate(() => document.body.innerText);
+  assert(new RegExp(`\\b${R.n} (client-side |free )?tools`, "i").test(body), `tools index: should state ${R.n} tools`);
+  const cardLinks = await page.$$eval(".toolcard2 a, .toolcard a, main a.btn", (a) => a.map((x) => x.getAttribute("href").replace(/^\.\.\//, "").replace(/^(?!diagnostic)/, "tools/")));
+  const missCards = R.all.filter((f) => !cardLinks.some((l) => l.endsWith(f.replace(/^tools\//, "")) ));
+  assert(missCards.length === 0, `tools index: no card for ${missCards.join(", ")}`);
+
+  /* unique tool reference numbers: read from the files, since fetch is not available under file:// */
+  {
+    const refs = {};
+    for (const f of R.all.filter((x) => x.startsWith("tools/"))) {
+      const m = readFileSync(resolve(ROOT, f), "utf8").match(/class="ref">Tool (V\d+)/);
+      if (m) (refs[m[1]] = refs[m[1]] || []).push(f);
+    }
+    const dup = Object.entries(refs).filter(([, v]) => v.length > 1);
+    assert(Object.keys(refs).length >= 10, `tool reference numbers: expected at least 10 tools to carry one, found ${Object.keys(refs).length}`);
+    assert(dup.length === 0, `tool reference numbers are reused: ${dup.map(([k, v]) => k + " by " + v.join(" and ")).join("; ")}`);
+  }
+
+  /* filter chips */
+  const chips = await page.$$eval("#tool-filter button", (b) => b.map((x) => x.textContent.trim()));
+  assert(chips.length >= 4 && /all/i.test(chips[0]), `tools index: filter chips missing — got ${JSON.stringify(chips)}`);
+  if (chips.length >= 4) {
+    const vis = () => page.$$eval(".toolcard2", (c) => c.filter((x) => x.offsetParent !== null).length);
+    const total = await vis();
+    await page.click("#tool-filter button:nth-child(4)"); await page.waitForTimeout(150);
+    const rev = await vis();
+    assert(rev > 0 && rev < total, `tools index: "Review a plan" should narrow ${total} cards, shows ${rev}`);
+    assert((await page.$eval("#tool-filter button:nth-child(4)", (b) => b.getAttribute("aria-pressed"))) === "true", "tools index: the active chip is not exposed with aria-pressed");
+    assert(/\d+ tools?/i.test(await page.$eval("#tool-filter-count", (e) => e.textContent)), "tools index: the filter does not announce how many tools it shows");
+    await page.click("#tool-filter button:nth-child(1)"); await page.waitForTimeout(150);
+    assert((await vis()) === total, "tools index: All should restore every card");
+  }
+
+  /* a phone shows the result without scrolling for it */
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+  const m = await ctx.newPage();
+  await m.goto(base + "/tools/returns-solver.html"); await m.waitForTimeout(500);
+  const chip = await m.evaluate(() => { const c = document.querySelector(".result-chip"); if (!c) return null; const r = c.getBoundingClientRect(); return { shown: c.offsetParent !== null || getComputedStyle(c).position === "fixed", bottom: Math.round(innerHeight - r.bottom), text: c.textContent.replace(/\s+/g, " ").trim(), head: document.querySelector(".result-panel .rng").textContent.trim() }; });
+  assert(chip && chip.text.includes(chip.head), `result chip: should carry the headline figure on a phone — got ${JSON.stringify(chip)}`);
+  if (chip) {
+    await m.click(".result-chip button"); await m.waitForTimeout(400);
+    const inView = await m.evaluate(() => { const r = document.querySelector(".result-panel").getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; });
+    assert(inView, "result chip: its button should bring the result panel into view");
+    const hidden = await m.evaluate(() => getComputedStyle(document.querySelector(".result-chip")).display === "none" || document.querySelector(".result-chip").hidden || getComputedStyle(document.querySelector(".result-chip")).visibility === "hidden" || document.querySelector(".result-chip").classList.contains("is-away"));
+    assert(hidden, "result chip: it should step aside once the result is on screen");
+  }
+  await ctx.close();
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await page.goto(base + "/tools/returns-solver.html"); await page.waitForTimeout(400);
+  assert(await page.evaluate(() => { const c = document.querySelector(".result-chip"); return !c || getComputedStyle(c).display === "none"; }), "result chip: should not appear on a desktop viewport");
+
+  /* empty result panels do not sit on the page as empty dark boxes */
+  await page.goto(base + "/tools/safety-map.html"); await page.evaluate(() => localStorage.clear());
+  await page.goto(base + "/tools/safety-map.html"); await page.waitForTimeout(300);
+  const emptyShown = await page.evaluate(() => [...document.querySelectorAll(".result-panel")].filter((p) => p.offsetParent !== null && !p.querySelector(".rng") && !p.textContent.replace(/\s+/g, "").replace(/Riskmatrix\(aftercontrols\)|Findings|WhichSMSelementsthebarriersevidence|Bow-tieview/gi, "")).length);
+  assert(emptyShown === 0, `safety map: ${emptyShown} empty result panels are showing before any hazard is entered`);
+  const hint = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector("p.hint")).fontSize));
+  assert(hint < 15, `safety map: the scale key under Step 1 renders at ${hint}px, larger than the other hints`);
+}
+
 /* Plan Consistency, worked example. Five facts are stated more than one
    way (launch date, fleet size, terminal opening, FY2027 headcount,
    acquisition price) and one total does not add up (the headcount chart:
