@@ -111,6 +111,30 @@
     return { N, caps, exits, breach: M.debt > 0 ? breach / N : null };
   }
 
+
+  /* Assumption register. Every figure the tool supplies for the reader
+     carries a grade and a basis, and an override shows how far it moved.
+     A = sourced to a published, dated reference; B = derived; C = a JK
+     planning default, a house assumption and not a published benchmark.
+     The reader's own figures (capital, revenue) are theirs, not defaults. */
+  const ASSUMP = [
+    ["rs-margin", "EBITDA margin", "%", " pts", "C", "JK planning default for a first-pass test. A house assumption, not a published benchmark."],
+    ["rs-rate", "Interest rate", "%", " pts", "C", "JK planning default. Reference: Kenya's average commercial lending rate was 14.34% in August 2026 (Central Bank of Kenya), in shillings; pricing for dollar aircraft debt is not published."],
+    ["rs-term", "Repayment term", " years", " years", "C", "JK planning default for aircraft and asset-backed debt."],
+    ["rs-cov", "Covenant floor", "×", "×", "C", "JK lender floor; lenders commonly quote 1.20× to 1.30×. Not a lender's term sheet."],
+    ["rs-hurdle", "Return you need", "%", " pts", "C", "Illustrative cost of capital. Set it to your sponsor's hurdle."],
+    ["rs-yield", "EBITDA yield wanted", "%", " pts", "C", "Illustrative target. Set it to your own."]
+  ];
+  function assumptions() {
+    return `<div class="table-scroll"><table class="gap-table"><thead><tr><th>Assumption</th><th>Your value</th><th>Default</th><th>Grade</th><th>Basis</th></tr></thead><tbody>` +
+      ASSUMP.map(([id, n, u, du, g, basis]) => {
+        const v = num(id), d = DEFAULTS[id], diff = v - d, moved = Math.abs(diff) > 1e-9;
+        const fmt = x => (Number.isInteger(x) ? x : x.toFixed(2).replace(/0+$/, "").replace(/\.$/, "")) + u;
+        const chg = moved ? `<div><b>changed by ${diff > 0 ? "+" : "−"}${Math.abs(diff).toFixed(du === "×" ? 2 : 1).replace(/\.0$/, du === "×" ? "" : ".0")}${du}</b></div>` : `<div class="muted">default</div>`;
+        return `<tr><td>${escapeHtml(n)}</td><td class="tnum">${fmt(v)}${chg}</td><td class="tnum">${fmt(d)}</td><td><b>${g}</b></td><td>${escapeHtml(basis)}</td></tr>`;
+      }).join("") + `</tbody></table></div><p class="hint" style="margin-top:.5rem">A = published, dated source. B = derived. C = JK planning default. Capital and revenue are your own figures, not defaults.</p>`;
+  }
+
   function ok(M) { return M.cap > 0 && M.rev[4] > 0 && isFinite(M.f) && M.f > 0; }
 
   function run() {
@@ -124,7 +148,7 @@
   function blank() {
     $("rs-head").textContent = "—"; $("rs-band").textContent = "Enter the plan's revenue and capital.";
     $("rs-qual").textContent = "Capital, final-year revenue and a repayment term above zero are needed before anything can be tested.";
-    ["rs-kpis", "rs-findings", "rs-years", "rs-grid", "rs-tv", "rs-tornado", "rs-mc"].forEach(id => { $(id).innerHTML = ""; });
+    ["rs-kpis", "rs-findings", "rs-years", "rs-grid", "rs-tv", "rs-tornado", "rs-mc", "rs-assump"].forEach(id => { $(id).innerHTML = ""; });
     mountPrintSummary(null);
   }
 
@@ -178,6 +202,7 @@
       `<tr><td>Debt the cash flow carries</td><td class="tnum">${m(q(S.caps, .1))}</td><td class="tnum">${m(q(S.caps, .5))}</td><td class="tnum">${m(q(S.caps, .9))}</td></tr>` +
       `<tr><td>Exit value needed, % of capital</td><td class="tnum">${Math.round(q(S.exits, .1) * 100)}%</td><td class="tnum">${Math.round(q(S.exits, .5) * 100)}%</td><td class="tnum">${Math.round(q(S.exits, .9) * 100)}%</td></tr>` +
       `</tbody></table></div><p class="hint" style="margin-top:.5rem">${S.breach === null ? "No debt planned, so no breach test." : `Planned debt of ${m(M.debt)} breaches the covenant in <b>${Math.round(S.breach * 100)}%</b> of draws.`} P10 is the cautious end: nine draws in ten do better. A spread test on your own ranges, not a forecast.</p>`;
+    $("rs-assump").innerHTML = assumptions();
     M._T = T; M._S = S;
   }
 

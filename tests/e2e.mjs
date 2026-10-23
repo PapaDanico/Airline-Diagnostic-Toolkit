@@ -2936,6 +2936,16 @@ section("Returns & Reverse-Solve");
   assert(flat[0] === 31.9 && flat[1] === 31.9 && flat[2] === 31.9, `returns: with zero spread the percentiles should all be 31.9 — got ${flat}`);
   await set("rs-urev", "20"); await set("rs-umg", "5"); await set("rs-urate", "3"); await page.waitForTimeout(200);
   assert(/breaches the covenant in \d+% of draws/i.test(await txt("rs-mc")), "returns: planned debt should report a covenant-breach share");
+  /* assumption register: every house default carries a grade and a basis, and an
+     override shows the change. At the defaults nothing is flagged as changed;
+     the rate row carries the dated central-bank reference, not an invented one. */
+  const reg0 = await txt("rs-assump");
+  assert(/EBITDA margin.*C.*JK planning default/i.test(reg0), `returns: the margin default should be graded C and labelled a JK planning default — got ${reg0.slice(0, 200)}`);
+  assert(!/changed/i.test(reg0), "returns: at the defaults no assumption should be flagged as changed");
+  assert(/14\.34%.*August 2026.*Central Bank of Kenya/i.test(reg0), "returns: the interest-rate row should carry the dated Kenyan lending-rate reference");
+  await set("rs-margin", "30"); await page.waitForTimeout(250);
+  assert(/EBITDA margin.*changed by \+8\.0 pts/i.test(await txt("rs-assump")), `returns: overriding the margin should show the change — got ${(await txt("rs-assump")).slice(0, 240)}`);
+  await set("rs-margin", "22"); await page.waitForTimeout(250);
   await set("rs-debt", "40"); await page.waitForTimeout(200);
   assert(/exceeds what the cash flow carries/i.test(await txt("rs-findings")), "returns: planned debt above capacity is not flagged");
   await page.selectOption("#rs-phase", "start"); await page.waitForTimeout(200);
