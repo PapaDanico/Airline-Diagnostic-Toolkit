@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Find the contradictions in a business plan before the Board does. Enter what the plan says, page by page; the check finds the same fact stated two ways and the totals that do not add up. Free, private, on your device.">
+<link rel="canonical" href="https://jkassociates.enterprises/tools/plan-consistency.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JK &amp; Associates">
+<meta property="og:title" content="Plan Consistency Check — JK &amp; Associates">
+<meta property="og:description" content="The same fact stated two ways, and the totals that do not add up. Found before the Board finds them.">
+<meta property="og:url" content="https://jkassociates.enterprises/tools/plan-consistency.html">
+<meta property="og:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Plan Consistency Check — JK &amp; Associates">
+<meta name="twitter:description" content="A plan that contradicts itself cannot be approved. Find out first.">
+<meta name="twitter:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<title>Plan Consistency Check | JK &amp; Associates</title>
+<link rel="icon" type="image/png" href="../assets/img/jk-badge.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#16100D">
+<link rel="apple-touch-icon" href="../assets/img/jk-badge.png">
+<link rel="preload" href="../assets/fonts/cormorant-garamond-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/dm-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="../assets/css/jk.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<form name="tool-enquiry" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text" name="bot-field"><input type="hidden" name="tool">
+  <input type="text" name="name"><input type="email" name="email">
+  <input type="text" name="airline"><input type="text" name="concern">
+</form>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner>
+      <span data-logo></span>
+      <span>JK &amp; Associates<small>Plan Consistency</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="nav-links"></div>
+  </div>
+</nav>
+
+<main id="main">
+
+<header class="tool-head">
+  <div class="wrap">
+    <p class="ref">Tool V7 · Free</p>
+    <h1>Plan Consistency Check</h1>
+    <p class="lead">A plan that contradicts itself cannot be approved, and a Board will find the contradiction in the meeting rather than before it. Enter what the plan says — the launch date on one page, the launch date on another, the fleet count, the headcount chart and its headline — and this finds the same fact stated two ways and the totals that do not add up. In a recent 37-page board deck it found thirteen in an afternoon.</p>
+  </div>
+</header>
+
+<section style="padding-top:40px">
+  <div class="wrap">
+    <div class="calc">
+      <div>
+        <p class="eyebrow">Step 1</p>
+        <h2 style="margin-bottom:.4rem">What does the plan say?</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">One row per statement. Give each fact the same topic wherever it appears — "Launch date", "Fleet size", "FY2027 headcount" — with the value as written and where it is stated. Numbers, dates and words are all compared; two rows on one topic that disagree are a finding.</p>
+        <div class="flex between items-center" style="margin:1rem 0 .6rem;flex-wrap:wrap;gap:.6rem">
+          <button type="button" class="btn btn-ghost btn-sm" id="add-claim">+ Add a statement</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="load-example">Load a worked example</button>
+        </div>
+        <div id="claims"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 2</p>
+        <h2 style="margin-bottom:.4rem">Do the totals add up?</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">List the parts of a total, separated by commas, and the total the plan states. Revenue lines against the revenue headline; a headcount chart against its ceiling; phased spend against the budget.</p>
+        <div class="field" style="max-width:260px;margin-top:1rem">
+          <label for="tol">Rounding tolerance (%)</label>
+          <input type="number" id="tol" min="0" max="10" step="0.1" value="0.5">
+          <div class="hint">A total within this share of its parts counts as adding up.</div>
+        </div>
+        <div class="flex between items-center" style="margin:1rem 0 .6rem">
+          <button type="button" class="btn btn-ghost btn-sm" id="add-sum">+ Add a total to check</button>
+        </div>
+        <div id="sums"></div>
+      </div>
+
+      <div>
+        <div class="result-panel">
+          <p class="eyebrow" style="color:var(--jk-amber)">Consistency</p>
+          <div class="rng" id="pc-head">&mdash;</div>
+          <p id="pc-band" style="font-weight:700;margin:.2rem 0 .6rem">Enter what the plan says.</p>
+          <p class="qual" id="pc-qual"></p>
+          <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
+          <div class="kpis" id="pc-kpis"></div>
+        </div>
+
+        <div class="result-panel" style="margin-top:1rem">
+          <p class="eyebrow" style="color:var(--jk-amber)">Findings</p>
+          <div id="pc-findings"></div>
+        </div>
+
+        <div class="tool-actions">
+          <button class="btn btn-amber" id="print">Print / save as PDF</button>
+          <button class="btn btn-ghost" id="export">Download the register (CSV)</button>
+          <button class="btn btn-ghost" id="reset">Reset</button>
+        </div>
+
+        <div class="guarantee" style="margin-top:1.4rem">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <div>
+            <strong>Have JK review the plan before it goes to the Board.</strong>
+            <p style="margin:.4rem 0 .8rem;font-size:var(--fs-sm)">This catches what a plan says against itself. A JK review adds what it says against the regulator's own timetable, the capital it asks for and the people it needs — the findings that change the decision.</p>
+            <form id="pc-enquiry" class="grid g2" style="gap:10px">
+              <input type="hidden" name="tool" value="Plan Consistency Check">
+              <input name="name" placeholder="Name" required>
+              <input name="airline" placeholder="Airline / Organisation">
+              <input name="email" type="email" placeholder="Work email" required>
+              <select name="concern" aria-label="Primary concern">
+                <option value="">Primary concern</option>
+                <option>Board paper review</option><option>Investment case</option><option>Regulatory timeline</option><option>Organisation and staffing</option><option>Just exploring</option>
+              </select>
+              <button type="submit" class="btn btn-amber" style="grid-column:1/-1">Talk to JK about a plan review &rarr;</button>
+              <p class="enq-msg" style="font-size:var(--fs-sm);margin-top:.6rem;grid-column:1/-1"></p>
+            </form>
+            <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain>info@aviationhubkenya.org</span></p>
+          </div>
+        </div>
+
+        <p class="disclaimer" style="margin-top:1rem">A consistency check, not a review of the plan's merits: a plan can agree with itself and still be wrong. Topics are matched on the words you type, so use the same words for the same fact. Everything you enter stays in this browser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> JK &amp; Associates · <a data-email>info@aviationhubkenya.org</a></span>
+    <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../methodology.html">Methodology</a> · <span data-version>v3.4 — Scheduled, Business Aviation &amp; Aeromedical</span></span>
+  </div></div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/page/tools-plan-consistency.js"></script>
+</body>
+</html>

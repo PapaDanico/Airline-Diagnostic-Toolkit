@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Turn a fleet entry-into-service list into aircraft-years, pilots required by type pool and control-room staffing. Free, private, on your device.">
+<link rel="canonical" href="https://jkassociates.enterprises/tools/fleet-crew.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JK &amp; Associates">
+<meta property="og:title" content="Fleet &amp; Crew Planner — JK &amp; Associates">
+<meta property="og:description" content="Fleet, crew pools and control-room staffing from an entry-into-service list.">
+<meta property="og:url" content="https://jkassociates.enterprises/tools/fleet-crew.html">
+<meta property="og:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Fleet &amp; Crew Planner — JK &amp; Associates">
+<meta name="twitter:description" content="How many pilots does this fleet really need?">
+<meta name="twitter:image" content="https://jkassociates.enterprises/assets/img/og-card.png">
+<title>Fleet &amp; Crew Planner | JK &amp; Associates</title>
+<link rel="icon" type="image/png" href="../assets/img/jk-badge.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#16100D">
+<link rel="apple-touch-icon" href="../assets/img/jk-badge.png">
+<link rel="preload" href="../assets/fonts/cormorant-garamond-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/dm-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="../assets/css/jk.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<form name="tool-enquiry" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text" name="bot-field"><input type="hidden" name="tool">
+  <input type="text" name="name"><input type="email" name="email">
+  <input type="text" name="airline"><input type="text" name="concern">
+</form>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html" data-keep-partner>
+      <span data-logo></span>
+      <span>JK &amp; Associates<small>Fleet &amp; Crew</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="nav-links"></div>
+  </div>
+</nav>
+
+<main id="main">
+
+<header class="tool-head">
+  <div class="wrap">
+    <p class="ref">Tool V9 · Free</p>
+    <h1>Fleet &amp; Crew Planner</h1>
+    <p class="lead">A fleet plan usually stops at the aircraft list, and the headcount that follows it is a ceiling nobody derived. Crew do not scale with tails: a pilot is rated on one type, so each type is its own pool and rounds up on its own, and a single-tail type has no one to cover it. Enter the entry-into-service list and the operating concept; this works out aircraft-years, the pilots each type pool needs, and what a round-the-clock control room costs in people.</p>
+  </div>
+</header>
+
+<section style="padding-top:40px">
+  <div class="wrap">
+    <div class="calc">
+      <div>
+        <p class="eyebrow">Step 1</p>
+        <h2 style="margin-bottom:.4rem">The fleet, tail by tail</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">One row per aircraft. Give every tail of the same type exactly the same type name, since that is what makes a crew pool. Seats is the number of pilots the operation needs on the flight deck.</p>
+        <div class="flex between items-center" style="margin:1rem 0 .6rem;flex-wrap:wrap;gap:.6rem">
+          <button type="button" class="btn btn-ghost btn-sm" id="add-tail">+ Add an aircraft</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="load-fleet">Load a worked example</button>
+        </div>
+        <div id="tails"></div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 2</p>
+        <h2 style="margin-bottom:.4rem">The operating concept</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">These are illustrative planning inputs, not regulatory limits: the fatigue and duty-time regulations that apply to your operation govern, and should replace them.</p>
+        <div class="card" style="margin-top:1.2rem">
+          <div class="grid g2" style="gap:12px">
+            <div class="field"><label for="fc-year">First fiscal year</label><input type="number" id="fc-year" min="2000" max="2100" step="1" value="2027"></div>
+            <div class="field"><label for="fc-cover">Coverage (% of days each tail is crewed)</label><input type="number" id="fc-cover" min="1" max="100" step="5" value="80">
+              <div class="hint">100% is every tail ready every day. On-demand work with standby is high; scheduled contract work can be lower.</div></div>
+            <div class="field"><label for="fc-rest">Rest days per pilot per year</label><input type="number" id="fc-rest" min="0" max="200" step="1" value="104"></div>
+            <div class="field"><label for="fc-leave">Leave days</label><input type="number" id="fc-leave" min="0" max="100" step="1" value="28"></div>
+            <div class="field"><label for="fc-train">Training and check days</label><input type="number" id="fc-train" min="0" max="100" step="1" value="14"></div>
+            <div class="field"><label for="fc-other">Sickness and other days</label><input type="number" id="fc-other" min="0" max="100" step="1" value="8"></div>
+          </div>
+          <div class="field"><label for="fc-plan">Pilots the plan provides, by year (optional, five numbers separated by commas)</label>
+            <input type="text" id="fc-plan" placeholder="e.g. 14, 22, 28, 32, 34">
+            <div class="hint">Fixed-wing and rotary together. When given, each year is compared with what the pools require.</div></div>
+        </div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 3</p>
+        <h2 style="margin-bottom:.4rem">The operations control centre</h2>
+        <div class="card" style="margin-top:1.2rem">
+          <div class="grid g2" style="gap:12px">
+            <div class="field"><label for="fc-pos">Positions staffed around the clock</label><input type="number" id="fc-pos" min="0" max="20" step="1" value="2"><div class="hint">A dispatcher and a duty manager is two.</div></div>
+            <div class="field"><label for="fc-hrs">Hours the centre is staffed per week</label><input type="number" id="fc-hrs" min="1" max="168" step="1" value="168"></div>
+            <div class="field"><label for="fc-contr">Contracted hours per person per week</label><input type="number" id="fc-contr" min="1" max="80" step="1" value="40"></div>
+            <div class="field"><label for="fc-lost">Lost to leave, sickness and training (%)</label><input type="number" id="fc-lost" min="0" max="60" step="1" value="15"></div>
+          </div>
+        </div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 4</p>
+        <h2 style="margin-bottom:.4rem">Is the revenue per tail plausible? (optional)</h2>
+        <div class="card" style="margin-top:1.2rem">
+          <div class="field"><label for="fc-rev">Flying revenue in the final year (USD m)</label><input type="number" id="fc-rev" min="0" step="0.1" placeholder="e.g. 34.6"></div>
+          <div class="grid g3" style="gap:12px">
+            <div class="field"><label for="fc-y1">Revenue per block hour (USD), low</label><input type="number" id="fc-y1" min="1" step="100" value="2500"></div>
+            <div class="field"><label for="fc-y2">Middle</label><input type="number" id="fc-y2" min="1" step="100" value="3500"></div>
+            <div class="field"><label for="fc-y3">High</label><input type="number" id="fc-y3" min="1" step="100" value="5000"></div>
+          </div>
+          <div class="hint">Sensitivity only. Replace the three with your own actual revenue per hour by type.</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="result-panel">
+          <p class="eyebrow" style="color:var(--jk-amber)">The fleet and its crew</p>
+          <div class="rng" id="fc-head">&mdash;</div>
+          <p id="fc-band" style="font-weight:700;margin:.2rem 0 .6rem">Add the aircraft.</p>
+          <p class="qual" id="fc-qual"></p>
+          <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
+          <div class="kpis" id="fc-kpis"></div>
+        </div>
+
+        <div class="result-panel" style="margin-top:1rem">
+          <p class="eyebrow" style="color:var(--jk-amber)">Year by year</p>
+          <div id="fc-years" class="table-scroll"></div>
+        </div>
+
+        <div class="result-panel" style="margin-top:1rem">
+          <p class="eyebrow" style="color:var(--jk-amber)">Findings</p>
+          <div id="fc-findings"></div>
+        </div>
+
+        <div class="tool-actions">
+          <button class="btn btn-amber" id="print">Print / save as PDF</button>
+          <button class="btn btn-ghost" id="reset">Reset</button>
+        </div>
+
+        <div class="guarantee" style="margin-top:1.4rem">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <div>
+            <strong>Have JK size the organisation to the operation.</strong>
+            <p style="margin:.4rem 0 .8rem;font-size:var(--fs-sm)">An operating concept, rosters built to the duty and fatigue rules that apply, a postholder map that survives the Authority's acceptance, and a recruitment path worked back from the launch date.</p>
+            <form id="fc-enquiry" class="grid g2" style="gap:10px">
+              <input type="hidden" name="tool" value="Fleet &amp; Crew Planner">
+              <input name="name" placeholder="Name" required>
+              <input name="airline" placeholder="Airline / Organisation">
+              <input name="email" type="email" placeholder="Work email" required>
+              <select name="concern" aria-label="Primary concern">
+                <option value="">Primary concern</option>
+                <option>Crew sizing</option><option>Fleet planning</option><option>Operations control</option><option>Recruitment and training</option><option>Just exploring</option>
+              </select>
+              <button type="submit" class="btn btn-amber" style="grid-column:1/-1">Talk to JK about the organisation &rarr;</button>
+              <p class="enq-msg" style="font-size:var(--fs-sm);margin-top:.6rem;grid-column:1/-1"></p>
+            </form>
+            <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain>info@aviationhubkenya.org</span></p>
+          </div>
+        </div>
+
+        <p class="disclaimer" style="margin-top:1rem">Arithmetic on the operating concept you enter, not a roster and not a regulatory determination. Pilots are required by type pool and exclude management, instructor and check pilots unless you count them as seats. Each tail is crewed in full from the year it enters service. Everything you enter stays in this browser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap"><div class="ver" style="border:0">
+    <span>&copy; <span data-year></span> JK &amp; Associates · <a data-email>info@aviationhubkenya.org</a></span>
+    <span><a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../methodology.html">Methodology</a> · <span data-version>v3.4 — Scheduled, Business Aviation &amp; Aeromedical</span></span>
+  </div></div>
+</footer>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/page/tools-fleet-crew.js"></script>
+</body>
+</html>

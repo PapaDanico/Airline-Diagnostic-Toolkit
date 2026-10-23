@@ -4,20 +4,20 @@ window.JK_VERIFICATION = {
   "suites": [
     {
       "suite": "e2e",
-      "headline": "630 behaviour assertions across the site",
-      "assertions": 630,
+      "headline": "692 behaviour assertions across the site",
+      "assertions": 692,
       "failures": 0
     },
     {
       "suite": "audit",
-      "headline": "34 pages audited for dead tokens, dead CSS, palette, design-value drift and deliverables",
+      "headline": "37 pages audited for dead tokens, dead CSS, palette, design-value drift and deliverables",
       "issues": 0,
-      "pages": 34
+      "pages": 37
     },
     {
       "suite": "focus",
-      "headline": "1599 focusable elements, each with a visible indicator at 3:1",
-      "elements": 1599,
+      "headline": "1821 focusable elements, each with a visible indicator at 3:1",
+      "elements": 1821,
       "minRatio": 3
     },
     {
@@ -36,9 +36,9 @@ window.JK_VERIFICATION = {
     },
     {
       "suite": "drive",
-      "headline": "35 pages driven as a user would, over 1,250 interactions, no console errors",
-      "runs": 35,
-      "interactions": 1250
+      "headline": "38 pages driven as a user would, over 1,500 interactions, no console errors",
+      "runs": 38,
+      "interactions": 1500
     },
     {
       "suite": "sliders",

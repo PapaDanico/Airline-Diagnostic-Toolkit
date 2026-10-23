@@ -2891,6 +2891,153 @@ for (const path of ["/demo-results.html", "/tools/fuel-optimizer.html"]) {
 }
 
 /* ─── 25. No JS errors ─── */
+
+/* ─── Three planning tools added from live client work ────────────────
+   Returns & Reverse-Solve, Fleet & Crew Planner and Plan Consistency
+   Check. Each is asserted against figures worked out by hand, never
+   against the tool's own output, so a regression cannot re-bless itself.
+
+   Returns, defaults: revenue 8/12/18/26/36, 22% margin, 9% over 7 years,
+   1.25x covenant, USD 30m drawn, 10% hurdle, USD 100m capital.
+     EBITDA yr5 = 36 x 0.22 = 7.92
+     debt service per USD 1 = 0.09 / (1 - 1.09^-7) = 0.198691
+     capacity = 7.92 / 1.25 / 0.198691 = USD 31.9m
+     cover on 30m = 7.92 / (30 x 0.198691) = 1.33x
+     margin for a 15% yield = 15 / 36 = 41.7%
+     required end value, 10%, even phasing = USD 121.8m (122%); all at start 136.0m
+     cover by year on the 31.9m facility = 0.28 0.42 0.63 0.90 1.25 */
+section("Returns & Reverse-Solve");
+{
+  const set = async (id, v) => { await page.$eval("#" + id, (e, x) => { e.value = x; e.dispatchEvent(new Event("input", { bubbles: true })); }, v); };
+  const txt = async (id) => (await page.$eval("#" + id, (e) => e.innerText)).replace(/\s+/g, " ");
+  await page.goto(base + "/tools/returns-solver.html"); await page.evaluate(() => localStorage.clear());
+  await page.goto(base + "/tools/returns-solver.html"); await page.waitForTimeout(350);
+  assert((await txt("rs-head")) === "USD 31.9m", `returns: debt capacity should be USD 31.9m, got ${await txt("rs-head")}`);
+  const kp = await txt("rs-kpis");
+  assert(kp.includes("41.7%"), `returns: margin for a 15% yield should be 41.7% — got ${kp}`);
+  assert(kp.includes("1.33×"), `returns: cover on USD 30m should be 1.33x — got ${kp}`);
+  assert(kp.includes("122% of capital"), `returns: required end value should be 122% of capital — got ${kp}`);
+  const tv = await txt("rs-tv");
+  assert(tv.includes("USD 121.8m") && tv.includes("USD 111.9m") && tv.includes("USD 132.3m"), `returns: required values for 8/10/12% should be 111.9/121.8/132.3 — got ${tv}`);
+  const yrs = await txt("rs-years");
+  for (const w of ["0.28×", "0.42×", "0.63×", "0.90×", "1.25×"]) assert(yrs.includes(w), `returns: year-by-year cover omits ${w} — got ${yrs}`);
+  assert(/fails in the ramp/i.test(await txt("rs-findings")), "returns: debt sized to year 5 that fails in the ramp is not flagged");
+  /* sensitivity: the tornado ranks inputs by swing, the simulation is seeded.
+     With zero spreads every draw equals the base case, so P10 = P50 = P90 = 31.9;
+     that fixes the simulation to the solver's own number rather than to itself. */
+  const mc = await txt("rs-mc"), tor = await txt("rs-tornado");
+  const pcs = [...mc.matchAll(/USD ([\d.,]+)m/g)].map((x) => parseFloat(x[1].replace(/,/g, "")));
+  assert(pcs.length >= 3 && pcs[0] < pcs[1] && pcs[1] < pcs[2], `returns: P10 < P50 < P90 expected, got ${pcs}`);
+  assert(/^Input moved Range Debt capacity, low case High case Swing EBITDA margin/i.test(tor), `returns: tornado should rank margin first at the defaults — got ${tor.slice(0, 160)}`);
+  await page.reload(); await page.waitForTimeout(350);
+  assert((await txt("rs-mc")) === mc, "returns: the same inputs gave different percentiles on reload (seed not fixed)");
+  await set("rs-urev", "0"); await set("rs-umg", "0"); await set("rs-urate", "0"); await page.waitForTimeout(250);
+  const flat = [...(await txt("rs-mc")).matchAll(/USD ([\d.,]+)m/g)].map((x) => parseFloat(x[1]));
+  assert(flat[0] === 31.9 && flat[1] === 31.9 && flat[2] === 31.9, `returns: with zero spread the percentiles should all be 31.9 — got ${flat}`);
+  await set("rs-urev", "20"); await set("rs-umg", "5"); await set("rs-urate", "3"); await page.waitForTimeout(200);
+  assert(/breaches the covenant in \d+% of draws/i.test(await txt("rs-mc")), "returns: planned debt should report a covenant-breach share");
+  await set("rs-debt", "40"); await page.waitForTimeout(200);
+  assert(/exceeds what the cash flow carries/i.test(await txt("rs-findings")), "returns: planned debt above capacity is not flagged");
+  await page.selectOption("#rs-phase", "start"); await page.waitForTimeout(200);
+  assert((await txt("rs-tv")).includes("USD 136.0m"), "returns: all-at-start required value should be USD 136.0m");
+  assert(!/NaN|Infinity|undefined/.test(await txt("rs-years") + await txt("rs-grid") + await txt("rs-tv") + await txt("rs-kpis")), "returns: a result carries a non-number");
+  assert(await page.evaluate(() => !!document.querySelector(".print-summary")), "returns: the printed pack carries an executive summary");
+  await set("rs-capital", "0"); await page.waitForTimeout(200);
+  assert((await txt("rs-head")) === "—", "returns: with no capital the tool should refuse, not invent a number");
+  assert(await page.evaluate(() => !document.querySelector(".print-summary")), "returns: a refused state must withdraw the print summary");
+  /* typing must not cost a keystroke or the focus */
+  await page.fill("#rs-capital", ""); await page.focus("#rs-capital"); await page.keyboard.type("50000000");
+  assert((await page.$eval("#rs-capital", (e) => e.value)) === "50000000" && (await page.evaluate(() => document.activeElement.id)) === "rs-capital", "returns: typing a long number lost characters or focus");
+  await assertEnquiryFormSubmits(page, "#rs-enquiry", "returns");
+}
+
+/* Fleet & Crew, worked example, 80% coverage, 211 available duty days
+   (365 - 104 - 28 - 14 - 8). Pools by type, each rounded up on its own:
+     2027: mid-range 1x2 seats = 3, turboprop 3, long-range 3, light heli 1x1 = 2  -> 11
+     2028: mid-range 2 -> 6, turboprop 2 -> 6, long-range 3, light heli 2          -> 17
+     2029: + twin helicopter 3, mid-range 3 tails -> 9                             -> 23
+   Aircraft-years (tail joins at the start of its quarter): 2.25 5.50 7.50 8.00 8.00
+   OCC: 168 / (40 x 0.85) = 4.94 per position, 9.9 for two. 34.6m / 8 / 3500 = 1,236 h. */
+section("Fleet & Crew Planner");
+{
+  const set = async (id, v) => { await page.$eval("#" + id, (e, x) => { e.value = x; e.dispatchEvent(new Event("input", { bubbles: true })); }, v); };
+  const txt = async (id) => (await page.$eval("#" + id, (e) => e.innerText)).replace(/\s+/g, " ");
+  await page.goto(base + "/tools/fleet-crew.html"); await page.evaluate(() => localStorage.clear());
+  await page.goto(base + "/tools/fleet-crew.html"); await page.waitForTimeout(300);
+  assert((await txt("fc-head")) === "—", "fleet: with no aircraft the tool should say nothing");
+  page.once("dialog", (d) => d.accept());
+  await page.click("#load-fleet"); await page.waitForTimeout(300);
+  const yrs = await txt("fc-years");
+  assert(/Aircraft-years 2\.25 5\.50 7\.50 8\.00 8\.00/.test(yrs), `fleet: aircraft-years should be 2.25 5.50 7.50 8.00 8.00 — got ${yrs}`);
+  assert(/Pilots required 11 17 23 23 23/.test(yrs), `fleet: pilots required should be 11 17 23 23 23 — got ${yrs}`);
+  const kp = await txt("fc-kpis");
+  assert(/8 aircraft/i.test(kp) && /5 types/i.test(kp) && /3 single-tail types/i.test(kp), `fleet: expected 8 aircraft, 5 types, 3 single-tail types — got ${kp}`);
+  assert(kp.includes("9.9"), `fleet: two OCC positions should be 9.9 people — got ${kp}`);
+  assert(/3 single-tail types/i.test(await txt("fc-findings")), "fleet: single-tail types are not flagged");
+  await set("fc-plan", "10, 16, 22"); await page.waitForTimeout(200);
+  const f = await txt("fc-findings");
+  assert(/short in 2027, 2028, 2029/i.test(f), `fleet: a plan below the requirement is not flagged — got ${f}`);
+  await set("fc-plan", "11, 17, 23"); await page.waitForTimeout(200);
+  assert(/no margin/i.test(await txt("fc-findings")), "fleet: a plan equal to the requirement should be flagged as having no margin");
+  await set("fc-rev", "34.6"); await page.waitForTimeout(200);
+  assert((await txt("fc-years")).includes("1,236 h at $3,500/h"), "fleet: block hours per tail should be 1,236 at USD 3,500");
+  /* coverage and duty days move the answer in the right direction */
+  await set("fc-cover", "100"); await page.waitForTimeout(200);
+  const full = await txt("fc-years");
+  assert(/Pilots required (\d+) (\d+) (\d+) (\d+) (\d+)/.test(full) && +full.match(/Pilots required (\d+) (\d+) (\d+) (\d+) (\d+)/)[5] > 23, `fleet: full coverage should need more than 23 pilots — got ${full}`);
+  assert(!/NaN|Infinity|undefined/.test(full + await txt("fc-kpis")), "fleet: a result carries a non-number");
+  assert(await page.evaluate(() => !!document.querySelector(".print-summary")), "fleet: the printed pack carries an executive summary");
+  /* a typed type name must not lose focus while the pools recompute */
+  await page.click("#add-tail"); await page.keyboard.type("Heavy jet");
+  assert((await page.evaluate(() => document.activeElement.value)) === "Heavy jet", "fleet: typing a type name lost characters or focus");
+  await assertEnquiryFormSubmits(page, "#fc-enquiry", "fleet");
+}
+
+/* Plan Consistency, worked example. Five facts are stated more than one
+   way (launch date, fleet size, terminal opening, FY2027 headcount,
+   acquisition price) and one total does not add up (the headcount chart:
+   8+5+8+10+4+3+4+5+3 = 50 against a stated 52). Revenue lines sum to 9.0
+   and terminal capital to 10, so those pass. 1 Apr 2027 and 1 April 2027
+   are the same day and must not be reported as a contradiction. Six
+   findings, four of them High. A 5% tolerance absorbs 52 vs 50 and the
+   headcount fact and total both clear, leaving four. */
+section("Plan Consistency Check");
+{
+  const txt = async (id) => (await page.$eval("#" + id, (e) => e.innerText)).replace(/\s+/g, " ");
+  await page.goto(base + "/tools/plan-consistency.html"); await page.evaluate(() => localStorage.clear());
+  await page.goto(base + "/tools/plan-consistency.html"); await page.waitForTimeout(300);
+  assert((await txt("pc-head")) === "—", "consistency: with nothing entered the tool should say nothing");
+  await page.click("#load-example"); await page.waitForTimeout(300);
+  assert((await txt("pc-head")) === "6", `consistency: the example should yield 6 findings, got ${await txt("pc-head")}`);
+  assert(/6 findings · 4 High/.test(await txt("pc-band")), `consistency: expected "6 findings · 4 High" — got ${await txt("pc-band")}`);
+  const fd = await txt("pc-findings");
+  for (const w of ["Launch date", "Fleet size", "Terminal opening", "FY2027 headcount", "Acquisition price", "FY2027 headcount by function", "50", "52"]) assert(fd.includes(w), `consistency: findings omit "${w}" — got ${fd}`);
+  assert(/stated 2 ways.{0,80}Launch date/i.test(fd), "consistency: 1 Apr 2027 and 1 April 2027 should be one date, leaving the launch date stated 2 ways");
+  assert(!/Safety reports to/.test(fd.split("stated once")[0] || ""), "consistency: a topic stated once is a finding when it should be a note");
+  assert(/stated once/.test(fd), "consistency: topics stated once are not reported as uncheckable");
+  assert(await page.evaluate(() => !!document.querySelector(".print-summary")), "consistency: the printed pack carries an executive summary");
+  /* High findings sort above Low in the printed summary */
+  const ps = await page.evaluate(() => [...document.querySelectorAll(".print-summary .ps-item")].map(e => e.className));
+  assert(ps.length >= 5 && ps[0].includes("is-stop"), `consistency: the printed summary should lead with a High finding — got ${ps}`);
+  await page.$eval("#tol", (e) => { e.value = "5"; e.dispatchEvent(new Event("input", { bubbles: true })); }); await page.waitForTimeout(200);
+  assert((await txt("pc-head")) === "4", `consistency: a 5% tolerance should absorb 52 vs 50 and leave 4 findings, got ${await txt("pc-head")}`);
+  await page.$eval("#tol", (e) => { e.value = "0.5"; e.dispatchEvent(new Event("input", { bubbles: true })); });
+  /* a clean plan says so, and says what it cannot say */
+  await page.click("#reset"); page.once("dialog", (d) => d.accept()); await page.waitForTimeout(200);
+  /* typing into a new row must keep focus and every character */
+  await page.click("#add-claim"); await page.keyboard.type("Fleet size");
+  assert((await page.evaluate(() => document.activeElement.value)) === "Fleet size", "consistency: typing a topic lost characters or focus");
+  await page.keyboard.press("Tab"); await page.keyboard.type("7");
+  await page.click("#add-claim"); await page.keyboard.type("fleet  SIZE"); await page.keyboard.press("Tab"); await page.keyboard.type("7");
+  await page.waitForTimeout(200);
+  assert(/Clean|No contradictions/.test(await txt("pc-head") + await txt("pc-band")), `consistency: matching statements should be clean — got ${await txt("pc-head")} / ${await txt("pc-band")}`);
+  /* an unreadable part is reported, not silently dropped */
+  await page.click("#add-sum"); await page.keyboard.type("Chart"); await page.keyboard.press("Tab"); await page.keyboard.type("1, two, 3"); await page.keyboard.press("Tab"); await page.keyboard.type("6");
+  await page.waitForTimeout(200);
+  assert(/Could not read two/.test(await txt("pc-findings")), "consistency: an unreadable part should be reported");
+  await assertEnquiryFormSubmits(page, "#pc-enquiry", "consistency");
+}
+
 section("JavaScript errors");
 assert(errs.length === 0, `no uncaught page errors (${errs.length ? errs.join(" | ") : "none"})`);
 

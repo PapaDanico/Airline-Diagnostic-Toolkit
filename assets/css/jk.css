@@ -819,6 +819,8 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .gap-table th, .gap-table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--jk-line); }
 .gap-table th { font-family: var(--sans); font-size: var(--fs-xs); letter-spacing: .06em; text-transform: uppercase; color: var(--jk-muted); }
 .gap-table tr:hover td { background: var(--jk-parchment); }
+.rs-bar { height: 6px; background: var(--jk-line); border-radius: 3px; margin-bottom: 4px; min-width: 60px; }
+.rs-bar span { display: block; height: 100%; background: var(--jk-amber); border-radius: 3px; }
 .barcell { min-width: 160px; }
 .bar { height: 10px; background: var(--jk-parchment-2); border-radius: 99px; overflow: hidden; }
 .bar > i { display: block; height: 100%; border-radius: 99px; }
@@ -940,8 +942,14 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .field { margin-bottom: 18px; }
 .field label { display: block; font-weight: 600; font-size: var(--fs-sm); margin-bottom: .35rem; }
 .field .hint { font-size: var(--fs-xs); color: var(--jk-muted); margin-top: .25rem; }
+.print-val { display: none; }
 .num-echo { display: block; font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: var(--jk-muted); margin-top: .2rem; min-height: 1.2em; }
-@media print { .num-echo { display: none; } }
+@media print {
+  .num-echo { display: none; }
+  /* a field's stand-in on paper: the value, formatted, and no box */
+  input[data-pv], textarea[data-pv] { display: none !important; }
+  .print-val { display: block; font-weight: 600; font-variant-numeric: tabular-nums; }
+}
 .field input, .field select, .field textarea, select.field, input.field, textarea.field {
   width: 100%; padding: .78rem 1rem; border: 1px solid var(--jk-line-2);
   border-radius: var(--radius-sm); font-size: var(--fs-base); font-family: var(--sans);
@@ -1123,6 +1131,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
    neighbour floating in a short box. */
 .kpis { display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 14px; align-items: stretch; }
 .kpis > * { min-width: 0; }
+.kpi { container-type: inline-size; }
 .kpi { background: var(--jk-parchment); border-radius: var(--radius-sm); padding: 16px 18px; border-left: 3px solid var(--accent);
   display: flex; flex-direction: column; justify-content: flex-start; }
 /* A currency figure must never break between its unit and its number —
@@ -1130,10 +1139,16 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
    is fluid so a long value shrinks to fit rather than wrapping. */
 .kpi .kv {
   font-family: var(--serif); font-weight: 700; line-height: 1.08;
-  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+  /* Sized from the tile, not the viewport: the results rail is a narrow
+     column on a wide screen, so 2.4vw let "USD 3.20M–USD 9.45M" overrun
+     its tile and print over the next one. cqi tracks the tile itself. */
+  font-size: clamp(1.05rem, 17cqi, 1.75rem);
   letter-spacing: -.015em; white-space: nowrap;
   overflow-wrap: normal; hyphens: none;
 }
+/* A figure that is one fact stays whole; a range may break only at its dash. */
+.kpi .kv:has(.nb) { white-space: normal; }
+.kpi .kv .nb { white-space: nowrap; }
 .kpi .kl { font-size: var(--fs-2xs); color: var(--jk-muted); letter-spacing: .05em; text-transform: uppercase; margin-top: .3rem; line-height: 1.3; text-wrap: balance; }
 .kpi.is-red   { border-left-color: var(--jk-red);       } .kpi.is-red .kv   { color: var(--jk-red-dk); }
 .kpi.is-amber { border-left-color: var(--jk-amber-sig); } .kpi.is-amber .kv { color: var(--jk-amber-text); }
@@ -1335,6 +1350,12 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   .hero-ink *, .result-panel .kpi .kv, .result-panel .kpi .kl,
   .score-hero .kpi .kv, .score-hero .kpi .kl, .score-hero h2 { color: var(--jk-ink) !important; }
   .band-parchment, .sources, .tool-head { background: #fff !important; }
+  /* The working is a record of what was entered. A slider is a control, and
+     on paper it is a track with a knob and no meaning; its number sits
+     beside it. The tool's own on-screen introduction repeats the pack's
+     title block, so only its heading survives as the working's title. */
+  .calc input[type="range"], .cx-row input[type="range"] { display: none !important; }
+  .tool-head .ref, .tool-head .lead { display: none !important; }
   section { padding: 12px 0 !important; }
   .rag, .bar, .bar > i, .index-ring, #radar polygon, #radar circle, .dot,
   .meter-track > i, .stack-bar > i, .kpi { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -1363,7 +1384,15 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
      table spanning a page break loses its column headings entirely,
      and the reader is left with a grid of unlabelled numbers — which
      is precisely the moment a client stops trusting the document. */
-  @page { size: A4; margin: 14mm; }
+  /* A pack that travels needs to say whose it is and how long it is on
+     every sheet, not only the first: loose pages get separated, and "page
+     3 of 8" is how a reader knows nothing has gone missing. Margin boxes
+     are honoured by current Chromium and ignored, harmlessly, elsewhere. */
+  @page {
+    size: A4; margin: 14mm 14mm 18mm;
+    @bottom-left  { content: "JK & Associates \00B7 jkassociates.enterprises"; font-size: var(--fs-2xs); color: var(--jk-muted); }
+    @bottom-right { content: "Page " counter(page) " of " counter(pages); font-size: var(--fs-2xs); color: var(--jk-muted); }
+  }
   thead { display: table-header-group; }
   tfoot { display: table-footer-group; }
   tr { break-inside: avoid; page-break-inside: avoid; }
@@ -1381,6 +1410,26 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
      once the screen min-width is lifted. */
   table { min-width: 0 !important; width: 100%; table-layout: auto; overflow-wrap: break-word; }
   .table-scroll, .scroll { overflow: visible !important; break-inside: auto; }
+  /* The gap table carries a paragraph of sourced benchmark under each
+     domain name. Left to auto layout the name column took a third of the
+     page and the benchmark wrapped at about twenty characters, so the
+     report ran to ten pages with each domain stretched down half of one.
+     Give the words the room and let the numbers be narrow. */
+  .gap-table { table-layout: fixed; }
+  .gap-table th:nth-child(1), .gap-table td:nth-child(1) { width: 52%; }
+  .gap-table th:nth-child(2), .gap-table td:nth-child(2) { width: 11%; }
+  .gap-table th:nth-child(3), .gap-table td:nth-child(3) { width: 17%; }
+  .gap-table th:nth-child(4), .gap-table td:nth-child(4) { width: 8%; white-space: nowrap; }
+  .gap-table th:nth-child(5), .gap-table td:nth-child(5) { width: 12%; }
+  .gap-table th, .gap-table td { padding: 8px 6px; }
+  .gap-table th { font-size: var(--fs-2xs); letter-spacing: .03em; }
+  .barcell { min-width: 0; }
+  .gap-table td .muted, .gap-table td [style*="font-size"] { font-size: var(--fs-2xs) !important; line-height: 1.35; }
+  /* A heading and its introduction must travel with their first card. The
+     recommendations are tall unbreakable blocks, so when they did not fit
+     the heading was left alone at the foot of the previous page. */
+  section:has(> .wrap > #rx) { break-before: page; page-break-before: always; }
+  .sources p { margin-bottom: .3rem; }
 }
 
 /* ============================================================

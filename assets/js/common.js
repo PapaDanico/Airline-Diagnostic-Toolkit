@@ -154,7 +154,10 @@ const TOOL_MENU = [
     { file: "tools/venture-builder.html",         label: "Greenfield Venture Builder" },
     { file: "tools/corporate-structure.html",     label: "Corporate Structure Designer" },
     { file: "tools/organogram-planner.html",      label: "Organogram & Postholder Planner" },
-    { file: "tools/revenue-builder.html",         label: "Revenue Model Builder" }
+    { file: "tools/revenue-builder.html",         label: "Revenue Model Builder" },
+    { file: "tools/returns-solver.html",          label: "Returns & Reverse-Solve" },
+    { file: "tools/fleet-crew.html",              label: "Fleet & Crew Planner" },
+    { file: "tools/plan-consistency.html",        label: "Plan Consistency Check" }
   ]},
   { group: "Operate an airline", items: [
     { file: "diagnostic.html",                    label: "Airline Health Scorecard" },
@@ -940,7 +943,7 @@ function citeChips(keys) {
 function mountPrintHead(toolName, subtitle) {
   const src = (document.querySelector('link[rel="canonical"]') || {}).href || "";
   const html =
-    `<img src="${ASSET_BASE}assets/img/jk-logo-full.png" width="522" height="400" loading="lazy" decoding="async" alt="JK &amp; Associates">
+    `<img src="${ASSET_BASE}assets/img/jk-logo-full.png" width="522" height="400" alt="JK &amp; Associates">
      <div class="ph-meta"><strong>${escapeHtml(toolName)}</strong><br>
        ${subtitle ? escapeHtml(subtitle) + "<br>" : ""}
        Prepared ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
@@ -1227,6 +1230,42 @@ if (typeof document !== "undefined") {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wireNumberEcho);
   else wireNumberEcho();
 }
+
+/* The working in a printed pack is a record of what was entered, and a
+   form control is the wrong way to show one: a number field prints as a
+   boxed "2500000", an empty date as "mm/dd/yyyy". Paper cannot be typed
+   into, so at print time each field is read and a formatted line stands in
+   for it, then removed afterwards so the control under the user's cursor is
+   never rewritten while they work. beforeprint fires for the browser's print
+   dialog and for PDF generation alike. */
+function wirePrintValues() {
+  if (typeof window === "undefined" || window.__printValues) return;
+  window.__printValues = true;
+  const SKIP = new Set(["hidden", "checkbox", "radio", "range", "button", "submit", "reset", "file", "image"]);
+  const show = el => {
+    const t = (el.type || "text").toLowerCase();
+    const v = el.value;
+    if (t === "number" && v !== "" && Number.isFinite(Number(v))) return Number(v).toLocaleString("en-GB", { maximumFractionDigits: 6 });
+    if (t === "date" && v) return fmtDate(v);
+    if (v === "") return "\u2014";
+    return v;
+  };
+  window.addEventListener("beforeprint", () => {
+    document.querySelectorAll("main input, main textarea").forEach(el => {
+      if (SKIP.has((el.type || "").toLowerCase()) || el.closest("form, [hidden]") || el.dataset.pv) return;
+      const span = document.createElement("span");
+      span.className = "print-val";
+      span.textContent = show(el);
+      el.dataset.pv = "1";
+      el.insertAdjacentElement("afterend", span);
+    });
+  });
+  window.addEventListener("afterprint", () => {
+    document.querySelectorAll(".print-val").forEach(n => n.remove());
+    document.querySelectorAll("[data-pv]").forEach(el => el.removeAttribute("data-pv"));
+  });
+}
+if (typeof document !== "undefined") wirePrintValues();
 
 if (typeof window !== "undefined") {
   Object.assign(window, { STORE_KEY, JK_LOGO, JK_LOGO_LIGHT, applyPartner, mountChrome, isEmbedded, applyEmbedMode,
