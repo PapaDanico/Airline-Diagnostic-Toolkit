@@ -59,8 +59,9 @@
 
 <section style="padding-top:40px">
   <div class="wrap">
-    <div class="calc">
-      <div>
+    <div class="calc rs-top">
+      <div class="rs-inputs">
+        <div class="rs-in">
         <p class="eyebrow">Step 1</p>
         <h2 style="margin-bottom:.4rem">Capital and revenue</h2>
         <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Five years of revenue and the capital deployed to earn it, in USD millions. Use the plan's own figures, not yours: the point is to test them.</p>
@@ -82,9 +83,11 @@
             <input type="number" id="rs-margin" min="-100" max="95" step="0.5" value="22">
             <div class="hint">The plan's own margin. If it states none, that is itself the finding. 22% is the JK planning default for a first-pass test, a house assumption and not a published benchmark.</div></div>
         </div>
-
-        <p class="eyebrow" style="margin-top:2.6rem">Step 2</p>
-        <h2 style="margin-bottom:.4rem">Debt and the return you need</h2>
+        </div>
+        <div class="rs-in">
+        <p class="eyebrow">Step 2</p>
+        <h2 style="margin-bottom:.4rem">Debt and return</h2>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">The facility terms, the covenant you are tested against, and the return and exit the plan has to earn. All figures are yours or labelled as defaults below.</p>
         <div class="card" style="margin-top:1.2rem">
           <div class="grid g2" style="gap:12px">
             <div class="field"><label for="rs-rate">Interest rate (% p.a.)</label><input type="number" id="rs-rate" min="0" max="40" step="0.25" value="9"></div>
@@ -93,26 +96,14 @@
             <div class="field"><label for="rs-debt">Debt you plan to draw (USD m)</label><input type="number" id="rs-debt" min="0" step="1" value="30"></div>
             <div class="field"><label for="rs-hurdle">Return you need (% p.a.)</label><input type="number" id="rs-hurdle" min="0" max="50" step="0.5" value="10"></div>
             <div class="field"><label for="rs-yield">EBITDA yield you want on capital (%)</label><input type="number" id="rs-yield" min="0" max="100" step="0.5" value="15"></div>
+            <div class="field"><label for="rs-exit">Exit multiple you would assume (× year-5 EBITDA)</label><input type="number" id="rs-exit" min="0" max="40" step="0.5" value="6"><div class="hint">Illustrative. A multiple is a market observation, not a default: set your own.</div></div>
           </div>
         </div>
-
-        <p class="eyebrow" style="margin-top:2.6rem">Step 3</p>
-        <h2 style="margin-bottom:.4rem">Debt service cover, year by year</h2>
-        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">A facility sized to the final year's cash flow is repaid from every year's. This shows the cover in each, because debt that works at the end state can fail in the ramp.</p>
-        <div id="rs-years" style="margin-top:1rem"></div>
-
-        <p class="eyebrow" style="margin-top:2.6rem">Step 4</p>
-        <h2 style="margin-bottom:.4rem">Cover in the final year, by debt and margin</h2>
-        <div id="rs-grid" style="margin-top:1rem"></div>
-
-        <p class="eyebrow" style="margin-top:2.6rem">Step 5</p>
-        <h2 style="margin-bottom:.4rem">What the business must be worth</h2>
-        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Cash flow over five years rarely repays the capital. The rest of the return has to come from what the business is worth at the end. This is that value for your hurdle and for two either side.</p>
-        <div id="rs-tv" style="margin-top:1rem"></div>
-
-        <p class="eyebrow" style="margin-top:2.6rem">Step 6</p>
+        </div>
+        <div class="rs-in rs-in-wide">
+        <p class="eyebrow">Step 3</p>
         <h2 style="margin-bottom:.4rem">How wrong can the inputs be?</h2>
-        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Say how far you think revenue, margin and interest could miss. The first table moves each input alone and ranks them by how much the debt capacity swings. The second moves them together, 2,000 times, with the same seed every time, and reports the cautious (P10), middle (P50) and generous (P90) outcomes.</p>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Say how far you think revenue, margin and interest could miss. The analysis below moves each input alone and ranks them by how much the debt capacity swings, then moves them together, 2,000 times, with the same seed every time, and reports the cautious (P10), middle (P50) and generous (P90) outcomes.</p>
         <div class="card" style="margin-top:1.2rem">
           <div class="grid g3" style="gap:12px">
             <div class="field"><label for="rs-urev">Revenue could miss by (±%)</label><input type="number" id="rs-urev" min="0" max="80" step="1" value="20"></div>
@@ -121,16 +112,10 @@
           </div>
           <div class="hint">Ranges are yours and are drawn as symmetric triangles around your figures, independently. If you have no view, the defaults are wide enough to be uncomfortable, which is the point.</div>
         </div>
-        <div id="rs-tornado" style="margin-top:1rem"></div>
-        <div id="rs-mc" style="margin-top:1rem"></div>
-
-        <p class="eyebrow" style="margin-top:2.6rem">Step 7</p>
-        <h2 style="margin-bottom:.4rem">What this answer assumes</h2>
-        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Every figure the tool supplied for you, with its grade and basis. If you changed one, the change is shown. A reader of a printed pack can then see which numbers are the plan's and which are ours.</p>
-        <div id="rs-assump" style="margin-top:1rem"></div>
+        </div>
       </div>
 
-      <div>
+      <div class="rs-rail">
         <div class="result-panel">
           <p class="eyebrow" style="color:var(--jk-amber)">What you would have to believe</p>
           <div class="rng" id="rs-head">&mdash;</div>
@@ -149,8 +134,74 @@
           <button class="btn btn-amber" id="print">Print / save as PDF</button>
           <button class="btn btn-ghost" id="reset">Reset to the example</button>
         </div>
+      </div>
+    </div>
 
-        <div class="guarantee" style="margin-top:1.4rem">
+    <div class="rs-analysis">
+      <div class="rs-card">
+        <p class="eyebrow">Debt</p>
+        <h2 style="margin-bottom:.4rem">Cover on the debt you plan to draw</h2>
+        <p class="muted" style="font-size:var(--fs-sm)">The facility in the headline is sized to the final year. This is the debt you actually plan to draw, tested against every year, because lenders read the weakest year, not the last one.</p>
+        <div id="rs-plan" style="margin-top:1rem"></div>
+      </div>
+      <div class="rs-card">
+        <p class="eyebrow">Funding</p>
+        <h2 style="margin-bottom:.4rem">Does the funding survive the ramp?</h2>
+        <p class="muted" style="font-size:var(--fs-sm)">Capital goes out in the first years while the business earns little, and the debt still has to be serviced. This is the cash position after capex, debt service and the draw, year by year, against the equity you have.</p>
+        <div id="rs-funding" style="margin-top:1rem"></div>
+      </div>
+      <div class="rs-card">
+        <p class="eyebrow">Debt</p>
+        <h2 style="margin-bottom:.4rem">How far can revenue fall?</h2>
+        <p class="muted" style="font-size:var(--fs-sm)">The revenue and margin at which the planned debt only just meets the covenant, and how much room the plan has before it does.</p>
+        <div id="rs-breakeven" style="margin-top:1rem"></div>
+      </div>
+      <div class="rs-card">
+        <p class="eyebrow">Returns</p>
+        <h2 style="margin-bottom:.4rem">What an exit has to deliver</h2>
+        <p class="muted" style="font-size:var(--fs-sm)">Project and equity returns at the exit multiple you set, and the multiple the hurdle actually needs. If the multiple the plan needs is not one you would believe, the plan does not earn its capital.</p>
+        <div id="rs-irr" style="margin-top:1rem"></div>
+      </div>
+      <div class="rs-card">
+        <p class="eyebrow">Debt</p>
+        <h2 style="margin-bottom:.4rem">Cover on a facility sized to year 5</h2>
+        <p class="muted" style="font-size:var(--fs-sm)">A facility sized to the final year's cash flow is repaid from every year's. This shows the cover in each, because debt that works at the end state can fail in the ramp.</p>
+        <div id="rs-years" style="margin-top:1rem"></div>
+      </div>
+      <div class="rs-card">
+        <p class="eyebrow">Debt</p>
+        <h2 style="margin-bottom:.4rem">Cover in the final year, by debt and margin</h2>
+        <p class="muted" style="font-size:var(--fs-sm)"></p>
+        <div id="rs-grid" style="margin-top:1rem"></div>
+      </div>
+      <div class="rs-card">
+        <p class="eyebrow">Returns</p>
+        <h2 style="margin-bottom:.4rem">What the business must be worth</h2>
+        <p class="muted" style="font-size:var(--fs-sm)">Cash flow over five years rarely repays the capital. The rest of the return has to come from what the business is worth at the end. This is that value for your hurdle and for two either side.</p>
+        <div id="rs-tv" style="margin-top:1rem"></div>
+      </div>
+      <div class="rs-card">
+        <p class="eyebrow">Uncertainty</p>
+        <h2 style="margin-bottom:.4rem">One input at a time</h2>
+        <p class="muted" style="font-size:var(--fs-sm)">Each input moved alone across the range you gave, the rest held at your figures, ranked by how much the debt capacity swings.</p>
+        <div id="rs-tornado" style="margin-top:1rem"></div>
+      </div>
+    </div>
+    <div class="rs-analysis-wide">
+      <div class="rs-card">
+        <p class="eyebrow">Uncertainty</p>
+        <h2 style="margin-bottom:.4rem">All the inputs together</h2>
+        <p class="muted" style="font-size:var(--fs-sm)">The three ranges drawn together across 2,000 seeded draws: the shape of what the debt can carry, with the planned debt marked.</p>
+        <div id="rs-hist" style="margin-top:1rem"></div><div id="rs-mc" style="margin-top:1rem"></div>
+      </div>
+      <div class="rs-card">
+        <p class="eyebrow">Assumptions</p>
+        <h2 style="margin-bottom:.4rem">What this answer assumes</h2>
+        <p class="muted" style="font-size:var(--fs-sm)">Every figure the tool supplied for you, with its grade and basis. If you changed one, the change is shown. A reader of a printed pack can then see which numbers are the plan's and which are ours.</p>
+        <div id="rs-assump" style="margin-top:1rem"></div>
+      </div>
+      <div class="rs-card rs-cta">
+        <div class="guarantee">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
           <div>
             <strong>Have JK build the investment case behind the numbers.</strong>
@@ -170,8 +221,7 @@
             <p class="cta-alt">No email app? <button type="button" class="linkbtn" data-copy-email>Copy address</button> · <span data-email-plain>info@aviationhubkenya.org</span></p>
           </div>
         </div>
-
-        <p class="disclaimer" style="margin-top:1rem">A test of an investment case, not a valuation, a forecast or investment advice. Figures are the ones you enter; nothing here is a benchmark unless it says so. Debt is a level payment (principal and interest) over the term, a first-pass sanity check and not a bankable model. Everything you enter stays in this browser.</p>
+                <p class="disclaimer" style="margin-top:1rem;max-width:90ch">A test of an investment case, not a valuation, a forecast or investment advice. Figures are the ones you enter; nothing here is a benchmark unless it says so. Debt is a level payment (principal and interest) over the term, a first-pass sanity check and not a bankable model. Everything you enter stays in this browser.</p>
       </div>
     </div>
   </div>

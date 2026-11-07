@@ -1870,3 +1870,62 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 }
 @media (max-width: 1099px) { #meth-toc { display: none; } }
 @media print { #meth-toc { display: none; } .meth-layout { display: block; } }
+
+/* Returns & Reverse-Solve: inputs and the answer side by side, the analysis in cards across the width.
+   One column below 1100px, and on a phone the answer comes straight after the inputs. */
+.rs-top { grid-template-columns: 1fr; }
+.rs-inputs { display: grid; grid-template-columns: 1fr; gap: 2.2rem; }
+.rs-inputs > *, .rs-rail { min-width: 0; }
+.rs-analysis { margin-top: 3rem; padding-top: 2.4rem; border-top: 1px solid var(--jk-line-2); }
+.rs-analysis-wide { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 24px; }
+.rs-analysis-wide > * { min-width: 0; }
+.rs-analysis > .rs-card { margin-bottom: 24px; break-inside: avoid; }
+.rs-card { background: var(--jk-white); border: 1px solid var(--jk-line); border-radius: var(--radius); padding: 22px 24px; }
+.rs-card h2 { font-size: var(--fs-xl); }
+.rs-card .gap-table { min-width: 0; }
+.rs-card .gap-table th, .rs-card .gap-table td { padding: 9px 10px; }
+.rs-card .gap-table td:first-child { white-space: nowrap; }
+@media (max-width: 560px) { .rs-card { padding: 18px 16px; } }
+.rs-cta { background: var(--jk-parchment); }
+.rs-in .muted { min-height: 3.2em; }
+@media (min-width: 1100px) {
+  .rs-top { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 36px; }
+  .rs-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; align-items: start; }
+  .rs-in-wide { grid-column: 1 / -1; }
+  /* two columns that read down: the debt and funding questions on the left, the cover grids, exit value and sensitivity on the right */
+  .rs-analysis { columns: 2; column-gap: 24px; }
+  .rs-analysis > .rs-card:nth-child(5) { break-before: column; }
+}
+.rs-chart { display: grid; gap: 9px; }
+.rs-crow { display: grid; grid-template-columns: 52px minmax(0, 1fr) 112px; white-space: nowrap; gap: 10px; align-items: center; font-size: var(--fs-sm); }
+.rs-track { position: relative; height: 16px; background: var(--jk-parchment-2); border-radius: 99px; }
+.rs-track i { position: absolute; left: 0; top: 0; height: 100%; border-radius: 99px; background: var(--jk-amber-sig); }
+.rs-track i.ok { background: var(--jk-green); } .rs-track i.mid { background: var(--jk-amber-sig); } .rs-track i.bad { background: var(--jk-red); }
+.rs-mark { position: absolute; top: -4px; width: 2px; height: 24px; background: var(--jk-ink); }
+.rs-note { font-size: var(--fs-sm); margin: .8rem 0 0; max-width: 62ch; line-height: 1.6; }
+.rs-hist { position: relative; height: 150px; margin-bottom: 30px; display: flex; align-items: flex-end; gap: 2px; padding-top: 22px; margin-top: .4rem; }
+.rs-hbar { flex: 1; background: var(--jk-green); border-radius: 2px 2px 0 0; }
+.rs-hbar.below { background: var(--jk-red); }
+.rs-pin { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--jk-ink); }
+.rs-pin.plan { border-left: 2px solid var(--jk-terracotta); }
+.rs-pin.plan span { top: auto; bottom: -22px; color: var(--jk-terra-deep); font-weight: 700; }
+.rs-pin span { position: absolute; top: -4px; left: 4px; font-size: var(--fs-2xs); white-space: nowrap; background: var(--jk-white); color: var(--jk-ink); padding: 0 3px; }
+.rs-axis { display: flex; justify-content: space-between; font-size: var(--fs-xs); color: var(--jk-muted); margin-top: 4px; }
+
+/* The printed pack: the inputs two across, the analysis one column that may break between pages, and tables that size to their
+   content. The shared print rule gives .gap-table fixed column widths meant for a wide five-column table; in a card it squeezes
+   a text column to a few characters and the pack runs to 15 sheets. */
+@media print {
+  .rs-top { display: block; }
+  .rs-inputs { grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  .rs-in-wide { grid-column: 1 / -1; }
+  .rs-analysis { columns: 1; border-top: 0; margin-top: 8px; padding-top: 0; }
+  .rs-analysis > .rs-card, .rs-analysis-wide > .rs-card { break-inside: auto; border: 0; padding: 0 0 6px; margin-bottom: 6px; }
+  .rs-card .gap-table { table-layout: auto; min-width: 0; }
+  .rs-card .gap-table th, .rs-card .gap-table td { width: auto; padding: 3px 6px; }
+  /* the section descriptions are guidance for the person at the screen; the pack carries the figures and their notes */
+  .rs-card > p.muted { display: none; }
+  .rs-hist { height: 100px; }
+  .rs-inputs .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 10px; }
+  .rs-inputs .grid.g2 { grid-template-columns: repeat(2, 1fr); }
+}

@@ -3222,6 +3222,69 @@ section("Data request layout");
   await m.close();
 }
 
+/* Returns & Reverse-Solve: depth and space. Defaults: capital 100, revenue
+   8/12/18/26/36 at 22% (EBITDA 1.76 2.64 3.96 5.72 7.92), 9% over 7 years so a
+   level payment is 0.198691 per dollar, planned debt 30 (service 5.9607 a year),
+   covenant 1.25x, hurdle 10%, exit 6x year-5 EBITDA. Worked independently:
+     cover on the planned debt by year      0.30 0.44 0.66 0.96 1.33; min 0.30 in year 1; 4 of 5 below 1.00
+     year-5 revenue to cover it at 1.25x    33.9 (headroom 5.9%); margin needed 20.7%
+     cumulative cash after capex, debt service and the draw
+                                            -7.5 -44.2 -79.5 -79.8 -77.8; peak 79.8 in year 4 against 70.0 equity: short 9.8
+     exit value the hurdle needs            121.8 = 15.4x year-5 EBITDA
+     project IRR at 6x exit -9.6%; equity IRR -18.6%; equity multiple 0.49x
+   Setting the exit multiple to the required 15.374x must put the project IRR at the 10% hurdle:
+   that cross-checks two separate code paths against each other. */
+section("Returns solver: depth and space");
+{
+  const set = async (id, v) => { await page.$eval("#" + id, (e, x) => { e.value = x; e.dispatchEvent(new Event("input", { bubbles: true })); }, v); };
+  const txt = async (id) => (await page.$eval("#" + id, (e) => e.innerText)).replace(/\s+/g, " ");
+  await page.goto(base + "/tools/returns-solver.html"); await page.evaluate(() => localStorage.clear());
+  await page.goto(base + "/tools/returns-solver.html"); await page.waitForTimeout(400);
+  const plan = await txt("rs-plan");
+  for (const v of ["0.30×", "0.44×", "0.66×", "0.96×", "1.33×"]) assert(plan.includes(v), `returns: cover on the planned debt should show ${v} — got ${plan}`);
+  assert(/4 of 5 years/.test(plan) && /year 1/i.test(plan), `returns: should say cover is below 1.00x in 4 of 5 years, worst in year 1 — got ${plan}`);
+  const be = await txt("rs-breakeven");
+  assert(be.includes("33.9") && be.includes("5.9%") && be.includes("20.7%"), `returns: break-even should be 33.9m of year-5 revenue, 5.9% headroom, 20.7% margin — got ${be}`);
+  const fu = await txt("rs-funding");
+  assert(fu.includes("79.8") && /year 4/i.test(fu) && fu.includes("70.0") && fu.includes("9.8"), `returns: peak funding need should be 79.8m in year 4 against 70.0m equity, short 9.8m — got ${fu}`);
+  const ir = await txt("rs-irr");
+  assert(ir.includes("15.4×"), `returns: the hurdle should need a 15.4x exit multiple — got ${ir}`);
+  assert(ir.includes("−9.6%") || ir.includes("-9.6%"), `returns: project IRR at a 6x exit should be -9.6% — got ${ir}`);
+  assert(ir.includes("−18.6%") || ir.includes("-18.6%"), `returns: equity IRR at a 6x exit should be -18.6% — got ${ir}`);
+  assert(ir.includes("0.49×"), `returns: equity multiple should be 0.49x — got ${ir}`);
+  /* the two code paths agree: exiting at the required multiple earns the hurdle */
+  await set("rs-exit", "15.3737"); await page.waitForTimeout(250);
+  const ir2 = await txt("rs-irr");
+  assert(/(^|[^0-9.])(9\.9|10\.0)%/.test(ir2), `returns: exiting at the multiple the hurdle needs should give a project IRR of 10%, got ${ir2}`);
+  await set("rs-exit", "6"); await page.waitForTimeout(200);
+  /* a margin of zero must not produce a negative debt capacity */
+  await set("rs-margin", "0"); await page.waitForTimeout(300);
+  const zero = await txt("rs-tornado") + await txt("rs-mc") + await txt("rs-head");
+  assert(!/USD -|−0\.0|-0\.0|NaN|Infinity/.test(zero), `returns: a zero margin produced a negative or broken capacity — got ${zero}`);
+  await set("rs-margin", "22"); await page.waitForTimeout(200);
+  const hist = await page.$$eval("#rs-hist .rs-hbar", (e) => e.length);
+  assert(hist >= 10, `returns: the simulation should be drawn as a histogram, found ${hist} bars`);
+  assert(!/NaN|Infinity|undefined/.test(await txt("rs-plan") + await txt("rs-funding") + await txt("rs-irr") + await txt("rs-breakeven")), "returns: a new analysis carries a non-number");
+  /* an exit multiple is an input and is graded on the page */
+  assert(/Exit multiple/i.test(await txt("rs-assump")), "returns: the exit multiple is not in the assumption register");
+  /* space: the analysis uses the width, and the page is shorter */
+  await page.setViewportSize({ width: 1600, height: 1000 }); await page.waitForTimeout(250);
+  const cols = await page.$eval(".rs-analysis", (e) => parseInt(getComputedStyle(e).columnCount) || 1).catch(() => 0);
+  assert(cols >= 2, `returns: the analysis should sit in two columns at 1600, found ${cols}`);
+  const hgt = await page.evaluate(() => document.documentElement.scrollHeight);
+  assert(hgt < 7000, `returns: with six more analyses the page should stay compact: the old single column was 5,585px with a third of the content, and this is ${hgt}px`);
+  assert((await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 0, "returns: overflows sideways at 1600");
+  /* a phone: one column, and the result comes straight after the inputs */
+  const mctx = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+  const mp = await mctx.newPage(); await mp.goto(base + "/tools/returns-solver.html"); await mp.waitForTimeout(400);
+  assert((await mp.$eval(".rs-analysis", (e) => parseInt(getComputedStyle(e).columnCount) || 1).catch(() => 0)) === 1, "returns: a phone must stay one column");
+  const order = await mp.evaluate(() => ({ rail: document.querySelector(".result-panel").getBoundingClientRect().top, plan: document.querySelector("#rs-plan").getBoundingClientRect().top }));
+  assert(order.rail < order.plan, "returns: on a phone the result should come before the analysis, not after it");
+  assert((await mp.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 0, "returns: overflows sideways at 390");
+  await mctx.close();
+  await page.setViewportSize({ width: 1280, height: 800 });
+}
+
 /* Plan Consistency, worked example. Five facts are stated more than one
    way (launch date, fleet size, terminal opening, FY2027 headcount,
    acquisition price) and one total does not add up (the headcount chart:
