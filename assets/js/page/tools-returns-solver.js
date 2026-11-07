@@ -103,10 +103,16 @@
        earns, so debt service during the ramp is on top of it, which is the
        point: it is paid from a business that has not yet got there. */
     const capex = phase === "start" ? [cap, 0, 0, 0, 0] : [cap / 3, cap / 3, cap / 3, 0, 0];
+    /* Capital is paid, and the debt drawn, at the start of a year; cash and debt service arrive at its end. The lowest
+       point in a year is therefore either just after the start-of-year payment or at the year-end, whichever is lower:
+       testing the year-ends alone can call a ramp funded when the equity cannot meet the capex when it falls due. */
     let run = 0;
-    const fund = ebitda.map((e, i) => { const net = -capex[i] + e - pay[i] + (i === 0 ? debt : 0); run += net; return { year: i + 1, capex: capex[i], ebitda: e, ds: pay[i], draw: i === 0 ? debt : 0, net, cum: run }; });
-    const trough = fund.reduce((a, y) => y.cum < a.cum ? y : a, fund[0]);
-    const peak = Math.max(0, -trough.cum), equity = Math.max(0, cap - debt), gap = Math.max(0, peak - equity);
+    const fund = ebitda.map((e, i) => {
+      const draw = i === 0 ? debt : 0, start = run - capex[i] + draw, net = -capex[i] + e - pay[i] + draw; run += net;
+      return { year: i + 1, capex: capex[i], ebitda: e, ds: pay[i], draw, net, cum: run, low: Math.min(start, run) };
+    });
+    const trough = fund.reduce((a, y) => y.low < a.low ? y : a, fund[0]);
+    const peak = Math.max(0, -trough.low), equity = Math.max(0, cap - debt), gap = Math.max(0, peak - equity);
 
     /* ---- returns at an exit ----
        Same timing as the required-exit-value calculation above, so the two
@@ -119,8 +125,11 @@
     const owed = bal; eq[5] -= owed;
     const outs = eq.filter(x => x < 0).reduce((a, x) => a + x, 0), ins = eq.filter(x => x > 0).reduce((a, x) => a + x, 0);
     const npv = cf.reduce((a, c, t) => a + c / Math.pow(1 + hur, t), 0);
-    const reqMult = last > 0 && !tvs[1].none ? tvs[1].tv / last : null;
-    const ret = { xm, exitValue, projIrr: irr(cf), eqIrr: irr(eq), moic: outs < 0 ? ins / -outs : null, npv, owed, reqMult };
+    /* Three different situations, not one. The cash flow can earn the hurdle on its own (nothing is needed from an exit); there can be
+       a required exit value but a year-5 EBITDA of zero or less to hang a multiple on; or there is a multiple. A blank is none of them. */
+    const earns = tvs[1].none, noEbitda = !earns && !(last > 0);
+    const reqMult = !earns && last > 0 ? tvs[1].tv / last : null;
+    const ret = { earns, noEbitda, xm, exitValue, projIrr: irr(cf), eqIrr: irr(eq), moic: outs < 0 ? ins / -outs : null, npv, owed, reqMult };
     return { spread, cap, rev, mg, rate, term, cov, debt, hur, yld, phase, ebitda, f, last, maxDebt, ds, dscr, byYear, marginForYield, tvs, cum,
       plan: { cover: planCover, below1, minCover, minYear, avgCover, firstOk, needE, revNeed, headroom, marginNeed }, fund, peak, trough, equity, gap, ret };
   }
@@ -252,6 +261,7 @@
     if (M.debt > 0 && P.cover && P.below1 > 0) items.push(["Warning", `Cover on the planned ${m(M.debt)} is below 1.00× in ${P.below1} of ${P.cover.filter(c => c !== null).length} years`, `The lowest is ${fmtRatio(P.minCover)} in year ${P.minYear}; ${P.firstOk ? `it first reaches the ${M.cov.toFixed(2)}× covenant in year ${P.firstOk}` : `it does not reach the ${M.cov.toFixed(2)}× covenant within five years`}. A lender reads the weakest year.`]);
     if (M.gap > 0.05) items.push(["Stop", "The equity does not fund the ramp", `Peak funding need is ${m(M.peak)} in year ${M.trough.year}, against ${m(M.equity)} of equity: short by ${m(M.gap)}. Debt service during the ramp is paid from a business that has not yet got there.`]);
     if (P.headroom !== null && P.headroom >= 0 && P.headroom < 0.1) items.push(["Warning", `Only ${(P.headroom * 100).toFixed(1)}% of revenue headroom on the planned debt`, `Year-5 revenue can fall to ${m(P.revNeed)} before ${m(M.debt)} only just meets the ${M.cov.toFixed(2)}× covenant.`]);
+    if (R.noEbitda) items.push(["Warning", "No exit multiple can earn the hurdle: year-5 EBITDA is not positive", `The business would have to be worth ${m(M.tvs[1].tv)} at the end of year 5 with nothing earning, and a multiple of nothing is nothing. Look at the margin first.`]);
     if (R.reqMult !== null && R.reqMult > R.xm * 1.25) items.push(["Warning", `The hurdle needs a ${mult(R.reqMult)} exit multiple, against ${mult(R.xm)} assumed`, `At ${mult(R.xm)} the project returns ${pc(R.projIrr)} against a ${(M.hur * 100).toFixed(1)}% hurdle. Ask whether a buyer would pay ${mult(R.reqMult)} year-5 EBITDA for this business.`]);
     items.push(["Note", `Cumulative EBITDA covers ${(M.cum / M.cap * 100).toFixed(0)}% of the capital`, `${m(M.cum)} over five years against ${m(M.cap)} deployed. ${hurTv.none ? "The cash flow alone earns the hurdle." : `For a ${(M.hur * 100).toFixed(1)}% return the business must be worth ${m(hurTv.tv)} (${Math.round(hurTv.pct * 100)}% of capital) at the end of year 5.`}`]);
     $("rs-findings").innerHTML = items.map(([t, h, d]) => `<div style="padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:var(--fs-sm)"><b style="color:var(--jk-amber);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em">${t}</b><div><b>${escapeHtml(h)}</b></div><div>${escapeHtml(d)}</div></div>`).join("");
@@ -289,11 +299,11 @@
   }
   function fundingView(M) {
     const scale = Math.max(M.peak, M.equity, 1) * 1.08;
-    const rows = M.fund.map(y => `<div class="rs-crow"><span>Year ${y.year}</span><span class="rs-track" aria-hidden="true">${y.cum < 0 ? `<i class="${-y.cum > M.equity ? "bad" : "mid"}" style="width:${Math.min(100, -y.cum / scale * 100).toFixed(1)}%"></i>` : `<i class="ok" style="width:${Math.min(100, y.cum / scale * 100).toFixed(1)}%"></i>`}<b class="rs-mark" style="left:${Math.min(100, M.equity / scale * 100).toFixed(1)}%" title="Equity ${m(M.equity)}"></b></span><span class="tnum">${y.cum < 0 ? "need " + m(-y.cum) : "surplus " + m(y.cum)}</span></div>`).join("");
-    const tbl = `<div class="table-scroll"><table class="gap-table"><thead><tr><th>Year</th><th>Capex</th><th>EBITDA</th><th>Debt service</th><th>Net cash</th><th>Cumulative</th></tr></thead><tbody>` +
-      M.fund.map(y => `<tr><td>Year ${y.year}</td><td class="tnum">${m(-y.capex)}</td><td class="tnum">${m(y.ebitda)}</td><td class="tnum">${m(-y.ds)}</td><td class="tnum">${m(y.net)}</td><td class="tnum"><b>${m(y.cum)}</b></td></tr>`).join("") + `</tbody></table></div>`;
+    const rows = M.fund.map(y => `<div class="rs-crow"><span>Year ${y.year}</span><span class="rs-track" aria-hidden="true">${y.low < 0 ? `<i class="${-y.low > M.equity ? "bad" : "mid"}" style="width:${Math.min(100, -y.low / scale * 100).toFixed(1)}%"></i>` : `<i class="ok" style="width:${Math.min(100, y.cum / scale * 100).toFixed(1)}%"></i>`}<b class="rs-mark" style="left:${Math.min(100, M.equity / scale * 100).toFixed(1)}%" title="Equity ${m(M.equity)}"></b></span><span class="tnum">${y.low < 0 ? "need " + m(-y.low) : "surplus " + m(y.cum)}</span></div>`).join("");
+    const tbl = `<div class="table-scroll"><table class="gap-table"><thead><tr><th>Year</th><th>Capex</th><th>EBITDA</th><th>Debt service</th><th>Net cash</th><th>Year-end</th><th>Lowest</th></tr></thead><tbody>` +
+      M.fund.map(y => `<tr><td>Year ${y.year}</td><td class="tnum">${m(-y.capex)}</td><td class="tnum">${m(y.ebitda)}</td><td class="tnum">${m(-y.ds)}</td><td class="tnum">${m(y.net)}</td><td class="tnum">${m(y.cum)}</td><td class="tnum"><b>${m(y.low)}</b></td></tr>`).join("") + `</tbody></table></div>`;
     const verdict = M.gap > 0.05 ? `Peak funding need is <b>${m(M.peak)}</b> in year ${M.trough.year}, against ${m(M.equity)} of equity: <b>short by ${m(M.gap)}</b>.` : `Peak funding need is ${m(M.peak)} in year ${M.trough.year}, against ${m(M.equity)} of equity: covered, with ${m(M.equity - M.peak)} to spare.`;
-    return `<div class="rs-chart">${rows}</div><p class="rs-note">${verdict} The line marks the equity (capital less debt). The debt draw is year 1; capital goes out at the start of its year, cash and debt service fall at year-ends.</p>${tbl}`;
+    return `<div class="rs-chart">${rows}</div><p class="rs-note">${verdict} The line marks the equity (capital less debt). The debt draw is year 1; capital goes out at the start of its year, cash and debt service fall at year-ends, so the lowest point in a year can be just after the capital goes out.</p>${tbl}`;
   }
   function breakevenView(M) {
     const P = M.plan;
@@ -314,7 +324,7 @@
       ["Project IRR", pc(R.projIrr), `Against a ${(M.hur * 100).toFixed(1)}% hurdle. NPV at the hurdle ${m(R.npv)}`],
       ["Equity IRR", pc(R.eqIrr), R.projIrr !== null && R.eqIrr !== null ? (R.eqIrr > R.projIrr ? "Leverage adds to the return." : "Leverage costs more than the project earns, so the debt lowers the return.") : "No rate: the cash flows do not change sign."],
       ["Equity multiple", R.moic === null ? "n/a" : fmtRatio(R.moic), `Cash back for each dollar of equity put in. ${m(R.owed)} of debt is repaid from the exit`],
-      ["Exit multiple the hurdle needs", mult(R.reqMult), R.reqMult === null ? "The cash flow alone earns the hurdle." : `${mult(R.reqMult)} year-5 EBITDA, from the value the hurdle needs of ${m(M.tvs[1].tv)}`]
+      ["Exit multiple the hurdle needs", R.earns ? "none needed" : R.noEbitda ? "n/a" : mult(R.reqMult), R.earns ? "The cash flow alone earns the hurdle." : R.noEbitda ? `Year-5 EBITDA is not positive, so no exit multiple can earn the hurdle: the business would have to be worth ${m(M.tvs[1].tv)} with nothing earning.` : `${mult(R.reqMult)} year-5 EBITDA, from the value the hurdle needs of ${m(M.tvs[1].tv)}`]
     ];
     return `<div class="table-scroll"><table class="gap-table"><tbody>` + rows.map(([a, b, c]) => `<tr><td>${escapeHtml(a)}</td><td class="tnum"><b>${b}</b></td><td class="muted">${escapeHtml(c)}</td></tr>`).join("") + `</tbody></table></div><p class="hint" style="margin-top:.5rem">Capital goes out at the start of its year and cash arrives at year-ends. An exit at the multiple the hurdle needs earns exactly the hurdle. A multiple is your assumption; none is a benchmark.</p>`;
   }
@@ -336,7 +346,7 @@
     const P = M.plan, R = M.ret;
     if (M.debt > 0 && P.cover && P.minCover !== null) f.push({ sev: P.below1 > 0 ? "warn" : "note", h: `Cover on the planned ${m(M.debt)} runs from ${fmtRatio(P.minCover)} (year ${P.minYear}) to ${fmtRatio(Math.max(...P.cover.filter(c => c !== null)))}`, d: P.headroom === null ? "" : `Year-5 revenue can ${P.headroom < 0 ? "not fall at all: it is already short by" : "fall by"} ${Math.abs(P.headroom * 100).toFixed(1)}% before the covenant is only just met.` });
     f.push({ sev: M.gap > 0.05 ? "stop" : "note", h: M.gap > 0.05 ? `The equity is short of the ramp by ${m(M.gap)}` : `The equity covers the ramp, with ${m(M.equity - M.peak)} to spare`, d: `Peak funding need ${m(M.peak)} in year ${M.trough.year} against ${m(M.equity)} of equity.` });
-    f.push({ sev: R.reqMult !== null && R.reqMult > R.xm * 1.25 ? "warn" : "note", h: `At a ${mult(R.xm)} exit the project returns ${pc(R.projIrr)} and the equity ${pc(R.eqIrr)}`, d: R.reqMult === null ? "The cash flow alone earns the hurdle." : `The hurdle needs a ${mult(R.reqMult)} exit multiple.` });
+    f.push({ sev: R.noEbitda || (R.reqMult !== null && R.reqMult > R.xm * 1.25) ? "warn" : "note", h: `At a ${mult(R.xm)} exit the project returns ${pc(R.projIrr)} and the equity ${pc(R.eqIrr)}`, d: R.earns ? "The cash flow alone earns the hurdle." : R.noEbitda ? "Year-5 EBITDA is not positive, so no exit multiple can earn the hurdle." : `The hurdle needs a ${mult(R.reqMult)} exit multiple.` });
     const S = M._S;
     if (S) { const b = S.breach; f.push({ sev: b !== null && b >= 0.2 ? "warn" : "note", h: `Across the stated ranges, debt capacity runs ${m(pctile(S.caps, .1))} to ${m(pctile(S.caps, .9))} (P10 to P90)`, d: b === null ? "No debt is planned, so no breach test was run." : `Planned debt of ${m(M.debt)} breaches the covenant in ${Math.round(b * 100)}% of ${S.N.toLocaleString("en-GB")} seeded draws.` }); }
     mountPrintSummary({

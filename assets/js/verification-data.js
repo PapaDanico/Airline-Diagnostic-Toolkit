@@ -4,8 +4,8 @@ window.JK_VERIFICATION = {
   "suites": [
     {
       "suite": "e2e",
-      "headline": "825 behaviour assertions across the site",
-      "assertions": 825,
+      "headline": "829 behaviour assertions across the site",
+      "assertions": 829,
       "failures": 0
     },
     {

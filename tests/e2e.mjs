@@ -3257,6 +3257,20 @@ section("Returns solver: depth and space");
   const ir2 = await txt("rs-irr");
   assert(/(^|[^0-9.])(9\.9|10\.0)%/.test(ir2), `returns: exiting at the multiple the hurdle needs should give a project IRR of 10%, got ${ir2}`);
   await set("rs-exit", "6"); await page.waitForTimeout(200);
+  /* review findings, each traced to a real input and pinned here.
+     1. A margin of zero leaves year-5 EBITDA at zero, so no exit multiple can be computed. That is not "the cash flow alone earns the hurdle". */
+  await set("rs-margin", "0"); await page.waitForTimeout(300);
+  const irZ = await txt("rs-irr") + " " + await txt("rs-findings");
+  assert(!/cash flow alone earns the hurdle/i.test(irZ), `returns: a zero margin must not claim the cash flow alone earns the hurdle — got ${irZ.slice(0, 400)}`);
+  assert(/not positive|no exit multiple/i.test(await txt("rs-irr")), "returns: with no EBITDA the page should say no exit multiple can earn the hurdle");
+  assert(!/cash flow alone earns the hurdle/i.test(await page.evaluate(() => (document.querySelector(".print-summary") || { innerText: "" }).innerText)), "returns: the printed summary claims the cash flow alone earns the hurdle at a zero margin");
+  await set("rs-margin", "22"); await page.waitForTimeout(200);
+  /* 2. Capital paid at the start of a year is a funding low point even when the year then earns. All capital at the start, no debt, margin 60%:
+        the balance falls to -100.0 at the start of year 1 and only recovers to -95.2 by its end. */
+  await page.selectOption("#rs-phase", "start"); await set("rs-debt", "0"); await set("rs-margin", "60"); await page.waitForTimeout(300);
+  const f2 = await txt("rs-funding");
+  assert(/Peak funding need is USD 100.0m in year 1/.test(f2), `returns: the funding low point should include capital paid at the start of the year (100.0m in year 1) — got ${f2.slice(0, 300)}`);
+  await page.selectOption("#rs-phase", "even"); await set("rs-debt", "30"); await set("rs-margin", "22"); await page.waitForTimeout(250);
   /* a margin of zero must not produce a negative debt capacity */
   await set("rs-margin", "0"); await page.waitForTimeout(300);
   const zero = await txt("rs-tornado") + await txt("rs-mc") + await txt("rs-head");
