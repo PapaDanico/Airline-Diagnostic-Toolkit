@@ -3197,6 +3197,31 @@ section("Desktop space");
   }
 }
 
+/* The 48-hour data request is six checklists. Down one 900px column on a
+   1600px screen they ran 6,600px; side by side they run about half that, and
+   a phone still gets one column. */
+section("Data request layout");
+{
+  const ctx = await browser.newContext({ viewport: { width: 1600, height: 1000 }, reducedMotion: "reduce" });
+  const d = await ctx.newPage();
+  await d.goto(base + "/tools/data-request.html"); await d.waitForTimeout(350);
+  const cols = await d.$eval(".dr-grid", (e) => getComputedStyle(e).gridTemplateColumns.split(" ").filter(Boolean).length).catch(() => 0);
+  assert(cols >= 2, `data request: the checklists should sit in two columns at 1600, found ${cols}`);
+  const secs = await d.$$eval(".dr-grid > .dr-section", (e) => e.length).catch(() => 0);
+  assert(secs === 6, `data request: all six checklist sections should be in the grid, found ${secs}`);
+  assert((await d.evaluate(() => document.querySelectorAll(".dr-item input[type=checkbox]").length)) === 28, "data request: the 28 items must all still be there");
+  assert((await d.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 0, "data request: overflows sideways at 1600");
+  /* ticking still counts */
+  await d.click(".dr-item label"); await d.waitForTimeout(200);
+  assert(/^1/.test((await d.evaluate(() => (document.querySelector("#collected, .tracker-item:nth-child(2) .count") || {}).textContent || "")).trim()), "data request: ticking an item no longer updates the collected count");
+  await ctx.close();
+  const m = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+  const p = await m.newPage(); await p.goto(base + "/tools/data-request.html"); await p.waitForTimeout(300);
+  assert((await p.$eval(".dr-grid", (e) => getComputedStyle(e).gridTemplateColumns.split(" ").filter(Boolean).length).catch(() => 0)) === 1, "data request: a phone must stay one column");
+  assert((await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 0, "data request: overflows sideways at 390");
+  await m.close();
+}
+
 /* Plan Consistency, worked example. Five facts are stated more than one
    way (launch date, fleet size, terminal opening, FY2027 headcount,
    acquisition price) and one total does not add up (the headcount chart:
