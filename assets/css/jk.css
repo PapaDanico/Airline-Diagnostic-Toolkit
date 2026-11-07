@@ -1804,3 +1804,69 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   line-height: 1.45;
 }
 .screens b { display: block; }
+
+/* ── Desktop space ────────────────────────────────────────────────────
+   The content column was a fixed 1140px, so on a 1600px screen 29% of the
+   width was empty gutter, and several long pages ran one narrow column down
+   the middle of it. The container now grows with the viewport (never below
+   1140, never above 1480) and those pages use the width. Phones and narrow
+   windows are untouched: every multi-column rule below sits behind a
+   min-width query. Prose keeps its own measure (ch-capped), so reading
+   comfort does not change; only the number of columns does. */
+:root { --maxw: clamp(1140px, 90vw, 1480px); }
+
+/* glossary: terms flow in columns, categories span them */
+@media (min-width: 1100px) {
+  .g-group { columns: 3 380px; column-gap: 44px; }
+  .g-group > h2, .g-group > p.muted { column-span: all; }
+  .g-term { break-inside: avoid; }
+  #g-body.is-searching .g-group { columns: 3 380px; }
+}
+
+/* FAQ: questions in two columns inside each section */
+@media (min-width: 1100px) {
+  .faq-sec { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); column-gap: 48px; align-items: start; }
+  .faq-sec > h2, .faq-sec > p.lede { grid-column: 1 / -1; }
+  .faq-sec { margin-bottom: 2.2rem; }
+}
+
+/* tutorial: the step text, and beside it the boxes that go with it */
+@media (min-width: 1100px) {
+  .step-body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); grid-template-areas: "main aside" "go aside"; grid-template-rows: auto 1fr; column-gap: 44px; align-items: start; }
+  .step-main { grid-area: main; }
+  .step-body > .go { grid-area: go; }
+  .step-aside { grid-area: aside; padding-top: 1.6rem; }
+  .step-aside > :first-child { margin-top: 0; }
+  .step-aside .need, .step-aside .out, .step-aside .pitfall { max-width: none; }
+}
+
+/* scorecard: two question cards across inside each domain, wide screens only */
+@media (min-width: 1360px) {
+  .domain .qbody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; padding-bottom: 8px; }
+  .domain .qbody .q { border-bottom: 1px dashed var(--jk-line-2); }
+  .domain .qbody .q:last-child { border-bottom: 1px dashed var(--jk-line-2); }
+}
+
+/* about: prose beside the facts */
+.about-grid { display: grid; grid-template-columns: 1fr; gap: 0 56px; }
+@media (min-width: 1100px) {
+  .about-grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+  .about-grid > * { min-width: 0; }
+}
+
+/* methodology: a sticky contents list beside the text */
+.legal.meth { max-width: var(--maxw); }
+/* A callout box keeps the 820px measure the long-document style always gave it: the page is wider now, the line is not.
+   Only the box: a paragraph callout keeps its own, narrower prose measure. */
+.legal.meth .meth-body div.note { max-width: 820px; }
+.meth-layout { display: block; }
+@media (min-width: 1100px) {
+  .meth-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 56px; align-items: start; }
+  .meth-layout > * { min-width: 0; }
+  #meth-toc { position: sticky; top: 96px; font-size: var(--fs-sm); }
+  #meth-toc h2 { font-family: var(--sans); font-size: var(--fs-2xs); letter-spacing: .1em; text-transform: uppercase; color: var(--jk-muted); margin: 0 0 .7rem; }
+  #meth-toc a { display: block; padding: .32rem 0; color: var(--jk-ink); }
+  #meth-toc a:hover { color: var(--accent); }
+}
+@media (max-width: 1099px) { #meth-toc { display: none; } }
+@media print { #meth-toc { display: none; } .meth-layout { display: block; } }

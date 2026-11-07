@@ -3137,6 +3137,66 @@ section("Platform navigation, counts and tool-page UX");
   assert(hint < 15, `safety map: the scale key under Step 1 renders at ${hint}px, larger than the other hints`);
 }
 
+/* Desktop space. Every page sat in a 1140px column, so on a 1600px screen
+   29% of the width was empty gutter, and several long pages ran one narrow
+   column down the middle of it: the glossary 23,000px tall, the scorecard 17,000px.
+   The container now scales with the viewport and those pages use the width,
+   on desktop only. A phone must stay exactly one column, and nothing may
+   overflow sideways at any width. */
+section("Desktop space");
+{
+  const ctx = await browser.newContext({ viewport: { width: 1600, height: 1000 }, reducedMotion: "reduce" });
+  const d = await ctx.newPage();
+  const go = async (f) => { await d.goto(base + "/" + f); await d.waitForTimeout(350); };
+  const tracks = (sel) => d.$eval(sel, (e) => getComputedStyle(e).gridTemplateColumns.split(" ").filter(Boolean).length).catch(() => 0);
+  const h = () => d.evaluate(() => document.documentElement.scrollHeight);
+  const PAGES = ["index.html", "faq.html", "glossary.html", "tutorial.html", "diagnostic.html", "methodology.html", "about.html", "tools/index.html", "regulations.html", "tools/returns-solver.html"];
+  for (const f of PAGES) {
+    await go(f);
+    const m = await d.evaluate(() => ({ wrap: Math.round(document.querySelector("main .wrap, .wrap").getBoundingClientRect().width), ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
+    assert(m.wrap >= 1400, `${f}: the container should use a 1600px screen, it is ${m.wrap}px wide`);
+    assert(m.ox <= 0, `${f}: overflows sideways by ${m.ox}px at 1600`);
+  }
+  await go("glossary.html");
+  const gcols = await d.$eval(".g-group", (e) => parseInt(getComputedStyle(e).columnCount) || 1);
+  assert(gcols >= 2, `glossary: terms should flow in columns at 1600, found ${gcols}`);
+  assert((await h()) < 15500, `glossary: should be far shorter than the old 23,620px, it is ${await h()}px`);
+  await go("faq.html");
+  assert((await tracks(".faq-sec")) >= 2, "faq: questions should sit in two columns at 1600");
+  await go("tutorial.html");
+  const sp = await d.evaluate(() => { const m = document.querySelector(".step-main"), a = document.querySelector(".step-aside"); if (!m || !a) return null; const r = m.getBoundingClientRect(), s = a.getBoundingClientRect(); return { beside: s.left >= r.right - 2, topGap: Math.abs(s.top - r.top) }; });
+  assert(sp && sp.beside, "tutorial: the You need / You get / Common mistake boxes should sit beside the step text");
+  await go("diagnostic.html");
+  assert((await tracks(".qbody")) >= 2, "scorecard: questions should sit in two columns at 1600");
+  assert((await h()) < 13800, `scorecard: should be well under the old 17,000px, it is ${await h()}px`);
+  await go("about.html");
+  assert((await tracks(".about-grid")) >= 2, "about: content and aside should sit in two columns");
+  await go("methodology.html");
+  const toc = await d.evaluate(() => { const t = document.querySelector("#meth-toc"); return t ? { n: t.querySelectorAll("a").length, sticky: getComputedStyle(t).position } : null; });
+  assert(toc && toc.n === 8 && toc.sticky === "sticky", `methodology: a sticky contents list of the 8 sections is missing — got ${JSON.stringify(toc)}`);
+  await ctx.close();
+
+  /* nothing overflows at the other desktop widths, and a phone stays one column */
+  for (const w of [1280, 1920, 390]) {
+    const c2 = await browser.newContext({ viewport: { width: w, height: 900 }, reducedMotion: "reduce" });
+    const p2 = await c2.newPage();
+    for (const f of PAGES) {
+      await p2.goto(base + "/" + f); await p2.waitForTimeout(250);
+      const ox = await p2.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      assert(ox <= 0, `${f}: overflows sideways by ${ox}px at ${w}`);
+    }
+    if (w === 390) {
+      await p2.goto(base + "/diagnostic.html"); await p2.waitForTimeout(300);
+      assert((await p2.$eval(".qbody", (e) => getComputedStyle(e).gridTemplateColumns.split(" ").filter(Boolean).length)) === 1, "scorecard: a phone must stay one column");
+      await p2.goto(base + "/glossary.html"); await p2.waitForTimeout(300);
+      assert((await p2.$eval(".g-group", (e) => parseInt(getComputedStyle(e).columnCount) || 1)) === 1, "glossary: a phone must stay one column");
+      await p2.goto(base + "/faq.html"); await p2.waitForTimeout(300);
+      assert((await p2.$eval(".faq-sec", (e) => getComputedStyle(e).gridTemplateColumns.split(" ").filter(Boolean).length)) === 1, "faq: a phone must stay one column");
+    }
+    await c2.close();
+  }
+}
+
 /* Plan Consistency, worked example. Five facts are stated more than one
    way (launch date, fleet size, terminal opening, FY2027 headcount,
    acquisition price) and one total does not add up (the headcount chart:

@@ -5,6 +5,22 @@
 
 applyPartner(); mountChrome();
 
+/* Contents list for the long text: built once from the page's own headings,
+   so it cannot drift from them. It is shown beside the text on wide screens
+   only; on a phone it is hidden by CSS and the page reads as before. */
+{
+  const toc = document.getElementById("meth-toc");
+  const heads = [...document.querySelectorAll(".meth-body h2")];
+  if (toc && heads.length) {
+    const title = document.createElement("h2"); title.textContent = "On this page"; toc.appendChild(title);
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = "meth-s" + (i + 1);
+      h.style.scrollMarginTop = "96px";
+      const a = document.createElement("a"); a.href = "#" + h.id; a.textContent = h.textContent.trim(); toc.appendChild(a);
+    });
+  }
+}
+
 /* The data-as-of stamp, read off the benchmarks rather than typed.
 
    This page said "current as of Q4 2024 – mid-2025" while the data

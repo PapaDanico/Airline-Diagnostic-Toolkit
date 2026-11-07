@@ -16,7 +16,8 @@
 <link rel="stylesheet" href="assets/css/fonts.css">
 <link rel="stylesheet" href="assets/css/jk.css">
 <style>
-  .about { max-width: 820px; }
+  .about { max-width: var(--maxw); }
+  .about-col > h2:first-child { margin-top: 0; }
   .about h2 { font-family: var(--sans); font-size: var(--fs-md); margin: 2.2rem 0 .6rem; color: var(--jk-ink); }
   .about p, .about li { font-size: var(--fs-base); line-height: 1.65; color: var(--jk-ink); }
   .about p { margin-bottom: .8rem; }
@@ -66,6 +67,8 @@
 
 <section>
   <div class="wrap about">
+  <div class="about-grid">
+  <div class="about-col">
 
     <h2>What we do</h2>
     <p>JK &amp; Associates works with airline operators, investors and greenfield ventures across
@@ -86,6 +89,9 @@
       development-finance investors assessing whether a carrier's plan survives contact with its
       own numbers. And the postholders — flight ops, maintenance, safety, training — who carry
       the regulatory obligation personally.</p>
+
+  </div>
+  <div class="about-col">
 
     <h2>What is covered today</h2>
     <div class="about-cover" id="about-cover"></div>
@@ -121,6 +127,8 @@
       <a href="terms.html"><b>Terms of Use</b><small>What these tools are, and what they are not</small></a>
     </div>
 
+  </div>
+  </div>
   </div>
 </section>
 </main>
