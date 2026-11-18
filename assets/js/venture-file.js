@@ -333,8 +333,12 @@ const JKW = {
     const saved = (src.get(this.PROFILE_KEY) || {}).revenue || {};
     let yr1Rev = 0, yr1Doc = 0;
     (st.segments || []).forEach(seg => {
-      yr1Rev += (seg.rate || 0) * (seg.hours || 0);
-      yr1Doc += (seg.doc || 0) * (seg.hours || 0);
+      /* A percentage stream (brokerage, parts margin, ancillary) stores its
+         rate as a percent of an entered base, so the unsaved fallback has to
+         scale it or it overstates the headline a hundredfold. */
+      const k = seg.kind === "pct" ? 0.01 : 1;
+      yr1Rev += (seg.rate || 0) * (seg.hours || 0) * k;
+      yr1Doc += (seg.doc || 0) * (seg.hours || 0) * k;
     });
     if (typeof saved.yr1Rev === "number") yr1Rev = saved.yr1Rev;
     const yr1Contrib = typeof saved.yr1Contrib === "number" ? saved.yr1Contrib : (yr1Rev - yr1Doc);

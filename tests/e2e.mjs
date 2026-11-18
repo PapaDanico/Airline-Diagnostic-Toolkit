@@ -3406,6 +3406,10 @@ section("Revenue Builder: new streams");
   await page.click("[data-delete]"); await page.waitForTimeout(150);
   await add("brokerage");
   assert(/300K/.test(await rail("r-rev")) && /120K/.test(await rail("r-doc")), `revenue: brokerage is a percentage of value brokered - 300K revenue, 120K cost - got ${await rail("r-rev")} / ${await rail("r-doc")}`);
+  /* unsaved model on the dashboard: the percentage stream must not be read as rate x base (100x) */
+  await page.goto(base + "/tools/venture-dashboard.html"); await page.waitForTimeout(500);
+  assert(/USD 300K\/year revenue/.test(await page.evaluate(() => document.body.innerText)), "revenue: an unsaved brokerage stream should read 300K on the Venture File, not 30M");
+  await page.goto(base + "/tools/revenue-builder.html"); await page.waitForTimeout(400);
   await page.click("[data-delete]"); await page.waitForTimeout(150);
   await add("miningShuttle");
   assert(/2\.98M/.test(await rail("r-rev")) && /1\.44M/.test(await rail("r-doc")), `revenue: mining shuttle retainer plus hours should be 2.98M revenue and 1.44M cost - got ${await rail("r-rev")} / ${await rail("r-doc")}`);

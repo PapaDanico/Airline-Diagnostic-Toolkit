@@ -714,6 +714,7 @@
     return Object.assign({
       id: newId(),
       type,
+      kind: cfg.kind || "",
       aircraft: ac,
       rate: cfg.rateBands.base,
       doc: cfg.docBands.base,
