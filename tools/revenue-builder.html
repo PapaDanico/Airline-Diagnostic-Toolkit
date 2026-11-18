@@ -83,18 +83,42 @@
         <div style="margin-top:1rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
           <select id="seg-type" aria-label="Segment type to add" class="field" style="max-width:280px;margin:0">
             <option value="">Choose segment type…</option>
-            <option value="executiveJet">Executive Jet Charter</option>
-            <option value="safariCharter">Safari / Tourism Charter</option>
-            <option value="aeromedical">Aeromedical / HEMS Retainer</option>
-            <option value="acmiWetLease">ACMI / Wet Lease</option>
+            <optgroup label="Flight operations (hours x rate)">
+              <option value="executiveJet">Executive Jet / Private (UHNW) Charter</option>
+              <option value="corporateCharter">Corporate / Official Charter</option>
+              <option value="jetCard">Jet Card / Membership</option>
+              <option value="safariCharter">Safari / Tourism Charter</option>
+              <option value="ngoCharter">NGO / UN / Humanitarian Charter</option>
+              <option value="miningShuttle">Extractive / Infrastructure Shuttle</option>
+              <option value="aeromedical">Aeromedical / HEMS Retainer</option>
+              <option value="medevacFixedWing">Fixed-Wing Medevac / CASEVAC</option>
+              <option value="helicopterCharter">Helicopter Charter / Utility</option>
+              <option value="aerialSurvey">Aerial Survey / Special Missions</option>
+              <option value="lightCargo">Light Cargo / Express</option>
+              <option value="acmiWetLease">ACMI / Wet Lease</option>
+            </optgroup>
+            <optgroup label="Services and non-flight streams">
+              <option value="managementFee">Aircraft Management Fees</option>
+              <option value="brokerage">Charter Brokerage Commission</option>
+              <option value="mroLabour">MRO Labour (third-party work)</option>
+              <option value="partsMargin">Parts Margin</option>
+              <option value="fboHandling">FBO Handling Fees</option>
+              <option value="fuelMargin">FBO Fuel Margin</option>
+              <option value="hangarage">Hangarage and Parking</option>
+              <option value="groundHandling">Ground Handling (third-party)</option>
+              <option value="ancillary">Ancillary Services</option>
+            </optgroup>
           </select>
           <button class="btn btn-primary" id="add-seg">Add segment</button>
+          <button class="btn" id="load-uc" type="button">Load Ultra Caelum preset</button>
+          <button class="btn btn-ghost-sm" id="clear-segs" type="button">Clear all</button>
+          <span id="seg-status" class="muted" style="font-size:var(--fs-sm)" role="status"></span>
         </div>
 
         <p class="hint muted" style="margin:.7rem 0 0;font-size:var(--fs-xs)">
           Every figure a new segment arrives with — rate, direct operating cost, utilisation, aircraft value —
           is an <b>indicative planning default, not a sourced benchmark</b>. They exist to give you something to
-          argue with. Replace them with your own rates and costs before this model is shown to anyone.
+          argue with. Non-flight streams (management, brokerage, MRO, FBO, hangarage) are priced per unit or as a percentage rather than per flight hour. Replace them with your own rates and costs before this model is shown to anyone.
         </p>
 
         <div id="seg-cards" style="margin-top:1.4rem"></div>
@@ -190,7 +214,7 @@
   <div class="wrap">
     <h3 style="font-size:var(--fs-md)">Assumptions and limits</h3>
     <p class="muted" style="font-size:var(--fs-sm);max-width:780px">
-      Rate bands are JK &amp; Associates planning ranges. Seasonality is applied to Year 1 only using monthly index factors; Years 2–10 use a flat annual average. No discounting — all figures are nominal. Break-even hours are computed as annual capital charge ÷ (rate − DOC); for leased aircraft the annual lease rental replaces the capital charge.
+      Rate bands are JK &amp; Associates planning ranges, informed by public broker, press and operator guidance on charter pricing, management fees, jet cards, MRO labour rates, FBO handling and aerial-survey rates. They are unverified planning estimates, not citations, and none is a quotation. Flight streams earn rate × hours; non-flight streams earn price × volume, or a percentage of a base you enter, and carry their own direct cost. Seasonality is applied to Year 1 only using monthly index factors; Years 2–10 use a flat annual average. No discounting — all figures are nominal. Break-even hours are computed as annual capital charge ÷ (rate − DOC); for leased aircraft the annual lease rental replaces the capital charge.
     </p>
     <p class="disclaimer" style="max-width:780px">
       This tool is a planning aid, not investment advice, a valuation, or a substitute for a bankable financial model. Obtain independent financial and legal advice before committing capital.

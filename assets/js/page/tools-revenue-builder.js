@@ -11,9 +11,10 @@
      the way the platform names things removes the special case rather
      than working around it. */
   const store = toolStore("revenue");
+  const FLAT = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
   const REVENUE_SEGMENTS = {
     executiveJet: {
-      label: "Executive Jet Charter",
+      group: "flight", label: "Executive Jet Charter",
       aircraft: ["Dassault Falcon 7X", "Cessna Citation Sovereign", "Gulfstream G280"],
       rateBands: { low: 7500, base: 9000, high: 12000 },
       docBands: { low: 4200, base: 5250, high: 6800 },
@@ -21,7 +22,7 @@
       seasonality: [0.7, 0.8, 0.9, 1.0, 1.1, 1.0, 0.9, 0.8, 0.9, 1.0, 1.1, 1.2]
     },
     safariCharter: {
-      label: "Safari / Tourism Charter",
+      group: "flight", label: "Safari / Tourism Charter",
       aircraft: ["Cessna C208 Caravan", "Cessna C206", "Pilatus PC-12"],
       rateBands: { low: 900, base: 1200, high: 1600 },
       docBands: { low: 400, base: 550, high: 750 },
@@ -29,21 +30,170 @@
       seasonality: [0.9, 0.9, 1.0, 1.1, 1.2, 1.1, 1.0, 0.8, 0.7, 0.9, 1.0, 1.1]
     },
     aeromedical: {
-      label: "Aeromedical / HEMS Retainer",
+      group: "flight", label: "Aeromedical / HEMS Retainer",
       aircraft: ["Airbus H125", "Airbus AS355", "Bell 407"],
       rateBands: { low: 1500, base: 2200, high: 3000 },
       docBands: { low: 700, base: 950, high: 1300 },
       utilBands: { conservative: 200, base: 400, optimistic: 600 },
       seasonality: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-      retainerBands: { low: 25000, base: 45000, high: 80000 }
+      retainerBands: { low: 25000, base: 45000, high: 80000 },
+      defaultMix: { adHoc: 0, blockHours: 0, retainer: 100 }
     },
     acmiWetLease: {
-      label: "ACMI / Wet Lease",
+      group: "flight", label: "ACMI / Wet Lease",
       aircraft: ["ATR 72-600", "Embraer E190", "Boeing 737-800"],
       rateBands: { low: 3500, base: 5000, high: 7500 },
       docBands: { low: 2200, base: 3200, high: 4800 },
       utilBands: { conservative: 800, base: 1200, optimistic: 1800 },
-      seasonality: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      seasonality: FLAT
+    },
+    corporateCharter: {
+      group: "flight", label: "Corporate / Official Charter",
+      aircraft: ["Cessna Citation Sovereign+", "Bombardier Challenger 350", "Embraer Legacy 600"],
+      rateBands: { low: 3800, base: 5200, high: 7000 },
+      docBands: { low: 2000, base: 2800, high: 3800 },
+      utilBands: { conservative: 250, base: 400, optimistic: 600 },
+      seasonality: [0.8, 0.9, 1.0, 1.0, 1.0, 0.9, 0.9, 1.0, 1.1, 1.1, 1.1, 1.2]
+    },
+    jetCard: {
+      group: "flight", label: "Jet Card / Membership",
+      aircraft: ["Cessna Citation Sovereign+", "Embraer Phenom 300E", "Bombardier Challenger 350"],
+      rateBands: { low: 5200, base: 6800, high: 9000 },
+      docBands: { low: 2600, base: 3600, high: 4800 },
+      utilBands: { conservative: 100, base: 200, optimistic: 350 },
+      seasonality: [0.8, 0.9, 1.0, 1.0, 1.0, 0.9, 0.9, 1.0, 1.1, 1.1, 1.1, 1.2],
+      defaultMix: { adHoc: 0, blockHours: 100, retainer: 0 }
+    },
+    ngoCharter: {
+      group: "flight", label: "NGO / UN / Humanitarian Charter",
+      aircraft: ["Cessna C208 Caravan", "Pilatus PC-12", "Dash 8-300"],
+      rateBands: { low: 1200, base: 1700, high: 2400 },
+      docBands: { low: 650, base: 900, high: 1300 },
+      utilBands: { conservative: 300, base: 500, optimistic: 800 },
+      seasonality: FLAT,
+      retainerBands: { low: 15000, base: 30000, high: 55000 },
+      defaultMix: { adHoc: 0, blockHours: 0, retainer: 100 }
+    },
+    miningShuttle: {
+      group: "flight", label: "Extractive / Infrastructure Shuttle",
+      aircraft: ["Dash 8-300", "Pilatus PC-12", "Beechcraft 1900D"],
+      rateBands: { low: 2000, base: 2900, high: 4200 },
+      docBands: { low: 1200, base: 1800, high: 2500 },
+      utilBands: { conservative: 500, base: 800, optimistic: 1200 },
+      seasonality: FLAT,
+      retainerBands: { low: 30000, base: 55000, high: 95000 },
+      defaultMix: { adHoc: 0, blockHours: 0, retainer: 100 }
+    },
+    helicopterCharter: {
+      group: "flight", label: "Helicopter Charter / Utility",
+      aircraft: ["Airbus H125", "Airbus H135", "Bell 407"],
+      rateBands: { low: 1800, base: 2500, high: 3400 },
+      docBands: { low: 800, base: 1100, high: 1500 },
+      utilBands: { conservative: 200, base: 350, optimistic: 550 },
+      seasonality: [0.9, 0.9, 1.0, 1.1, 1.2, 1.1, 1.0, 0.9, 0.8, 0.9, 1.0, 1.1]
+    },
+    medevacFixedWing: {
+      group: "flight", label: "Fixed-Wing Medevac / CASEVAC",
+      aircraft: ["Beechcraft King Air 350i", "Pilatus PC-12", "Cessna Citation Sovereign+"],
+      rateBands: { low: 2400, base: 3300, high: 4600 },
+      docBands: { low: 1300, base: 1800, high: 2500 },
+      utilBands: { conservative: 120, base: 250, optimistic: 400 },
+      seasonality: FLAT,
+      retainerBands: { low: 25000, base: 45000, high: 85000 },
+      defaultMix: { adHoc: 0, blockHours: 0, retainer: 100 }
+    },
+    aerialSurvey: {
+      group: "flight", label: "Aerial Survey / Special Missions",
+      aircraft: ["Cessna C208 Caravan", "Beechcraft King Air 350i", "Cessna C206"],
+      rateBands: { low: 900, base: 1500, high: 2300 },
+      docBands: { low: 450, base: 700, high: 1000 },
+      utilBands: { conservative: 250, base: 400, optimistic: 650 },
+      seasonality: [1.2, 1.2, 1.0, 0.7, 0.6, 0.7, 1.2, 1.3, 1.2, 1.0, 0.8, 0.8]
+    },
+    lightCargo: {
+      group: "flight", label: "Light Cargo / Express",
+      aircraft: ["Cessna C208 Caravan", "Let L-410", "Pilatus PC-12"],
+      rateBands: { low: 1000, base: 1500, high: 2200 },
+      docBands: { low: 600, base: 850, high: 1200 },
+      utilBands: { conservative: 450, base: 750, optimistic: 1150 },
+      seasonality: FLAT
+    },
+    /* Non-flight streams. kind "unit": revenue = price x volume, cost =
+       unit cost x volume. kind "pct": revenue = rate% x base, cost = cost%
+       x base. They reuse the rate / doc / hours fields (price, cost,
+       volume) so the saved shape, the sensitivity sliders, the Venture
+       File fallback and the JSON export all work unchanged. */
+    managementFee: {
+      group: "services", kind: "unit", label: "Aircraft Management Fees",
+      unit: "aircraft-months managed", priceLabel: "Fee / aircraft-month (USD)", costLabel: "Cost to serve / aircraft-month (USD)", volLabel: "Aircraft-months / year",
+      rateBands: { low: 6000, base: 12000, high: 25000 },
+      docBands: { low: 3500, base: 7000, high: 14000 },
+      utilBands: { conservative: 24, base: 60, optimistic: 120 },
+      seasonality: FLAT
+    },
+    brokerage: {
+      group: "services", kind: "pct", label: "Charter Brokerage Commission",
+      priceLabel: "Commission (% of value brokered)", costLabel: "Cost of sales (% of value brokered)", volLabel: "Gross charter value brokered (USD / year)",
+      rateBands: { low: 5, base: 10, high: 15 },
+      docBands: { low: 2, base: 4, high: 7 },
+      utilBands: { conservative: 1000000, base: 3000000, optimistic: 8000000 },
+      seasonality: FLAT
+    },
+    mroLabour: {
+      group: "services", kind: "unit", label: "MRO Labour (third-party work)",
+      unit: "labour hours billed", priceLabel: "Labour rate / hour (USD)", costLabel: "Cost / hour incl. overhead (USD)", volLabel: "Billed labour hours / year",
+      rateBands: { low: 60, base: 85, high: 140 },
+      docBands: { low: 30, base: 48, high: 80 },
+      utilBands: { conservative: 4000, base: 9000, optimistic: 18000 },
+      seasonality: FLAT
+    },
+    partsMargin: {
+      group: "services", kind: "pct", label: "Parts Margin (net of pass-through)",
+      priceLabel: "Mark-up on parts cost (%)", costLabel: "Handling and logistics (% of parts cost)", volLabel: "Parts bought for customers (USD / year)",
+      rateBands: { low: 8, base: 15, high: 25 },
+      docBands: { low: 1, base: 3, high: 6 },
+      utilBands: { conservative: 500000, base: 1500000, optimistic: 4000000 },
+      seasonality: FLAT
+    },
+    fboHandling: {
+      group: "services", kind: "unit", label: "FBO Handling Fees",
+      unit: "turnarounds handled", priceLabel: "Handling fee / turnaround (USD)", costLabel: "Cost / turnaround (USD)", volLabel: "Turnarounds / year",
+      rateBands: { low: 250, base: 500, high: 900 },
+      docBands: { low: 120, base: 230, high: 450 },
+      utilBands: { conservative: 600, base: 1500, optimistic: 3000 },
+      seasonality: FLAT
+    },
+    fuelMargin: {
+      group: "services", kind: "unit", label: "FBO Fuel Margin",
+      unit: "thousand litres sold", priceLabel: "Margin / 1,000 litres (USD)", costLabel: "Into-plane cost / 1,000 litres (USD)", volLabel: "Thousand litres / year",
+      rateBands: { low: 80, base: 140, high: 250 },
+      docBands: { low: 15, base: 30, high: 60 },
+      utilBands: { conservative: 500, base: 1500, optimistic: 4000 },
+      seasonality: FLAT
+    },
+    hangarage: {
+      group: "services", kind: "unit", label: "Hangarage and Parking",
+      unit: "aircraft-months hangared", priceLabel: "Hangar fee / aircraft-month (USD)", costLabel: "Cost / aircraft-month (USD)", volLabel: "Aircraft-months / year",
+      rateBands: { low: 1500, base: 2800, high: 6000 },
+      docBands: { low: 500, base: 900, high: 2000 },
+      utilBands: { conservative: 60, base: 180, optimistic: 360 },
+      seasonality: FLAT
+    },
+    groundHandling: {
+      group: "services", kind: "unit", label: "Ground Handling (third-party)",
+      unit: "turnarounds handled", priceLabel: "Fee / turnaround (USD)", costLabel: "Cost / turnaround (USD)", volLabel: "Turnarounds / year",
+      rateBands: { low: 350, base: 650, high: 1200 },
+      docBands: { low: 220, base: 420, high: 800 },
+      utilBands: { conservative: 1000, base: 3000, optimistic: 8000 },
+      seasonality: FLAT
+    },
+    ancillary: {
+      group: "services", kind: "pct", label: "Ancillary Services (catering, ground transport, permits)",
+      priceLabel: "Revenue (% of charter revenue)", costLabel: "Cost (% of charter revenue)", volLabel: "Charter revenue it attaches to (USD / year)",
+      rateBands: { low: 4, base: 10, high: 15 },
+      docBands: { low: 2, base: 6, high: 10 },
+      utilBands: { conservative: 1000000, base: 4000000, optimistic: 10000000 },
+      seasonality: FLAT
     }
   };
   /* Indicative planning defaults, NOT sourced benchmarks.
@@ -73,7 +223,16 @@
     "Bell 407": 3200000,
     "ATR 72-600": 26000000,
     "Embraer E190": 30000000,
-    "Boeing 737-800": 45000000
+    "Boeing 737-800": 45000000,
+    "Cessna Citation Sovereign+": 12000000,
+    "Bombardier Challenger 350": 16000000,
+    "Embraer Legacy 600": 8000000,
+    "Embraer Phenom 300E": 9500000,
+    "Dash 8-300": 7000000,
+    "Beechcraft 1900D": 3500000,
+    "Airbus H135": 6500000,
+    "Beechcraft King Air 350i": 8500000,
+    "Let L-410": 2500000
   };
 
   /* One-time adoption of anything saved under the old key, so the move
@@ -117,47 +276,43 @@
     };
   }
 
+  /* One formula for a segment's revenue and direct cost over `hours` of
+     activity (hours, or the unit volume for non-flight streams). Annual
+     and Year 1 both go through it, so the two cannot drift apart. */
+  function revenueFor(seg, cfg, sa, hours, retainerShare) {
+    const rate = (parseFloat(seg.rate) || 0) * sa.rate;
+    const doc = (parseFloat(seg.doc) || 0) * sa.doc;
+    if (cfg.kind === "unit") return { rev: rate * hours, doc: doc * hours };
+    if (cfg.kind === "pct") return { rev: rate / 100 * hours, doc: doc / 100 * hours };
+    const mix = mixShares(seg);
+    let rev;
+    if (cfg.retainerBands && mix.retainer > 0) {
+      const retainerMonthly = parseFloat(seg.retainerAmt) || cfg.retainerBands.base;
+      rev = retainerMonthly * retainerShare + rate * hours;
+    } else {
+      rev = (rate * hours * mix.adHoc) + (rate * hours * mix.blockHours * 0.85) + (rate * hours * mix.retainer * 0.85);
+    }
+    return { rev, doc: doc * hours };
+  }
+
   function segmentAnnualRevenue(seg, sensAdj) {
     const sa = sensAdj || { rate: 1, util: 1, doc: 1 };
     const cfg = REVENUE_SEGMENTS[seg.type];
     if (!cfg) return { rev: 0, doc: 0 };
-
-    const rate = (parseFloat(seg.rate) || 0) * sa.rate;
-    const doc = (parseFloat(seg.doc) || 0) * sa.doc;
-    const hours = (parseFloat(seg.hours) || 0) * sa.util;
-    const mix = mixShares(seg);
-
-    let annualRev;
-    if (cfg.retainerBands && mix.retainer > 0) {
-      const retainerMonthly = parseFloat(seg.retainerAmt) || cfg.retainerBands.base;
-      annualRev = (retainerMonthly * 12) + (rate * hours);
-    } else {
-      annualRev = (rate * hours * mix.adHoc) + (rate * hours * mix.blockHours * 0.85) + (rate * hours * mix.retainer * 0.85);
-    }
-    const annualDoc = doc * hours;
-    return { rev: annualRev, doc: annualDoc };
+    return revenueFor(seg, cfg, sa, (parseFloat(seg.hours) || 0) * sa.util, 12);
   }
 
   function year1Revenue(seg, sensAdj) {
     const cfg = REVENUE_SEGMENTS[seg.type];
     if (!cfg) return { rev: 0, doc: 0 };
     const sa = sensAdj || { rate: 1, util: 1, doc: 1 };
-    const rate = (parseFloat(seg.rate) || 0) * sa.rate;
-    const doc = (parseFloat(seg.doc) || 0) * sa.doc;
     const hours = (parseFloat(seg.hours) || 0) * sa.util;
-    const mix = mixShares(seg);
-
     const avgSeasonality = cfg.seasonality.reduce((a, b) => a + b, 0) / 12;
     let totalRev = 0, totalDoc = 0;
     cfg.seasonality.forEach(sf => {
-      const monthHours = (hours / 12) * (sf / avgSeasonality);
-      if (cfg.retainerBands && mix.retainer > 0) {
-        const retainerMonthly = parseFloat(seg.retainerAmt) || cfg.retainerBands.base;
-        totalRev += retainerMonthly + (rate * monthHours);
-      } else {
-        totalRev += (rate * monthHours * mix.adHoc) + (rate * monthHours * mix.blockHours * 0.85) + (rate * monthHours * mix.retainer * 0.85);
-      }
-      totalDoc += doc * monthHours;
+      const r = revenueFor(seg, cfg, sa, (hours / 12) * (sf / avgSeasonality), 1);
+      totalRev += r.rev;
+      totalDoc += r.doc;
     });
     return { rev: totalRev, doc: totalDoc };
   }
@@ -334,12 +489,12 @@
     const rows = [];
     segments.forEach(seg => {
       const cfg = REVENUE_SEGMENTS[seg.type];
-      if (!cfg) return;
+      if (!cfg || cfg.kind) return;
       const contrib = (parseFloat(seg.rate) || 0) - (parseFloat(seg.doc) || 0);
       if (contrib <= 0) return;
       const aircraftVal = parseFloat(seg.aircraftValue) || AIRCRAFT_VALUES[seg.aircraft] || 5000000;
       const ownCapCharge = annualDebtService(aircraftVal, 12, 10);
-      const leaseMonthlyRate = seg.type === "aeromedical" ? 0.011 : 0.010;
+      const leaseMonthlyRate = cfg.retainerBands ? 0.011 : 0.010;
       const leaseAnnual = aircraftVal * leaseMonthlyRate * 12;
       const bEOwned = ownCapCharge / contrib;
       const bELeased = leaseAnnual / contrib;
@@ -388,6 +543,33 @@
   function renderSegCard(seg) {
     const cfg = REVENUE_SEGMENTS[seg.type];
     if (!cfg) return "";
+    if (cfg.kind) {
+      const isPct = cfg.kind === "pct";
+      const fmtBand = v => isPct ? v + "%" : fmtMoney(v);
+      return `<div class="card card-flat" id="card-${seg.id}" style="margin-bottom:1.2rem">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin-bottom:1rem">
+        <b style="font-size:var(--fs-md)">${escapeHtml(cfg.label)} <span class="muted" style="font-weight:400;font-size:var(--fs-xs)">non-flight stream</span></b>
+        <button class="btn btn-ghost-sm btn-sm" data-delete="${seg.id}">Remove</button>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>${escapeHtml(cfg.priceLabel)}</label>
+          <input type="number" min="0" step="${isPct ? 0.5 : 10}" value="${seg.rate}" data-seg="${seg.id}" data-field="rate">
+          <p class="hint">Band ${fmtBand(cfg.rateBands.low)}\u2013${fmtBand(cfg.rateBands.high)}</p>
+        </div>
+        <div class="field">
+          <label>${escapeHtml(cfg.costLabel)}</label>
+          <input type="number" min="0" step="${isPct ? 0.5 : 10}" value="${seg.doc}" data-seg="${seg.id}" data-field="doc">
+          <p class="hint">Band ${fmtBand(cfg.docBands.low)}\u2013${fmtBand(cfg.docBands.high)}</p>
+        </div>
+      </div>
+      <div class="field">
+        <label>${escapeHtml(cfg.volLabel)}</label>
+        <input type="number" min="0" step="${isPct ? 100000 : 10}" value="${seg.hours}" data-seg="${seg.id}" data-field="hours" style="max-width:260px">
+        <p class="hint">Band ${cfg.utilBands.conservative.toLocaleString("en-GB")}\u2013${cfg.utilBands.optimistic.toLocaleString("en-GB")}. The utilisation slider scales this volume; the rate slider scales the price.</p>
+      </div>
+    </div>`;
+    }
     const isAero = !!cfg.retainerBands;
     const totalMix = (parseFloat(seg.adHoc) || 0) + (parseFloat(seg.blockHours) || 0) + (parseFloat(seg.retainer) || 0);
     const mixOk = Math.abs(totalMix - 100) <= 1;
@@ -494,7 +676,7 @@
       title: `Revenue model \u2014 ${state.segments.length} segment${state.segments.length !== 1 ? "s" : ""}`,
       verdict,
       findings: f,
-      basis: "Ten-year projection from the operator's own rates, utilisation and direct operating costs. Segment defaults are indicative planning figures, not quotations. Capital recovery requirement = programme total + (annual debt service \u00D7 10)."
+      basis: "Ten-year projection from the operator's own rates, utilisation and direct operating costs. Segment defaults are indicative planning estimates, not quotations or sourced benchmarks. Non-flight streams earn price x volume or a percentage of an entered base. Capital recovery requirement = programme total + (annual debt service \u00D7 10)."
     });
   }
 
@@ -522,23 +704,29 @@
   $("add-seg").addEventListener("click", () => {
     const type = $("seg-type").value;
     if (!type || !REVENUE_SEGMENTS[type]) return;
+    state.segments.push(makeSegment(type));
+    renderAll();
+  });
+  function makeSegment(type, over) {
     const cfg = REVENUE_SEGMENTS[type];
-    const seg = {
+    const mix = cfg.defaultMix || { adHoc: 100, blockHours: 0, retainer: 0 };
+    const ac = cfg.kind ? (cfg.unit || "% of base") : cfg.aircraft[0];
+    return Object.assign({
       id: newId(),
       type,
-      aircraft: cfg.aircraft[0],
+      aircraft: ac,
       rate: cfg.rateBands.base,
       doc: cfg.docBands.base,
       hours: cfg.utilBands.base,
-      adHoc: type === "aeromedical" ? 0 : 100,
-      blockHours: 0,
-      retainer: type === "aeromedical" ? 100 : 0,
+      adHoc: mix.adHoc,
+      blockHours: mix.blockHours,
+      retainer: mix.retainer,
       retainerAmt: cfg.retainerBands ? cfg.retainerBands.base : 0,
-      aircraftValue: AIRCRAFT_VALUES[cfg.aircraft[0]] || 0
-    };
-    state.segments.push(seg);
-    renderAll();
-  });
+      aircraftValue: cfg.kind ? 0 : (AIRCRAFT_VALUES[cfg.aircraft[0]] || 0)
+    }, over || {});
+  }
+  void 0;
+
 
   $("seg-cards").addEventListener("input", e => {
     const segId = e.target.dataset.seg;
@@ -586,6 +774,41 @@
         recompute();
       });
     }
+  });
+
+  /* Ultra Caelum preset: the Group plan's commercial lines mapped onto
+     this tool's segments. Volumes are the tool's base planning defaults
+     scaled to a mature, eight-tail fleet; they are planning estimates,
+     not bookings, and every figure stays editable. */
+  const UC_PRESET = [
+    ["corporateCharter", { aircraft: "Cessna Citation Sovereign+", hours: 900, aircraftValue: 12000000 }],
+    ["executiveJet", { aircraft: "Dassault Falcon 7X", hours: 450, aircraftValue: 22000000 }],
+    ["jetCard", { aircraft: "Cessna Citation Sovereign+", hours: 200 }],
+    ["ngoCharter", { aircraft: "Pilatus PC-12", hours: 500 }],
+    ["miningShuttle", { aircraft: "Pilatus PC-12", hours: 600 }],
+    ["aeromedical", { aircraft: "Airbus H125", hours: 300 }],
+    ["aerialSurvey", { aircraft: "Cessna C208 Caravan", hours: 350 }],
+    ["safariCharter", { aircraft: "Pilatus PC-12", hours: 700 }],
+    ["managementFee", { hours: 48 }],
+    ["brokerage", {}],
+    ["mroLabour", {}],
+    ["fboHandling", {}],
+    ["hangarage", {}]
+  ];
+  $("load-uc").addEventListener("click", () => {
+    if (state.segments.length && !confirm("Replace the segments on this page with the Ultra Caelum preset?")) return;
+    state.segments = UC_PRESET.map(([t, o]) => {
+      const seg = makeSegment(t, o);
+      if (o.aircraft && !o.aircraftValue) seg.aircraftValue = AIRCRAFT_VALUES[o.aircraft] || 0;
+      return seg;
+    });
+    renderAll();
+    $("seg-status").textContent = "Loaded the Ultra Caelum preset: thirteen streams from the Group plan's commercial lines. Planning estimates, not bookings.";
+  });
+  $("clear-segs").addEventListener("click", () => {
+    if (state.segments.length && !confirm("Remove every segment from this model?")) return;
+    state.segments = [];
+    renderAll();
   });
 
   $("btn-save-vf").addEventListener("click", () => {
