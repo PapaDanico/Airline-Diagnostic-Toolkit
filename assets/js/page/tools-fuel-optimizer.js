@@ -135,7 +135,7 @@ function summarise() {
     ? { sev: tk.overweight ? "warn" : "ok",
         h: `Tankering pays on the entered sector: ${fmt(tk.year)} a year`,
         d: `${fmt(tk.perFlight)} a flight on ${Math.round(tk.litres).toLocaleString("en-US")} litres carried, against a break-even destination price of $${tk.be.toFixed(3)} a litre. It burns ${Math.round(tk.burnYear).toLocaleString("en-US")} extra litres and adds ${tk.co2.toFixed(0)} t of CO₂ a year.` +
-           (tk.overweight ? ` The tankered fuel exceeds the ${Math.round(tk.headroom).toLocaleString("en-US")} kg landing-weight headroom entered, so the full amount cannot be carried.` : "") }
+           (tk.overweight ? ` The ${Math.round(tk.landedKg).toLocaleString("en-US")} kg still on board at landing exceeds the ${Math.round(tk.headroom).toLocaleString("en-US")} kg landing-weight headroom entered, so the full amount cannot be carried.` : "") }
     : { sev: "note", h: "Tankering does not pay on the entered sector",
         d: `The destination price would have to exceed $${tk.be.toFixed(3)} a litre before carrying fuel beats buying it there; it costs ${fmt(-tk.year)} a year at the prices entered.` });
 
@@ -174,7 +174,12 @@ function tankerCalc() {
   const burnYear = burned * n;
   return { litres, perFlight, year: perFlight * n, be: po / (1 - frac), burnYear,
            co2: burnYear * TK_DENSITY * CO2_PER_KG / 1000, ok: perFlight > 0,
-           headroom, overweight: headroom > 0 && litres * TK_DENSITY > headroom };
+           /* Landing weight is what remains on arrival, not what was loaded:
+              the carriage burn comes off before the wheels touch. A blank
+              field reads NaN and skips the check; an entered zero is a real
+              limit and must warn. */
+           headroom, landedKg: (litres - burned) * TK_DENSITY,
+           overweight: Number.isFinite(headroom) && headroom >= 0 && (litres - burned) * TK_DENSITY > headroom };
 }
 function renderTanker() {
   const t = tankerCalc(), set = (id, v) => { document.getElementById(id).textContent = v; };
@@ -190,7 +195,7 @@ function renderTanker() {
     ? `Carrying the fuel saves ${money(t.perFlight)} a flight.`
     : `Carrying the fuel costs ${money(-t.perFlight)} a flight more than buying it at destination.`) +
     ` The destination price has to be above $${t.be.toFixed(3)} a litre for tankering to pay.` +
-    (t.overweight ? ` Warning: ${Math.round(t.litres * TK_DENSITY).toLocaleString("en-US")} kg of extra fuel exceeds the ${Math.round(t.headroom).toLocaleString("en-US")} kg landing-weight headroom.` : ""));
+    (t.overweight ? ` Warning: ${Math.round(t.landedKg).toLocaleString("en-US")} kg of extra fuel remains at landing, above the ${Math.round(t.headroom).toLocaleString("en-US")} kg landing-weight headroom.` : ""));
   set("tk-perflight", money(t.perFlight));
   set("tk-year", money(t.year));
   set("tk-be", "$" + t.be.toFixed(3) + " / litre");
