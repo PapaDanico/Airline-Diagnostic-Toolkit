@@ -16,8 +16,8 @@ window.JK_VERIFICATION = {
     },
     {
       "suite": "focus",
-      "headline": "1941 focusable elements, each with a visible indicator at 3:1",
-      "elements": 1941,
+      "headline": "2082 focusable elements, each with a visible indicator at 3:1",
+      "elements": 2082,
       "minRatio": 3
     },
     {
