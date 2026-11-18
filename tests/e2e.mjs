@@ -3442,7 +3442,17 @@ section("Fuel tankering, MRO manpower and stage-adjusted CASK");
   assert(/Buy at destination/.test(await txt("tk-verdict")) && /−/.test(await txt("tk-perflight")),
     `tankering: below break-even the verdict should flip to buying at destination - got ${await txt("tk-verdict")} / ${await txt("tk-perflight")}`);
   await page.fill("#tk-pd", "1.10"); await page.fill("#tk-headroom", "3000"); await page.waitForTimeout(100);
-  assert(/landing-weight headroom/.test(await txt("tk-qual")), "tankering: 3,200 kg of fuel against 3,000 kg headroom should warn");
+  assert(/landing-weight headroom/.test(await txt("tk-qual")), "tankering: 3,032 kg of fuel left at landing against 3,000 kg headroom should warn");
+  /* The check is on fuel remaining at landing, not fuel loaded: 4,000 L less
+     210 L burned is 3,790 L, or 3,032 kg. 3,100 kg of headroom holds it, even
+     though the 3,200 kg loaded at departure would not fit. */
+  await page.fill("#tk-headroom", "3100"); await page.waitForTimeout(100);
+  assert(!/landing-weight headroom/.test(await txt("tk-qual")), "tankering: 3,032 kg at landing fits 3,100 kg of headroom; departure mass must not be used");
+  /* An entered zero is a real limit (no headroom at all), not a blank field. */
+  await page.fill("#tk-headroom", "0"); await page.waitForTimeout(100);
+  assert(/landing-weight headroom/.test(await txt("tk-qual")), "tankering: zero headroom entered should warn, not be ignored");
+  await page.fill("#tk-headroom", ""); await page.waitForTimeout(100);
+  assert(!/landing-weight headroom/.test(await txt("tk-qual")), "tankering: a blank headroom field should not warn");
   /* Typing must not lose the cursor: the inputs are static markup. */
   await page.click("#tk-litres"); await page.keyboard.press("End"); await page.keyboard.type("0");
   assert(await page.evaluate(() => document.activeElement && document.activeElement.id) === "tk-litres" &&
