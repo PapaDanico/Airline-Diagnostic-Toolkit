@@ -113,6 +113,50 @@
     <p style="margin-top:.6rem"><button class="btn btn-ghost" id="mro-reset">Reset answers</button></p>
   </div>
 </section>
+
+<section id="manpower">
+  <div class="wrap calc">
+    <div class="card">
+      <h2 style="margin-top:0">How many technicians does the fleet need?</h2>
+      <p class="muted" style="font-size:var(--fs-sm)">Sizes the engineering team two ways, by workload and by roster cover, and shows which one binds. A small fleet is usually sized by the roster, not the work.</p>
+      <div class="grid g2" style="gap:10px">
+        <div class="field"><label for="mp-ac">Aircraft maintained</label><input id="mp-ac" type="number" min="0" step="1" value="3"></div>
+        <div class="field"><label for="mp-fh">Flight hours per aircraft a year</label><input id="mp-fh" type="number" min="0" step="10" value="400"></div>
+        <div class="field"><label for="mp-mmh">Maintenance man-hours per flight hour</label><input id="mp-mmh" type="number" min="0" step="0.1" value="2.0"></div>
+        <div class="field"><label for="mp-inhouse">Share of that work done in-house (%)</label><input id="mp-inhouse" type="number" min="0" max="100" step="5" value="100"></div>
+        <div class="field"><label for="mp-prod">Productive hours per technician a year</label><input id="mp-prod" type="number" min="1" step="50" value="1400"></div>
+        <div class="field"><label for="mp-cert">Share who must be certifying staff (%)</label><input id="mp-cert" type="number" min="0" max="100" step="5" value="35"></div>
+        <div class="field"><label for="mp-pos">Line positions to keep staffed</label><input id="mp-pos" type="number" min="0" step="1" value="1"></div>
+        <div class="field"><label for="mp-hpd">Hours a day each position is covered</label><input id="mp-hpd" type="number" min="0" max="24" step="1" value="24"></div>
+      </div>
+      <div class="field"><div class="hint">Man-hours per flight hour, productive hours and the certifying share are planning defaults, not sourced figures. Replace them with your maintenance programme's task hours and your own rostering data.</div></div>
+      <h3 style="margin:1.2rem 0 .4rem;font-size:var(--fs-md)">Third-party work (optional)</h3>
+      <div class="grid g2" style="gap:10px">
+        <div class="field"><label for="mp-planned">Technicians you plan to employ</label><input id="mp-planned" type="number" min="0" step="1" placeholder="e.g. 12"></div>
+        <div class="field"><label for="mp-rate">Third-party labour rate (USD/hour)</label><input id="mp-rate" type="number" min="0" step="5" placeholder="e.g. 85"></div>
+        <div class="field"><label for="mp-bill">Share of spare hours you can sell (%)</label><input id="mp-bill" type="number" min="0" max="100" step="5" value="70"></div>
+        <div class="field"><label for="mp-target">Third-party revenue target (USD a year)</label><input id="mp-target" type="number" min="0" step="100000" placeholder="e.g. 5000000"></div>
+      </div>
+    </div>
+    <div>
+      <div class="result-panel">
+        <p class="eyebrow" style="color:var(--jk-amber)">Technicians required</p>
+        <div class="rng" id="mp-req">—</div>
+        <p class="qual" id="mp-qual">Enter the fleet to size the team.</p>
+        <dl class="out">
+          <dt>Own-fleet workload</dt><dd id="mp-work">—</dd>
+          <dt>Roster cover</dt><dd id="mp-cover">—</dd>
+          <dt>Of whom certifying staff</dt><dd id="mp-certn">—</dd>
+          <dt>Spare hours to sell</dt><dd id="mp-spare">—</dd>
+          <dt>Third-party revenue capacity</dt><dd id="mp-rev">—</dd>
+          <dt>Technicians to reach the target</dt><dd id="mp-totarget">—</dd>
+        </dl>
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
+        <p class="method">Method: workload = aircraft × flight hours × man-hours per flight hour × in-house share ÷ productive hours. Roster cover = positions × hours a day × 365 ÷ productive hours. The team is the larger of the two, rounded up. Spare hours = planned team × productive hours − own-fleet man-hours; revenue = spare hours × share sold × rate.</p>
+      </div>
+    </div>
+  </div>
+</section>
 </main>
 
 <footer class="footer">

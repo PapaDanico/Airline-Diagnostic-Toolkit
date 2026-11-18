@@ -3426,6 +3426,53 @@ section("Revenue Builder: new streams");
   await page.goto(base + "/tools/revenue-builder.html"); await page.evaluate(() => localStorage.clear());
 }
 
+section("Fuel tankering, MRO manpower and stage-adjusted CASK");
+{
+  const txt = (id) => page.locator("#" + id).innerText();
+  /* Tankering, hand-calculated: 4,000 L carried 1.5 h at 3.5%/h burns
+     210 L; (3,790 x 1.10) - (4,000 x 0.85) = 769 a flight; 300 flights
+     = 230,700; break-even = 0.85 / (1 - 0.0525) = 0.897; 63,000 L a year
+     x 0.8 kg x 3.16 = 159.3 t CO2. */
+  await page.goto(base + "/tools/fuel-optimizer.html"); await page.waitForTimeout(300);
+  assert(await txt("tk-perflight") === "$769", `tankering: saving per flight should be $769 - got ${await txt("tk-perflight")}`);
+  assert(await txt("tk-year") === "$230,700", `tankering: saving per year should be $230,700 - got ${await txt("tk-year")}`);
+  assert(/0\.897/.test(await txt("tk-be")), `tankering: break-even destination price should be $0.897 - got ${await txt("tk-be")}`);
+  assert(/159\.3/.test(await txt("tk-co2")), `tankering: extra CO2 should be 159.3 t - got ${await txt("tk-co2")}`);
+  await page.fill("#tk-pd", "0.88"); await page.waitForTimeout(100);
+  assert(/Buy at destination/.test(await txt("tk-verdict")) && /−/.test(await txt("tk-perflight")),
+    `tankering: below break-even the verdict should flip to buying at destination - got ${await txt("tk-verdict")} / ${await txt("tk-perflight")}`);
+  await page.fill("#tk-pd", "1.10"); await page.fill("#tk-headroom", "3000"); await page.waitForTimeout(100);
+  assert(/landing-weight headroom/.test(await txt("tk-qual")), "tankering: 3,200 kg of fuel against 3,000 kg headroom should warn");
+  /* Typing must not lose the cursor: the inputs are static markup. */
+  await page.click("#tk-litres"); await page.keyboard.press("End"); await page.keyboard.type("0");
+  assert(await page.evaluate(() => document.activeElement && document.activeElement.id) === "tk-litres" &&
+    await page.inputValue("#tk-litres") === "40000", "tankering: typing into a field keeps focus and every keystroke");
+
+  /* Manpower, hand-calculated: 3 x 400 x 2.0 = 2,400 MMH / 1,400 = 1.7 FTE;
+     roster 1 x 24 x 365 / 1,400 = 6.3; required = ceil(6.26) = 7; 35% = 3
+     certifying. Planned 12 at USD 85 with 70% sold: (16,800 - 2,400) x 0.7
+     x 85 = 856,800. Target 5m: (2,400 + 5,000,000/85/0.7) / 1,400 = 61.7 -> 62. */
+  await page.goto(base + "/tools/mro-readiness.html"); await page.waitForTimeout(300);
+  assert(await txt("mp-req") === "7 technicians", `manpower: a 24/7 line position should bind at 7 - got ${await txt("mp-req")}`);
+  assert(/roster binds/.test(await txt("mp-qual")), "manpower: should say the roster binds for three jets");
+  assert(await txt("mp-certn") === "3", `manpower: certifying staff should be 3 - got ${await txt("mp-certn")}`);
+  await page.fill("#mp-planned", "12"); await page.fill("#mp-rate", "85"); await page.fill("#mp-target", "5000000"); await page.waitForTimeout(100);
+  assert(/856,800/.test(await txt("mp-rev")), `manpower: third-party revenue capacity should be $856,800 - got ${await txt("mp-rev")}`);
+  assert(await txt("mp-totarget") === "62", `manpower: a USD 5m target should need 62 technicians - got ${await txt("mp-totarget")}`);
+  await page.fill("#mp-ac", "40"); await page.fill("#mp-fh", "2000"); await page.waitForTimeout(100);
+  assert(/workload binds/.test(await txt("mp-qual")) && await txt("mp-req") === "115 technicians",
+    `manpower: 40 aircraft at 2,000 h should be workload-bound at 115 - got ${await txt("mp-req")}`);
+
+  /* Stage-adjusted CASK: 280m / 3bn = 9.333c; x sqrt(800/1000) = 8.35c.
+     Revenue 300m -> RASK 10.00c, spread +0.67c, BELF 72 x 9.333/10 = 67.2%. */
+  await page.goto(base + "/tools/cask-calculator.html"); await page.waitForTimeout(300);
+  assert(/^8\.35/.test(await txt("caskAdj")), `cask: 800 km adjusted to 1,000 km should be 8.35c - got ${await txt("caskAdj")}`);
+  assert(await txt("rask") === "Enter revenue", "cask: without revenue the RASK row should ask for it, not print zero");
+  await page.fill("#revenue", "300000000"); await page.fill("#lf", "72"); await page.waitForTimeout(100);
+  assert(/^10\.00/.test(await txt("rask")) && /\+0\.67/.test(await txt("spread")) && /^67\.2%/.test(await txt("belf")),
+    `cask: RASK 10.00, spread +0.67, BELF 67.2% - got ${await txt("rask")} / ${await txt("spread")} / ${await txt("belf")}`);
+}
+
 section("JavaScript errors");
 assert(errs.length === 0, `no uncaught page errors (${errs.length ? errs.join(" | ") : "none"})`);
 

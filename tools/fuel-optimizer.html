@@ -122,6 +122,51 @@
     </div>
   </div>
 </section>
+
+<section id="tankering">
+  <div class="wrap calc">
+    <div class="card">
+      <h2 style="margin-top:0">Should you tanker on this sector?</h2>
+      <p class="muted" style="font-size:var(--fs-sm)">Carrying extra fuel from a cheap station to an expensive one saves money only if the price gap beats the fuel burned to carry it. Enter one sector.</p>
+      <div class="field">
+        <label for="tk-litres">Extra fuel carried per flight (litres)</label>
+        <input id="tk-litres" type="number" min="0" step="100" value="4000">
+      </div>
+      <div class="grid g2" style="gap:10px">
+        <div class="field"><label for="tk-po">Price at departure (USD/litre)</label><input id="tk-po" type="number" min="0" step="0.01" value="0.85"></div>
+        <div class="field"><label for="tk-pd">Price at destination (USD/litre)</label><input id="tk-pd" type="number" min="0" step="0.01" value="1.10"></div>
+        <div class="field"><label for="tk-hrs">Flight time (hours)</label><input id="tk-hrs" type="number" min="0" step="0.1" value="1.5"></div>
+        <div class="field"><label for="tk-flights">Flights a year on this sector</label><input id="tk-flights" type="number" min="0" step="1" value="300"></div>
+      </div>
+      <div class="field">
+        <label for="tk-pen">Cost of carriage (% of the extra fuel burned per flight hour)</label>
+        <input id="tk-pen" type="number" min="0" max="20" step="0.1" value="3.5">
+        <div class="hint">Planning default, not a sourced figure: jets typically burn a few per cent of extra weight for each hour it is carried. Replace it with the cost-of-carriage figure from your aircraft's performance data.</div>
+      </div>
+      <div class="field">
+        <label for="tk-headroom">Headroom to maximum landing weight (kg, optional)</label>
+        <input id="tk-headroom" type="number" min="0" step="100" placeholder="e.g. 3000">
+        <div class="hint">If entered, the page checks the tankered fuel still fits under the landing-weight limit.</div>
+      </div>
+    </div>
+    <div>
+      <div class="result-panel">
+        <p class="eyebrow" style="color:var(--jk-amber)">Tankering on this sector</p>
+        <div class="rng" id="tk-verdict">—</div>
+        <p class="qual" id="tk-qual">Enter the sector to see whether tankering pays.</p>
+        <dl class="out">
+          <dt>Saving per flight</dt><dd id="tk-perflight">—</dd>
+          <dt>Saving per year</dt><dd id="tk-year">—</dd>
+          <dt>Break-even destination price</dt><dd id="tk-be">—</dd>
+          <dt>Extra fuel burned per year</dt><dd id="tk-burn">—</dd>
+          <dt>Extra CO₂ per year</dt><dd id="tk-co2" style="margin:0;text-align:right">—</dd>
+        </dl>
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
+        <p class="method">Method: fuel burned to carry the extra = litres × cost of carriage × flight hours. Saving = (litres − burned) × destination price − litres × departure price. Litres to kg at 0.8 kg/litre (Jet A-1 is about 0.78–0.84); CO₂ at 3.16 kg per kg of fuel, the ICAO conversion factor for jet fuel.</p>
+      </div>
+    </div>
+  </div>
+</section>
 </main>
 
 <footer class="footer">

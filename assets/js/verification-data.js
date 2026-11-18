@@ -4,8 +4,8 @@ window.JK_VERIFICATION = {
   "suites": [
     {
       "suite": "e2e",
-      "headline": "861 behaviour assertions across the site",
-      "assertions": 861,
+      "headline": "877 behaviour assertions across the site",
+      "assertions": 877,
       "failures": 0
     },
     {
@@ -16,8 +16,8 @@ window.JK_VERIFICATION = {
     },
     {
       "suite": "focus",
-      "headline": "1930 focusable elements, each with a visible indicator at 3:1",
-      "elements": 1930,
+      "headline": "1941 focusable elements, each with a visible indicator at 3:1",
+      "elements": 1941,
       "minRatio": 3
     },
     {
@@ -36,9 +36,9 @@ window.JK_VERIFICATION = {
     },
     {
       "suite": "drive",
-      "headline": "39 pages driven as a user would, over 1,500 interactions, no console errors",
+      "headline": "39 pages driven as a user would, over 1,750 interactions, no console errors",
       "runs": 39,
-      "interactions": 1500
+      "interactions": 1750
     },
     {
       "suite": "sliders",

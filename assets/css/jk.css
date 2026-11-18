@@ -839,6 +839,10 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 
 /* a result panel with nothing to show yet is not drawn as an empty dark box */
 .result-panel.is-empty { display: none; }
+/* Method line and result list inside a dark result panel. */
+.result-panel .method { font-size: var(--fs-sm); color: var(--jk-sand); margin: 0; }
+.result-panel .out { display: grid; grid-template-columns: 1fr auto; gap: .35rem 1rem; margin: 1rem 0 0; font-size: var(--fs-sm); }
+.result-panel .out dd { margin: 0; text-align: right; }
 
 .rs-bar { height: 6px; background: var(--jk-line); border-radius: 3px; margin-bottom: 4px; min-width: 60px; }
 .rs-bar span { display: block; height: 100%; background: var(--jk-amber); border-radius: 3px; }
