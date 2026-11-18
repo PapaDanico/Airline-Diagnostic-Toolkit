@@ -3386,6 +3386,46 @@ section("Plan Consistency Check");
   await assertEnquiryFormSubmits(page, "#pc-enquiry", "consistency");
 }
 
+/* Revenue Builder: non-flight streams and retainer segments. Defaults are pinned to hand calculations so a change to the
+   formula shows up as a number, not a feeling:
+     management fees   60 aircraft-months x 12,000 = 720K revenue, x 7,000 = 420K cost
+     brokerage         10% of 3.0M brokered = 300K revenue, 4% = 120K cost (a percentage stream, not rate x hours)
+     mining shuttle    retainer 55,000 x 12 + 2,900 x 800 h = 2.98M revenue, 1,800 x 800 h = 1.44M cost
+   The Ultra Caelum preset loads thirteen cards and the Venture File counts them. */
+section("Revenue Builder: new streams");
+{
+  const rail = async (id) => (await page.$eval("#" + id, (e) => e.innerText)).replace(/\s+/g, " ");
+  await page.goto(base + "/tools/revenue-builder.html"); await page.evaluate(() => localStorage.clear());
+  await page.goto(base + "/tools/revenue-builder.html"); await page.waitForTimeout(400);
+  const opts = await page.$$eval("#seg-type option", (o) => o.map((x) => x.value).filter(Boolean));
+  for (const k of ["corporateCharter", "jetCard", "ngoCharter", "miningShuttle", "helicopterCharter", "medevacFixedWing", "aerialSurvey", "lightCargo", "managementFee", "brokerage", "mroLabour", "partsMargin", "fboHandling", "fuelMargin", "hangarage", "groundHandling", "ancillary"])
+    assert(opts.includes(k), `revenue: segment picker should offer ${k}`);
+  const add = async (k) => { await page.selectOption("#seg-type", k); await page.click("#add-seg"); await page.waitForTimeout(150); };
+  await add("managementFee");
+  assert(/720K/.test(await rail("r-rev")) && /420K/.test(await rail("r-doc")), `revenue: management fees should be 720K revenue and 420K cost - got ${await rail("r-rev")} / ${await rail("r-doc")}`);
+  await page.click("[data-delete]"); await page.waitForTimeout(150);
+  await add("brokerage");
+  assert(/300K/.test(await rail("r-rev")) && /120K/.test(await rail("r-doc")), `revenue: brokerage is a percentage of value brokered - 300K revenue, 120K cost - got ${await rail("r-rev")} / ${await rail("r-doc")}`);
+  /* unsaved model on the dashboard: the percentage stream must not be read as rate x base (100x) */
+  await page.goto(base + "/tools/venture-dashboard.html"); await page.waitForTimeout(500);
+  assert(/USD 300K\/year revenue/.test(await page.evaluate(() => document.body.innerText)), "revenue: an unsaved brokerage stream should read 300K on the Venture File, not 30M");
+  await page.goto(base + "/tools/revenue-builder.html"); await page.waitForTimeout(400);
+  await page.click("[data-delete]"); await page.waitForTimeout(150);
+  await add("miningShuttle");
+  assert(/2\.98M/.test(await rail("r-rev")) && /1\.44M/.test(await rail("r-doc")), `revenue: mining shuttle retainer plus hours should be 2.98M revenue and 1.44M cost - got ${await rail("r-rev")} / ${await rail("r-doc")}`);
+  page.once("dialog", (d) => d.accept().catch(() => {}));
+  await page.click("#clear-segs"); await page.waitForTimeout(200);
+  assert((await page.$$("#seg-cards .card")).length === 0, "revenue: clear all should remove every card");
+  await page.click("#load-uc"); await page.waitForTimeout(300);
+  assert((await page.$$("#seg-cards .card")).length === 13, "revenue: the Ultra Caelum preset should load thirteen streams");
+  const rev = await rail("r-rev");
+  assert(/\d/.test(rev) && !/^\D*0\D*$/.test(rev), `revenue: the preset should produce a revenue figure - got ${rev}`);
+  await page.click("#btn-save-vf"); await page.waitForTimeout(200);
+  await page.goto(base + "/tools/venture-dashboard.html"); await page.waitForTimeout(500);
+  assert(/13 segments/.test(await page.evaluate(() => document.body.innerText)), "revenue: the Venture File should report the thirteen preset segments");
+  await page.goto(base + "/tools/revenue-builder.html"); await page.evaluate(() => localStorage.clear());
+}
+
 section("JavaScript errors");
 assert(errs.length === 0, `no uncaught page errors (${errs.length ? errs.join(" | ") : "none"})`);
 
