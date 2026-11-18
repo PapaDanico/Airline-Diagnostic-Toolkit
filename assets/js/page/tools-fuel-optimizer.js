@@ -126,6 +126,19 @@ function summarise() {
   if (!f.length) f.push({ sev: "ok", h: `On benchmark at ${prem.toFixed(1)}% over Platts`,
     d: `Nothing to recover by renegotiating the differential${uplift > 0 ? `, at an effective $${(spend / uplift).toFixed(3)} a litre` : ""}. The remaining exposure is price risk rather than contract terms — a hedging policy, not a tender.` });
 
+  /* The tankering sector rides along as its own finding, after the
+     contract verdict rather than before it: the differential is the
+     network-wide number, tankering is one sector. Appended after the
+     "on benchmark" check so a sector entry can never hide that verdict. */
+  const tk = tankerCalc();
+  if (tk) f.push(tk.ok
+    ? { sev: tk.overweight ? "warn" : "ok",
+        h: `Tankering pays on the entered sector: ${fmt(tk.year)} a year`,
+        d: `${fmt(tk.perFlight)} a flight on ${Math.round(tk.litres).toLocaleString("en-US")} litres carried, against a break-even destination price of $${tk.be.toFixed(3)} a litre. It burns ${Math.round(tk.burnYear).toLocaleString("en-US")} extra litres and adds ${tk.co2.toFixed(0)} t of CO₂ a year.` +
+           (tk.overweight ? ` The tankered fuel exceeds the ${Math.round(tk.headroom).toLocaleString("en-US")} kg landing-weight headroom entered, so the full amount cannot be carried.` : "") }
+    : { sev: "note", h: "Tankering does not pay on the entered sector",
+        d: `The destination price would have to exceed $${tk.be.toFixed(3)} a litre before carrying fuel beats buying it there; it costs ${fmt(-tk.year)} a year at the prices entered.` });
+
   mountPrintSummary({
     title: `${fmt(spend)} annual fuel spend at ${prem.toFixed(1)}% over Platts`,
     verdict: high > 0
@@ -136,9 +149,60 @@ function summarise() {
   });
 }
 
+/* ---- tankering ----
+
+   One sector at a time. The arithmetic is the operator's own: the only
+   assumption the page brings is the cost of carriage (a planning default
+   labelled as such on the page), the litres-to-kilograms density and the
+   ICAO 3.16 CO2 factor. Burning to carry is treated as a share of the
+   tankered fuel per hour, which is how performance manuals tabulate it.
+
+   The inputs are static markup and only the derived text is rewritten,
+   so typing into a field never loses the cursor. */
+const TK_DENSITY = 0.8;   // kg per litre, Jet A-1 mid-range
+const CO2_PER_KG = 3.16;  // ICAO conversion factor for jet fuel
+const num = id => parseFloat(document.getElementById(id).value);
+function tankerCalc() {
+  const litres = num("tk-litres"), po = num("tk-po"), pd = num("tk-pd"),
+        hrs = num("tk-hrs"), pen = num("tk-pen"), flights = num("tk-flights"),
+        headroom = num("tk-headroom");
+  if (!(litres > 0 && po > 0 && pd > 0 && hrs > 0 && pen >= 0)) return null;
+  const frac = Math.min(pen / 100 * hrs, 0.99);       // share of the extra burned en route
+  const burned = litres * frac;
+  const perFlight = (litres - burned) * pd - litres * po;
+  const n = flights > 0 ? flights : 0;
+  const burnYear = burned * n;
+  return { litres, perFlight, year: perFlight * n, be: po / (1 - frac), burnYear,
+           co2: burnYear * TK_DENSITY * CO2_PER_KG / 1000, ok: perFlight > 0,
+           headroom, overweight: headroom > 0 && litres * TK_DENSITY > headroom };
+}
+function renderTanker() {
+  const t = tankerCalc(), set = (id, v) => { document.getElementById(id).textContent = v; };
+  if (!t) {
+    set("tk-verdict", "—");
+    set("tk-qual", "Enter the sector to see whether tankering pays.");
+    ["tk-perflight", "tk-year", "tk-be", "tk-burn", "tk-co2"].forEach(id => set(id, "—"));
+    return;
+  }
+  const money = v => (v < 0 ? "−" : "") + fmt(Math.abs(v));
+  set("tk-verdict", t.ok ? "Tanker" : "Buy at destination");
+  set("tk-qual", (t.ok
+    ? `Carrying the fuel saves ${money(t.perFlight)} a flight.`
+    : `Carrying the fuel costs ${money(-t.perFlight)} a flight more than buying it at destination.`) +
+    ` The destination price has to be above $${t.be.toFixed(3)} a litre for tankering to pay.` +
+    (t.overweight ? ` Warning: ${Math.round(t.litres * TK_DENSITY).toLocaleString("en-US")} kg of extra fuel exceeds the ${Math.round(t.headroom).toLocaleString("en-US")} kg landing-weight headroom.` : ""));
+  set("tk-perflight", money(t.perFlight));
+  set("tk-year", money(t.year));
+  set("tk-be", "$" + t.be.toFixed(3) + " / litre");
+  set("tk-burn", Math.round(t.burnYear).toLocaleString("en-US") + " litres");
+  set("tk-co2", t.co2.toFixed(1) + " t");
+}
+
 ["spend","premium","benchmark","uplift"].forEach(id =>
   document.getElementById(id).addEventListener("input", () => { recalc(); summarise(); }));
-recalc(); summarise();
+["tk-litres","tk-po","tk-pd","tk-hrs","tk-flights","tk-pen","tk-headroom"].forEach(id =>
+  document.getElementById(id).addEventListener("input", () => { renderTanker(); summarise(); }));
+recalc(); renderTanker(); summarise();
 wireToolEnquiryForm("fuel-enquiry", "Fuel Contract Optimizer Lite",
   { downloadUrl: "../assets/docs/JK_Fuel_Tender_Spec.pdf", downloadName: "Fuel Tender Specification" });
 

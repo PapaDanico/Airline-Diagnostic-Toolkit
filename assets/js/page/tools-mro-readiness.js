@@ -194,3 +194,61 @@ wireToolEnquiryForm("mro-enquiry", "MRO & Technical Readiness Diagnostic");
 mountPrintHead("MRO & Technical Readiness Diagnostic",
   "Technical Readiness Index across twenty airworthiness questions");
 document.getElementById("print").addEventListener("click", () => window.print());
+
+/* ---- technician manpower ----
+
+   Sized two ways because a small fleet's answer is almost never the
+   workload: three business jets flying 400 hours generate under two
+   technicians' worth of task hours, yet one line position covered round
+   the clock takes six. Showing both, and naming which binds, is the
+   point — a plan sized on workload alone cannot staff its own roster,
+   and one sized on the roster has idle hours that are either a cost or
+   third-party capacity.
+
+   The reverse question (how many technicians a revenue target needs)
+   is here because a plan that sets maintenance revenue as a share of
+   turnover rarely says how many people that is. Controls are static
+   markup; only the result text is rewritten. */
+const mpNum = id => parseFloat(document.getElementById(id).value);
+function manpowerCalc() {
+  const ac = mpNum("mp-ac"), fh = mpNum("mp-fh"), mmh = mpNum("mp-mmh"),
+        inh = mpNum("mp-inhouse"), prod = mpNum("mp-prod"), cert = mpNum("mp-cert"),
+        pos = mpNum("mp-pos") || 0, hpd = mpNum("mp-hpd") || 0,
+        planned = mpNum("mp-planned"), rate = mpNum("mp-rate"),
+        bill = mpNum("mp-bill"), target = mpNum("mp-target");
+  if (!(ac >= 0 && fh >= 0 && mmh >= 0 && inh >= 0 && prod > 0)) return null;
+  const workHours = ac * fh * mmh * Math.min(inh, 100) / 100;
+  const work = workHours / prod;
+  const cover = pos * Math.min(hpd, 24) * 365 / prod;
+  const required = Math.ceil(Math.max(work, cover) - 1e-9);
+  const certN = Math.ceil(required * (cert > 0 ? cert : 0) / 100 - 1e-9);
+  const sellable = bill > 0 ? Math.min(bill, 100) / 100 : 0;
+  const spare = planned > 0 ? Math.max(0, planned * prod - workHours) : null;
+  const revenue = spare !== null && rate > 0 ? spare * sellable * rate : null;
+  const toTarget = target > 0 && rate > 0 && sellable > 0
+    ? Math.ceil(Math.max(cover, (workHours + target / rate / sellable) / prod) - 1e-9) : null;
+  return { workHours, work, cover, required, certN, planned, spare, revenue, toTarget,
+           binds: cover > work ? "roster" : "workload" };
+}
+function renderManpower() {
+  const m = manpowerCalc(), set = (id, v) => { document.getElementById(id).textContent = v; };
+  const ids = ["mp-work", "mp-cover", "mp-certn", "mp-spare", "mp-rev", "mp-totarget"];
+  if (!m) { set("mp-req", "—"); set("mp-qual", "Enter the fleet to size the team."); ids.forEach(i => set(i, "—")); return; }
+  const int = n => Math.round(n).toLocaleString("en-US");
+  set("mp-req", `${m.required} technician${m.required === 1 ? "" : "s"}`);
+  let q = m.binds === "roster"
+    ? `The roster binds: covering the line positions needs ${m.cover.toFixed(1)} people, against ${m.work.toFixed(1)} for the own-fleet work.`
+    : `The workload binds: own-fleet maintenance needs ${m.work.toFixed(1)} people, against ${m.cover.toFixed(1)} for roster cover.`;
+  if (m.planned > 0 && m.planned < m.required)
+    q += ` The ${int(m.planned)} planned is ${m.required - m.planned} short.`;
+  set("mp-qual", q);
+  set("mp-work", `${int(m.workHours)} h · ${m.work.toFixed(1)} FTE`);
+  set("mp-cover", `${m.cover.toFixed(1)} FTE`);
+  set("mp-certn", String(m.certN));
+  set("mp-spare", m.spare === null ? "Enter planned team" : `${int(m.spare)} h`);
+  set("mp-rev", m.revenue === null ? "Enter team and rate" : "$" + int(m.revenue) + " a year");
+  set("mp-totarget", m.toTarget === null ? "Enter target and rate" : String(m.toTarget));
+}
+["mp-ac","mp-fh","mp-mmh","mp-inhouse","mp-prod","mp-cert","mp-pos","mp-hpd","mp-planned","mp-rate","mp-bill","mp-target"]
+  .forEach(id => document.getElementById(id).addEventListener("input", renderManpower));
+renderManpower();

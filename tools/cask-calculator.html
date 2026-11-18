@@ -141,6 +141,36 @@
     </div>
   </div>
 </section>
+
+<section id="adjust">
+  <div class="wrap calc">
+    <div class="card">
+      <h2 style="margin-top:0">Compare like with like, then against revenue</h2>
+      <p class="muted" style="font-size:var(--fs-sm)">Short sectors carry more take-offs and turnarounds per kilometre, so a short-haul carrier's CASK looks worse than a long-haul one's for the same efficiency. Adjust to a common stage length before comparing, then set the cost against what each seat-kilometre earns.</p>
+      <div class="grid g2" style="gap:10px">
+        <div class="field"><label for="stage">Your average stage length (km)</label><input id="stage" type="number" min="0" step="50" value="800"></div>
+        <div class="field"><label for="stageRef">Compare at a stage length of (km)</label><input id="stageRef" type="number" min="0" step="50" value="1000"></div>
+        <div class="field"><label for="revenue">Total annual operating revenue (USD, optional)</label><input id="revenue" type="number" min="0" step="1000000" placeholder="e.g. 300000000"></div>
+        <div class="field"><label for="lf">Current load factor (%, optional)</label><input id="lf" type="number" min="0" max="100" step="1" placeholder="e.g. 72"></div>
+      </div>
+      <div class="field"><div class="hint">The adjustment scales CASK by the square root of stage length relative to the comparison length. That exponent is a common analysts' rule of thumb, not a sourced constant; use it to put two carriers on one footing, not as a precise correction.</div></div>
+    </div>
+    <div>
+      <div class="result-panel">
+        <p class="eyebrow" style="color:var(--jk-amber)">Stage-length-adjusted CASK</p>
+        <div class="rng" id="caskAdj">—</div>
+        <p class="qual" id="adjQual">Enter your stage length to adjust.</p>
+        <dl class="out">
+          <dt>RASK (revenue per ASK)</dt><dd id="rask">—</dd>
+          <dt>RASK − CASK spread</dt><dd id="spread">—</dd>
+          <dt>Break-even load factor</dt><dd id="belf">—</dd>
+        </dl>
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:1.2rem 0">
+        <p class="method">Method: adjusted CASK = CASK × √(your stage ÷ comparison stage). RASK = revenue ÷ ASK. Break-even load factor = current load factor × CASK ÷ RASK, on the assumption that revenue moves with passengers carried and cost does not.</p>
+      </div>
+    </div>
+  </div>
+</section>
 </main>
 
 <footer class="footer">

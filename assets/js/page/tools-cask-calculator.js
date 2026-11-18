@@ -238,9 +238,51 @@ function summarise() {
   });
 }
 
-const recalcAll = () => { recalc(); recalcFuel(); publishCask(); summarise(); };
+/* ---- stage-length adjustment and revenue spread ----
+
+   CASK falls as stage length rises, so a raw comparison flatters long
+   sectors. The square-root scaling is labelled on the page as a rule of
+   thumb rather than a sourced constant. Revenue and load factor are
+   optional: without them the cost side still answers, and the revenue
+   rows say what is missing instead of printing a zero spread. */
+function recalcAdjust() {
+  const op = parseFloat(document.getElementById("opcost").value) || 0;
+  const ask = parseFloat(document.getElementById("ask").value) || 0;
+  const stage = parseFloat(document.getElementById("stage").value);
+  const ref = parseFloat(document.getElementById("stageRef").value);
+  const rev = parseFloat(document.getElementById("revenue").value);
+  const lf = parseFloat(document.getElementById("lf").value);
+  const set = (id, v) => { document.getElementById(id).textContent = v; };
+  if (!(op > 0 && ask > 0)) {
+    ["caskAdj", "rask", "spread", "belf"].forEach(id => set(id, "—"));
+    set("adjQual", "Enter operating cost and ASK above first.");
+    return;
+  }
+  const cask = op / ask * 100;
+  if (stage > 0 && ref > 0) {
+    const adj = cask * Math.sqrt(stage / ref);
+    set("caskAdj", adj.toFixed(2) + " US¢ / ASK");
+    set("adjQual", `${cask.toFixed(2)}¢ on an average stage of ${Math.round(stage).toLocaleString("en-US")} km is equivalent to about ${adj.toFixed(2)}¢ at ${Math.round(ref).toLocaleString("en-US")} km. ` +
+      (stage < ref ? "Part of the gap to longer-haul peers is stage length, not inefficiency." : stage > ref ? "Your longer sectors flatter the raw figure against shorter-haul peers." : "No adjustment at the same stage length."));
+  } else {
+    set("caskAdj", "—");
+    set("adjQual", "Enter both stage lengths to adjust.");
+  }
+  if (rev > 0) {
+    const rask = rev / ask * 100, spread = rask - cask;
+    set("rask", rask.toFixed(2) + " US¢");
+    set("spread", (spread < 0 ? "−" : "+") + Math.abs(spread).toFixed(2) + " US¢");
+    set("belf", lf > 0 ? (lf * cask / rask).toFixed(1) + "%" + (lf * cask / rask > 100 ? " (above 100%: no load factor breaks even)" : "") : "Enter load factor");
+  } else {
+    set("rask", "Enter revenue"); set("spread", "Enter revenue"); set("belf", "Enter revenue");
+  }
+}
+
+const recalcAll = () => { recalc(); recalcFuel(); publishCask(); recalcAdjust(); summarise(); };
 ["opcost","ask","target"].forEach(id =>
   document.getElementById(id).addEventListener("input", recalcAll));
+["stage","stageRef","revenue","lf"].forEach(id =>
+  document.getElementById(id).addEventListener("input", recalcAdjust));
 /* fleetType and the cost-line shares reach the summary too: the gauge
    caveat turns on the type, and the reconciliation finding turns on the
    shares. Wiring them to their own panel alone is how three of these
