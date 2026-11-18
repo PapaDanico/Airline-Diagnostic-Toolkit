@@ -1386,7 +1386,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   /* The working is a record of what was entered, not a form to fill:
      tighten it so a one-answer tool does not spill its disclaimer onto
      a page of its own. */
-  .calc .card { padding: 12px 16px !important; }
+  .calc .card, main .card { padding: 8px 12px !important; margin-bottom: 6px !important; }
   .calc .field { margin-bottom: .55rem !important; }
   .calc .field input, .calc .field select { padding: 4px 8px !important; }
   /* Page one, and only page one — the working starts overleaf. */
@@ -1403,11 +1403,15 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
      title block, so only its heading survives as the working's title. */
   .calc input[type="range"], .cx-row input[type="range"] { display: none !important; }
   .tool-head .ref, .tool-head .lead { display: none !important; }
-  section { padding: 12px 0 !important; }
+  section { padding: 6px 0 !important; }
   .rag, .bar, .bar > i, .index-ring, #radar polygon, #radar circle, .dot,
   .meter-track > i, .stack-bar > i, .kpi { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   .rx, .gap-table tr, .radar-box, .guarantee, .summary, .print-head,
-  .pgate, .entity, .role, .kpi, .stack-row { break-inside: avoid; page-break-inside: avoid; }
+  .pgate, .entity, .role, .kpi, .stack-row, .chk, .disclaimer, .cx-row, .rs-hist { break-inside: avoid; page-break-inside: avoid; }
+  /* "Remove" and similar inline controls do nothing on paper */
+  .linkbtn { display: none !important; }
+  /* The closing disclaimer is small print on paper; at screen size it was the line that fell onto a page of its own. */
+  .disclaimer { font-size: var(--fs-xs) !important; line-height: 1.4 !important; margin: 0 !important; padding-top: .3rem !important; padding-bottom: .3rem !important; }
   h1, h2 { page-break-after: avoid; }
   a[data-email] { color: var(--jk-ink) !important; text-decoration: underline; }
   .table-scroll { overflow: visible !important; }
@@ -1444,7 +1448,10 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   tfoot { display: table-footer-group; }
   tr { break-inside: avoid; page-break-inside: avoid; }
   h3, h4, caption, .eyebrow { break-after: avoid; page-break-after: avoid; }
-  p, li { orphans: 3; widows: 3; }
+  /* two, not three: with three a four-line paragraph cannot split at all, so it jumps whole to the next page and leaves a gap behind it */
+  p, li { orphans: 2; widows: 2; }
+  /* paper is read closer than a screen: a tighter line keeps a pack from spilling a few lines onto a last page of its own */
+  p, li, td { line-height: 1.4 !important; }
   /* A trailing disclaimer is not worth a page of its own. Pulled back
      onto the page it qualifies, where a reader will actually see it. */
   .disclaimer, .cta-alt { break-before: avoid; page-break-before: avoid; }
@@ -1468,6 +1475,10 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   .gap-table th:nth-child(3), .gap-table td:nth-child(3) { width: 17%; }
   .gap-table th:nth-child(4), .gap-table td:nth-child(4) { width: 8%; white-space: nowrap; }
   .gap-table th:nth-child(5), .gap-table td:nth-child(5) { width: 12%; }
+  /* Those widths name five columns. A table with six or more (the fleet planner's year-by-year grid) left its sixth with
+     nothing and it printed one character wide, digits stacked, so wider tables go back to automatic layout. */
+  .gap-table:has(th:nth-child(6)) { table-layout: auto; }
+  .gap-table:has(th:nth-child(6)) th, .gap-table:has(th:nth-child(6)) td { width: auto !important; white-space: normal; }
   .gap-table th, .gap-table td { padding: 8px 6px; }
   .gap-table th { font-size: var(--fs-2xs); letter-spacing: .03em; }
   .barcell { min-width: 0; }
@@ -1920,11 +1931,13 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   .rs-inputs { grid-template-columns: 1fr 1fr; gap: 0 16px; }
   .rs-in-wide { grid-column: 1 / -1; }
   .rs-analysis { columns: 1; border-top: 0; margin-top: 8px; padding-top: 0; }
-  .rs-analysis > .rs-card, .rs-analysis-wide > .rs-card { break-inside: auto; border: 0; padding: 0 0 6px; margin-bottom: 6px; }
+  .rs-analysis > .rs-card, .rs-analysis-wide > .rs-card { break-inside: auto; border: 0; padding: 0 0 6px; margin-bottom: 2px; }
   .rs-card .gap-table { table-layout: auto; min-width: 0; }
   .rs-card .gap-table th, .rs-card .gap-table td { width: auto; padding: 3px 6px; }
   /* the section descriptions are guidance for the person at the screen; the pack carries the figures and their notes */
   .rs-card > p.muted { display: none; }
+  /* the closing card carries only the disclaimer on paper (its form is hidden); keep it whole, not split with one line stranded */
+  .rs-analysis > .rs-cta, .rs-analysis-wide > .rs-cta { break-inside: avoid; page-break-inside: avoid; }
   .rs-hist { height: 100px; }
   .rs-inputs .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 10px; }
   .rs-inputs .grid.g2 { grid-template-columns: repeat(2, 1fr); }

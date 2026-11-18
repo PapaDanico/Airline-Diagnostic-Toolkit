@@ -92,13 +92,13 @@ const JKA = {
      tool takes the longest rather than the sum. */
   gates: [
     { id: "notify", k: "Notify the Authority of the change of control", lo: 0.5, hi: 0.5,
-      d: "Required within 14 days of the change. A notification made late is a finding on a certificate you now own.",
+      d: "Licensing of Air Services Regulations, reg. 21: written notice at least 14 days BEFORE the change, not after it. Notice given after completion is a finding on a certificate you now own, so the 14 days has to be built into the signing-to-completion timetable.",
       req: true, c: ["aoc", "act"] },
     { id: "shareholding", k: "Notify any shareholding change at or above 10%", lo: 0.5, hi: 0.5,
-      d: "Separate from the control notification and triggered at a much lower threshold — a minority co-investor in the buying vehicle can trip it on its own.",
+      d: "Reg. 21(1)(d): at least 14 days in advance, for any single shareholding of 10% or more of the carrier or its parent. Separate from the control notification and triggered at a much lower threshold — a minority co-investor in the buying vehicle can trip it on its own.",
       req: true, c: ["aoc"] },
     { id: "keypeople", k: "Notify changes of key personnel", lo: 0.5, hi: 0.5,
-      d: "Required within 14 days. Every postholder the buyer replaces is a separate notification.",
+      d: "Reg. 21(1)(e): at least 14 days in advance of the change. Every postholder the buyer replaces is a separate notification.",
       req: true, c: ["aoc", "pel"] },
     { id: "acceptance", k: "Postholder acceptance for each replacement", lo: 1, hi: 3,
       d: "Credential review and an interview with the Authority per postholder. Runs in parallel across postholders but not instantly, and a rejected nominee restarts it.",
@@ -107,7 +107,7 @@ const JKA = {
       d: "The certificate is reissued against the new ownership and any changed scope. Manuals have to be approved before this closes.",
       req: false, c: ["aoc"] },
     { id: "asl", k: "Vary the Air Service Licence for the new ownership", lo: 1.5, hi: 4,
-      d: "A separate instrument from the AOC with its own ownership test, and the gate most often missed in deal planning because the AOC gets all the attention.",
+      d: "A separate instrument from the AOC with its own ownership test (51% of voting rights Kenyan), and the gate most often missed in deal planning because the AOC gets all the attention. Under reg. 21(3) the Authority can require a fresh licence application if the change significantly affects finances or control, which means 90 days to apply, and KCAA's Air Service Licence circular (CAA-AC-ATD003) advises allowing 120. The licence itself cannot be transferred (reg. 38).",
       req: false, c: ["airsvc"] }
   ],
 
@@ -126,7 +126,7 @@ const JKA = {
     { id: "enforcement", t: "Pending enforcement or a suspension in the last three years", sev: "stop",
       d: "Regulatory history attaches to the organisation, not the shareholder. It shapes surveillance intensity for years and is invisible in financial diligence.", c: ["act"] },
     { id: "leaseconsent", t: "Lessor change-of-control consents not obtained", sev: "stop",
-      d: "Almost every aircraft lease makes a change of control an event of default. Without written consents the fleet can be repossessed on the day the deal completes.", c: [] },
+      d: "Almost every aircraft lease makes a change of control an event of default. Without written consents the fleet can be repossessed on the day the deal completes. KCAA must also approve any lease or interchange arrangement before it is used (at least 14 days to process; KCAA circular CAA-AC-GEN010B).", c: [] },
     { id: "vacantposts", t: "Accepted postholder positions vacant or lapsed", sev: "warn",
       d: "The organisation the certificate was issued against no longer exists as described. Price the recruitment and the acceptance lead time.", c: ["aoc", "pel"] },
     { id: "opsspecs", t: "Aircraft on the register but off the Operations Specifications", sev: "warn",

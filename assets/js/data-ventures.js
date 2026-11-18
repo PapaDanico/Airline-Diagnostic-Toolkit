@@ -29,7 +29,7 @@ const JKV = {
      CITATION REGISTRY
      --------------------------------------------------------- */
   CITE_META: {
-    verifiedOn: "2026-08-04",
+    verifiedOn: "2026-11-18",
     note: "Kenya's 2025 civil aviation regulations were gazetted through 2026, so a regulation titled \"…Regulations, 2025\" carries a 2026 Legal Notice number. Always cite both.",
     sources: [
       { label: "Kenya Law — civil aviation legal notices", url: "https://new.kenyalaw.org/" },
@@ -52,8 +52,9 @@ const JKV = {
     instr:    { s:"verified",    ref:"L.N. 49/2026",  long:"Civil Aviation (Instruments, Equipment and Flight Documents) Regulations, 2025", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/49/eng@2026-03-25" },
     dgr:      { s:"verified",    ref:"L.N. 51/2026",  long:"Civil Aviation (Safe Transport of Dangerous Goods by Air) Regulations, 2025", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/51/eng@2026-03-25" },
     ais:      { s:"verified",    ref:"L.N. 45/2026",  long:"Civil Aviation (Aeronautical Information Service) Regulations, 2025", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/45/eng@2026-03-25" },
-    airsvc:   { s:"verified",    ref:"L.N. 22/2026",  long:"Civil Aviation (Licensing of Air Services) Regulations, 2025 — supersedes the 2018 Regulations (L.N. 167/2018) that this toolkit previously cited", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/22/eng@2026-03-03" },
+    airsvc:   { s:"verified",    ref:"L.N. 22/2026",  long:"Civil Aviation (Licensing of Air Services) Regulations, 2025 — supersedes the 2018 Regulations (L.N. 167/2018) that this toolkit previously cited. Read in full, November 2026: 51% of voting rights (reg. 5); application at least 90 days ahead (reg. 4(5)); financial fitness of two years of obligations and three months of costs without revenue (reg. 19); 14 days' notice of changes in controlling or 10% shareholding (reg. 21); initial licence at most one year, renewals five (reg. 35); not transferable (reg. 38)", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/22/eng@2026-03-03" },
 
+    reg:      { s:"verified",    ref:"L.N. 23/2026",  long:"Civil Aviation (Aircraft Nationality and Registration Marks) Regulations, 2025 — who may register an aircraft in Kenya. An owner or lessee must be a Kenyan citizen, a resident, or a corporation with at least 51% Kenyan shareholders (reg. 6(1)(a)); other owners may hold an interest only if the aircraft is not used for commercial air transport, flying training or aerial work (reg. 6(2)(c) and 6(3)); a leased aircraft can be registered where the lessee qualifies (reg. 6(4)); registration becomes void if an unqualified person becomes owner (reg. 9(2)). Read in full against the gazetted text, November 2026.", url:"https://new.kenyalaw.org/akn/ke/act/ln/2026/23/eng@2026-03-03" },
     // ---- not confirmed against the gazette record ----
     ato:      { s:"verified",    ref:"L.N. 93/2018",  long:"Civil Aviation (Approved Training Organizations) Regulations, 2018 — THE INSTRUMENT CURRENTLY IN FORCE. The 2025 revision is among the instruments KCAA lists as still awaiting Kenya Gazette publication, so plan against this one and AC-ATO 001C. Re-check before submission: when the 2025 Regulations are gazetted they will carry a new Legal Notice number and supersede this.", url:"https://new.kenyalaw.org/akn/ke/act/ln/2018/93/eng@2018-05-04" },
     atoNew:   { s:"unconfirmed", ref:"ATO Regs 2025 (pending)", long:"Civil Aviation (Approved Training Organisations) Regulations, 2025 — still awaiting Kenya Gazette publication, re-checked 4 August 2026 and unchanged. What has changed is the company it keeps: twenty-nine of the revised regulations were gazetted across March–June 2026 (this toolkit cites sixteen of them by Legal Notice), and the ATO instrument is among the nine left behind. A revision that misses the wave carrying its own sister instruments is not days away. Plan against L.N. 93/2018 and expect no date.", url:"https://www.kcaa.or.ke/published-regs-2025" },
@@ -70,7 +71,7 @@ const JKV = {
     // ---- advisory circulars / guidance (not law, but the working documents) ----
     ac5phase: { s:"verified",    ref:"CAA-O-GEN003C", long:"The Five Phase Certification and Approval Process (KCAA)", url:"https://www.kcaa.or.ke/published-regs-2025" },
     acOps001: { s:"verified",    ref:"CAA-AC-OPS001D", long:"Advisory Circular — Certification of an Air Operator (KCAA)", url:"https://www.kcaa.or.ke/sites/default/files/circulars/CAA-AC-OPS001D%20Cert%20of%20Air%20Operator.pdf" },
-    acAws006: { s:"verified",    ref:"CAA-AC-AWS006D", long:"Advisory Circular — Certification of a Domestic/Local Maintenance Organisation (KCAA)", url:"https://www.kcaa.or.ke/sites/default/files/CAA-AC-AWS006D%20Certification%20of%20Domestic-Local%20Maintenance%20Organization.pdf" },
+    acAws006: { s:"verified",    ref:"CAA-AC-AWS006D", long:"Advisory Circular — Certification of a Domestic/Local Maintenance Organisation (KCAA, July 2018). Five phases opening with the Pre-Application Statement of Intent (AC-AWS006-1); formal application at least 90 days before operations. It states a 12-month certificate, which the AMO Regulations (L.N. 20/2026, read in full) have since replaced with 24 months, renewable on 60 days' notice: where they differ, the regulation prevails", url:"https://www.kcaa.or.ke/sites/default/files/CAA-AC-AWS006D%20Certification%20of%20Domestic-Local%20Maintenance%20Organization.pdf" },
     acAto001: { s:"verified",    ref:"AC-ATO 001C",   long:"Advisory Circular — Certification of an Approved Training Organisation (KCAA)", url:"https://www.kcaa.or.ke/sites/default/files/publication/PEL/AC-ATO%20001C%20%20Certification%20of%20an%20Approved%20Training%20Organisation.pdf" },
     acPel070: { s:"unconfirmed", ref:"CAA-AC-PEL070D", long:"Advisory Circular — Certification of a Prospective Training Organisation and Renewal of an Approved Training Organisation (KCAA, January 2026). Published under the PEL circular series and covering the same ground as AC-ATO 001C, which suggests it is the current working document — but the two have not been read side by side, so plan against both and ask KCAA which governs. Unconfirmed means the document was located, not read.", url:"https://www.kcaa.or.ke/sites/default/files/circulars/CAA-AC-PEL070D%20--%20CERTIFICATION%20OF%20PROSPECTIVE%20TRAINING%20ORGANISATION%20AND%20RENEWAL%20OF%20APPROVED%20TRAINING%20ORGANISATION%20--%20January%202026.pdf" },
     acPel082: { s:"unconfirmed", ref:"CAA-AC-PEL082A", long:"Advisory Circular — Certification of a Foreign Approved Training Organisation (KCAA, January 2026). The route where the training partner is certificated abroad rather than in Kenya. Located but not read.", url:"https://www.kcaa.or.ke/sites/default/files/circulars/CAA-AC-PEL082A%20-%20Certification%20of%20a%20Foreign%20Approved%20Training%20Organisation%20(ATO)%20-%20January%202026_0.pdf" },
@@ -120,7 +121,7 @@ const JKV = {
       short:"Airline / AOC",
       blurb:"Scheduled, charter, ACMI or cargo air transport. The AOC plus an Air Service Licence.",
       regLine:"AOC Regs 2025 + Air Service Licence",
-      cites:["aoc","cat","airsvc","act","acOps001","sms","airworth","security","fatigue","dgr","instr"],
+      cites:["aoc","cat","airsvc","reg","act","acOps001","sms","airworth","security","fatigue","dgr","instr"],
       leadMonths:[12,24], leadNote:"12–24 months from pre-application to certificate for a first-time applicant with financing already in place.",
       postholders:[
         {r:"Accountable Manager", kcaa:true, note:"Corporate authority and financial control over the operation. Non-delegable."},
@@ -262,18 +263,18 @@ const JKV = {
       items:{
         pre:[
           {t:"Pre-Application Statement of Intent (PASI)", d:"Declare the intended scope: aircraft types, areas of operation, type of service (scheduled / non-scheduled / cargo).", c:["acOps001"], crit:true},
-          {t:"Evidence of legal entity & Kenyan ownership structure", d:"Incorporation certificate, CR12, beneficial-ownership register. Substantial ownership and effective control tests apply.", c:["act","airsvc"], crit:true},
+          {t:"Evidence of legal entity & Kenyan ownership structure", d:"Incorporation certificate, CR12, beneficial-ownership register. At least 51% of voting rights must be ultimately held by the State or Kenyan citizens (Licensing of Air Services Regulations, reg. 5), and a Kenyan-registered aircraft needs an owner or lessee that is a Kenyan citizen, a resident or a corporation with at least 51% Kenyan shareholders (Aircraft Nationality and Registration Marks Regulations, reg. 6). The Authority also asks for proof of the integrity of whoever controls operations.", c:["act","airsvc","reg"], crit:true},
           {t:"Nominated Accountable Manager identified", d:"Named individual with corporate authority and financial control. The Authority assesses the person, not just the post.", c:["aoc"], crit:true},
           {t:"Pre-application meeting held and minuted", d:"Confirm applicable regulations, the certification team, and the shape of the Schedule of Events.", c:["ac5phase"], crit:true},
-          {t:"Air Service Licence application lodged", d:"Runs in parallel with the AOC — the AOC alone does not entitle you to sell transport.", c:["airsvc"], crit:true}
+          {t:"Air Service Licence application lodged", d:"Runs in parallel with the AOC — the AOC alone does not entitle you to sell transport. Apply at least 90 days before the licence is to take effect, and allow 120 (KCAA's Air Service Licence circular, CAA-AC-ATD003, advises a minimum of 120 days because the application may be gazetted and go to a hearing): the Authority gazettes the application, takes representations for 21 days, holds a public hearing and decides within 30 days of it.", c:["airsvc"], crit:true}
         ],
         formal:[
           {t:"Formal application letter + prescribed forms", d:"The single most common cause of rejection is an incomplete or unsigned form set. Check every signature block.", c:["acOps001"], crit:true},
           {t:"Schedule of Events (SOE)", d:"Dated, resourced plan through to certification. The Authority resources its team against this.", c:["ac5phase"], crit:true},
           {t:"Compliance statement / cross-reference matrix", d:"Regulation-by-regulation mapping to where compliance is demonstrated in your manuals.", c:["aoc"], crit:true},
           {t:"Management personnel CVs + qualification evidence", d:"Every nominated postholder, with licences, hours and prior post-holding experience.", c:["aoc","pel"], crit:true},
-          {t:"Financial adequacy demonstration", d:"Funding plan showing the operation can be sustained through certification and initial operations without revenue.", c:["aoc","airsvc"], crit:true},
-          {t:"Aircraft documents — lease, registration, airworthiness path", d:"Lease agreements, proposed registration marks, and the route to a Certificate of Airworthiness.", c:["aoc"], crit:true},
+          {t:"Financial adequacy demonstration", d:"Funding plan showing the operation can be sustained through certification and initial operations without revenue. The licence test is explicit: obligations met for two years on a business plan in the prescribed format, and at least three months of fixed and operating costs covered without relying on revenue, with audited accounts for any existing carrier (Licensing of Air Services Regulations, reg. 19).", c:["aoc","airsvc"], crit:true},
+          {t:"Aircraft documents — lease, registration, airworthiness path", d:"Lease agreements, proposed registration marks, and the route to a Certificate of Airworthiness. The licence needs aircraft at the applicant's disposal by ownership or dry lease under its operational control, on the Kenyan register unless the Authority accepts another; wet or damp leases are limited to 12 months and to five aircraft or half the Kenyan-registered fleet, whichever is less. A foreign-registered aircraft also needs an agreement between KCAA and its state of registry, and a lease approval takes at least 14 days (KCAA circular CAA-AC-GEN010B, Aircraft Lease and Interchange). Sub-charter approval (CAA-AC-ATD005) covers at most five consecutive days between operators KCAA oversees, so it is not a way to launch on another operator's certificate.", c:["aoc","airsvc","reg"], crit:true},
           {t:"Draft manual set submitted", d:"OM A–D, MEL, CAME, SMS, Quality, Security, DG, Training.", c:["aoc","sms"], crit:true},
           {t:"Written acceptance letter received", d:"THE GATE. Nothing in Phase 3 begins until this letter exists.", c:["ac5phase"], crit:true}
         ],
@@ -297,8 +298,8 @@ const JKV = {
           {t:"All Phase 4 findings closed", d:"THE GATE.", c:["ac5phase"], crit:true}
         ],
         cert:[
-          {t:"Air Operator Certificate issued", d:"With the operations specifications defining exactly what you may do.", c:["aoc"], crit:true},
-          {t:"Air Service Licence issued", d:"The commercial authority to sell the service.", c:["airsvc"], crit:true},
+          {t:"Air Operator Certificate issued", d:"With the operations specifications defining exactly what you may do. It is valid for 24 months; apply for renewal at least 60 days before expiry and request any amendment at least 30 days before you need it. It lapses after six months without operations.", c:["aoc"], crit:true},
+          {t:"Air Service Licence issued", d:"The commercial authority to sell the service. An initial licence lasts at most one year and renewals at most five; it lapses if no revenue flight is flown within its validity or for six months, it cannot be transferred, and the fee is due within 30 days of the Gazette notice.", c:["airsvc"], crit:true},
           {t:"Operations specifications reviewed and understood", d:"Every limitation, authorisation and special approval on the certificate.", c:["aoc"], crit:true},
           {t:"Continuing surveillance plan agreed", d:"Annual audit cycle, reporting obligations and change-notification duties begin immediately.", c:["aoc"], crit:false},
           {t:"Insurance in force and evidenced", d:"Hull, liability and passenger cover at the levels required.", c:["act"], crit:true}

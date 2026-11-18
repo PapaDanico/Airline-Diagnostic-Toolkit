@@ -61,7 +61,7 @@
    notice — instruments added, a status changed, the verification
    re-run. The suffix catches everything else. */
 const EDITION_YEAR = 2026;
-const EDITION_SEQ = 2;
+const EDITION_SEQ = 3;
 
 const ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 

@@ -24,13 +24,13 @@
   const store = toolStore("returns");
   let state = store.load();
   const $ = id => document.getElementById(id);
-  const IDS = ["rs-capital", "rs-r1", "rs-r2", "rs-r3", "rs-r4", "rs-r5", "rs-margin", "rs-rate", "rs-term", "rs-cov", "rs-debt", "rs-hurdle", "rs-yield", "rs-urev", "rs-umg", "rs-urate", "rs-exit"];
-  const DEFAULTS = { "rs-capital": 100, "rs-r1": 8, "rs-r2": 12, "rs-r3": 18, "rs-r4": 26, "rs-r5": 36, "rs-margin": 22, "rs-rate": 9, "rs-term": 7, "rs-cov": 1.25, "rs-debt": 30, "rs-hurdle": 10, "rs-yield": 15, "rs-urev": 20, "rs-umg": 5, "rs-urate": 3, "rs-exit": 6, "rs-phase": "even" };
+  const IDS = ["rs-capital", "rs-r1", "rs-r2", "rs-r3", "rs-r4", "rs-r5", "rs-margin", "rs-rate", "rs-term", "rs-grace", "rs-cov", "rs-debt", "rs-hurdle", "rs-yield", "rs-urev", "rs-umg", "rs-urate", "rs-exit"];
+  const DEFAULTS = { "rs-capital": 100, "rs-r1": 8, "rs-r2": 12, "rs-r3": 18, "rs-r4": 26, "rs-r5": 36, "rs-margin": 22, "rs-rate": 9, "rs-term": 7, "rs-grace": 0, "rs-cov": 1.25, "rs-debt": 30, "rs-hurdle": 10, "rs-yield": 15, "rs-urev": 20, "rs-umg": 5, "rs-urate": 3, "rs-exit": 6, "rs-phase": "even" };
   /* Bounds on typing and paste: a negative rate or a margin above the
      revenue is a confident wrong answer, which is worse than a refused one.
      A negative margin is deliberately allowed — a loss-making case is a
      real scenario. */
-  const BOUNDS = { "rs-capital": [0, 1e6], "rs-r1": [0, 1e6], "rs-r2": [0, 1e6], "rs-r3": [0, 1e6], "rs-r4": [0, 1e6], "rs-r5": [0, 1e6], "rs-margin": [-100, 95], "rs-rate": [0, 40], "rs-term": [1, 50], "rs-cov": [0.5, 5], "rs-debt": [0, 1e6], "rs-hurdle": [0, 50], "rs-yield": [0, 100], "rs-urev": [0, 80], "rs-umg": [0, 40], "rs-urate": [0, 15], "rs-exit": [0, 40] };
+  const BOUNDS = { "rs-capital": [0, 1e6], "rs-r1": [0, 1e6], "rs-r2": [0, 1e6], "rs-r3": [0, 1e6], "rs-r4": [0, 1e6], "rs-r5": [0, 1e6], "rs-margin": [-100, 95], "rs-rate": [0, 40], "rs-term": [1, 50], "rs-grace": [0, 4], "rs-cov": [0.5, 5], "rs-debt": [0, 1e6], "rs-hurdle": [0, 50], "rs-yield": [0, 100], "rs-urev": [0, 80], "rs-umg": [0, 40], "rs-urate": [0, 15], "rs-exit": [0, 40] };
   const num = id => clampNum(parseFloat($(id).value), BOUNDS[id][0], BOUNDS[id][1]);
   /* A negative amount prints with a real minus sign, and anything that rounds to zero prints as zero, never "-0.0". */
   const m = x => { const v = Math.abs(x) < 0.05 ? 0 : x; return `USD ${v < 0 ? "\u2212" : ""}${Math.abs(v).toLocaleString("en-GB", { maximumFractionDigits: 1, minimumFractionDigits: 1 })}m`; };
@@ -54,10 +54,13 @@
 
   function model() {
     const cap = num("rs-capital"), rev = [1, 2, 3, 4, 5].map(i => num("rs-r" + i)), mg = num("rs-margin") / 100;
-    const rate = num("rs-rate"), term = num("rs-term"), cov = num("rs-cov"), debt = num("rs-debt"), hur = num("rs-hurdle") / 100, yld = num("rs-yield") / 100;
+    const rate = num("rs-rate"), term = num("rs-term"), grace = Math.round(num("rs-grace")), cov = num("rs-cov"), debt = num("rs-debt"), hur = num("rs-hurdle") / 100, yld = num("rs-yield") / 100;
     const phase = $("rs-phase").value;
     const ebitda = rev.map(r => r * mg);
-    const f = annualDebtService(1, rate, term);             // debt service per USD of debt
+    /* A grace period is interest capitalised onto the balance before repayment starts, so the level payment is
+       computed on the grown balance: per USD drawn, the usual annuity times (1 + rate)^grace. */
+    const grow = Math.pow(1 + rate / 100, grace);
+    const f = annualDebtService(1, rate, term) * grow;     // debt service per USD of debt
     const last = ebitda[4];
     const maxDebt = f > 0 && cov > 0 ? Math.max(0, last / cov / f) : 0;
     const ds = debt * f;
@@ -82,7 +85,7 @@
        Payments run for the term only, so a term shorter than five years
        leaves the later years with nothing to service. */
     const xm = num("rs-exit");
-    const pay = ebitda.map((e, i) => i + 1 <= term ? ds : 0);
+    const pay = ebitda.map((e, i) => i + 1 > grace && i + 1 <= grace + term ? ds : 0);
     const planCover = ds > 0 ? ebitda.map((e, i) => pay[i] > 0 ? e / pay[i] : null) : null;
     const covered = planCover ? planCover.filter(c => c !== null) : [];
     const below1 = covered.filter(c => c < 1).length;
@@ -130,7 +133,7 @@
     const earns = tvs[1].none, noEbitda = !earns && !(last > 0);
     const reqMult = !earns && last > 0 ? tvs[1].tv / last : null;
     const ret = { earns, noEbitda, xm, exitValue, projIrr: irr(cf), eqIrr: irr(eq), moic: outs < 0 ? ins / -outs : null, npv, owed, reqMult };
-    return { spread, cap, rev, mg, rate, term, cov, debt, hur, yld, phase, ebitda, f, last, maxDebt, ds, dscr, byYear, marginForYield, tvs, cum,
+    return { spread, cap, rev, mg, rate, term, grace, grow, cov, debt, hur, yld, phase, ebitda, f, last, maxDebt, ds, dscr, byYear, marginForYield, tvs, cum,
       plan: { cover: planCover, below1, minCover, minYear, avgCover, firstOk, needE, revNeed, headroom, marginNeed }, fund, peak, trough, equity, gap, ret };
   }
 
@@ -142,7 +145,7 @@
      the same percentiles: a number that changes on reload cannot be
      quoted to a lender. */
   function capacity(M, o) {
-    const f = annualDebtService(1, Math.max(0, o.rate), o.term);
+    const f = annualDebtService(1, Math.max(0, o.rate), o.term) * Math.pow(1 + Math.max(0, o.rate) / 100, M.grace);
     return f > 0 && o.cov > 0 ? Math.max(0, M.rev[4] * o.revMult * o.mg / o.cov / f) : 0;
   }
   function exitPct(M, o) {
@@ -189,6 +192,7 @@
     ["rs-margin", "EBITDA margin", "%", " pts", "C", "JK planning default for a first-pass test. A house assumption, not a published benchmark."],
     ["rs-rate", "Interest rate", "%", " pts", "C", "JK planning default. Reference: Kenya's average commercial lending rate was 14.34% in August 2026 (Central Bank of Kenya), in shillings; pricing for dollar aircraft debt is not published."],
     ["rs-term", "Repayment term", " years", " years", "C", "JK planning default for aircraft and asset-backed debt."],
+    ["rs-grace", "Grace before repayment", " years", " years", "C", "Years of interest capitalised before repayment starts. Zero unless the facility has a moratorium; set it to the term sheet."],
     ["rs-cov", "Covenant floor", "×", "×", "C", "JK lender floor; lenders commonly quote 1.20× to 1.30×. Not a lender's term sheet."],
     ["rs-hurdle", "Return you need", "%", " pts", "C", "Illustrative cost of capital. Set it to your sponsor's hurdle."],
     ["rs-yield", "EBITDA yield wanted", "%", " pts", "C", "Illustrative target. Set it to your own."],
@@ -243,7 +247,7 @@
     /* cover grid: debt as a share of capital against margin */
     const shares = [0.3, 0.4, 0.5, 0.6, 0.7], mgs = [M.mg, M.mg + 0.04, M.mg + 0.08, M.mg + 0.13].map(x => Math.min(0.95, x));
     $("rs-grid").innerHTML = `<div class="table-scroll"><table class="gap-table"><thead><tr><th>Debt drawn</th>${mgs.map(x => `<th>${(x * 100).toFixed(0)}% margin</th>`).join("")}</tr></thead><tbody>` +
-      shares.map(s => { const d = M.cap * s, dsv = annualDebtService(d, M.rate, M.term);
+      shares.map(s => { const d = M.cap * s, dsv = annualDebtService(d, M.rate, M.term) * M.grow;
         return `<tr><td class="tnum">${m(d)} · ${Math.round(s * 100)}%</td>${mgs.map(x => `<td>${cover(dsv > 0 ? M.rev[4] * x / dsv : null, M.cov)}</td>`).join("")}</tr>`; }).join("") +
       `</tbody></table></div><p class="hint" style="margin-top:.5rem">Green clears the ${M.cov.toFixed(2)}× covenant; amber covers the debt but not the covenant; red does not cover it.</p>`;
 
@@ -353,7 +357,7 @@
       title: "Returns and reverse-solve",
       verdict: `On ${m(M.rev[4])} of year-5 revenue at a ${(M.mg * 100).toFixed(1)}% margin, cash flow supports about ${m(M.maxDebt)} of debt, ${M.cap > 0 ? Math.round(M.maxDebt / M.cap * 100) : 0}% of the ${m(M.cap)} of capital.`,
       findings: f,
-      basis: `Revenue and capital are as entered. Debt is a level payment at ${M.rate}% over ${M.term} years with a ${M.cov.toFixed(2)}× covenant floor, sized to year-5 EBITDA. Equity returns assume the debt is drawn at the start of year 1, serviced at each year-end and the balance repaid from the exit, at the exit multiple entered. Required exit value assumes capital ${M.phase === "start" ? "all deployed at the start" : "spread evenly over years 1 to 3"} and EBITDA received at each year-end, discounted at the return shown. A first-pass test, not a forecast or valuation.`
+      basis: `Revenue and capital are as entered. Debt is a level payment at ${M.rate}% over ${M.term} years${M.grace > 0 ? `, after a ${M.grace}-year grace period in which interest is capitalised` : ""}, with a ${M.cov.toFixed(2)}× covenant floor, sized to year-5 EBITDA. Equity returns assume the debt is drawn at the start of year 1, serviced at each year-end and the balance repaid from the exit, at the exit multiple entered. Required exit value assumes capital ${M.phase === "start" ? "all deployed at the start" : "spread evenly over years 1 to 3"} and EBITDA received at each year-end, discounted at the return shown. A first-pass test, not a forecast or valuation.`
     });
   }
 

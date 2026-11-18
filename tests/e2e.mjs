@@ -3299,6 +3299,48 @@ section("Returns solver: depth and space");
   await page.setViewportSize({ width: 1280, height: 800 });
 }
 
+/* Grace period. A facility with a moratorium capitalises interest before repayment starts, and the level payment is
+   computed on the grown balance. The reference case is the Ultra Caelum loan: USD 120m at 6% over 12 repayment years after
+   a 3-year grace gives a balance of 142.9m and a payment of 17.0m a year from year 4, so 1.35x needs 23.0m of EBITDA and
+   95.9m of revenue at 24%. With no grace the same loan costs 14.3m a year from year 1. Both are pinned: the first would
+   fail if the grace period were ignored, the second if it leaked into the default. */
+section("Returns solver: grace period");
+{
+  const set = async (id, v) => { await page.$eval("#" + id, (e, x) => { e.value = x; e.dispatchEvent(new Event("input", { bubbles: true })); }, v); };
+  const txt = async (id) => (await page.$eval("#" + id, (e) => e.innerText)).replace(/\s+/g, " ");
+  await page.goto(base + "/tools/returns-solver.html"); await page.evaluate(() => localStorage.clear());
+  await page.goto(base + "/tools/returns-solver.html"); await page.waitForTimeout(400);
+  assert((await page.$eval("#rs-grace", (e) => e.value)) === "0", "returns: grace defaults to zero so existing cases do not move");
+  for (const [k, v] of Object.entries({ "rs-capital": 120, "rs-r1": 20, "rs-r2": 42.5, "rs-r3": 65, "rs-r4": 83, "rs-r5": 95.9, "rs-margin": 24, "rs-rate": 6, "rs-term": 12, "rs-cov": 1.35, "rs-debt": 120 })) await set(k, v);
+  await page.waitForTimeout(300);
+  let be = await txt("rs-breakeven");
+  assert(be.includes("14.3m a year of debt service") && be.includes("19.3"), `returns: with no grace USD 120m at 6% over 12 years costs 14.3m a year - got ${be}`);
+  await set("rs-grace", 3); await page.waitForTimeout(300);
+  be = await txt("rs-breakeven");
+  assert(be.includes("17.0m a year of debt service") && be.includes("23.0") && be.includes("95.9"), `returns: after a 3-year grace the payment is 17.0m, the covenant needs 23.0m of EBITDA and 95.9m of revenue - got ${be}`);
+  const plan = await txt("rs-plan");
+  assert(/Year 1 no payment/.test(plan) && /Year 3 no payment/.test(plan) && plan.includes("1.17×") && plan.includes("1.35×"), `returns: years 1 to 3 carry no debt service and cover is 1.17x then 1.35x - got ${plan}`);
+  assert((await txt("rs-head")).includes("120.0"), `returns: debt capacity at the covenant is the 120.0m principal - got ${await txt("rs-head")}`);
+  await set("rs-grace", 0); await page.waitForTimeout(200);
+  await page.goto(base + "/tools/aoc-acquisition.html"); await page.waitForTimeout(400);
+  const gates = (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, " ");
+  assert(/at least 14 days BEFORE the change/i.test(gates), "acquisition: the change-of-control notice is 14 days in advance, not after (Licensing of Air Services Regulations, reg. 21)");
+}
+
+/* Print: a table with more than five columns must keep its sixth. The shared print rule gave .gap-table fixed widths for five
+   columns, so the fleet planner's year-by-year grid (a label and five years) printed its last year one character wide with the
+   digits stacked. Measured in print media on the worked example. */
+section("Print: six-column tables keep every column");
+{
+  await page.goto(base + "/tools/fleet-crew.html"); await page.evaluate(() => localStorage.clear());
+  await page.goto(base + "/tools/fleet-crew.html"); await page.waitForTimeout(300);
+  await page.click("#load-fleet"); await page.waitForTimeout(500);
+  await page.emulateMedia({ media: "print" });
+  const w = await page.$$eval("#fc-years thead th", (ths) => ths.map((t) => Math.round(t.getBoundingClientRect().width)));
+  await page.emulateMedia({ media: "screen" });
+  assert(w.length === 6 && w.slice(1).every((x) => x >= 30), `print: every year column of the fleet grid keeps a readable width - got ${w.join(", ")}`);
+}
+
 /* Plan Consistency, worked example. Five facts are stated more than one
    way (launch date, fleet size, terminal opening, FY2027 headcount,
    acquisition price) and one total does not add up (the headcount chart:
