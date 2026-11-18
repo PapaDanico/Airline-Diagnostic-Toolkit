@@ -104,7 +104,7 @@
     },
     aerialSurvey: {
       group: "flight", label: "Aerial Survey / Special Missions",
-      aircraft: ["Cessna C208 Caravan", "Beechcraft King Air 350i", "Cessna C206"],
+      aircraft: ["Cessna C208 Caravan", "Beechcraft King Air 350i", "Pilatus PC-12", "Cessna C206"],
       rateBands: { low: 900, base: 1500, high: 2300 },
       docBands: { low: 450, base: 700, high: 1000 },
       utilBands: { conservative: 250, base: 400, optimistic: 650 },
@@ -777,9 +777,10 @@
     }
   });
 
-  /* Ultra Caelum preset: the Group plan's commercial lines mapped onto
+  /* Ultra Caelum preset: the delivery plan's commercial lines mapped onto
      this tool's segments. Volumes are the tool's base planning defaults
-     scaled to a mature, eight-tail fleet; they are planning estimates,
+     scaled to the seven-tail Balanced Hybrid fleet (Scenario 2), which
+     carries no Cessna 208 Caravan; they are planning estimates,
      not bookings, and every figure stays editable. */
   const UC_PRESET = [
     ["corporateCharter", { aircraft: "Cessna Citation Sovereign+", hours: 900, aircraftValue: 12000000 }],
@@ -788,7 +789,7 @@
     ["ngoCharter", { aircraft: "Pilatus PC-12", hours: 500 }],
     ["miningShuttle", { aircraft: "Pilatus PC-12", hours: 600 }],
     ["aeromedical", { aircraft: "Airbus H125", hours: 300 }],
-    ["aerialSurvey", { aircraft: "Cessna C208 Caravan", hours: 350 }],
+    ["aerialSurvey", { aircraft: "Pilatus PC-12", hours: 350 }],
     ["safariCharter", { aircraft: "Pilatus PC-12", hours: 700 }],
     ["managementFee", { hours: 48 }],
     ["brokerage", {}],
@@ -804,7 +805,7 @@
       return seg;
     });
     renderAll();
-    $("seg-status").textContent = "Loaded the Ultra Caelum preset: thirteen streams from the Group plan's commercial lines. Planning estimates, not bookings.";
+    $("seg-status").textContent = "Loaded the Ultra Caelum preset: thirteen streams from the delivery plan's commercial lines. Planning estimates, not bookings.";
   });
   $("clear-segs").addEventListener("click", () => {
     if (state.segments.length && !confirm("Remove every segment from this model?")) return;

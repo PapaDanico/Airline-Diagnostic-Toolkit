@@ -60,7 +60,7 @@ footer.
 ### Shared
 
 `index.html` (two-door landing) · `tools/index.html` (explorer, grouped by track) · `how-it-works.html` ·
-`tutorial.html` (step-by-step walkthrough, both tracks) · `faq.html` (38 questions, with FAQPage structured data) ·
+`tutorial.html` (step-by-step walkthrough, both tracks) · `faq.html` (40 questions, with FAQPage structured data) ·
 `glossary.html` (111 terms, searchable, cross-referenced) ·
 `regulations.html` (Kenya regulatory index — every instrument, its Legal Notice, source and verification status) ·
 `methodology.html` · `partners.html` · `embed.html` · `privacy.html` / `terms.html` · `404.html`

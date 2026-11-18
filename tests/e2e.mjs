@@ -3285,8 +3285,13 @@ section("Returns solver: depth and space");
   await page.setViewportSize({ width: 1600, height: 1000 }); await page.waitForTimeout(250);
   const cols = await page.$eval(".rs-analysis", (e) => parseInt(getComputedStyle(e).columnCount) || 1).catch(() => 0);
   assert(cols >= 2, `returns: the analysis should sit in two columns at 1600, found ${cols}`);
-  const hgt = await page.evaluate(() => document.documentElement.scrollHeight);
-  assert(hgt < 7000, `returns: with six more analyses the page should stay compact: the old single column was 5,585px with a third of the content, and this is ${hgt}px`);
+  /* Measured to the top of the footer, not the bottom of the document.
+     The footer is site-wide and generated (scripts/build-footer.mjs); it
+     grew 357px when it began listing every tool, and this budget is about
+     the analysis, not the footer. 6,500 is the old 7,000 less the 507px
+     footer that sat under it then, so the content is held exactly as tight. */
+  const hgt = await page.evaluate(() => document.querySelector("footer").offsetTop);
+  assert(hgt < 6500, `returns: with six more analyses the page should stay compact: the old single column was 5,585px with a third of the content, and this is ${hgt}px above the footer`);
   assert((await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 0, "returns: overflows sideways at 1600");
   /* a phone: one column, and the result comes straight after the inputs */
   const mctx = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
@@ -3418,6 +3423,10 @@ section("Revenue Builder: new streams");
   assert((await page.$$("#seg-cards .card")).length === 0, "revenue: clear all should remove every card");
   await page.click("#load-uc"); await page.waitForTimeout(300);
   assert((await page.$$("#seg-cards .card")).length === 13, "revenue: the Ultra Caelum preset should load thirteen streams");
+  /* The submission excludes the Cessna 208 Caravan from every calculation:
+     the preset that stands for Ultra Caelum must not reintroduce it. */
+  const presetValues = await page.evaluate(() => Array.from(document.querySelectorAll("#seg-cards select, #seg-cards input")).map((e) => e.value).join("|"));
+  assert(!/C208/.test(presetValues), "revenue: the Ultra Caelum preset must not include a Cessna C208 Caravan");
   const rev = await rail("r-rev");
   assert(/\d/.test(rev) && !/^\D*0\D*$/.test(rev), `revenue: the preset should produce a revenue figure - got ${rev}`);
   await page.click("#btn-save-vf"); await page.waitForTimeout(200);
