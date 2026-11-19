@@ -103,7 +103,7 @@
         <h2>On this page</h2>
         <div id="faq-toc">
         <a href="#platform">The platform <span class="n">5</span></a>
-        <a href="#privacy">Your data <span class="n">5</span></a>
+        <a href="#privacy">Your data <span class="n">7</span></a>
         <a href="#tools">Using the tools <span class="n">7</span></a>
         <a href="#certification">Certification &amp; KCAA <span class="n">7</span></a>
         <a href="#capital">Capital &amp; funding <span class="n">5</span></a>
@@ -139,7 +139,8 @@
         </div>
         <div class="qa">
           <h3><button type="button" aria-expanded="false" aria-controls="a-platform-2" id="q-platform-2">Is it really free? What is the catch?</button></h3>
-          <div class="a" id="a-platform-2" role="region" aria-labelledby="q-platform-2" hidden><p>Really free, and there is no catch worth hiding. There is no signup, no paywall, no trial expiry, no email required, and no feature deliberately crippled to force an enquiry.</p>
+          <div class="a" id="a-platform-2" role="region" aria-labelledby="q-platform-2" hidden><p>Really free, and there is no catch worth hiding. There is no signup, no paywall, no trial expiry, no email required to use any tool, and no feature deliberately crippled to force an enquiry.</p>
+            <p>Each tool ends in a short, optional form: leave your details if you want a briefing, a debrief or a resource such as a specification or checklist, and ignore it if you do not. The result on the page is yours either way.</p>
             <p>The commercial logic is simple: the tools demonstrate how we work. A venture that uses them and concludes it can do the whole thing alone was never going to hire us. One that uses them and sees the size of the task usually gets in touch. We would rather be judged on the quality of the free thing than on a brochure.</p></div>
         </div>
         <div class="qa">
@@ -160,15 +161,16 @@
       </section>
       <section class="faq-sec" id="privacy">
         <h2>Your data</h2>
-        <p class="lede">Where what you type actually goes. The short answer is: nowhere.</p>
+        <p class="lede">Where what you type actually goes. The short answer: nowhere, unless you press Send.</p>
         <div class="qa">
           <h3><button type="button" aria-expanded="false" aria-controls="a-privacy-0" id="q-privacy-0">Where does the data I enter go?</button></h3>
           <div class="a" id="a-privacy-0" role="region" aria-labelledby="q-privacy-0" hidden><p>Nowhere. Every tool runs entirely as code in your browser. Your entries are processed on your device and saved to your browser's local storage so you do not lose them on refresh.</p>
-            <p>There is no server to send them to. No database, no account, no upload, no API. We cannot see your inputs because we never receive them — this is a property of how the site is built, not a promise about how we behave.</p></div>
+            <p>Using a tool sends nothing: no account, no upload, no background call. We cannot see your inputs because we never receive them, and that is a property of how the site is built, not a promise about how we behave.</p>
+            <p>The one route to us is a form you choose to send: the enquiry form at the end of a tool, or the briefing and debrief forms on the scorecard results. Each says what it sends. The <a href="privacy.html#approach">Privacy Notice</a> lists every field.</p></div>
         </div>
         <div class="qa">
           <h3><button type="button" aria-expanded="false" aria-controls="a-privacy-1" id="q-privacy-1">So you have no analytics at all?</button></h3>
-          <div class="a" id="a-privacy-1" role="region" aria-labelledby="q-privacy-1" hidden><p>None. No Google Analytics, no pixels, no heatmaps, no cookies, no advertising or tracking technologies. Since v3.0 we also self-host the typefaces, so loading a page does not disclose your IP address to a font CDN either.</p>
+          <div class="a" id="a-privacy-1" role="region" aria-labelledby="q-privacy-1" hidden><p>None. No Google Analytics, no pixels, no heatmaps, no cookies, no advertising or tracking technologies. We also self-host the typefaces, so loading a page does not disclose your IP address to a font CDN either. The only record we hold of anyone is a form or an email they chose to send.</p>
             <p>The practical cost is that we have almost no idea who uses this or how. We accepted that trade deliberately: a tool that invites you to model a cap table has no business watching you do it.</p></div>
         </div>
         <div class="qa">
@@ -190,6 +192,16 @@
           <h3><button type="button" aria-expanded="false" aria-controls="a-privacy-4" id="q-privacy-4">Can I use this on a phone, offline, or on a locked-down corporate laptop?</button></h3>
           <div class="a" id="a-privacy-4" role="region" aria-labelledby="q-privacy-4" hidden><p>Phone: yes, everything is responsive. Offline: once a page has loaded it runs without a network, because nothing it does needs one. Locked-down corporate machine: usually yes, since there is nothing to install and no outbound calls to whitelist.</p>
             <p>The one failure mode is a browser configured to block local storage entirely — some privacy modes do. The tools still work; they simply will not remember anything between page loads.</p></div>
+        </div>
+        <div class="qa">
+          <h3><button type="button" aria-expanded="false" aria-controls="a-privacy-5" id="q-privacy-5">What happens to the details I send through a form?</button></h3>
+          <div class="a" id="a-privacy-5" role="region" aria-labelledby="q-privacy-5" hidden><p>They reach our Netlify account and a consultant reads them. They are used to reply to you and to prepare what you asked for. They are not added to a mailing list, not fed into analytics or profiling, and not shared outside JK.</p>
+            <p>A tool's enquiry form sends the tool's name and the contact details you type into the form, not the figures in the tool. The scorecard's briefing and debrief forms also send your report link, which carries your answers. The <a href="privacy.html#approach">Privacy Notice</a> sets that out field by field.</p></div>
+        </div>
+        <div class="qa">
+          <h3><button type="button" aria-expanded="false" aria-controls="a-privacy-6" id="q-privacy-6">Can I see, correct or delete what I sent you?</button></h3>
+          <div class="a" id="a-privacy-6" role="region" aria-labelledby="q-privacy-6" hidden><p>Yes. Write to <a data-email>info@aviationhubkenya.org</a>; a plain email is enough. Kenya's Data Protection (General) Regulations, 2021 give us seven days to answer a request for access, and fourteen days for correction, erasure, restriction or objection, all free of charge. We treat those as the latest we will reply, not the usual time.</p>
+            <p>What sits in your own browser is yours to clear at any time, with the reset control in each tool or by clearing site data. We hold no copy of it.</p></div>
         </div>
       </section>
       <section class="faq-sec" id="tools">
@@ -286,7 +298,7 @@
         </div>
         <div class="qa">
           <h3><button type="button" aria-expanded="false" aria-controls="a-certification-6" id="q-certification-6">Some citations are marked “unconfirmed”. Should I worry?</button></h3>
-          <div class="a" id="a-certification-6" role="region" aria-labelledby="q-certification-6" hidden><p>You should <em>notice</em>, which is the point. Three instruments could not be confirmed against the public gazette record at our verification date: the 2025 ATO Regulations, the 2025 Safety Management Regulations, and the ground-handling licensing instrument.</p>
+          <div class="a" id="a-certification-6" role="region" aria-labelledby="q-certification-6" hidden><p>You should <em>notice</em>, which is the point. A handful of references could not be confirmed against the public record at our verification date: the 2025 Approved Training Organisations Regulations, which KCAA lists as still awaiting gazettal (the 2018 Regulations remain in force); a dedicated ground-handling instrument, which does not yet exist; and two KCAA advisory circulars on training-organisation certification. The Safety Management Regulations, once on this list, are now verified as L.N. 32/2026.</p>
             <div class="note warn"><b>What to do about it</b>Confirm the applicable instrument with KCAA in writing before you build a compliance matrix on it. For an ATO in particular, whether the 2025 Regulations are in force or the extant ones govern changes your entire submission.</div>
             <p>A tool that quietly asserted a wrong Legal Notice number would be far more dangerous than one that shows its working. Full detail on the <a href="regulations.html">regulatory index</a>.</p></div>
         </div>
@@ -360,7 +372,7 @@
         <div class="qa">
           <h3><button type="button" aria-expanded="false" aria-controls="a-jk-1" id="q-jk-1">How does an engagement start?</button></h3>
           <div class="a" id="a-jk-1" role="region" aria-labelledby="q-jk-1" hidden><p>Usually with the output of these tools. Print the pack, send it over, and the first conversation starts from your actual position rather than from a blank page — which is faster and cheaper for everyone.</p>
-            <p>Email <a data-email>info@aviationhubkenya.org</a>. Tools with a "Discuss this" button pre-fill that email with a summary of what you modelled, so you do not have to retype it.</p></div>
+            <p>Use the short form at the end of the tool you were working in; it tells us which tool it came from, so the reply starts in the right place. Or email <a data-email>info@aviationhubkenya.org</a> and attach the printed pack. Either way, a consultant replies within one working day.</p></div>
         </div>
         <div class="qa">
           <h3><button type="button" aria-expanded="false" aria-controls="a-jk-2" id="q-jk-2">Do you work outside Kenya?</button></h3>
@@ -390,35 +402,54 @@
 <footer class="footer no-print">
   <div class="wrap">
     <div class="cols">
-      <div>
-        <a class="brand" href="index.html" style="color:#fff" data-keep-partner><span data-logo="light"></span><span style="color:#fff">JK &amp; Associates</span></a>
-        <p style="margin-top:1rem;max-width:320px;font-size:var(--fs-sm)">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
+      <div class="f-brand">
+        <a class="brand" href="index.html" data-keep-partner><span data-logo="light"></span><span>JK &amp; Associates</span></a>
+        <p class="f-tag">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
+        <p class="f-note">Free tools that run in your browser. Nothing you type leaves your device unless you press Send.</p>
       </div>
-      <div>
+      <div class="f-list">
         <h2>Build a venture</h2>
         <p><a href="tools/venture-dashboard.html" data-keep-partner>Venture Control Room</a></p>
-        <p><a href="tools/certification-navigator.html" data-keep-partner>Certification Navigator</a></p>
-        <p><a href="tools/venture-builder.html" data-keep-partner>Venture Builder</a></p>
-        <p><a href="tools/corporate-structure.html" data-keep-partner>Corporate Structure</a></p>
+        <p><a href="tools/certification-navigator.html" data-keep-partner>KCAA Certification Navigator</a></p>
+        <p><a href="tools/venture-builder.html" data-keep-partner>Greenfield Venture Builder</a></p>
+        <p><a href="tools/revenue-builder.html" data-keep-partner>Revenue Model Builder</a></p>
+        <p><a href="tools/corporate-structure.html" data-keep-partner>Corporate Structure Designer</a></p>
+        <p><a href="tools/implementation-planner.html" data-keep-partner>Implementation &amp; Programme Planner</a></p>
+        <p><a href="tools/aoc-acquisition.html" data-keep-partner>AOC Acquisition Analyser</a></p>
+        <p><a href="tools/returns-solver.html" data-keep-partner>Returns &amp; Reverse-Solve</a></p>
+        <p><a href="tools/fleet-crew.html" data-keep-partner>Fleet &amp; Crew Planner</a></p>
+        <p><a href="tools/plan-consistency.html" data-keep-partner>Plan Consistency Check</a></p>
+        <p><a href="tools/safety-map.html" data-keep-partner>Safety Assurance Map</a></p>
+        <p><a href="tools/organogram-planner.html" data-keep-partner>Organogram &amp; Postholder Planner</a></p>
       </div>
-      <div>
-        <h2>Reference</h2>
-        <p><a href="regulations.html">Kenya regulatory index</a></p>
-        <p><a href="glossary.html">Glossary</a></p>
-        <p><a href="methodology.html">Methodology</a></p>
+      <div class="f-list">
+        <h2>Operate an airline</h2>
+        <p><a href="diagnostic.html" data-keep-partner>Airline Health Scorecard</a></p>
+        <p><a href="tools/cask-calculator.html" data-keep-partner>CASK Benchmarking Calculator</a></p>
+        <p><a href="tools/route-economics.html" data-keep-partner>Route Economics &amp; Break-even</a></p>
+        <p><a href="tools/fuel-optimizer.html" data-keep-partner>Fuel Contract Optimizer Lite</a></p>
+        <p><a href="tools/operating-model-canvas.html" data-keep-partner>Operating Model Canvas</a></p>
+        <p><a href="tools/mro-readiness.html" data-keep-partner>MRO &amp; Technical Readiness Diagnostic</a></p>
+        <p><a href="tools/data-request.html" data-keep-partner>48-Hour Data Request Pack</a></p>
+        <p><a href="tools/training-tna.html" data-keep-partner>Training Needs Analysis</a></p>
       </div>
-      <div>
+      <div class="f-list">
+        <h2>Company</h2>
+        <p><a href="how-it-works.html" data-keep-partner>How an engagement works</a></p>
+        <p><a href="company-profile.html" data-keep-partner>Company profile</a></p>
+        <p><a href="methodology.html" data-keep-partner>Methodology</a></p>
+        <p><a href="partners.html" data-keep-partner>Partners</a></p>
         <h2>Contact</h2>
         <p><a data-email>info@aviationhubkenya.org</a></p>
         <p data-location>2nd Avenue, Cargo Terminal, JKIA, Nairobi</p>
-        <h2 style="margin-top:1.2rem">Legal</h2>
-        <p><a href="privacy.html">Privacy Notice</a></p>
-        <p><a href="terms.html">Terms of Use</a></p>
+        <h2>Legal</h2>
+        <p><a href="privacy.html" data-keep-partner>Privacy Notice</a></p>
+        <p><a href="terms.html" data-keep-partner>Terms of Use</a></p>
       </div>
     </div>
     <div class="ver">
       <span>&copy; <span data-year></span> JK &amp; Associates · Shaping Africa's Future, Together.</span>
-      <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="methodology.html">Methodology</a> · <span data-version>v3.4 — Scheduled, Business Aviation &amp; Aeromedical</span></span>
+      <span><a href="tools/index.html" data-keep-partner>All tools</a> · <span data-version>v3.4 — Scheduled, Business Aviation &amp; Aeromedical</span></span>
     </div>
   </div>
 </footer>
