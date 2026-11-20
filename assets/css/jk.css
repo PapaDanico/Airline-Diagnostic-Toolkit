@@ -654,6 +654,18 @@ button.phase:focus-visible { outline: 2px solid var(--accent); outline-offset: 3
 .footer-about .fa-more { display: inline-block; font-size: var(--fs-sm); color: var(--jk-amber); }
 .footer-about .fa-more[aria-current="page"] { color: #9a8c85; }
 @media print { .footer-about { display: none; } }
+/* Assumption register (common.js, mountPrintAssumptions): print-only. */
+.print-assumptions { display: none; }
+@media print {
+  .print-assumptions { display: block; margin-top: 18px; break-inside: auto; }
+  .print-assumptions .pa-label, .print-assumptions .pa-note { break-after: avoid; }
+  .print-assumptions .pa-label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .08em; color: var(--jk-muted); margin: 0 0 4px; }
+  .print-assumptions .pa-note { font-size: var(--fs-xs); color: var(--jk-muted); margin: 0 0 6px; }
+  .print-assumptions .pa-table { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); }
+  .print-assumptions .pa-table :is(th, td) { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--jk-line); }
+  .print-assumptions .pa-table tr { break-inside: avoid; }
+  .print-assumptions .pa-table tr.is-changed td { font-weight: 700; }
+}
 
 .footer-learn { margin-top: 30px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.12); }
 .footer-learn :is(h2, h3, h4) { margin: 0 0 .9rem; color: var(--jk-amber); }
