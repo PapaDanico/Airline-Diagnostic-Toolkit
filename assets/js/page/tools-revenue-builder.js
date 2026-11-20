@@ -777,12 +777,12 @@
     }
   });
 
-  /* Ultra Caelum preset: the delivery plan's commercial lines mapped onto
-     this tool's segments. Volumes are the tool's base planning defaults
-     scaled to the seven-tail Balanced Hybrid fleet (Scenario 2), which
-     carries no Cessna 208 Caravan; they are planning estimates,
-     not bookings, and every figure stays editable. */
-  const UC_PRESET = [
+  /* Jabali Air sample: a fictional mixed-fleet operator (business jets,
+     turboprops and helicopters) used to show the builder's thirteen
+     commercial streams working together. Volumes are the tool's base
+     planning defaults scaled to a mature seven-tail fleet; they are
+     planning estimates, not bookings, and every figure stays editable. */
+  const SAMPLE_PRESET = [
     ["corporateCharter", { aircraft: "Cessna Citation Sovereign+", hours: 900, aircraftValue: 12000000 }],
     ["executiveJet", { aircraft: "Dassault Falcon 7X", hours: 450, aircraftValue: 22000000 }],
     ["jetCard", { aircraft: "Cessna Citation Sovereign+", hours: 200 }],
@@ -797,15 +797,15 @@
     ["fboHandling", {}],
     ["hangarage", {}]
   ];
-  $("load-uc").addEventListener("click", () => {
-    if (state.segments.length && !confirm("Replace the segments on this page with the Ultra Caelum preset?")) return;
-    state.segments = UC_PRESET.map(([t, o]) => {
+  $("load-sample").addEventListener("click", () => {
+    if (state.segments.length && !confirm("Replace the segments on this page with the Jabali Air sample?")) return;
+    state.segments = SAMPLE_PRESET.map(([t, o]) => {
       const seg = makeSegment(t, o);
       if (o.aircraft && !o.aircraftValue) seg.aircraftValue = AIRCRAFT_VALUES[o.aircraft] || 0;
       return seg;
     });
     renderAll();
-    $("seg-status").textContent = "Loaded the Ultra Caelum preset: thirteen streams from the delivery plan's commercial lines. Planning estimates, not bookings.";
+    $("seg-status").textContent = "Loaded the Jabali Air sample (a fictional operator): thirteen commercial streams. Planning estimates, not bookings.";
   });
   $("clear-segs").addEventListener("click", () => {
     if (state.segments.length && !confirm("Remove every segment from this model?")) return;

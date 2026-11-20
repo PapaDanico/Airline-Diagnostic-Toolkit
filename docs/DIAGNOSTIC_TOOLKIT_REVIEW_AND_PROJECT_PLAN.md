@@ -3,7 +3,7 @@
 
 **Prepared:** 2026-05-29 · Nairobi
 **Subject site:** https://dnconsultancydiagnostictoolkit.netlify.app/
-**Owner:** Capt. Daniel Moi Ng'ong'a, DN Consultancy
+**Owner:** DN Consultancy
 **Status of this document:** Working draft for review
 
 ---
@@ -163,7 +163,7 @@ Effort: S ≈ <½ day · M ≈ ½–1 day · L ≈ 1–2 days (single developer)
 
 ---
 
-## 7. Open decisions for Capt. Dan
+## 7. Open decisions for the owner
 1. **AI narrative on the airline toolkit — keep, make opt-in, or drop?** Drives all of WS1.
 2. ~~**Canonical contact:** `info@aviationhubkenya.org` vs `info@dnconsultancy.co.ke`?~~ **RESOLVED — `info@aviationhubkenya.org`** (DN project configuration).
 3. **Lead capture:** stay strictly data-free, or add an explicit opt-in "email me my report" capture? (Funnel vs. privacy trade-off.)

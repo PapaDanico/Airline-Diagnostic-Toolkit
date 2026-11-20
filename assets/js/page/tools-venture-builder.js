@@ -859,6 +859,28 @@
       ? "Set a positive EBITDA margin to compute break-even."
       : `At a ${margin}% EBITDA margin you need ${fmtMoney(beCov)} of annual revenue to hold a ${cov.toFixed(2)}× covenant. Payback is measured on EBITDA before tax and reinvestment, so treat it as a floor, not a forecast.`;
 
+    /* Air Service Licence financial fitness. The Licensing of Air Services
+       Regulations (reg. 19) ask an applicant to show its obligations met for
+       two years and at least three months of fixed and operating costs
+       covered without relying on revenue. Operating cost here is revenue
+       less EBITDA, the same margin the debt test uses, so the two can never
+       disagree about what the venture costs to run. Air services only: an
+       ATO, an MRO or a UAS operator holds no Air Service Licence. */
+    const aslHost = $("asl-fit");
+    if (s.id !== "aoc") aslHost.innerHTML = "";
+    else if (rev <= 0 || margin >= 100) aslHost.innerHTML = `<div class="note" style="margin:0"><b>Licence financial-fitness test</b>The Air Service Licence asks you to show three months of fixed and operating costs covered without revenue. Enter planned revenue and an EBITDA margin above to compute it against your working capital.</div>`;
+    else {
+      const opex = rev * (1 - margin / 100);
+      const need = opex / 4;
+      const ok = wc >= need;
+      const twoYr = baseDscr === null || baseDscr >= 1;
+      aslHost.innerHTML = `<div class="note ${ok && twoYr ? "ok" : "warn"}" style="margin:0"><b>Licence financial-fitness test: ${ok ? "three months covered" : "three months not covered"}</b>` +
+        `Three months of fixed and operating costs is ${fmtMoney(need)} (annual operating cost ${fmtMoney(opex)}: revenue less EBITDA). Working capital in the plan is ${fmtMoney(wc)}` +
+        (ok ? `, which covers it ${(wc / need).toFixed(1)} times.` : `, ${fmtMoney(need - wc)} short. Raise working capital before the licence application, or expect the Authority to ask for evidence of committed funding.`) +
+        (twoYr ? "" : ` The base case also does not cover debt service, so the two-year obligations test in the business plan would fail too.`) +
+        ` Licensing of Air Services Regulations, reg. 19.</div>`;
+    }
+
     // rail
     $("r-capex").textContent = fmtMoney(total);
     $("r-gap").textContent = gap > 0 ? fmtMoney(gap) : "None";
