@@ -1618,6 +1618,28 @@ server.close();
   );
 }
 
+/* ---- no client names in the shipped site ----
+   A Revenue Builder preset was once built for a real client and carried
+   its name, its scenario labels and its deal counterparties onto a public
+   page. Engagement work stays with the engagement; the site ships only
+   illustrative examples under fictional names (Jabali Air). This scans
+   every file the site serves, so a client name cannot ride back in on a
+   preset, a status message or a comment that ships in the JS. */
+{
+  const CLIENT = /ultra[\s_-]*caelum|\bronami\b|\bsandpiper\b|\bsamel\b|\bkibati\b/i;
+  const served = [];
+  const walk = (dir) => { for (const f of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
+    const rel = dir ? dir + "/" + f.name : f.name;
+    if (f.isDirectory()) { if (!/^(node_modules|tests|docs|scripts|dist|\.git|\.github|\.claude)$/.test(f.name)) walk(rel); }
+    else if (/\.(html|js|mjs|css|json|txt|xml|webmanifest)$/.test(f.name)) served.push(rel);
+  } };
+  walk("");
+  const hits = served.filter((f) => CLIENT.test(readFileSync(join(ROOT, f), "utf8")));
+  problems += hits.length ? 1 : 0;
+  console.log(`\n${hits.length ? "❌" : "✅"} no client names in the ${served.length} files the site serves` +
+    (hits.length ? "\n     - " + hits.join("\n     - ") : ""));
+}
+
 /* ---- one footer, everywhere ----
    Seventeen hand-copied footers had drifted apart across thirty-two
    pages: tool pages linked eight of twenty tools, and the legal pages

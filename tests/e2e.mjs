@@ -433,6 +433,31 @@ assert(/>100×/.test(await page.$eval("#r-dscr", e => e.textContent)) ||
        /\d+\.\d\d×/.test(await page.$eval("#r-dscr", e => e.textContent)),
   "absurd coverage ratios are reported as >100x, not to two decimals");
 
+/* ─── Air Service Licence financial-fitness test ───
+   Kenya's Licensing of Air Services Regulations (reg. 19) ask an applicant
+   to show three months of fixed and operating costs covered without relying
+   on revenue. Start-up consultancies list "proof of financial fitness" as a
+   core applicant deliverable; no benchmarked tool computes it. Operating
+   costs are revenue less EBITDA, so USD 10m at a 20% margin is USD 8m a
+   year and USD 2.00M for three months. The test belongs to air services
+   only: an ATO or a UAS operator does not hold an Air Service Licence. */
+section("Venture Builder: licence financial-fitness test");
+await page.goto(base + "/tools/venture-builder.html");
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(400);
+await page.click('[data-sector="aoc"]'); await page.waitForTimeout(300);
+await page.fill("#d-rev", "10000000"); await page.fill("#d-margin", "20"); await page.waitForTimeout(300);
+{
+  const fit = await page.$eval("#asl-fit", e => e.innerText).catch(() => "");
+  assert(/three months/i.test(fit), `licence fitness: the test should state the three-month requirement - got "${fit.slice(0, 160)}"`);
+  assert(/2\.00M/.test(fit), `licence fitness: three months of USD 8m operating cost is USD 2.00M - got "${fit.slice(0, 200)}"`);
+  assert(/working capital/i.test(fit), "licence fitness: the test should compare against working capital");
+  await page.fill("#d-rev", "0"); await page.waitForTimeout(250);
+  assert(/revenue/i.test(await page.$eval("#asl-fit", e => e.innerText)), "licence fitness: with no revenue it should ask for the revenue and margin it needs");
+  await page.click('[data-sector="uas"]'); await page.waitForTimeout(350);
+  assert(!(await page.$eval("#asl-fit", e => e.innerText.trim()).catch(() => "")), "licence fitness: a UAS operator holds no Air Service Licence, so the test should not show");
+}
+
 // -- print header must track the selected sector, not the first one --
 await page.goto(base + "/tools/certification-navigator.html");
 await page.evaluate(() => localStorage.clear());
@@ -3305,7 +3330,7 @@ section("Returns solver: depth and space");
 }
 
 /* Grace period. A facility with a moratorium capitalises interest before repayment starts, and the level payment is
-   computed on the grown balance. The reference case is the Ultra Caelum loan: USD 120m at 6% over 12 repayment years after
+   computed on the grown balance. The reference case is a USD 120m loan at 6% over 12 repayment years after
    a 3-year grace gives a balance of 142.9m and a payment of 17.0m a year from year 4, so 1.35x needs 23.0m of EBITDA and
    95.9m of revenue at 24%. With no grace the same loan costs 14.3m a year from year 1. Both are pinned: the first would
    fail if the grace period were ignored, the second if it leaked into the default. */
@@ -3396,7 +3421,7 @@ section("Plan Consistency Check");
      management fees   60 aircraft-months x 12,000 = 720K revenue, x 7,000 = 420K cost
      brokerage         10% of 3.0M brokered = 300K revenue, 4% = 120K cost (a percentage stream, not rate x hours)
      mining shuttle    retainer 55,000 x 12 + 2,900 x 800 h = 2.98M revenue, 1,800 x 800 h = 1.44M cost
-   The Ultra Caelum preset loads thirteen cards and the Venture File counts them. */
+   The Jabali Air sample loads thirteen cards and the Venture File counts them. */
 section("Revenue Builder: new streams");
 {
   const rail = async (id) => (await page.$eval("#" + id, (e) => e.innerText)).replace(/\s+/g, " ");
@@ -3421,12 +3446,13 @@ section("Revenue Builder: new streams");
   page.once("dialog", (d) => d.accept().catch(() => {}));
   await page.click("#clear-segs"); await page.waitForTimeout(200);
   assert((await page.$$("#seg-cards .card")).length === 0, "revenue: clear all should remove every card");
-  await page.click("#load-uc"); await page.waitForTimeout(300);
-  assert((await page.$$("#seg-cards .card")).length === 13, "revenue: the Ultra Caelum preset should load thirteen streams");
-  /* The submission excludes the Cessna 208 Caravan from every calculation:
-     the preset that stands for Ultra Caelum must not reintroduce it. */
+  await page.click("#load-sample"); await page.waitForTimeout(300);
+  assert((await page.$$("#seg-cards .card")).length === 13, "revenue: the Jabali Air sample should load thirteen streams");
+  /* The sample flies jets, turboprops and helicopters only. Its aerial
+     survey line is a PC-12: if that type ever drops off the segment's list,
+     the select silently falls back to its first option, a C208. */
   const presetValues = await page.evaluate(() => Array.from(document.querySelectorAll("#seg-cards select, #seg-cards input")).map((e) => e.value).join("|"));
-  assert(!/C208/.test(presetValues), "revenue: the Ultra Caelum preset must not include a Cessna C208 Caravan");
+  assert(!/C208/.test(presetValues), "revenue: the Jabali Air sample must not fall back to a Cessna C208 Caravan");
   const rev = await rail("r-rev");
   assert(/\d/.test(rev) && !/^\D*0\D*$/.test(rev), `revenue: the preset should produce a revenue figure - got ${rev}`);
   await page.click("#btn-save-vf"); await page.waitForTimeout(200);
