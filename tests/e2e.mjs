@@ -433,6 +433,36 @@ assert(/>100×/.test(await page.$eval("#r-dscr", e => e.textContent)) ||
        /\d+\.\d\d×/.test(await page.$eval("#r-dscr", e => e.textContent)),
   "absurd coverage ratios are reported as >100x, not to two decimals");
 
+/* ─── Every printed pack carries its assumptions ───
+   A lender reads the printed pack, not the screen, and a pack that prints
+   results without the inputs behind them cannot be checked. Only the
+   Returns tool carried an assumption register; every other printable tool
+   now appends one at print time: each labelled input, its value, and
+   whether the user changed it from the tool's default. Enquiry forms are
+   not assumptions and must not appear. */
+section("Printed packs carry an assumption register");
+await page.goto(base + "/tools/venture-builder.html");
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(400);
+await page.fill("#d-margin", "30"); await page.waitForTimeout(250);
+await page.emulateMedia({ media: "print" }); await page.waitForTimeout(250);
+{
+  const reg = await page.evaluate(() => {
+    const el = document.querySelector(".print-assumptions");
+    return el ? { shown: getComputedStyle(el).display !== "none", text: el.innerText } : null;
+  });
+  assert(reg && reg.shown, "assumptions: the Venture Builder pack should print an assumption register");
+  assert(reg && /EBITDA margin/i.test(reg.text) && /30/.test(reg.text), `assumptions: the register should list the EBITDA margin as entered - got ${reg ? reg.text.slice(0, 200) : "nothing"}`);
+  assert(reg && /changed/i.test(reg.text), "assumptions: a value the user changed should be marked as changed");
+  assert(reg && !/work email/i.test(reg.text), "assumptions: enquiry-form fields are not assumptions");
+}
+await page.emulateMedia({ media: "screen" }); await page.waitForTimeout(150);
+assert(!(await page.$eval(".print-assumptions", e => getComputedStyle(e).display !== "none").catch(() => false)), "assumptions: the register is print-only");
+await page.goto(base + "/tools/returns-solver.html"); await page.waitForTimeout(400);
+await page.emulateMedia({ media: "print" }); await page.waitForTimeout(250);
+assert(await page.$$eval(".print-assumptions", e => e.length) === 0, "assumptions: the Returns tool keeps its own register and gets no duplicate");
+await page.emulateMedia({ media: "screen" });
+
 /* ─── Air Service Licence financial-fitness test ───
    Kenya's Licensing of Air Services Regulations (reg. 19) ask an applicant
    to show three months of fixed and operating costs covered without relying

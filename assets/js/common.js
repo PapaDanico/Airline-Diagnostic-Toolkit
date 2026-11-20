@@ -430,6 +430,7 @@ function mountChrome() {
   // Last, so the columns and the strip above it both count as "already linked".
   try { dedupeVersionLine(); } catch (e) { console.error("footer dedupe:", e); }
   try { mountResultChip(); } catch (e) { console.error("result chip:", e); }
+  try { mountPrintAssumptions(); } catch (e) { console.error("print assumptions:", e); }
 
   // Propagate ?partner= across every internal link in one pass — the generated
   // nav plus any data-keep-partner links in the page body/footer. Done here
@@ -1068,6 +1069,87 @@ function mountPrintSummary(spec) {
          <span>${escapeHtml(f.d)}</span>
        </li>`).join("")}</ol>` : ""}
      ${basis ? `<p class="ps-basis">${escapeHtml(basis)}</p>` : ""}`;
+}
+
+/* ---- assumption register for every printed pack ----
+   A lender reads the printed pack, not the screen, and results printed
+   without the inputs behind them cannot be checked. This appends a
+   print-only register to every page with a print action: each labelled
+   input, its value as printed, and whether it differs from the tool's
+   default (the value the field was built with).
+
+   It owns one element and rewrites only that, so it never touches a
+   control the user is holding. Enquiry forms, checklist ticks and free
+   notes are not assumptions and are left out. The Returns tool keeps its
+   richer register (grades and bases) and is skipped. */
+function mountPrintAssumptions() {
+  if (!document.getElementById("print") || document.getElementById("rs-assump")) return;
+  const main = document.querySelector("main");
+  if (!main) return;
+  const el = document.createElement("section");
+  el.className = "print-assumptions";
+  el.setAttribute("aria-hidden", "true");
+  main.appendChild(el);
+
+  const SKIP_FORM = 'form[data-netlify], form[id$="-enquiry"], form.ec-form, #debrief-form, #capture-form';
+  const labelOf = (f) => {
+    const byFor = f.id && document.querySelector(`label[for="${CSS.escape(f.id)}"]`);
+    const t = (byFor && byFor.textContent) || f.getAttribute("aria-label") || (f.closest("label") && f.closest("label").textContent) || "";
+    return t.replace(/\s+/g, " ").trim();
+  };
+  const valueOf = (f) => f.tagName === "SELECT" ? ((f.selectedOptions[0] && f.selectedOptions[0].text) || "") : f.value;
+  const defaultOf = (f) => {
+    if (f.tagName === "SELECT") {
+      const d = [...f.options].find(o => o.defaultSelected) || f.options[0];
+      return d ? d.text : "";
+    }
+    return f.defaultValue;
+  };
+
+  const build = () => {
+    const rows = [];
+    for (const f of main.querySelectorAll("input, select")) {
+      if (el.contains(f) || f.closest(SKIP_FORM) || f.closest("[hidden]")) continue;
+      if (/^(hidden|submit|button|checkbox|radio|file|search|reset|image)$/i.test(f.type || "")) continue;
+      const label = labelOf(f), value = String(valueOf(f)).trim();
+      if (!label || value === "") continue;
+      const def = String(defaultOf(f)).trim();
+      const changed = def !== "" && def !== value;
+      /* A zero left at its zero default is an unused field, not an
+         assumption (an unscheduled deposit, a blank phasing line). */
+      if (!changed && /^0+(\.0+)?$/.test(value)) continue;
+      /* A slider and its exact-amount box hold one figure under two
+         labels; print it once. */
+      const base = label.replace(/\s+—\s+exact amount.*$/i, "");
+      const twin = rows.find(r => r.value === value && (r.base.startsWith(base) || base.startsWith(r.base)));
+      if (twin) { if (base.length < twin.base.length) { twin.base = base; twin.label = base; } twin.changed = twin.changed || changed; continue; }
+      rows.push({ label: base, base, value, changed });
+    }
+    if (!rows.length) { el.innerHTML = ""; return; }
+    const shown = rows.slice(0, 60), more = rows.length - shown.length;
+    const changed = rows.filter(r => r.changed).length;
+    el.innerHTML =
+      `<p class="pa-label">Assumptions used</p>
+       <p class="pa-note">The inputs behind this pack, as entered when it was printed. ${changed
+         ? `${changed} differ${changed === 1 ? "s" : ""} from the tool's default and ${changed === 1 ? "is" : "are"} marked changed.`
+         : "All are the tool's defaults."} Defaults are planning figures unless the page cites a source.</p>
+       <table class="pa-table"><thead><tr><th>Input</th><th>Value</th><th>Status</th></tr></thead><tbody>${
+         shown.map(r => `<tr${r.changed ? ' class="is-changed"' : ""}><td>${escapeHtml(r.label)}</td><td>${escapeHtml(r.value)}</td><td>${r.changed ? "Changed" : "Default"}</td></tr>`).join("")
+       }</tbody></table>${more > 0 ? `<p class="pa-note">and ${more} further input${more === 1 ? "" : "s"} on the page.</p>` : ""}`;
+  };
+
+  /* Built ahead of time and kept current, because a pack can be printed
+     from the browser menu without any event this page can rely on. */
+  let queued = false;
+  const refresh = () => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; build(); }); };
+  main.addEventListener("input", refresh, true);
+  main.addEventListener("change", refresh, true);
+  window.addEventListener("beforeprint", build);
+  if (window.matchMedia) {
+    const mq = window.matchMedia("print");
+    if (mq.addEventListener) mq.addEventListener("change", (e) => { if (e.matches) build(); });
+  }
+  setTimeout(build, 0);
 }
 
 /* ---- tagged mailto for a tool enquiry ----
