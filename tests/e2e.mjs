@@ -3231,6 +3231,51 @@ section("Safety Assurance Map");
   await assertEnquiryFormSubmits(page, "#sf-enquiry", "safety");
 }
 
+/* Safety Assurance Map, repeat findings. A barrier whose text matches after
+   normalising (case, spacing, punctuation) and which is not In place under
+   two or more hazards is one weakness recorded twice: it is shown once, with
+   every location. The seed below has one such barrier (fuel-quality checks,
+   Planned under H1 and Not in place under H2, written differently), one
+   barrier shared but In place in both (crew briefing: not a weakness), and a
+   unique Planned barrier under H3. */
+section("Safety Assurance Map — repeat findings");
+{
+  const txt = async (id) => (await page.$eval("#" + id, (e) => e.innerText)).replace(/\s+/g, " ");
+  const B = (kind, text, status) => ({ id: Math.floor(Math.random() * 1e6) + 1000, kind, text, el: "2.2", area: "FLT", status });
+  const seed = { "sf-acc": "4", "sf-tol": "12", rows: [
+    { id: 1, name: "Runway excursion", top: "Leaves the runway", threats: "", conseq: "", l0: 3, s0: 3, l1: 3, s1: 3, bars: [
+      B("Preventive", "Fuel-quality checks before each uplift", "Planned"), B("Preventive", "Crew briefing", "In place")] },
+    { id: 2, name: "Fuel contamination", top: "Wrong fuel", threats: "", conseq: "", l0: 3, s0: 3, l1: 3, s1: 3, bars: [
+      B("Recovery", "  fuel-QUALITY   checks before each uplift. ", "Not in place"), B("Preventive", "crew  BRIEFING", "In place")] },
+    { id: 3, name: "Bird strike", top: "Strikes wildlife", threats: "", conseq: "", l0: 3, s0: 3, l1: 3, s1: 3, bars: [
+      B("Preventive", "Wildlife patrol", "Planned")] }
+  ] };
+  /* the worked example has no repeated barrier, so the block is hidden and empty */
+  await page.goto(base + "/tools/safety-map.html"); await page.evaluate(() => localStorage.clear());
+  await page.goto(base + "/tools/safety-map.html"); await page.waitForTimeout(300);
+  await page.click("#load-example"); await page.waitForTimeout(300);
+  const rpEmpty = await page.evaluate(() => { const r = document.getElementById("sf-repeat"); return r ? { hidden: r.hidden, n: r.querySelectorAll(".note").length } : null; });
+  assert(rpEmpty && rpEmpty.hidden && rpEmpty.n === 0, `repeat: with no repeated barrier the block should be hidden and empty — got ${JSON.stringify(rpEmpty)}`);
+  await page.evaluate((s) => localStorage.setItem("jk_safetymap_v3", JSON.stringify(s)), seed);
+  await page.goto(base + "/tools/safety-map.html"); await page.waitForTimeout(300);
+  const rp = await page.evaluate(() => { const r = document.getElementById("sf-repeat"); return r ? { hidden: r.hidden, n: r.querySelectorAll(".note").length, t: r.innerText.replace(/\s+/g, " ") } : null; });
+  assert(rp && !rp.hidden && rp.n === 1, `repeat: one barrier not in place under two hazards should give exactly one repeat entry — got ${JSON.stringify(rp)}`);
+  assert(rp && /H1 Runway excursion/.test(rp.t) && /H2 Fuel contamination/.test(rp.t), `repeat: the entry should name both hazards — got ${rp && rp.t}`);
+  assert(rp && /fuel-quality checks/i.test(rp.t), "repeat: differing case, spacing and punctuation should still match");
+  assert(rp && /preventive/i.test(rp.t) && /recovery/i.test(rp.t), "repeat: each location should say which side of the top event it is on");
+  assert(rp && !/crew briefing/i.test(rp.t), "repeat: a barrier In place under both hazards is not a weakness and should not flag");
+  assert(rp && !/Wildlife patrol/i.test(rp.t), "repeat: a barrier recorded once should not flag");
+  assert(/repeat/i.test(await page.$eval(".print-summary", (e) => e.innerText)), "repeat: the printed pack should carry the repeat finding");
+  /* typing a second copy of a barrier into another hazard keeps focus and every character, and the flag appears */
+  await page.evaluate(() => { [...document.querySelectorAll(".sf-haz")[0].querySelectorAll("button")].find((b) => b.textContent === "+ Preventive barrier").click(); });
+  await page.keyboard.type("wildlife PATROL");
+  const af = await page.evaluate(() => ({ tag: document.activeElement.tagName, v: document.activeElement.value }));
+  assert(af.tag === "INPUT" && af.v === "wildlife PATROL", `repeat: typing a barrier keeps focus and every character — got ${JSON.stringify(af)}`);
+  const rp2 = await page.evaluate(() => { const r = document.getElementById("sf-repeat"); return r ? { n: r.querySelectorAll(".note").length, t: r.innerText.replace(/\s+/g, " ") } : null; });
+  assert(rp2 && rp2.n === 2 && /H3 Bird strike/.test(rp2.t), `repeat: a barrier typed under a second hazard should flag as it is typed — got ${JSON.stringify(rp2)}`);
+  assert(!/NaN|undefined/.test(await txt("sf-findings")), "repeat: findings carry a non-value");
+}
+
 /* The platform's own navigation counts itself. The company profile already
    derives every figure from the registries (charter rule 10); the home page
    stat band and the tools index did not, and both still said "12" with
