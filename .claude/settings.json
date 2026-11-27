@@ -1,0 +1,5 @@
+{
+  "enabledPlugins": {
+    "token-optimizer@anthropic-plugin-directory": false
+  }
+}
