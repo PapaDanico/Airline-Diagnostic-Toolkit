@@ -1276,6 +1276,14 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .dtable tbody tr:hover td { background: var(--jk-parchment); }
 .dtable td.num, .dtable th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .dtable tfoot td { font-weight: 700; border-top: 2px solid var(--jk-line-2); border-bottom: 0; }
+/* Venture Builder three statements: a label and five years. Subtotals
+   carry a rule above them, as on a printed set of accounts. */
+.ts-table caption { caption-side: top; text-align: left; font-weight: 700; padding: 0 0 .4rem; color: var(--jk-ink); }
+.ts-table caption span { font-weight: 400; font-size: var(--fs-xs); color: var(--jk-muted); margin-left: .4rem; }
+.ts-table td, .ts-table th { padding: 6px 10px; }
+.ts-table td:first-child { min-width: 14ch; }
+.ts-table .ts-total td { font-weight: 700; border-top: 1px solid var(--jk-line-2); }
+.ts-table .ts-sub td { font-size: var(--fs-2xs); letter-spacing: .06em; text-transform: uppercase; color: var(--jk-muted); font-weight: 700; }
 
 /* ---------- corporate structure diagram ---------- */
 /* Grid tracks size to their content's minimum by default, so a fixed-width

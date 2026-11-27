@@ -206,8 +206,46 @@
           <div id="asl-fit" style="margin-top:1rem" aria-live="polite"></div>
         </div>
 
-        <!-- OWN vs. LEASE -->
+        <!-- THREE STATEMENTS. The inputs are built here, once; the script
+             rewrites only #ts-out, so typing in them is never interrupted. -->
+        <div id="three-statements">
         <p class="eyebrow" style="margin-top:2.6rem">Step 6</p>
+        <h2 style="margin-bottom:.4rem">Three statements, years 1–5</h2>
+        <p class="muted" style="max-width:min(640px,60ch)">A profit and loss account, a cash flow and a balance sheet built from the plan above: the same revenue, the same EBITDA margin and the same debt service. Four further assumptions are needed, and each starts at a planning default that comes from no publication. Replace them with your own.</p>
+        <div class="card card-flat" style="margin-top:1.2rem">
+          <div class="field-row">
+            <div class="field">
+              <label for="t-ramp">Year-1 revenue (% of steady state)</label>
+              <input type="number" id="t-ramp" min="0" max="100" step="5" value="60">
+              <p class="hint">Planning default 60%, not a sourced figure. Year 2 is the steady-state revenue entered in Step 4.</p>
+            </div>
+            <div class="field">
+              <label for="t-growth">Revenue growth after year 2 (% a year)</label>
+              <input type="number" id="t-growth" min="-50" max="100" step="1" value="0">
+              <p class="hint">Planning default 0%: no growth assumed beyond steady state.</p>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="t-life">Depreciation life (years)</label>
+              <input type="number" id="t-life" min="1" max="50" step="1" value="10">
+              <p class="hint">Planning default 10 years, straight line, on all fixed CAPEX including certification.</p>
+            </div>
+            <div class="field">
+              <label for="t-tax">Tax rate on profit (%)</label>
+              <input type="number" id="t-tax" min="0" max="60" step="1" value="30">
+              <p class="hint">Planning default 30%, not a sourced statutory rate. Confirm the rate and any incentives with a tax adviser.</p>
+            </div>
+          </div>
+          <div id="ts-out" aria-live="polite"></div>
+          <p class="muted" style="font-size:var(--fs-xs);margin-top:.8rem">
+            How it is built: every year uses the EBITDA margin from Step 4. Fixed CAPEX is spent and all funding is received at the start of year 1. Working capital is held at the plan's figure throughout. Senior debt is repaid at the level annual payment used for the DSCR, with interest on the opening balance. The subordinated loan is shown as interest-free and unrepaid within five years, and a grant is shown within equity, which is a simplification (a grant is often deferred income in audited accounts). Tax is paid in the year it arises. No tax is charged on a loss, and losses are carried forward without time limit against later profits; check the relief rules that actually apply.
+          </p>
+        </div>
+        </div>
+
+        <!-- OWN vs. LEASE -->
+        <p class="eyebrow" style="margin-top:2.6rem">Step 7</p>
         <h2 style="margin-bottom:.4rem">Own vs. Lease</h2>
         <p class="muted" style="max-width:min(640px,60ch)">Compare the capital commitment and annual cost of owning the fleet outright against a full operating-lease structure.</p>
         <div id="ovl-panel" style="margin-top:1.2rem"></div>
