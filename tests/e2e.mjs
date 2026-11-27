@@ -487,6 +487,40 @@ await page.fill("#d-rev", "10000000"); await page.fill("#d-margin", "20"); await
   assert(/revenue/i.test(await page.$eval("#asl-fit", e => e.innerText)), "licence fitness: with no revenue it should ask for the revenue and margin it needs");
   await page.click('[data-sector="uas"]'); await page.waitForTimeout(350);
   assert(!(await page.$eval("#asl-fit", e => e.innerText.trim()).catch(() => "")), "licence fitness: a UAS operator holds no Air Service Licence, so the test should not show");
+  assert(await page.$eval("#asl-juris-wrap", e => e.hidden || e.offsetParent === null).catch(() => false),
+    "licence fitness: the jurisdiction choice should hide with the test for a UAS operator");
+}
+
+/* The test was Kenya's alone. Read against each regulator's own text in
+   November 2026, four of five East African jurisdictions set a numeric
+   test, and they differ: Tanzania and Uganda ask for six months of costs
+   covered without revenue, Kenya and Rwanda three; Tanzania's obligations
+   horizon is twelve months, not twenty-four. Ethiopia sets none, so the
+   tool must say so and compute nothing rather than borrow Kenya's figure.
+   The choice sits outside the re-rendered panel, so typing a figure does
+   not destroy it (CLAUDE.md §6). */
+section("Venture Builder: licence fitness by jurisdiction");
+await page.click('[data-sector="aoc"]'); await page.waitForTimeout(300);
+await page.fill("#d-rev", "10000000"); await page.fill("#d-margin", "20"); await page.waitForTimeout(300);
+{
+  const fitText = () => page.$eval("#asl-fit", e => e.innerText).catch(() => "");
+  const pick = async (v) => { await page.selectOption("#asl-juris", v); await page.waitForTimeout(250); return fitText(); };
+  assert(await page.$("#asl-juris"), "licence fitness: a jurisdiction choice exists");
+  let t = await pick("TZ");
+  assert(/six months/i.test(t) && /4\.00M/.test(t), `licence fitness (Tanzania): six months of USD 8m is USD 4.00M - got "${t.slice(0, 200)}"`);
+  assert(/reg\. 8/.test(t) && /12-month/i.test(t), `licence fitness (Tanzania): cites reg. 8 and its 12-month obligations horizon - got "${t.slice(-260)}"`);
+  t = await pick("UG");
+  assert(/six months/i.test(t) && /USD 2m/.test(t), `licence fitness (Uganda): six months, and the USD 2m international financing evidence - got "${t.slice(0, 260)}"`);
+  t = await pick("RW");
+  assert(/three months/i.test(t) && /2\.00M/.test(t) && /RWF 50 million/.test(t), `licence fitness (Rwanda): three months, and the small-carrier net capital alternative - got "${t.slice(0, 300)}"`);
+  t = await pick("ET");
+  assert(/no quantified/i.test(t) && !/\d\.\d\dM/.test(t), `licence fitness (Ethiopia): states there is no quantified test and computes no figure - got "${t.slice(0, 260)}"`);
+  const before = await page.$("#asl-juris");
+  await page.fill("#d-rev", "12000000"); await page.waitForTimeout(250);
+  assert(await page.evaluate(el => el.isConnected, before), "licence fitness: typing a figure does not rebuild the jurisdiction choice");
+  await page.reload(); await page.waitForTimeout(450);
+  assert((await page.$eval("#asl-juris", e => e.value)) === "ET", "licence fitness: the chosen jurisdiction survives a reload");
+  await page.selectOption("#asl-juris", "KE"); await page.waitForTimeout(200);
 }
 
 // -- print header must track the selected sector, not the first one --

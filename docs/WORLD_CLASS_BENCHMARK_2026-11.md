@@ -96,7 +96,7 @@ end-to-end tests watched to fail first.
 | 2 | **Three-statement view** (P&L, cash flow, balance sheet) behind the Venture Builder and Returns tool | Flevy templates; TACG's deliverable list | Founders and lenders expect it; we stop at EBITDA and DSCR |
 | 3 | **Per-tail yield and an itemised trip quote** in the Revenue Builder | BlackJet and Jettly itemisation | Turns stream totals into something a charter buyer recognises |
 | 4 | **Repeat-finding flag** in the Safety Assurance Map: the same weakness recorded in two areas is shown once, with both locations | Centrik Smart Suggestions | Useful triage, fully client-side, no AI service needed |
-| 5 | **Group and multi-jurisdiction model** | Carried from edition 2, Tier 2 | Still the largest structural gap |
+| 5 | **Group and multi-jurisdiction model** | Carried from edition 2, Tier 2 | Still the largest structural gap. **First step shipped 27 Nov 2026**: the licence financial-fitness test now covers Kenya, Tanzania, Uganda, Rwanda and Ethiopia, each read from the regulator's own text ([`EA_FINANCIAL_FITNESS_2026-11.md`](EA_FINANCIAL_FITNESS_2026-11.md)) |
 
 ### Deliberately not recommended
 
