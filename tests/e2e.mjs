@@ -3953,6 +3953,79 @@ section("Fuel tankering, MRO manpower and stage-adjusted CASK");
     `cask: RASK 10.00, spread +0.67, BELF 67.2% - got ${await txt("rask")} / ${await txt("spread")} / ${await txt("belf")}`);
 }
 
+section("No readable text below 11px");
+/* The type scale's floor for anything a person reads is --fs-2xs (11.2px).
+   A 10px step existed and the brand lockup's page label sat at 9.6px
+   under a "fitted" exemption — "Free Diagnostic Tools", "Venture Builder"
+   — which is a label, not a drawing. This measures what renders, not
+   what the stylesheet says: computed size times the element's on-screen
+   scale, so SVG text drawn in viewBox units is judged at the size it
+   actually appears.
+
+   Ignored: text under aria-hidden, [hidden], display:none / visibility
+   hidden, anything with no layout box (print-only blocks are display:none
+   on screen), and runs of fewer than three letters (a "%", a "×", a
+   unit).
+
+   One named exception, checked rather than trusted: the home-page radar
+   (#hero-radar) draws its domain labels at 10 viewBox units inside a
+   432-unit canvas, which is ~6px on a phone. Making them legible means
+   re-laying the chart (gutter, wrap width, plot radius) — a component
+   change, not a token change — so it is recorded here, and the test
+   fails if the exception stops being needed or starts covering anything
+   else. */
+{
+  const SMALL_PAGES = ["index.html", "tools/index.html", "tools/venture-builder.html", "tools/safety-map.html", "diagnostic.html"];
+  const RADAR_EXCEPTION = "#hero-radar";
+  for (const width of [1440, 375]) {
+    const sctx = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: "reduce" });
+    const sp = await sctx.newPage();
+    for (const f of SMALL_PAGES) {
+      await sp.goto(base + "/" + f);
+      await sp.waitForTimeout(300);
+      const { small, excepted } = await sp.evaluate((exceptSel) => {
+        const small = [], excepted = [];
+        const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        let n;
+        while ((n = tw.nextNode())) {
+          if ((n.textContent.match(/\p{L}/gu) || []).length < 3) continue;
+          const el = n.parentElement;
+          if (!el || el.closest('[aria-hidden="true"], [hidden], script, style, noscript, template')) continue;
+          const cs = getComputedStyle(el);
+          if (cs.display === "none" || cs.visibility === "hidden") continue;
+          if (!el.getClientRects().length) continue;
+          let size = parseFloat(cs.fontSize);
+          if (el instanceof SVGElement && el.getScreenCTM) {
+            const m = el.getScreenCTM();
+            if (m) size *= Math.hypot(m.a, m.b);
+          }
+          if (size >= 11) continue;
+          const label = `<${el.tagName.toLowerCase()}${el.className && typeof el.className === "string" ? "." + el.className.trim().split(/\s+/).join(".") : ""}> "${n.textContent.trim().slice(0, 30)}" at ${size.toFixed(1)}px`;
+          (el.closest(exceptSel) ? excepted : small).push(label);
+        }
+        return { small, excepted };
+      }, RADAR_EXCEPTION);
+      assert(small.length === 0,
+        `${f} @${width}px: no visible text under 11px` + (small.length ? ` — ${small.length}: ${[...new Set(small)].slice(0, 4).join("; ")}` : ""));
+      if (excepted.length) console.log(`  NOTE :: ${f} @${width}px: ${excepted.length} radar label(s) under 11px, recorded exception (${excepted[0]})`);
+    }
+    await sctx.close();
+  }
+  /* The exception must still be earning its place: if the radar labels are
+     ever made legible on a phone, this fails and the exemption comes out. */
+  const xctx = await browser.newContext({ viewport: { width: 375, height: 900 }, reducedMotion: "reduce" });
+  const xp = await xctx.newPage();
+  await xp.goto(base + "/index.html"); await xp.waitForTimeout(300);
+  const radarMin = await xp.evaluate(() => {
+    const t = [...document.querySelectorAll("#hero-radar text")];
+    if (!t.length) return null;
+    return Math.min(...t.map(el => parseFloat(getComputedStyle(el).fontSize) * Math.hypot(el.getScreenCTM().a, el.getScreenCTM().b)));
+  });
+  assert(radarMin !== null && radarMin < 11,
+    `the #hero-radar exception is still needed (smallest label ${radarMin === null ? "missing" : radarMin.toFixed(1) + "px"} at 375px) — remove it once the labels clear 11px`);
+  await xctx.close();
+}
+
 section("JavaScript errors");
 assert(errs.length === 0, `no uncaught page errors (${errs.length ? errs.join(" | ") : "none"})`);
 

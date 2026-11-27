@@ -63,12 +63,42 @@
   --accent-tint:   rgba(158,49,22,.10);
   --accent-tint-2: rgba(158,49,22,.18);
 
-  --radius: 12px;
+  /* ---- radius ----
+     Pills use 99px and circles 50%; neither is a step on this scale.
+     Deliberate literal exceptions, each commented at the declaration:
+     focus-ring radii (2px/3px, the shape of the ring, not of a surface)
+     and 2px-tall bars, where 2px already means "fully rounded". */
+  --radius-xs: 4px;    /* tags, small chips, checkboxes, thin meters */
   --radius-sm: 8px;
+  --radius: 12px;
   --radius-lg: 18px;
+
+  /* ---- elevation ----
+     Neutral (warm-brown) elevation only. The coloured hover glows on the
+     buttons and tool cards are tinted with their own fill and are not
+     equivalent to any of these, so they stay at their declarations;
+     focus rings (0 0 0 3px var(--accent-tint)) are a focus indicator,
+     not elevation, and stay there too. */
   --shadow:       0 6px 24px rgba(45,20,10,.07);
   --shadow-hover: 0 14px 36px rgba(45,20,10,.13);
   --shadow-lg:    0 18px 48px rgba(45,20,10,.16);
+
+  /* ---- gradients ----
+     Every gradient that carries a literal colour, or is used in more than
+     one place, lives here so no gradient hex sits outside :root. Single-use
+     gradients built purely from tokens stay inline where they are read.
+     Exception: the score ring's conic-gradient reads --p and --ring-color
+     from the element itself, and a custom property defined here would
+     resolve those against :root instead, so it stays at .index-ring. */
+  --grad-ember:       linear-gradient(135deg, var(--jk-ember) 0%, var(--jk-terracotta) 100%); /* .btn-ember */
+  --grad-ember-hover: linear-gradient(135deg, #d2601f 0%, #ad3617 100%);                   /* .btn-ember:hover — one step lighter */
+  --grad-ember-amber: linear-gradient(90deg, var(--jk-ember), var(--jk-amber));            /* meter fill, subordinated-debt bar */
+  --grad-ink-glow:
+    radial-gradient(900px 520px at 12% 18%, rgba(158,49,22,.42) 0%, transparent 62%),
+    radial-gradient(700px 460px at 78% 8%, rgba(224,138,52,.20) 0%, transparent 60%);  /* .hero-ink, over --jk-ink */
+  --grad-ink-panel:   linear-gradient(135deg, var(--jk-ink) 0%, #3a2118 100%);              /* .book-cta */
+  --grad-ink-flagship:linear-gradient(120deg, var(--jk-ink), #4a2216);                       /* tools index flagship card */
+  --grad-hatch-red:   repeating-linear-gradient(45deg, var(--jk-red) 0 8px, #d94a4a 8px 16px); /* funding-gap hatch */
   --maxw: 1140px;
   --maxw-wide: 1280px;
 
@@ -114,16 +144,20 @@
      Named for role rather than size, so a step can be re-tuned without
      every call site then lying about what it is.
 
-     Two exemptions, marked `fitted:` at the declaration: the figure
-     inside the score ring and the lockup under the brand mark are sized
-     to a fixed graphic rather than to the document, and belong to the
-     drawing rather than to this scale.
+     One exemption, marked `fitted:` at the declaration: the figure
+     inside the score ring is sized to a fixed 168px graphic rather than
+     to the document, and belongs to the drawing rather than to this
+     scale. (The brand lockup label used to be the second; it is text
+     a person reads, so it now sits on --fs-2xs.)
 
      Nothing below 0.7rem was allowed to shrink. The nearest step for
      .66rem is downward, and 10.6px uppercase at .13em tracking becoming
-     10px is a legibility loss taken for tidiness. */
-  --fs-3xs:  0.624rem;   /* 10.0px */
-  --fs-2xs:  0.702rem;   /* 11.2px */
+     10px is a legibility loss taken for tidiness.
+
+     --fs-2xs is the floor for anything a person reads. The old 10px
+     --fs-3xs step had no users and was removed rather than left as an
+     invitation; tests/e2e.mjs fails any visible text under 11px. */
+  --fs-2xs:  0.702rem;   /* 11.2px — the floor for readable text */
   --fs-xs:   0.790rem;   /* 12.6px */
   --fs-sm:   0.889rem;   /* 14.2px */
   --fs-base: 1rem;       /* 16.0px */
@@ -277,6 +311,8 @@ img { max-width: 100%; display: block; }
 .center { text-align: center; }
 .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
 section { padding: var(--sec-y) 0; }
+/* Focus rings keep literal 2–4px radii: they shape the ring, not a surface, and
+   are not consolidated onto --radius-xs. */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
 /* On the ink surfaces a terracotta ring disappears into the background; the
    focus indicator has to be visible against whatever it lands on. */
@@ -342,11 +378,13 @@ section { padding: var(--sec-y) 0; }
 :target { scroll-margin-top: 88px; }
 [id] { scroll-margin-top: 88px; }
 .btn-primary { background: var(--accent); color: #fff; }
+/* Button and card hover glows are tinted with their own fill colour, so they are
+   not equivalent to the neutral --shadow tokens and stay literal (see :root). */
 .btn-primary:hover { background: var(--accent-deep); box-shadow: 0 8px 22px rgba(158,49,22,.34); }
 .btn-primary:disabled { background: var(--jk-muted); cursor: not-allowed; opacity: .65; transform: none; box-shadow: none; }
 /* the "ember" button — the warm gradient CTA, brand's loudest voice */
-.btn-ember { background: linear-gradient(135deg, var(--jk-ember) 0%, var(--jk-terracotta) 100%); color: #fff; }
-.btn-ember:hover { background: linear-gradient(135deg, #d2601f 0%, #ad3617 100%); box-shadow: 0 10px 26px rgba(196,85,31,.40); color: #fff; }
+.btn-ember { background: var(--grad-ember); color: #fff; }
+.btn-ember:hover { background: var(--grad-ember-hover); box-shadow: 0 10px 26px rgba(196,85,31,.40); color: #fff; }
 .btn-amber { background: var(--jk-amber); color: var(--jk-ink); }
 .btn-amber:hover { background: #ea9743; box-shadow: 0 8px 22px rgba(224,138,52,.40); }
 .btn-ghost { background: transparent; color: var(--jk-ink); border-color: var(--jk-line-2); }
@@ -355,7 +393,7 @@ section { padding: var(--sec-y) 0; }
 .btn-ghost-lt { background: transparent; color: #fff; border-color: rgba(255,255,255,.34); }
 .btn-ghost-lt:hover { border-color: #fff; background: rgba(255,255,255,.08); color: #fff; }
 .btn-dark { background: var(--jk-ink); color: #fff; }
-.btn-dark:hover { background: #2a1e18; box-shadow: 0 8px 22px rgba(22,16,13,.30); }
+.btn-dark:hover { background: var(--jk-ink-soft); box-shadow: 0 8px 22px rgba(22,16,13,.30); }
 .btn-lg { padding: 1.05rem 2rem; font-size: var(--fs-base); }
 .btn-sm { padding: .55rem 1rem; font-size: var(--fs-sm); }
 
@@ -375,8 +413,10 @@ section { padding: var(--sec-y) 0; }
 .brand { display: flex; align-items: center; gap: .7rem; font-family: var(--serif); font-weight: 700; font-size: var(--fs-lg); color: var(--jk-ink); }
 .brand:hover { text-decoration: none; }
 .brand .logo { width: 42px; height: 42px; flex: 0 0 auto; }
-/* fitted: sized to the logo lockup, not to the document scale */
-.brand small { display: block; font-family: var(--sans); font-weight: 500; font-size: .6rem; letter-spacing: .13em; text-transform: uppercase; color: var(--jk-muted); }
+/* Was a "fitted" .6rem (9.6px). It carries the page name — "Free Diagnostic
+   Tools", "Venture Builder" — which is a label a person reads, not part of
+   the drawing, so it takes the readable floor. */
+.brand small { display: block; font-family: var(--sans); font-weight: 500; font-size: var(--fs-2xs); letter-spacing: .13em; text-transform: uppercase; color: var(--jk-muted); }
 .nav-links { display: flex; flex-wrap: wrap; align-items: center; gap: 1.3rem; }
 /* :not(.btn) is load-bearing, not tidiness. The nav carries one button —
    the "Start free" CTA, which appears on all 28 pages and is the most
@@ -396,6 +436,7 @@ section { padding: var(--sec-y) 0; }
 .nav-links a:not(.btn):hover { color: var(--accent); text-decoration: none; }
 .nav-links a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 3px; }
 .nav-current { color: var(--accent); font-weight: 700; font-size: var(--fs-sm); cursor: default; position: relative; }
+/* 2px-tall underline bars: border-radius 2px already rounds them fully, so it stays a literal rather than --radius-xs */
 .nav-current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: var(--accent); border-radius: 2px; }
 .nav-links a.nav-section { color: var(--accent); font-weight: 700; position: relative; }
 .nav-links a.nav-section::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: var(--accent); opacity: .45; border-radius: 2px; }
@@ -436,7 +477,7 @@ section { padding: var(--sec-y) 0; }
 }
 
 /* ---------- hero ---------- */
-.hero { background: linear-gradient(180deg, var(--jk-parchment) 0%, #fff 100%); padding: 84px 0 64px; position: relative; overflow: hidden; }
+.hero { background: linear-gradient(180deg, var(--jk-parchment) 0%, var(--jk-white) 100%); padding: 84px 0 64px; position: relative; overflow: hidden; }
 .hero h1 span { color: var(--accent); }
 .hero .lead { font-size: var(--fs-md); color: #362923; max-width: 640px; }
 .hero-cta { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.8rem; }
@@ -451,10 +492,7 @@ section { padding: var(--sec-y) 0; }
 /* dark hero variant — the phoenix on ink, used on the platform home */
 .hero-ink {
   padding: clamp(3.5rem, 6vw, 5rem) 0 clamp(3rem, 5vw, 4.5rem);
-  background:
-    radial-gradient(900px 520px at 12% 18%, rgba(158,49,22,.42) 0%, transparent 62%),
-    radial-gradient(700px 460px at 78% 8%, rgba(224,138,52,.20) 0%, transparent 60%),
-    var(--jk-ink);
+  background: var(--grad-ink-glow), var(--jk-ink);
   color: #fff; position: relative; overflow: hidden;
 }
 .hero-ink h1 { color: #fff; }
@@ -859,6 +897,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .score-hero { background: var(--jk-ink); color: #fff; padding: 48px 0; }
 .score-hero h1 { color: #fff; }
 .index-ring { --p: 0; width: 168px; height: 168px; border-radius: 50%;
+  /* literal by necessity: --p and --ring-color are per-element, see the gradient tokens in :root */
   background: conic-gradient(var(--ring-color, var(--jk-amber)) calc(var(--p)*1%), rgba(255,255,255,.14) 0);
   display: grid; place-items: center; }
 .index-ring .inner { width: 132px; height: 132px; border-radius: 50%; background: var(--jk-ink); display: grid; place-items: center; text-align: center; }
@@ -880,7 +919,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .filter-bar { padding: 18px 0 0; }
 .filter-bar .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { font: inherit; font-size: var(--fs-sm); font-weight: 600; padding: .5rem 1rem; border-radius: 999px; border: 1px solid var(--jk-line-2); background: var(--jk-white); color: var(--jk-ink); cursor: pointer; min-height: 40px; }
+.chip { font: inherit; font-size: var(--fs-sm); font-weight: 600; padding: .5rem 1rem; border-radius: 99px; border: 1px solid var(--jk-line-2); background: var(--jk-white); color: var(--jk-ink); cursor: pointer; min-height: 40px; }
 .chip:hover { border-color: var(--accent); color: var(--accent); }
 .chip[aria-pressed="true"] { background: var(--jk-ink); border-color: var(--jk-ink); color: var(--jk-white); }
 .filter-bar .muted { margin: 0; font-size: var(--fs-sm); }
@@ -901,8 +940,8 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .result-panel .out { display: grid; grid-template-columns: 1fr auto; gap: .35rem 1rem; margin: 1rem 0 0; font-size: var(--fs-sm); }
 .result-panel .out dd { margin: 0; text-align: right; }
 
-.rs-bar { height: 6px; background: var(--jk-line); border-radius: 3px; margin-bottom: 4px; min-width: 60px; }
-.rs-bar span { display: block; height: 100%; background: var(--jk-amber); border-radius: 3px; }
+.rs-bar { height: 6px; background: var(--jk-line); border-radius: var(--radius-xs); margin-bottom: 4px; min-width: 60px; }
+.rs-bar span { display: block; height: 100%; background: var(--jk-amber); border-radius: var(--radius-xs); }
 
 /* Safety Assurance Map: risk matrix and bow-tie. These sit inside the dark
    result panel, so every surface here brings its own light background and
@@ -926,7 +965,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .bt-top { background: var(--jk-parchment); border: 1px solid var(--jk-line-2); border-radius: var(--radius-sm); padding: 6px 8px; }
 .bt-top p { margin: 0; font-weight: 600; font-size: var(--fs-xs); color: var(--jk-ink); }
 .bt-st { font-weight: 700; font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .05em; }
-.bt-tag { display: inline-block; border: 1px solid var(--jk-line-2); border-radius: 4px; padding: 0 4px; font-size: var(--fs-2xs); }
+.bt-tag { display: inline-block; border: 1px solid var(--jk-line-2); border-radius: var(--radius-xs); padding: 0 4px; font-size: var(--fs-2xs); }
 .bt-none { font-size: var(--fs-xs); color: var(--jk-muted); font-style: italic; margin: 0; }
 @media (max-width: 760px) { .bt-grid { grid-template-columns: 1fr; } }
 .barcell { min-width: 160px; }
@@ -1110,7 +1149,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   padding: 22px 22px 20px; transition: all var(--dur-base) var(--ease);
 }
 .sector:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: var(--shadow-hover); }
-.sector[aria-pressed="true"] { border-color: var(--accent); background: linear-gradient(180deg, var(--jk-amber-lt) 0%, #fff 70%); box-shadow: var(--shadow); }
+.sector[aria-pressed="true"] { border-color: var(--accent); background: linear-gradient(180deg, var(--jk-amber-lt) 0%, var(--jk-white) 70%); box-shadow: var(--shadow); }
 .sector[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 16px; right: 18px; color: #fff; background: var(--accent); width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 700; }
 .sector:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
 /* On the ink surfaces a terracotta ring disappears into the background; the
@@ -1184,7 +1223,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .dr-item input[type="checkbox"] {
   appearance: none; -webkit-appearance: none;
   margin: .1rem 0 0; flex: 0 0 auto; width: 18px; height: 18px;
-  border: 1.5px solid var(--jk-line-2); border-radius: 5px;
+  border: 1.5px solid var(--jk-line-2); border-radius: var(--radius-xs);
   background: #fff; display: grid; place-items: center;
   transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
 }
@@ -1217,7 +1256,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 /* readiness meter */
 .meter { display: flex; align-items: center; gap: 12px; }
 .meter-track { flex: 1; height: 12px; background: var(--jk-parchment-2); border-radius: 99px; overflow: hidden; }
-.meter-track > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--jk-ember), var(--jk-amber)); transition: width var(--dur-slow) var(--ease); }
+.meter-track > i { display: block; height: 100%; border-radius: 99px; background: var(--grad-ember-amber); transition: width var(--dur-slow) var(--ease); }
 .meter-val { font-family: var(--serif); font-size: var(--fs-xl); font-weight: 700; min-width: 68px; text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ---------- capital stack ---------- */
@@ -1225,13 +1264,13 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .stack-row { display: grid; grid-template-columns: 132px 1fr 96px; align-items: center; gap: 12px; font-size: var(--fs-sm); }
 .stack-row .sl { font-weight: 600; }
 .stack-row .sv { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
-.stack-bar { height: 22px; border-radius: 5px; background: var(--jk-parchment-2); overflow: hidden; }
+.stack-bar { height: 22px; border-radius: var(--radius-xs); background: var(--jk-parchment-2); overflow: hidden; }
 .stack-bar > i { display: block; height: 100%; transition: width var(--dur-slow) var(--ease); }
 .sb-debt   > i { background: linear-gradient(90deg, var(--jk-oxblood), var(--jk-terracotta)); }
 .sb-equity > i { background: linear-gradient(90deg, var(--jk-terracotta), var(--jk-ember)); }
-.sb-sub    > i { background: linear-gradient(90deg, var(--jk-ember), var(--jk-amber)); }
+.sb-sub    > i { background: var(--grad-ember-amber); }
 .sb-grant  > i { background: linear-gradient(90deg, var(--jk-amber), var(--jk-sand)); }
-.sb-gap    > i { background: repeating-linear-gradient(45deg, var(--jk-red) 0 8px, #d94a4a 8px 16px); }
+.sb-gap    > i { background: var(--grad-hatch-red); }
 @media (max-width: 560px){ .stack-row { grid-template-columns: 96px 1fr 78px; font-size: var(--fs-xs); } }
 
 /* KPI strip inside tools */
@@ -1352,12 +1391,12 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   transition: border-color var(--dur-base) var(--ease), transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease);
 }
 .role:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
-.role.is-postholder { border-left: 4px solid var(--jk-terracotta); background: linear-gradient(90deg, var(--jk-amber-lt) 0%, #fff 40%); }
+.role.is-postholder { border-left: 4px solid var(--jk-terracotta); background: linear-gradient(90deg, var(--jk-amber-lt) 0%, var(--jk-white) 40%); }
 .role.is-vacant { border-style: dashed; background: var(--jk-parchment); }
 .role b { display: block; font-family: var(--sans); font-size: var(--fs-sm); }
 .role .r-rep { font-size: var(--fs-xs); color: var(--jk-muted); margin-top: .18rem; }
 .role .r-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: .5rem; }
-.tag { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: .16rem .5rem; border-radius: 4px; background: var(--jk-parchment-2); color: var(--jk-muted); }
+.tag { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: .16rem .5rem; border-radius: var(--radius-xs); background: var(--jk-parchment-2); color: var(--jk-muted); }
 .tag.kcaa { background: var(--accent-tint); color: var(--accent-deep); }
 .tag.dep  { background: var(--jk-green-lt); color: var(--jk-green); }
 .tag.gap  { background: #fdecec; color: var(--jk-red-dk); }
@@ -1379,6 +1418,10 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 }
 @media (max-width: 620px){
   .g4, .metrics, .footer .cols { grid-template-columns: 1fr; }
+  /* The lockup label moved from 9.6px to the 11.2px floor; on a phone its
+     .13em tracking then pushed the menu toggle onto a second row beside
+     the longest tool names. Tighter tracking holds the one-row nav. */
+  .brand small { letter-spacing: .05em; }
 }
 
 /* Tier chips carry their own capital range, so the ladder from a
@@ -1625,7 +1668,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .ec-msg { width: 100%; margin: .15rem 0 0; font-size: var(--fs-sm); font-weight: 600; min-height: 1.2em; }
 
 .book-cta-section { padding: 48px 0; }
-.book-cta { background: linear-gradient(135deg, var(--jk-ink) 0%, #3a2118 100%); border-radius: var(--radius); padding: 36px 40px; display: flex; gap: 36px; align-items: center; flex-wrap: wrap; }
+.book-cta { background: var(--grad-ink-panel); border-radius: var(--radius); padding: 36px 40px; display: flex; gap: 36px; align-items: center; flex-wrap: wrap; }
 .book-cta-body { flex: 1; min-width: 260px; }
 .book-cta-body h3 { color: #fff; margin: 0 0 .5rem; font-family: var(--sans); font-size: var(--fs-xl); font-weight: 700; }
 .book-cta-body p { color: rgba(255,255,255,.78); margin: 0; max-width: 520px; line-height: 1.6; }
@@ -1835,7 +1878,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
   color: var(--jk-ink);
   font-size: var(--fs-sm);
   line-height: 1.45;
-  box-shadow: 0 -2px 10px rgba(22, 16, 13, .18);
+  box-shadow: 0 -2px 10px rgba(22, 16, 13, .18); /* literal: an upward edge shadow on a bottom-docked bar; no --shadow token casts upward */
 }
 .jk-storage-warning p { margin: 0; flex: 1; }
 .jk-storage-warning-close {
@@ -2010,7 +2053,7 @@ body.is-embed section:first-of-type { padding-top: 1.2rem; }
 .rs-mark { position: absolute; top: -4px; width: 2px; height: 24px; background: var(--jk-ink); }
 .rs-note { font-size: var(--fs-sm); margin: .8rem 0 0; max-width: 62ch; line-height: 1.6; }
 .rs-hist { position: relative; height: 150px; margin-bottom: 30px; display: flex; align-items: flex-end; gap: 2px; padding-top: 22px; margin-top: .4rem; }
-.rs-hbar { flex: 1; background: var(--jk-green); border-radius: 2px 2px 0 0; }
+.rs-hbar { flex: 1; background: var(--jk-green); border-radius: 2px 2px 0 0; } /* literal: a thin column cap, not a surface radius */
 .rs-hbar.below { background: var(--jk-red); }
 .rs-pin { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--jk-ink); }
 .rs-pin.plan { border-left: 2px solid var(--jk-terracotta); }
