@@ -202,8 +202,30 @@
 
   $("reset-capex").addEventListener("click", () => selectSector(state.sector, true));
 
+  /* Licence financial-fitness rules, one per jurisdiction, each from the
+     regulator's own instrument as read in November 2026. months: fixed and
+     operating costs to be covered without revenue; oblig: months over which
+     actual and potential obligations must be met. A planning aid: confirm
+     the current text with the regulator before an application. */
+  const ASL_RULES = {
+    KE: { name: "Kenya", months: 3, oblig: 24, extra: "",
+          cite: "Civil Aviation (Licensing of Air Services) Regulations, 2018 (L.N. 167/2018), reg. 19" },
+    TZ: { name: "Tanzania", months: 6, oblig: 12,
+          extra: "Obligations must be met over a 12-month horizon here, not the 24 months the other States set. The test sits in the Part on internal air services; confirm with the TCAA how it is applied to an international licence.",
+          cite: "Civil Aviation (Licensing of Air Services) Regulations, 2006 (G.N. 81/2006), reg. 8" },
+    UG: { name: "Uganda", months: 6, oblig: 24,
+          extra: "The UCAA guidelines also ask for evidence of ability to finance operations up to USD 0.5m for domestic, USD 1m for regional or USD 2m for international services.",
+          cite: "UCAA Air Service Licence guidelines CAA/05/ASLA/59 (2014), under the Civil Aviation (Licensing of Air Services) Regulations, 2001" },
+    RW: { name: "Rwanda", months: 3, oblig: 24,
+          extra: "A carrier flying only aircraft under 10 t MTOW or with fewer than 20 seats is tested instead on net capital of at least RWF 50 million.",
+          cite: "Rwanda Civil Aviation Regulations, Part 37, 37.085" },
+    ET: { name: "Ethiopia", months: null, oblig: null,
+          extra: "The Proclamation asks the Authority to consider the applicant's fitness and qualifications but sets no quantified financial test, so no figure is computed here. Ask the ECAA which financial evidence it expects.",
+          cite: "Civil Aviation Proclamation No. 616/2008, Art. 62(1)" }
+  };
+
   /* ---------- funding + persistence ---------- */
-  const FIELDS = ["f-equity","f-invest","f-sub","f-grant","f-debt","f-ltv","d-rate","d-term","d-rev","d-margin","d-cov"];
+  const FIELDS = ["f-equity","f-invest","f-sub","f-grant","f-debt","f-ltv","d-rate","d-term","d-rev","d-margin","d-cov","asl-juris"];
   FIELDS.forEach(id => $(id).addEventListener("input", () => { state[id] = $(id).value; recompute(); }));
 
   /* Debt service comes from common.js — the Venture Control Room re-derives
@@ -859,26 +881,36 @@
       ? "Set a positive EBITDA margin to compute break-even."
       : `At a ${margin}% EBITDA margin you need ${fmtMoney(beCov)} of annual revenue to hold a ${cov.toFixed(2)}× covenant. Payback is measured on EBITDA before tax and reinvestment, so treat it as a floor, not a forecast.`;
 
-    /* Air Service Licence financial fitness. The Licensing of Air Services
-       Regulations (reg. 19) ask an applicant to show its obligations met for
-       two years and at least three months of fixed and operating costs
-       covered without relying on revenue. Operating cost here is revenue
-       less EBITDA, the same margin the debt test uses, so the two can never
-       disagree about what the venture costs to run. Air services only: an
-       ATO, an MRO or a UAS operator holds no Air Service Licence. */
+    /* Air Service Licence financial fitness, by jurisdiction. Each rule is
+       read from the regulator's own text (research note
+       docs/EA_FINANCIAL_FITNESS_2026-11.md, November 2026): the months of
+       fixed and operating cost to be covered without revenue, and the
+       horizon over which obligations must be met. Ethiopia sets no
+       quantified test, so nothing is computed for it rather than borrowing
+       another State's figure. Operating cost is revenue less EBITDA, the
+       same margin the debt test uses, so the two can never disagree about
+       what the venture costs to run. Air services only: an ATO, an MRO or a
+       UAS operator holds no Air Service Licence. The jurisdiction <select>
+       lives in the page, outside this host, so a re-render cannot destroy it. */
     const aslHost = $("asl-fit");
+    const rule = ASL_RULES[$("asl-juris").value] || ASL_RULES.KE;
+    $("asl-juris-wrap").hidden = s.id !== "aoc";
+    const mo = (n) => ({ 3: "three months", 6: "six months" })[n] || `${n} months`;
+    const horizon = (n) => n === 24 ? "two-year (24-month)" : `${n}-month`;
     if (s.id !== "aoc") aslHost.innerHTML = "";
-    else if (rev <= 0 || margin >= 100) aslHost.innerHTML = `<div class="note" style="margin:0"><b>Licence financial-fitness test</b>The Air Service Licence asks you to show three months of fixed and operating costs covered without revenue. Enter planned revenue and an EBITDA margin above to compute it against your working capital.</div>`;
+    else if (!rule.months) aslHost.innerHTML = `<div class="note" style="margin:0"><b>Licence financial-fitness test: ${rule.name}</b>${rule.extra} ${rule.cite}.</div>`;
+    else if (rev <= 0 || margin >= 100) aslHost.innerHTML = `<div class="note" style="margin:0"><b>Licence financial-fitness test: ${rule.name}</b>The Air Service Licence asks you to show ${mo(rule.months)} of fixed and operating costs covered without revenue. Enter planned revenue and an EBITDA margin above to compute it against your working capital. ${rule.cite}.</div>`;
     else {
       const opex = rev * (1 - margin / 100);
-      const need = opex / 4;
+      const need = opex * rule.months / 12;
       const ok = wc >= need;
-      const twoYr = baseDscr === null || baseDscr >= 1;
-      aslHost.innerHTML = `<div class="note ${ok && twoYr ? "ok" : "warn"}" style="margin:0"><b>Licence financial-fitness test: ${ok ? "three months covered" : "three months not covered"}</b>` +
-        `Three months of fixed and operating costs is ${fmtMoney(need)} (annual operating cost ${fmtMoney(opex)}: revenue less EBITDA). Working capital in the plan is ${fmtMoney(wc)}` +
+      const oblig = baseDscr === null || baseDscr >= 1;
+      aslHost.innerHTML = `<div class="note ${ok && oblig ? "ok" : "warn"}" style="margin:0"><b>Licence financial-fitness test (${rule.name}): ${mo(rule.months)} ${ok ? "covered" : "not covered"}</b>` +
+        `${mo(rule.months).replace(/^./, (c) => c.toUpperCase())} of fixed and operating costs is ${fmtMoney(need)} (annual operating cost ${fmtMoney(opex)}: revenue less EBITDA). Working capital in the plan is ${fmtMoney(wc)}` +
         (ok ? `, which covers it ${(wc / need).toFixed(1)} times.` : `, ${fmtMoney(need - wc)} short. Raise working capital before the licence application, or expect the Authority to ask for evidence of committed funding.`) +
-        (twoYr ? "" : ` The base case also does not cover debt service, so the two-year obligations test in the business plan would fail too.`) +
-        ` Licensing of Air Services Regulations, reg. 19.</div>`;
+        (oblig ? "" : ` The base case also does not cover debt service, so the ${horizon(rule.oblig)} obligations test in the business plan would fail too.`) +
+        (rule.extra ? ` ${rule.extra}` : "") +
+        ` ${rule.cite}.</div>`;
     }
 
     // rail
