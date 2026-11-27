@@ -523,6 +523,111 @@ await page.fill("#d-rev", "10000000"); await page.fill("#d-margin", "20"); await
   await page.selectOption("#asl-juris", "KE"); await page.waitForTimeout(200);
 }
 
+/* Three statements, years 1–5. Founders and lenders expect a P&L, a cash
+   flow and a balance sheet; the tool stopped at EBITDA and DSCR. The
+   statements are built from the plan's own inputs and must AGREE with
+   the figures already on the page: year-2 EBITDA (steady state) is the
+   "EBITDA at base case" KPI, year 1 is the ramp times it, and interest
+   plus principal is the level debt service the DSCR table divides by.
+   One formula, one place (CLAUDE.md §7). Every figure is read from a
+   data-v attribute, never from formatted text, so rounding in the
+   display cannot hide a disagreement. */
+section("Venture Builder: three statements, years 1–5");
+await page.goto(base + "/tools/venture-builder.html");
+await page.evaluate(() => localStorage.clear());
+await page.reload(); await page.waitForTimeout(400);
+await page.click('[data-sector="aoc"]'); await page.waitForTimeout(300);
+await page.fill("#f-equity", "40000000"); await page.fill("#f-debt", "2000000");
+await page.fill("#f-sub", "500000"); await page.fill("#f-grant", "250000");
+await page.fill("#d-rev", "10000000"); await page.fill("#d-margin", "20");
+await page.fill("#d-rate", "9"); await page.fill("#d-term", "7");
+await page.waitForTimeout(350);
+{
+  const V = (k, y) => page.evaluate(([k, y]) => {
+    const el = document.querySelector(`#ts-out [data-k="${k}"][data-y="${y}"]`);
+    return el ? parseFloat(el.dataset.v) : NaN;
+  }, [k, y]);
+  const years = await page.$$eval("#ts-out [data-k=rev][data-y]", els => els.map(e => +e.dataset.y)).catch(() => []);
+  assert(await page.$("#three-statements"), "statements: a three-statement section exists");
+  assert(years.length === 5 && years.join() === "1,2,3,4,5", `statements: an AOC plan with revenue and margin renders five years - got [${years}]`);
+  assert(/planning default/i.test(await page.$eval("#three-statements", e => e.innerText).catch(() => "")),
+    "statements: the new inputs are labelled as planning defaults, not sourced figures");
+
+  let balanced = true, detail = "";
+  for (let y = 1; y <= 5; y++) {
+    const a = await V("assets", y), le = await V("le", y);
+    if (!(Math.abs(a - le) <= 1)) { balanced = false; detail += ` y${y}: ${a} vs ${le}`; }
+  }
+  assert(balanced, `statements: the balance sheet balances (assets = liabilities + equity) to USD 1 in every year${detail}`);
+
+  const base = await page.$eval('#be-kpis [data-k="ebitda-base"]', e => parseFloat(e.dataset.v)).catch(() => NaN);
+  const ramp = parseFloat(await page.$eval("#t-ramp", e => e.value).catch(() => "NaN"));
+  const e1 = await V("ebitda", 1), e2 = await V("ebitda", 2);
+  assert(isFinite(base) && Math.abs(e2 - base) < 0.5, `statements: steady-state (year-2) EBITDA equals "EBITDA at base case" - got ${e2} vs ${base}`);
+  assert(isFinite(ramp) && Math.abs(e1 - base * ramp / 100) < 0.5, `statements: year-1 EBITDA is the ramp (${ramp}%) times the base case - got ${e1} vs ${base * ramp / 100}`);
+
+  const ds = await page.$eval('#sens [data-k="ds"]', e => parseFloat(e.dataset.v)).catch(() => NaN);
+  let dsOk = isFinite(ds) && ds > 0, dsDetail = "";
+  for (let y = 1; y <= 5; y++) {
+    const s = (await V("int", y)) + (await V("prin", y));
+    if (!(Math.abs(s - ds) < 1)) { dsOk = false; dsDetail += ` y${y}: ${s}`; }
+  }
+  assert(dsOk, `statements: interest + principal in each year equals the debt service the DSCR uses (${ds})${dsDetail}`);
+
+  let chain = true;
+  for (let y = 1; y < 5; y++) if (!(Math.abs((await V("close", y)) - (await V("open", y + 1))) < 0.01)) chain = false;
+  assert(chain && (await V("open", 1)) === 0, "statements: closing cash in year N is opening cash in year N+1, from zero");
+
+  const t2 = await V("tax", 2), p2 = await V("pbt", 2);
+  assert(p2 > 0 && t2 > 0, `statements: a profitable year carries tax - got PBT ${p2}, tax ${t2}`);
+
+  await page.fill("#d-margin", "-10"); await page.waitForTimeout(300);
+  const p1 = await V("pbt", 1), t1 = await V("tax", 1);
+  assert(p1 < 0 && t1 === 0, `statements: tax is zero in a loss year - got PBT ${p1}, tax ${t1}`);
+  let stillBalanced = true;
+  for (let y = 1; y <= 5; y++) if (!(Math.abs((await V("assets", y)) - (await V("le", y))) <= 1)) stillBalanced = false;
+  assert(stillBalanced, "statements: the balance sheet still balances when the venture makes losses");
+  await page.fill("#d-margin", "20"); await page.waitForTimeout(300);
+
+  /* The stated rule: a year-1 loss is carried forward and set against
+     year-2 profit, so year-2 tax is the rate on what is left. */
+  await page.fill("#t-ramp", "10", { timeout: 2000 }).catch(() => {}); await page.waitForTimeout(300);
+  {
+    const l1 = await V("pbt", 1), q2 = await V("pbt", 2), x2 = await V("tax", 2);
+    const rate = parseFloat(await page.$eval("#t-tax", e => e.value).catch(() => "NaN")) / 100;
+    assert(l1 < 0 && q2 > 0 && Math.abs(x2 - Math.max(0, q2 + l1) * rate) < 0.5,
+      `statements: a year-1 loss is carried forward against year-2 profit - got PBT ${l1}, ${q2}; tax ${x2}`);
+  }
+  await page.fill("#t-ramp", "60", { timeout: 2000 }).catch(() => {}); await page.waitForTimeout(300);
+
+  /* §6: the new inputs are built once in the page and only the tables
+     are rewritten, so typing keeps focus and every character. */
+  const node = await page.$("#t-growth");
+  await page.focus("#t-growth", { timeout: 2000 }).catch(() => {});
+  if (node) { await page.keyboard.press("Control+A"); await page.keyboard.type("12", { delay: 60 }); }
+  await page.waitForTimeout(250);
+  const g = await page.evaluate(() => ({ id: document.activeElement && document.activeElement.id, v: document.getElementById("t-growth")?.value }));
+  assert(g.id === "t-growth" && g.v === "12", `statements: typing "12" into growth keeps focus and both characters - got focus ${g.id}, value "${g.v}"`);
+  assert(node && await page.evaluate(el => el.isConnected, node), "statements: the growth input is not rebuilt by a recompute");
+  const r3 = await V("rev", 3), r4 = await V("rev", 4);
+  assert(Math.abs(r4 / r3 - 1.12) < 1e-6, `statements: 12% growth compounds year on year after steady state - got ${r4 / r3}`);
+
+  for (const [id, v] of [["#t-life", "8"], ["#t-tax", "25"], ["#t-ramp", "55"]]) await page.fill(id, v, { timeout: 2000 }).catch(() => {});
+  await page.waitForTimeout(250);
+  await page.reload(); await page.waitForTimeout(450);
+  const kept = await page.evaluate(() => ["t-growth", "t-life", "t-tax", "t-ramp"].map(id => document.getElementById(id)?.value).join(","));
+  assert(kept === "12,8,25,55", `statements: the new inputs survive a reload - got ${kept}`);
+
+  await page.emulateMedia({ media: "print" }); await page.waitForTimeout(200);
+  const pr = await page.evaluate(() => {
+    const el = document.getElementById("ts-out");
+    return el ? { shown: getComputedStyle(el).display !== "none" && el.offsetHeight > 0, tables: el.querySelectorAll("table").length } : null;
+  });
+  assert(pr && pr.shown && pr.tables === 3, `statements: all three tables print - got ${JSON.stringify(pr)}`);
+  await page.emulateMedia({ media: "screen" });
+  await page.evaluate(() => localStorage.clear());
+}
+
 // -- print header must track the selected sector, not the first one --
 await page.goto(base + "/tools/certification-navigator.html");
 await page.evaluate(() => localStorage.clear());

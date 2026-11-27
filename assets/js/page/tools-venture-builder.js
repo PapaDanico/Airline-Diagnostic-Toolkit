@@ -20,7 +20,9 @@
     "f-equity": [0, 1e12], "f-invest": [0, 1e12], "f-sub": [0, 1e12],
     "f-grant":  [0, 1e12], "f-debt":   [0, 1e12], "f-ltv":  [0, 100],
     "d-rate":   [0, 40],   "d-term":   [0, 50],   "d-rev":  [0, 1e12],
-    "d-margin": [-100, 95], "d-cov":   [0, 5]
+    "d-margin": [-100, 95], "d-cov":   [0, 5],
+    "t-ramp":   [0, 100],  "t-growth": [-50, 100], "t-life": [1, 50],
+    "t-tax":    [0, 60]
   };
   const num = id => {
     const b = BOUNDS[id] || [-Infinity, Infinity];
@@ -225,7 +227,7 @@
   };
 
   /* ---------- funding + persistence ---------- */
-  const FIELDS = ["f-equity","f-invest","f-sub","f-grant","f-debt","f-ltv","d-rate","d-term","d-rev","d-margin","d-cov","asl-juris"];
+  const FIELDS = ["f-equity","f-invest","f-sub","f-grant","f-debt","f-ltv","d-rate","d-term","d-rev","d-margin","d-cov","asl-juris","t-ramp","t-growth","t-life","t-tax"];
   FIELDS.forEach(id => $(id).addEventListener("input", () => { state[id] = $(id).value; recompute(); }));
 
   /* Debt service comes from common.js — the Venture Control Room re-derives
@@ -830,6 +832,11 @@
     // DSCR
     const rate = num("d-rate"), term = num("d-term"), rev = num("d-rev"), margin = num("d-margin"), cov = num("d-cov");
     const ds = annualDebtService(debt, rate, term);
+    /* EBITDA is revenue times the margin, and that sentence lives here
+       once. The sensitivity table, the break-even, the licence test's
+       operating cost and the three statements all call it, so they
+       cannot disagree about what the venture earns. */
+    const ebitdaAt = r => r * (margin / 100);
     const scen = [
       { n: "Stress",       f: 0.60 },
       { n: "Conservative", f: 0.80 },
@@ -844,7 +851,7 @@
     let baseDscr = null;
     tb.innerHTML = scen.map(sc => {
       const r = rev * sc.f;
-      const ebitda = r * (margin / 100);
+      const ebitda = ebitdaAt(r);
       // With no revenue assumption there is nothing to divide, so report
       // "—" rather than a 0.00x that reads as a computed result sitting
       // next to a revenue column showing "—".
@@ -859,14 +866,14 @@
         <td><b>${sc.n}</b></td>
         <td class="num">${rev ? fmtMoney(r) : "—"}</td>
         <td class="num">${rev ? fmtMoney(ebitda) : "—"}</td>
-        <td class="num">${ds ? fmtMoney(ds) : "—"}</td>
+        <td class="num"${sc.f === 1 ? ` data-k="ds" data-v="${ds}"` : ""}>${ds ? fmtMoney(ds) : "—"}</td>
         <td class="num"><b>${fmtRatio(dscr)}</b></td>
         <td><span class="rag ${noTerm ? "rag-amber" : ok}">${(noTerm || ok) ? '<span class="dot"></span>' : ""}${label}</span></td>
       </tr>`;
     }).join("");
 
     // break-even
-    const ebitdaBase = rev * (margin / 100);
+    const ebitdaBase = ebitdaAt(rev);
     const beRev = margin > 0 ? ds / (margin / 100) : null;         // revenue needed to hit DSCR 1.00
     const beCov = margin > 0 ? (ds * cov) / (margin / 100) : null; // revenue needed to hit the covenant
     const payback = ebitdaBase > 0 ? total / ebitdaBase : null;
@@ -876,7 +883,7 @@
       <div class="kpi ${beCov && rev >= beCov ? "is-green" : "is-amber"}">
         <div class="kv">${beCov ? fmtMoney(beCov) : "—"}</div><div class="kl">Revenue to meet covenant</div></div>
       <div class="kpi"><div class="kv">${payback ? payback.toFixed(1) + " yr" : "—"}</div><div class="kl">Capital payback on EBITDA</div></div>
-      <div class="kpi"><div class="kv">${rev ? fmtMoney(ebitdaBase) : "—"}</div><div class="kl">EBITDA at base case</div></div>`;
+      <div class="kpi"><div class="kv" data-k="ebitda-base" data-v="${ebitdaBase}">${rev ? fmtMoney(ebitdaBase) : "—"}</div><div class="kl">EBITDA at base case</div></div>`;
     $("be-note").textContent = margin <= 0
       ? "Set a positive EBITDA margin to compute break-even."
       : `At a ${margin}% EBITDA margin you need ${fmtMoney(beCov)} of annual revenue to hold a ${cov.toFixed(2)}× covenant. Payback is measured on EBITDA before tax and reinvestment, so treat it as a floor, not a forecast.`;
@@ -901,7 +908,7 @@
     else if (!rule.months) aslHost.innerHTML = `<div class="note" style="margin:0"><b>Licence financial-fitness test: ${rule.name}</b>${rule.extra} ${rule.cite}.</div>`;
     else if (rev <= 0 || margin >= 100) aslHost.innerHTML = `<div class="note" style="margin:0"><b>Licence financial-fitness test: ${rule.name}</b>The Air Service Licence asks you to show ${mo(rule.months)} of fixed and operating costs covered without revenue. Enter planned revenue and an EBITDA margin above to compute it against your working capital. ${rule.cite}.</div>`;
     else {
-      const opex = rev * (1 - margin / 100);
+      const opex = rev - ebitdaAt(rev);
       const need = opex * rule.months / 12;
       const ok = wc >= need;
       const oblig = baseDscr === null || baseDscr >= 1;
@@ -912,6 +919,8 @@
         (rule.extra ? ` ${rule.extra}` : "") +
         ` ${rule.cite}.</div>`;
     }
+
+    const ts = renderStatements({ rev, ebitdaAt, capex, wc, equity, invest, sub, grant, debt, rate, term, noTerm });
 
     // rail
     $("r-capex").textContent = fmtMoney(total);
@@ -968,6 +977,8 @@
       d: `${fmtMoney(wc)} of ${fmtMoney(total)} — under 15%. Lenders size term debt against fixed assets, so a shortfall here lands entirely on equity.` });
     if (beCov && rev && rev < beCov) sf.push({ sev: "warn", h: `Revenue is below the covenant break-even`,
       d: `${fmtMoney(rev)} assumed against ${fmtMoney(beCov)} required at a ${margin}% margin.` });
+    if (ts && ts.low < -0.5) sf.push({ sev: "warn", h: `Cash runs out in year ${ts.lowYear}`,
+      d: `The three statements reach a cash low of ${fmtMoney(ts.low)} in year ${ts.lowYear}. Fund that before launch, or move the ramp, the margin or the debt terms until it closes.` });
     if (!sf.length) sf.push({ sev: "ok", h: "No blocking finding on the capital model",
       d: `Funded to ${fmtMoney(funded)}, ${noTerm ? "with no debt to service" : `carrying ${fmtRatio(baseDscr)} against a ${cov.toFixed(2)}× covenant`}. The constraint is delivery, not capital.` });
 
@@ -985,6 +996,144 @@
     renderOwnVsLease(total, capex, s, tier, rate, term);
 
     store.save(state);
+  }
+
+  /* ---------- three statements, years 1–5 ----------
+     Built from the plan's own inputs, never a second copy of them:
+     EBITDA comes from the same ebitdaAt() the DSCR uses, and the debt
+     schedule splits the same annualDebtService() payment into interest on
+     the opening balance and principal. The four extra inputs live in the
+     page and are never rebuilt; only #ts-out is rewritten (CLAUDE.md §6).
+     Their defaults are planning defaults from no publication, and the
+     page says so beside each one (CLAUDE.md §7).
+
+     Every cell carries its raw figure in data-v so a check can test the
+     arithmetic itself (assets = liabilities + equity each year) rather
+     than formatted text. Returns the cash low point for the summary. */
+  const YEARS = 5;
+  /* A cleared box is not a value. clampNum maps NaN to the lower bound,
+     which would turn an emptied growth box into -50%: fall back to the
+     input's own default instead. */
+  const inputOr = id => {
+    const v = parseFloat($(id).value), b = BOUNDS[id];
+    return isFinite(v) ? clampNum(v, b[0], b[1]) : parseFloat($(id).defaultValue);
+  };
+
+  function debtSchedule(principal, ratePct, years, n) {
+    const pay = annualDebtService(principal, ratePct, years);
+    const out = [];
+    let bal = principal;
+    for (let y = 1; y <= n; y++) {
+      const interest = bal * ratePct / 100;
+      const prin = pay > 0 ? Math.min(bal, Math.max(0, pay - interest)) : 0;
+      out.push({ interest, prin });
+      bal -= prin;
+      if (Math.abs(bal) < 0.005) bal = 0;
+    }
+    return out;
+  }
+
+  function renderStatements(p) {
+    const host = $("ts-out");
+    if (p.noTerm) { host.innerHTML = `<div class="note warn" style="margin:1rem 0 0"><b>Set a repayment term</b>The statements need the senior debt's term to split each year's payment into interest and principal.</div>`; return null; }
+    if (!(p.rev > 0)) { host.innerHTML = `<div class="note" style="margin:1rem 0 0"><b>Add a revenue assumption</b>Enter steady-state revenue and an EBITDA margin in Step 4 to build the three statements.</div>`; return null; }
+
+    const ramp = inputOr("t-ramp") / 100, growth = inputOr("t-growth") / 100,
+          life = inputOr("t-life"), taxRate = inputOr("t-tax") / 100;
+    const paidIn = p.equity + p.invest + p.grant;
+    const sched = debtSchedule(p.debt, p.rate, p.term, YEARS);
+    const Y = [];
+    let cash = 0, nfa = 0, re = 0, losses = 0, debtBal = p.debt;
+    for (let y = 1; y <= YEARS; y++) {
+      const first = y === 1;
+      const rev = first ? p.rev * ramp : p.rev * Math.pow(1 + growth, y - 2);
+      const ebitda = p.ebitdaAt(rev);
+      const capexIn = first ? p.capex : 0;
+      const dep = Math.min(p.capex / life, nfa + capexIn);
+      const ebit = ebitda - dep;
+      const { interest, prin } = sched[y - 1];
+      const pbt = ebit - interest;
+      /* No tax on a loss; a loss is carried forward without time limit
+         and set against the next profits. Stated on the page. */
+      let taxable = 0;
+      if (pbt < 0) losses -= pbt;
+      else { const used = Math.min(losses, pbt); losses -= used; taxable = pbt - used; }
+      const tax = taxable * taxRate;
+      const ni = pbt - tax;
+      const dwc = first ? p.wc : 0;
+      const cfo = ni + dep - dwc;
+      const eqIn = first ? paidIn : 0, subIn = first ? p.sub : 0, debtIn = first ? p.debt : 0;
+      const ncf = cfo - capexIn + eqIn + subIn + debtIn - prin;
+      const open = cash;
+      cash = open + ncf;
+      nfa += capexIn - dep;
+      debtBal = Math.max(0, debtBal - prin);
+      re += ni;
+      const assets = cash + p.wc + nfa;
+      const le = debtBal + p.sub + paidIn + re;
+      Y.push({ rev, opex: rev - ebitda, ebitda, dep, ebit, int: interest, pbt, tax, ni,
+               dwc, cfo, capex: capexIn, eqin: eqIn, subin: subIn, debtin: debtIn, prin, ncf,
+               dsy: interest + prin, open, close: cash,
+               cash, wc: p.wc, nfa, assets, debt: debtBal, sub: p.sub, paidin: paidIn, re, le, losses });
+    }
+
+    /* USD thousands, deductions and negatives in brackets: the convention
+       a lender reads without a legend. */
+    /* Round the magnitude, then sign it: Math.round(-397.5) is -397 but
+       Math.round(397.5) is 398, so depreciation printed (397) in the P&L
+       and 398 when added back in the cash flow. */
+    const k = v => {
+      const r = Math.round(Math.abs(v) / 1000);
+      return v < 0 && r > 0 ? `(${fmtNum(r)})` : fmtNum(r);
+    };
+    const row = (key, label, opt) => {
+      const o = opt || {};
+      const sign = o.neg ? -1 : 1;
+      return `<tr${o.total ? ' class="ts-total"' : ""}><td>${label}</td>${Y.map((d, i) =>
+        `<td class="num" data-k="${key}" data-y="${i + 1}" data-v="${d[key]}">${k(sign * d[key])}</td>`).join("")}</tr>`;
+    };
+    const subHead = t => `<tr class="ts-sub"><td colspan="${YEARS + 1}">${t}</td></tr>`;
+    const table = (caption, rows) => `<div class="table-scroll" style="margin-top:1.1rem"><table class="dtable ts-table">
+        <caption>${caption} <span>USD thousands</span></caption>
+        <thead><tr><th scope="col">Year</th>${Y.map((_, i) => `<th scope="col" class="num">${i + 1}</th>`).join("")}</tr></thead>
+        <tbody>${rows.join("")}</tbody></table></div>`;
+
+    const worst = Math.max(...Y.map(d => Math.abs(d.assets - d.le)));
+    const lowIdx = Y.reduce((m, d, i) => d.close < Y[m].close ? i : m, 0);
+    const low = Y[lowIdx].close;
+    const notes = [];
+    if (low < -0.5) notes.push(`<div class="note warn" style="margin:1rem 0 0"><b>Cash goes negative</b>Closing cash falls to ${fmtMoney(low)} in year ${lowIdx + 1}. The plan needs that much more funding, or a faster ramp, a better margin or gentler debt terms.</div>`);
+    if (worst > 1) notes.push(`<div class="note warn" style="margin:1rem 0 0"><b>The balance sheet does not balance</b>It is out by ${fmtMoney(worst)}. That is a fault in the tool, not in your plan.</div>`);
+    const carried = Y[YEARS - 1].losses;
+
+    host.innerHTML = notes.join("") +
+      table("Profit and loss", [
+        row("rev", "Revenue"), row("opex", "Operating cost", { neg: true }),
+        row("ebitda", "EBITDA", { total: true }), row("dep", "Depreciation", { neg: true }),
+        row("ebit", "EBIT", { total: true }), row("int", "Interest on senior debt", { neg: true }),
+        row("pbt", "Profit before tax", { total: true }), row("tax", "Tax", { neg: true }),
+        row("ni", "Net income", { total: true })
+      ]) +
+      table("Cash flow", [
+        row("ni", "Net income"), row("dep", "Add back depreciation"),
+        row("dwc", "Working capital funded", { neg: true }), row("cfo", "Cash from operations", { total: true }),
+        row("capex", "Fixed CAPEX", { neg: true }),
+        row("eqin", "Equity and grant received"), row("subin", "Subordinated loan received"),
+        row("debtin", "Senior debt drawn"), row("prin", "Senior debt principal repaid", { neg: true }),
+        row("ncf", "Net cash flow", { total: true }),
+        row("open", "Opening cash"), row("close", "Closing cash", { total: true }),
+        subHead("Memo"), row("dsy", "Debt service paid (interest and principal)")
+      ]) +
+      table("Balance sheet, end of year", [
+        row("cash", "Cash"), row("wc", "Working capital"), row("nfa", "Net fixed assets"),
+        row("assets", "Total assets", { total: true }),
+        row("debt", "Senior debt outstanding"), row("sub", "Subordinated loan"),
+        row("paidin", "Paid-in equity and grant"), row("re", "Retained earnings"),
+        row("le", "Total liabilities and equity", { total: true })
+      ]) +
+      `<p class="muted" style="font-size:var(--fs-xs);margin:.6rem 0 0">${worst <= 1 ? "Assets equal liabilities and equity in every year." : ""}` +
+      `${carried > 0.5 ? ` Tax losses of ${fmtMoney(carried)} are still to be used after year ${YEARS}.` : ""}</p>`;
+    return { low, lowYear: lowIdx + 1 };
   }
 
   $("print").addEventListener("click", () => window.print());
