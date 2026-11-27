@@ -1,4 +1,13 @@
 # JK & Associates — Static & Clean Routing Rules
+# Internal working files: the repository root is published, so these
+# would otherwise be served. Forced (404!) so they win over the file.
+/CLAUDE.md              /404.html                          404!
+/README.md              /404.html                          404!
+/docs/*                 /404.html                          404!
+/tests/*                /404.html                          404!
+/scripts/*              /404.html                          404!
+/.claude/*              /404.html                          404!
+/.github/*              /404.html                          404!
 /certify                /tools/certification-navigator.html 301
 /venture                /tools/venture-builder.html        301
 /structure              /tools/corporate-structure.html    301
