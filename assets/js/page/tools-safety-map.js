@@ -10,7 +10,9 @@
      - a reduction with no barrier named under it,
      - a reduction that rests only on barriers that are planned, not in place,
      - a hazard with nothing on its recovery side (or its preventive side),
-     - and any residual rating above the operator's own tolerable limit.
+     - any residual rating above the operator's own tolerable limit,
+     - and a repeat finding: the same barrier not in place under two or more
+       hazards, shown once with every location (rule at repeats() below).
 
    Each barrier is tagged to the ICAO Annex 19 SMS element that manages or
    evidences it and to a functional area (IOSA section names, used as a
@@ -189,6 +191,28 @@
     return out.sort((a, b) => rank[a[0]] - rank[b[0]]);
   }
 
+  /* Repeat findings. The rule is deliberately plain and rule-based: two
+     barriers are "the same weakness" when their text is identical after
+     normalising (lower-case, punctuation removed, whitespace collapsed and
+     trimmed), neither is In place, and they sit under two or more different
+     hazards. A barrier In place is evidence, not a weakness, so it never
+     counts; the same text twice under one hazard is a duplicate entry, not a
+     repeat across areas, so it needs two hazards. Each repeat is returned
+     once, with every location (hazard and side of the top event). No
+     fuzzy matching: a near-miss in wording is left for the user to judge. */
+  const norm = s => String(s || "").toLowerCase().replace(/[^\p{L}\p{N}\s]+/gu, " ").replace(/\s+/g, " ").trim();
+  function repeats(M) {
+    const groups = new Map();
+    M.hz.forEach(x => x.bars.forEach(b => {
+      if (b.status === "In place") return;
+      const k = norm(b.text); if (!k) return;
+      if (!groups.has(k)) groups.set(k, { text: String(b.text).trim().replace(/\s+/g, " "), locs: [] });
+      groups.get(k).locs.push({ hz: x, side: b.kind === "Recovery" ? "recovery" : "preventive", status: b.status });
+    }));
+    return [...groups.values()].filter(g => new Set(g.locs.map(l => l.hz)).size >= 2)
+      .map(g => ({ text: g.text, locs: g.locs.map(l => `H${l.hz.n} ${l.hz.name} (${l.side}, ${l.status.toLowerCase()})`) }));
+  }
+
   function run() {
     PARAMS.forEach(id => { state[id] = $(id).value; });
     const M = model();
@@ -199,7 +223,7 @@
     $("sf-head").textContent = "—"; $("sf-band").textContent = "Add a hazard.";
     $("sf-qual").textContent = "The matrix, findings and SMS map appear once at least one hazard is entered.";
     ["sf-kpis", "sf-matrix", "sf-findings", "sf-cover", "sf-bowtie"].forEach(id => { $(id).innerHTML = ""; });
-    panels(true);
+    panels(true); repeatBlock([]);
     mountPrintSummary(null);
   }
 
@@ -256,8 +280,14 @@
       </div></div>`).join("");
   }
 
+  /* The container is static markup; only its derived list is rewritten. */
+  function repeatBlock(R) {
+    $("sf-repeat").hidden = !R.length;
+    $("sf-repeat-list").innerHTML = R.map(r => `<div class="note warn"><b>Repeat finding: \u201c${e(r.text)}\u201d is not in place under ${r.locs.length} hazards</b>${r.locs.map(l => `<div>${e(l)}</div>`).join("")}</div>`).join("");
+  }
+
   function render(M) {
-    const F = findings(M);
+    const F = findings(M), R = repeats(M);
     panels(false);
     $("sf-head").textContent = `${M.nHigh} above tolerance`;
     $("sf-band").textContent = `${M.hz.length} hazard${M.hz.length === 1 ? "" : "s"} · ${M.nHigh} High · ${M.nMed} Medium · ${M.nLow} Low`;
@@ -270,12 +300,15 @@
     ].map(([l, v, c]) => `<div class="kpi ${c}"><div class="kv tnum">${v}</div><div class="kl">${l}</div></div>`).join("");
     $("sf-matrix").innerHTML = matrix(M);
     $("sf-findings").innerHTML = F.map(([t, hh, d]) => `<div style="padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:var(--fs-sm)"><b style="color:var(--jk-amber);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em">${t}</b><div><b>${e(hh)}</b></div><div>${e(d)}</div></div>`).join("");
+    repeatBlock(R);
     $("sf-cover").innerHTML = coverage(M);
     $("sf-bowtie").innerHTML = bowtie(M);
     mountPrintSummary({
       title: "Safety assurance map",
       verdict: `${M.hz.length} hazard${M.hz.length === 1 ? "" : "s"}: ${M.nHigh} above tolerance after controls; ${M.inPlace} of ${M.bars.length} named barriers are in place and evidence ${M.evEl.size} of 12 SMS elements.`,
-      findings: F.map(([t, h, d]) => ({ sev: t === "Stop" ? "stop" : t === "Warning" ? "warn" : "note", h, d })),
+      /* repeats lead the warnings: one weakness in several places outranks a single gap */
+      findings: [...R.map(r => ({ sev: "warn", h: `Repeat finding: \u201c${r.text}\u201d is not in place under ${r.locs.length} hazards`, d: r.locs.join("; ") + "." })),
+        ...F.map(([t, h, d]) => ({ sev: t === "Stop" ? "stop" : t === "Warning" ? "warn" : "note", h, d }))],
       basis: `Risk is likelihood × severity on a 5×5 scale; Low is up to ${M.acc}, Medium up to ${M.tol} and High above, as entered. Ratings, barriers and statuses are the user's own and are not verified. A barrier counts toward an SMS element (ICAO Annex 19 framework) only when its status is In place and it is tagged to that element; the tag is a working convention, not a compliance mapping. This is an organiser of judgements, not an SMS and not an assessment of one.`
     });
   }
