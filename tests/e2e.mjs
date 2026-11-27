@@ -39,6 +39,7 @@ async function assertEnquiryFormSubmits(page, formSelector, label) {
 }
 
 const CANDIDATE_EXECS = [
+  "/opt/pw-browsers/chromium",   // stable link to whichever build this container ships
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
   "/opt/build/repo/.netlify/plugins/node_modules/@netlify/plugin-lighthouse/node_modules/puppeteer-core/.local-chromium/linux-1045629/chrome-linux/chrome"
 ];
