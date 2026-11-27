@@ -69,9 +69,9 @@
       const rows = hs.map((h, i) => `
         <div class="holder-row">
           <input type="text" value="${escapeHtml(h.n)}" data-tier="${t.k}" data-i="${i}" data-f="n"
-                 aria-label="Holder ${i + 1} name at ${escapeHtml(t.name)}" style="padding:.5rem .7rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.87rem">
+                 aria-label="Holder ${i + 1} name at ${escapeHtml(t.name)}" style="padding:.5rem .7rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.87rem;min-height:40px">
           <input type="number" value="${h.p}" min="0" max="100" step="0.5" data-tier="${t.k}" data-i="${i}" data-f="p"
-                 aria-label="Percentage held by holder ${i + 1} at ${escapeHtml(t.name)}" style="padding:.5rem .6rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.87rem;text-align:right">
+                 aria-label="Percentage held by holder ${i + 1} at ${escapeHtml(t.name)}" style="padding:.5rem .6rem;border:1px solid var(--jk-line-2);border-radius:6px;font-family:var(--sans);font-size:.87rem;text-align:right;min-height:40px">
           <span class="muted" style="font-size:.85rem">%</span>
         </div>`).join("");
       const sum = hs.reduce((a, h) => a + (+h.p || 0), 0);

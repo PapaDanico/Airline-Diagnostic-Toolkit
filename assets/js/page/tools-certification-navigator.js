@@ -141,7 +141,7 @@
     $("postholders").innerHTML =
       `<p class="eyebrow">Step 3</p>
        <h2 style="margin-bottom:.4rem">Who the Authority must accept</h2>
-       <p class="muted" style="max-width:640px">Named postholders are assessed as individuals, not as job titles. A vacancy or an unaccepted nominee stops certification regardless of how complete the paperwork is.</p>
+       <p class="muted" style="max-width:min(640px,60ch)">Named postholders are assessed as individuals, not as job titles. A vacancy or an unaccepted nominee stops certification regardless of how complete the paperwork is.</p>
        <div class="org-row" style="margin-top:1.2rem">${rows}</div>
        <p class="muted" style="font-size:.84rem;margin-top:1rem">
          Design the full organisation — reporting lines, deputies and headcount ramp — in the
@@ -154,7 +154,7 @@
     $("manuals").innerHTML =
       `<p class="eyebrow">Step 4</p>
        <h2 style="margin-bottom:.4rem">The document set</h2>
-       <p class="muted" style="max-width:640px">Every one of these is evaluated in Phase 3 and tested against reality in Phase 4. Manuals that describe an operation you cannot demonstrate are the most expensive kind of finding.</p>
+       <p class="muted" style="max-width:min(640px,60ch)">Every one of these is evaluated in Phase 3 and tested against reality in Phase 4. Manuals that describe an operation you cannot demonstrate are the most expensive kind of finding.</p>
        <div class="card card-flat" style="margin-top:1.1rem">
          <ul style="columns:2;column-gap:32px;margin:0;padding-left:1.1rem;font-size:.9rem">${rows}</ul>
        </div>`;

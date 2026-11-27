@@ -918,6 +918,94 @@ section("Running prose keeps a readable measure");
   }
 }
 
+/* The list above guards the long-form pages, and a list is exactly what
+   drifted: by November 2026 the notes, hints and disclaimers on the tool
+   pages ran to 120-194 characters a line at desktop width — small type
+   in a px-wide box fits more characters, which is why px measures fail
+   at the smaller sizes. So every page is now measured, every paragraph
+   long enough to wrap, and a capped paragraph that is centred must still
+   sit in the centre of its column rather than hug the left edge. */
+section("Every page keeps a readable measure");
+{
+  const MAX_CHARS = 90;
+  const all = [...readdirSync(ROOT).filter(f => f.endsWith(".html")),
+               ...readdirSync(resolve(ROOT, "tools")).filter(f => f.endsWith(".html")).map(f => "tools/" + f)];
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const over = [], offCentre = [];
+  for (const pg of all) {
+    await page.goto(base + "/" + pg); await page.waitForTimeout(250);
+    const r = await page.evaluate(() => {
+      const ctx = document.createElement("canvas").getContext("2d");
+      const main = document.querySelector("main") || document.body;
+      const long = [], skew = [];
+      for (const el of main.querySelectorAll("p, li")) {
+        const t = (el.textContent || "").replace(/\s+/g, " ").trim();
+        if (t.length < 120 || el.querySelector("p, li, div, table") || el.offsetParent === null) continue;
+        const cs = getComputedStyle(el);
+        ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        const avg = ctx.measureText("abcdefghijklmnopqrstuvwxyz ").width / 27;
+        const box = el.getBoundingClientRect();
+        const chars = Math.round((box.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) / avg);
+        if (chars > 90) long.push(`${chars} "${t.slice(0, 36)}…"`);
+        if (cs.textAlign === "center") {
+          const pb = el.parentElement.getBoundingClientRect();
+          const pcs = getComputedStyle(el.parentElement);
+          const mid = pb.left + parseFloat(pcs.paddingLeft) + (pb.width - parseFloat(pcs.paddingLeft) - parseFloat(pcs.paddingRight)) / 2;
+          if (Math.abs((box.left + box.width / 2) - mid) > 4) skew.push(`"${t.slice(0, 36)}…"`);
+        }
+      }
+      return { long, skew };
+    });
+    r.long.forEach(x => over.push(`${pg}: ${x}`));
+    r.skew.forEach(x => offCentre.push(`${pg}: ${x}`));
+  }
+  assert(over.length === 0, `every page: no paragraph runs past ${MAX_CHARS} characters a line at 1440px` +
+    (over.length ? ` — ${over.length} do: ${over.slice(0, 6).join(" | ")}` : ""));
+  assert(offCentre.length === 0, "every page: a centred paragraph sits in the centre of its column" +
+    (offCentre.length ? ` — ${offCentre.slice(0, 6).join(" | ")}` : ""));
+  await page.setViewportSize({ width: 1280, height: 800 });
+}
+
+/* Form controls a thumb can hit. The tool enquiry forms sit inside
+   .guarantee, not .field, so they never picked up the field styles and
+   rendered 21px tall on a phone; the range sliders were 16px. WCAG 2.5.8
+   asks for 24px at the least; a text box gets the 44px the .field
+   inputs already have. */
+section("Form controls are a usable size on a phone");
+{
+  const all = [...readdirSync(ROOT).filter(f => f.endsWith(".html")),
+               ...readdirSync(resolve(ROOT, "tools")).filter(f => f.endsWith(".html")).map(f => "tools/" + f)];
+  const pctx = await browser.newContext({ viewport: { width: 375, height: 812 }, reducedMotion: "reduce" });
+  const pp = await pctx.newPage();
+  const small = [];
+  for (const pg of all) {
+    await pp.goto(base + "/" + pg); await pp.waitForTimeout(200);
+    const s = await pp.evaluate(() => {
+      const out = [];
+      for (const el of document.querySelectorAll("main input, main select, main textarea")) {
+        if (["hidden", "checkbox", "radio"].includes(el.type)) continue;
+        const r = el.getBoundingClientRect();
+        if (!r.width || getComputedStyle(el).visibility === "hidden") continue;
+        const need = el.type === "range" ? 24 : 40;
+        if (r.height < need) out.push(`${el.type}#${el.id || el.name} ${Math.round(r.height)}px`);
+      }
+      return out;
+    });
+    if (s.length) small.push(`${pg}: ${s.length} (${s.slice(0, 2).join(", ")})`);
+  }
+  assert(small.length === 0, "phone: text boxes and selects are at least 40px tall, sliders at least 24px" +
+    (small.length ? ` — ${small.length} pages fail: ${small.slice(0, 5).join(" | ")}` : ""));
+  /* the tools index opens on a heading and a paragraph; its first action
+     must be on the first screen of a phone, not 1,066px down */
+  await pp.goto(base + "/tools/index.html"); await pp.waitForTimeout(300);
+  const cta = await pp.evaluate(() => {
+    const a = [...document.querySelectorAll("main a.btn")].find(b => b.offsetParent !== null);
+    return a ? { top: Math.round(a.getBoundingClientRect().bottom), text: a.textContent.trim() } : null;
+  });
+  assert(cta && cta.top <= 812, `tools index: first action is on a phone's first screen — got ${JSON.stringify(cta)}`);
+  await pctx.close();
+}
+
 section("Footer references");
 const REFERENCES = ["tutorial.html", "faq.html", "glossary.html", "regulations.html"];
 for (const pg of ["index.html", "diagnostic.html", "tools/index.html", "regulations.html", "tools/venture-dashboard.html", "glossary.html"]) {

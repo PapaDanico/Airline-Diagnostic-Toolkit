@@ -252,6 +252,23 @@ p { margin: 0 0 1rem; }
 #cp-model p {
   max-width: 54ch;
 }
+/* The list above covers the long-form pages. Everything else in <main>
+   (tool notes, hints, disclaimers, section intros) gets a ceiling rather
+   than a measure: 60ch is about 83 characters. Without it, small type in
+   a full-width card ran to 194 characters a line at desktop width. Inline
+   px widths on paragraphs are written min(Npx, 60ch) for the same reason:
+   a px box holds more characters the smaller the type in it. A capped
+   paragraph in a centred block must stay centred, hence the auto margins. */
+main :is(p, li) { max-width: 60ch; }
+main :is(p.center, .center > p, .center > li,
+         [style*="text-align:center"] > p, [style*="text-align: center"] > p) { margin-inline: auto; }
+/* The planners' row editors are compact by design, 31-34px boxes with
+   inline styles, which is dense enough on a desktop and too small to hit
+   with a thumb. Inline styles set no min-height, so this lifts them on a
+   phone without touching their desktop density. */
+@media (max-width: 760px) {
+  main :is(input:not([type="hidden"], [type="checkbox"], [type="radio"], [type="range"]), select, textarea) { min-height: 40px; }
+}
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 img { max-width: 100%; display: block; }
@@ -597,6 +614,22 @@ button.phase:focus-visible { outline: 2px solid var(--accent); outline-offset: 3
 /* guarantee / callout box */
 .guarantee { background: var(--jk-amber-lt); color: var(--jk-ink); border: 1px solid var(--jk-amber); border-radius: var(--radius); padding: 22px 26px; display: flex; gap: 1rem; align-items: flex-start; }
 .guarantee svg { color: var(--jk-ember); flex: 0 0 auto; }
+/* Every tool enquiry form (marked by its hidden "tool" input) sits in a
+   .guarantee or a bare section, never a .field, so none picked up the
+   field styles: they rendered as bare browser controls 21px tall on a
+   phone, and the one form on each page that earns anything was the
+   hardest to tap. They now take the field look and its 44px height.
+   Base type (16px) also stops iOS zooming the page when a box takes focus. */
+form:has(> input[name="tool"]) :is(input:not([type="hidden"], [type="checkbox"], [type="radio"]), select, textarea) {
+  width: 100%; min-height: 44px; padding: .6rem .9rem;
+  border: 1px solid var(--jk-line-2); border-radius: var(--radius-sm);
+  font-family: var(--sans); font-size: var(--fs-base);
+  background: var(--jk-white); color: var(--jk-ink);
+}
+form:has(> input[name="tool"]) :is(input, select, textarea):focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+form:has(> input[name="tool"]) :is(input, select, textarea):focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* a slider's default box is 16px; WCAG 2.5.8 asks for 24 */
+input[type="range"] { min-height: 24px; }
 .cta-alt { font-size: var(--fs-sm); color: var(--jk-muted); margin: .6rem 0 0; }
 .linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--accent-deep); text-decoration: underline; cursor: pointer; }
 .linkbtn:hover { color: var(--jk-ink); }
