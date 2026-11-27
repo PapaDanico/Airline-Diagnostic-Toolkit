@@ -1366,10 +1366,10 @@ server.close();
    accident. */
 {
   /* Type came down from 344/61 to 9/9 when the scale landed. The nine
-     that remain are the seven responsive clamp() display sizes, fluid by
-     design and not a single step, and the two declarations marked
+     that remained were the seven responsive clamp() display sizes, fluid
+     by design and not a single step, and the two declarations marked
      `fitted:` — the figure inside the score ring and the lockup under
-     the brand mark, sized to a graphic rather than to the document.
+     the brand mark. The lockup has since moved to --fs-2xs (see below).
 
      Colour came down from 255/94 to 215/76, and the note above about
      #fff still holds: 108 of what remains is white, which does not
@@ -1395,7 +1395,14 @@ server.close();
      and its brand mark takes white from one rule in jk.css instead of
      two style="color:#fff" attributes copied into every page that had
      a full footer. Twenty-two fewer literals; no distinct value added. */
-  const CEILING = { colourUses: 188, colourDistinct: 64, fontUses: 9, fontDistinct: 9 };
+  /* 188/64 → 179/58, fonts 9/9 → 8/8. Token consolidation: every gradient
+     that carried a hex moved into :root (--grad-ember-hover,
+     --grad-ink-panel, --grad-ink-flagship, --grad-hatch-red), three #fff
+     gradient stops became var(--jk-white) and the .btn-dark hover #2a1e18
+     became var(--jk-ink-soft), its identical token. The brand lockup
+     label left `fitted:` for --fs-2xs: it is a page name people read,
+     and it was 9.6px. */
+  const CEILING = { colourUses: 179, colourDistinct: 58, fontUses: 8, fontDistinct: 8 };
 
   const jkCss = readFileSync(join(ROOT, "assets", "css", "jk.css"), "utf8");
   const rootBlock = jkCss.slice(jkCss.indexOf(":root"), jkCss.indexOf("/* ---------- reset"));
@@ -1629,7 +1636,7 @@ server.close();
    after each deploy. */
 {
   const redirects = readFileSync(join(ROOT, "_redirects"), "utf8");
-  const MUST_BLOCK = ["/CLAUDE.md", "/README.md", "/docs/*", "/tests/*", "/scripts/*", "/.claude/*", "/.github/*"];
+  const MUST_BLOCK = ["/CLAUDE.md", "/README.md", "/DESIGN.md", "/docs/*", "/tests/*", "/scripts/*", "/.claude/*", "/.github/*"];
   const missing = MUST_BLOCK.filter((path) => !new RegExp("^" + path.replace(/[.*]/g, (c) => "\\" + c) + "\\s+\\S+\\s+404!", "m").test(redirects));
   problems += missing.length ? 1 : 0;
   console.log(`\n${missing.length ? "❌" : "✅"} internal files are blocked from the live site` +
