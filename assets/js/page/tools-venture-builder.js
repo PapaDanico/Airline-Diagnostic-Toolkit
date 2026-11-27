@@ -1034,7 +1034,8 @@
   }
 
   function renderStatements(p) {
-    const host = $("ts-out");
+    const host = $("ts-out"), summary = $("ts-summary");
+    summary.textContent = "";
     if (p.noTerm) { host.innerHTML = `<div class="note warn" style="margin:1rem 0 0"><b>Set a repayment term</b>The statements need the senior debt's term to split each year's payment into interest and principal.</div>`; return null; }
     if (!(p.rev > 0)) { host.innerHTML = `<div class="note" style="margin:1rem 0 0"><b>Add a revenue assumption</b>Enter steady-state revenue and an EBITDA margin in Step 4 to build the three statements.</div>`; return null; }
 
@@ -1089,7 +1090,7 @@
     const row = (key, label, opt) => {
       const o = opt || {};
       const sign = o.neg ? -1 : 1;
-      return `<tr${o.total ? ' class="ts-total"' : ""}><td>${label}</td>${Y.map((d, i) =>
+      return `<tr${o.total ? ' class="ts-total"' : ""}><th scope="row">${label}</th>${Y.map((d, i) =>
         `<td class="num" data-k="${key}" data-y="${i + 1}" data-v="${d[key]}">${k(sign * d[key])}</td>`).join("")}</tr>`;
     };
     const subHead = t => `<tr class="ts-sub"><td colspan="${YEARS + 1}">${t}</td></tr>`;
@@ -1105,6 +1106,11 @@
     if (low < -0.5) notes.push(`<div class="note warn" style="margin:1rem 0 0"><b>Cash goes negative</b>Closing cash falls to ${fmtMoney(low)} in year ${lowIdx + 1}. The plan needs that much more funding, or a faster ramp, a better margin or gentler debt terms.</div>`);
     if (worst > 1) notes.push(`<div class="note warn" style="margin:1rem 0 0"><b>The balance sheet does not balance</b>It is out by ${fmtMoney(worst)}. That is a fault in the tool, not in your plan.</div>`);
     const carried = Y[YEARS - 1].losses;
+    /* The one sentence a screen reader hears on each recompute (the
+       tables themselves are not a live region). */
+    summary.textContent = `Year ${YEARS} closing cash is ${fmtMoney(Y[YEARS - 1].close)}; ` +
+      (low < -0.5 ? `cash goes negative in year ${Y.findIndex(d => d.close < -0.5) + 1}, lowest ${fmtMoney(low)} in year ${lowIdx + 1}; ` : "cash does not go negative in any year; ") +
+      (worst <= 1 ? "the balance sheet balances in every year." : `the balance sheet does not balance (out by ${fmtMoney(worst)}).`);
 
     host.innerHTML = notes.join("") +
       table("Profit and loss", [

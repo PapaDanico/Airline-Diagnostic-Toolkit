@@ -628,6 +628,138 @@ await page.waitForTimeout(350);
   await page.evaluate(() => localStorage.clear());
 }
 
+/* Design review of the three statements, and the systemic finding behind
+   it. A .table-scroll container overflows on a phone, but a <div> is not
+   focusable, so a keyboard user could not scroll it at all (WCAG 2.1.1).
+   common.js now makes every one a labelled, focusable region, including
+   the ones page scripts render later, so the check covers a static page
+   (regulations), a page that renders its tables (returns solver) and the
+   statements. The row labels are row headers (1.3.1); the live region is a
+   one-sentence summary, not 1,450 characters of tables re-read on every
+   keystroke (4.1.3); the label column stays put while the years scroll;
+   the long method note is a disclosure; and the small type is one step up. */
+section("Venture Builder: three statements, design review");
+{
+  const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, reducedMotion: "reduce" });
+  const p = await ctx.newPage();
+  const regionsOn = async (label) => {
+    const r = await p.$$eval(".table-scroll", els => els.map(e => ({
+      tab: e.getAttribute("tabindex"), role: e.getAttribute("role"), name: (e.getAttribute("aria-label") || "").trim()
+    })));
+    const bad = r.filter(x => x.tab !== "0" || x.role !== "region" || !x.name);
+    assert(r.length > 0 && bad.length === 0,
+      `scroll regions (${label}): every .table-scroll has tabindex=0, role=region and a name - ${r.length} found, ${bad.length} not: ${JSON.stringify(bad.slice(0, 3))}`);
+  };
+
+  await p.goto(base + "/tools/venture-builder.html");
+  await p.evaluate(() => localStorage.clear());
+  await p.reload(); await p.waitForTimeout(400);
+  await p.click('[data-sector="aoc"]'); await p.waitForTimeout(300);
+  await p.fill("#f-equity", "40000000"); await p.fill("#f-debt", "2000000");
+  await p.fill("#d-rev", "10000000"); await p.fill("#d-margin", "20");
+  await p.fill("#d-rate", "9"); await p.fill("#d-term", "7");
+  await p.waitForTimeout(400);
+  await regionsOn("venture builder");
+
+  const tsLabel = await p.$eval("#ts-out .table-scroll", e => e.getAttribute("aria-label")).catch(() => "");
+  assert(/profit and loss/i.test(tsLabel || ""), `scroll regions: the first statement's region is named from its caption - got "${tsLabel}"`);
+
+  /* (a) Tab from the last input before the tables lands on the first
+     table region, and ArrowRight scrolls it. Recorded honestly: Chromium
+     130+ makes a scroller with nothing focusable inside it reachable by
+     keyboard on its own (switching that off with a feature flag had no
+     effect on this build), so a bare "Tab reaches it" passed against the
+     unfixed page and proved nothing. Hence the reach check also demands
+     the tabindex that other engines need; the scroll check confirms the
+     behaviour end to end but is not, by itself, a guard. */
+  await p.focus("#t-tax").catch(() => {});
+  await p.keyboard.press("Tab"); await p.waitForTimeout(100);
+  const reached = await p.evaluate(() => {
+    const a = document.activeElement, first = document.querySelector("#ts-out .table-scroll");
+    return { ok: !!first && a === first && a.getAttribute("tabindex") === "0", what: a ? a.tagName + "." + a.className + "#" + a.id + " tabindex=" + a.getAttribute("tabindex") : "none" };
+  });
+  assert(reached.ok, `scroll regions: Tab reaches the first statement's scroll region, by its tabindex - focus on ${reached.what}`);
+  const before = await p.$eval("#ts-out .table-scroll", e => e.scrollLeft).catch(() => 0);
+  for (let i = 0; i < 4; i++) await p.keyboard.press("ArrowRight");
+  await p.waitForTimeout(150);
+  const after = await p.$eval("#ts-out .table-scroll", e => e.scrollLeft).catch(() => 0);
+  assert(reached.ok && after > before, `scroll regions: ArrowRight scrolls the focused region - scrollLeft ${before} -> ${after}`);
+
+  // A recompute rebuilds the tables; the new containers are covered too, and focus is not stolen.
+  await p.focus("#t-growth"); await p.keyboard.press("Control+A"); await p.keyboard.type("5", { delay: 40 });
+  await p.waitForTimeout(250);
+  await regionsOn("venture builder, after a recompute");
+  assert(await p.evaluate(() => document.activeElement && document.activeElement.id) === "t-growth",
+    "scroll regions: labelling a re-rendered table does not move focus");
+
+  // (b) Row labels are row headers.
+  const rh = await p.evaluate(() => {
+    const rows = [...document.querySelectorAll("#ts-out tbody tr")].filter(r => r.querySelector("[data-k]"));
+    return { rows: rows.length, th: document.querySelectorAll('#ts-out tbody th[scope="row"]').length,
+             labelled: rows.every(r => r.firstElementChild.matches('th[scope="row"]')) };
+  });
+  assert(rh.rows > 20 && rh.th === rh.rows && rh.labelled, `statements: every row label is a th[scope=row] - ${rh.th} headers for ${rh.rows} rows`);
+  const rhStyle = await p.$eval('#ts-out tbody th[scope="row"]', e => { const c = getComputedStyle(e); return { tt: c.textTransform, ta: c.textAlign, fw: c.fontWeight }; }).catch(() => null);
+  assert(rhStyle && rhStyle.tt === "none" && /left|start/.test(rhStyle.ta) && +rhStyle.fw < 600,
+    `statements: row headers keep the label styling, not the column-header styling - got ${JSON.stringify(rhStyle)}`);
+  const tot = await p.$eval('#ts-out tr.ts-total th[scope="row"]', e => +getComputedStyle(e).fontWeight).catch(() => 0);
+  assert(tot >= 700, `statements: a total's row header stays bold - got ${tot}`);
+
+  // (c) A short summary is the live region; the tables are not.
+  const live = await p.evaluate(() => {
+    const out = document.getElementById("ts-out"), s = document.getElementById("ts-summary");
+    return { outLive: out && out.getAttribute("aria-live"), has: !!s, sLive: s && s.getAttribute("aria-live"), text: s ? s.textContent : "" };
+  });
+  assert(live.outLive === null, `statements: #ts-out is no longer a live region - got aria-live="${live.outLive}"`);
+  assert(live.has && live.sLive === "polite", `statements: #ts-summary exists and is aria-live polite - got ${JSON.stringify(live)}`);
+  assert(/closing cash/i.test(live.text) && /balance/i.test(live.text) && live.text.length < 300,
+    `statements: the summary is one sentence naming closing cash and the balance check - got "${live.text}"`);
+  const sNode = await p.$("#ts-summary");
+  await p.fill("#d-rev", "0"); await p.waitForTimeout(300);
+  assert(!(await p.$eval("#ts-summary", e => e.textContent.trim()).catch(() => "x")), "statements: the summary is empty when the statements are not shown");
+  await p.fill("#d-rev", "10000000"); await p.waitForTimeout(300);
+  assert(sNode && await p.evaluate(el => el.isConnected, sNode), "statements: the summary node is built once, not rebuilt");
+
+  // (d) The label column stays put while the years scroll.
+  const stick = await p.$eval('#ts-out tbody th[scope="row"]', e => {
+    const c = getComputedStyle(e); return { pos: c.position, left: c.left, bg: c.backgroundColor };
+  }).catch(() => null);
+  assert(stick && stick.pos === "sticky" && stick.left === "0px" && stick.bg !== "rgba(0, 0, 0, 0)",
+    `statements: at 375px the first column is sticky with an opaque background - got ${JSON.stringify(stick)}`);
+
+  // (e) The method note is a disclosure, closed on screen, one simplification per bullet.
+  const findHow = () => p.evaluate(() => {
+    const d = [...document.querySelectorAll("#three-statements details")].find(x => /how the statements are built/i.test(x.querySelector("summary")?.textContent || ""));
+    const li = d && d.querySelector("li");
+    return d ? { open: d.open, items: d.querySelectorAll("li").length,
+                 visible: !!li && li.getBoundingClientRect().height > 0 && li.checkVisibility({ contentVisibilityAuto: true }) } : null;
+  });
+  const how = await findHow();
+  assert(how && how.open === false && how.items >= 7, `statements: "How the statements are built" is a closed <details> listing at least 7 items - got ${JSON.stringify(how)}`);
+  await p.emulateMedia({ media: "print" }); await p.waitForTimeout(200);
+  const howPrinted = await findHow();
+  assert(howPrinted && howPrinted.visible, `statements: the method note prints open - got ${JSON.stringify(howPrinted)}`);
+  await p.emulateMedia({ media: "screen" });
+
+  // (f) Small type is one step up the scale.
+  const fs = await p.evaluate(() => {
+    const probe = document.createElement("span"); probe.style.fontSize = "var(--fs-xs)"; document.body.appendChild(probe);
+    const xs = getComputedStyle(probe).fontSize; probe.remove();
+    const th = document.querySelector("#ts-out thead th"), sub = document.querySelector("#ts-out .ts-sub td");
+    return { xs, th: th && getComputedStyle(th).fontSize, sub: sub && getComputedStyle(sub).fontSize };
+  });
+  assert(fs.th === fs.xs && fs.sub === fs.xs, `statements: column headers and the memo sub-head use --fs-xs (${fs.xs}) - got th ${fs.th}, sub ${fs.sub}`);
+
+  await p.evaluate(() => localStorage.clear());
+
+  // Pages whose tables are static, and pages that render them later.
+  await p.goto(base + "/tools/returns-solver.html"); await p.waitForTimeout(600);
+  await regionsOn("returns solver");
+  await p.goto(base + "/regulations.html"); await p.waitForTimeout(400);
+  await regionsOn("regulations");
+  await ctx.close();
+}
+
 // -- print header must track the selected sector, not the first one --
 await page.goto(base + "/tools/certification-navigator.html");
 await page.evaluate(() => localStorage.clear());

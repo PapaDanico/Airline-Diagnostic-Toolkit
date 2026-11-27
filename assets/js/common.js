@@ -1349,6 +1349,47 @@ if (typeof document !== "undefined") {
   else wireNumberEcho();
 }
 
+/* A .table-scroll overflows sideways on a phone, and a <div> cannot take
+   focus, so a keyboard user had no way to scroll it (WCAG 2.1.1). Each one
+   becomes a focusable, named region: arrow keys then scroll it natively.
+   The name is the table's caption, else the nearest heading above it.
+
+   Fixed here once rather than in each page, and watched rather than
+   called: page scripts render tables after load and rebuild them on every
+   recompute, and each new container is covered as it appears. Attributes
+   already present are left alone, and nothing is ever focused. */
+function labelScrollRegion(el) {
+  if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "0");
+  if (!el.hasAttribute("role")) el.setAttribute("role", "region");
+  if (el.hasAttribute("aria-label") || el.hasAttribute("aria-labelledby")) return;
+  const cap = el.querySelector("caption");
+  let name = cap ? cap.textContent.replace(/\s+/g, " ").trim() : "";
+  for (let n = el; !name && n && n !== document.body; n = n.parentElement) {
+    for (let s = n.previousElementSibling; s && !name; s = s.previousElementSibling) {
+      const h = s.matches("h1,h2,h3,h4,h5,h6") ? s : [...s.querySelectorAll("h1,h2,h3,h4,h5,h6")].pop();
+      if (h) name = h.textContent.replace(/\s+/g, " ").trim();
+    }
+  }
+  el.setAttribute("aria-label", name || "Scrollable table");
+}
+function wireScrollRegions() {
+  if (typeof document === "undefined" || !document.body || document.documentElement.dataset.scrollRegions) return;
+  document.documentElement.dataset.scrollRegions = "1";
+  const sweep = root => {
+    if (root.nodeType !== 1) return;
+    if (root.classList.contains("table-scroll")) labelScrollRegion(root);
+    root.querySelectorAll(".table-scroll").forEach(labelScrollRegion);
+  };
+  sweep(document.body);
+  new MutationObserver(muts => {
+    for (const m of muts) m.addedNodes.forEach(sweep);
+  }).observe(document.body, { childList: true, subtree: true });
+}
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wireScrollRegions);
+  else wireScrollRegions();
+}
+
 /* The working in a printed pack is a record of what was entered, and a
    form control is the wrong way to show one: a number field prints as a
    boxed "2500000", an empty date as "mm/dd/yyyy". Paper cannot be typed
