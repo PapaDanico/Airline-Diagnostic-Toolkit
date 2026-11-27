@@ -94,8 +94,10 @@ Rules:
    numeric type.
 3. **Nothing a person reads renders under 11px.** `--fs-2xs` (11.2px) is
    the floor. `tests/e2e.mjs` measures rendered size (including SVG
-   scaling) and fails below 11px. The one recorded exception is the home
-   radar's labels on a phone, which needs a chart re-layout.
+   scaling) and fails below 11px, with no exceptions. Radars
+   (`drawRadar`) keep names on their axes only where the names render at
+   11px or more; narrower, the axes are numbered (at `--fs-xs` size) and
+   a numbered `.radar-key` list of the names appears under the chart.
 
 ### Scale
 

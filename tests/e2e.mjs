@@ -3967,24 +3967,21 @@ section("No readable text below 11px");
    on screen), and runs of fewer than three letters (a "%", a "×", a
    unit).
 
-   One named exception, checked rather than trusted: the home-page radar
-   (#hero-radar) draws its domain labels at 10 viewBox units inside a
-   432-unit canvas, which is ~6px on a phone. Making them legible means
-   re-laying the chart (gutter, wrap width, plot radius) — a component
-   change, not a token change — so it is recorded here, and the test
-   fails if the exception stops being needed or starts covering anything
-   else. */
+   There are no exceptions. The home-page radar's domain labels used to
+   be one: drawn at 10 viewBox units in a 432-unit canvas they rendered
+   at ~6px on a phone. drawRadar now switches to numbered axes plus an
+   HTML key when the names would fall under 11px; the radar block after
+   this loop checks that layout directly. */
 {
   const SMALL_PAGES = ["index.html", "tools/index.html", "tools/venture-builder.html", "tools/safety-map.html", "diagnostic.html"];
-  const RADAR_EXCEPTION = "#hero-radar";
   for (const width of [1440, 375]) {
     const sctx = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: "reduce" });
     const sp = await sctx.newPage();
     for (const f of SMALL_PAGES) {
       await sp.goto(base + "/" + f);
       await sp.waitForTimeout(300);
-      const { small, excepted } = await sp.evaluate((exceptSel) => {
-        const small = [], excepted = [];
+      const { small } = await sp.evaluate(() => {
+        const small = [];
         const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
         let n;
         while ((n = tw.nextNode())) {
@@ -4001,29 +3998,84 @@ section("No readable text below 11px");
           }
           if (size >= 11) continue;
           const label = `<${el.tagName.toLowerCase()}${el.className && typeof el.className === "string" ? "." + el.className.trim().split(/\s+/).join(".") : ""}> "${n.textContent.trim().slice(0, 30)}" at ${size.toFixed(1)}px`;
-          (el.closest(exceptSel) ? excepted : small).push(label);
+          small.push(label);
         }
-        return { small, excepted };
-      }, RADAR_EXCEPTION);
+        return { small };
+      });
       assert(small.length === 0,
         `${f} @${width}px: no visible text under 11px` + (small.length ? ` — ${small.length}: ${[...new Set(small)].slice(0, 4).join("; ")}` : ""));
-      if (excepted.length) console.log(`  NOTE :: ${f} @${width}px: ${excepted.length} radar label(s) under 11px, recorded exception (${excepted[0]})`);
     }
     await sctx.close();
   }
-  /* The exception must still be earning its place: if the radar labels are
-     ever made legible on a phone, this fails and the exemption comes out. */
-  const xctx = await browser.newContext({ viewport: { width: 375, height: 900 }, reducedMotion: "reduce" });
-  const xp = await xctx.newPage();
-  await xp.goto(base + "/index.html"); await xp.waitForTimeout(300);
-  const radarMin = await xp.evaluate(() => {
-    const t = [...document.querySelectorAll("#hero-radar text")];
-    if (!t.length) return null;
-    return Math.min(...t.map(el => parseFloat(getComputedStyle(el).fontSize) * Math.hypot(el.getScreenCTM().a, el.getScreenCTM().b)));
-  });
-  assert(radarMin !== null && radarMin < 11,
-    `the #hero-radar exception is still needed (smallest label ${radarMin === null ? "missing" : radarMin.toFixed(1) + "px"} at 375px) — remove it once the labels clear 11px`);
-  await xctx.close();
+  /* The radar at phone and desktop widths. Label size is measured the way
+     the loop above measures it — computed font-size times the on-screen
+     scale of the SVG — so a label drawn in viewBox units is judged at the
+     size it appears. Each width must show every axis label at >= 11px,
+     no label overlapping another, none outside the SVG's box, no ring
+     vertex under a label (labels sit off the plot), no horizontal page
+     scroll, and the numbered key shown exactly when the axes are numbered.
+     The desktop layout must be the original one: names on the axes, the
+     432 x 320 canvas, no key. */
+  for (const width of [320, 375, 1440]) {
+    const rctx = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: "reduce" });
+    const rp = await rctx.newPage();
+    await rp.goto(base + "/index.html"); await rp.waitForTimeout(300);
+    const r = await rp.evaluate(() => {
+      const svg = document.getElementById("hero-radar");
+      const texts = [...svg.querySelectorAll("text")];
+      const sb = svg.getBoundingClientRect();
+      const ctm = svg.getScreenCTM();
+      const boxes = texts.map(el => el.getBoundingClientRect());
+      const sizes = texts.map(el => { const m = el.getScreenCTM(); return parseFloat(getComputedStyle(el).fontSize) * Math.hypot(m.a, m.b); });
+      let overlaps = 0;
+      for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i], c = boxes[j];
+        if (a.left < c.right && c.left < a.right && a.top < c.bottom && c.top < a.bottom) overlaps++;
+      }
+      const clipped = boxes.filter(x => x.left < sb.left - .5 || x.right > sb.right + .5 || x.top < sb.top - .5 || x.bottom > sb.bottom + .5).length;
+      const ring = svg.querySelectorAll("polygon")[3].points;
+      const onPlot = boxes.filter((x, i) => {
+        const vx = ctm.a * ring[i].x + ctm.e, vy = ctm.d * ring[i].y + ctm.f;
+        return vx >= x.left && vx <= x.right && vy >= x.top && vy <= x.bottom;
+      }).length;
+      const key = document.getElementById("hero-radar-key");
+      const keyShown = !!key && !key.hidden && key.getClientRects().length > 0;
+      return {
+        n: texts.length, min: Math.min(...sizes), overlaps, clipped, onPlot,
+        numbered: texts.every((t, i) => t.textContent === String(i + 1)),
+        named: texts.every(t => /\p{L}{3}/u.test(t.textContent)),
+        keyShown, keyItems: key ? key.children.length : 0,
+        keyPx: keyShown ? parseFloat(getComputedStyle(key).fontSize) : null,
+        viewBox: svg.getAttribute("viewBox"),
+        label: svg.getAttribute("role") === "img" && /radar/i.test(svg.getAttribute("aria-label") || ""),
+        overflow: document.documentElement.scrollWidth - innerWidth
+      };
+    });
+    const tag = `#hero-radar @${width}px`;
+    assert(r.n === 8 && r.min >= 11, `${tag}: all 8 axis labels render at >= 11px (smallest ${r.min.toFixed(1)}px)`);
+    assert(r.overlaps === 0 && r.clipped === 0 && r.onPlot === 0,
+      `${tag}: labels do not overlap each other, the plot, or the SVG edge (${r.overlaps} overlapping, ${r.onPlot} on the plot, ${r.clipped} clipped)`);
+    assert(r.overflow <= 0, `${tag}: no horizontal page scroll (${r.overflow}px)`);
+    assert(r.label, `${tag}: chart keeps its role="img" accessible name`);
+    if (width < 500) {
+      assert(r.numbered && r.keyShown && r.keyItems === 8 && r.keyPx >= 11,
+        `${tag}: axes are numbered and the 8-item key is shown at >= 11px (numbered ${r.numbered}, key ${r.keyShown ? r.keyItems + " items at " + r.keyPx + "px" : "hidden"})`);
+    } else {
+      assert(r.named && !r.keyShown && r.viewBox === "0 0 432 320",
+        `${tag}: desktop layout unchanged — names on the axes, 432 x 320 canvas, no key (viewBox ${r.viewBox}, key ${r.keyShown ? "shown" : "hidden"})`);
+    }
+    /* Resizing a live page moves between the layouts (ResizeObserver),
+       rather than leaving the phone layout stretched across a desktop. */
+    if (width === 375) {
+      await rp.setViewportSize({ width: 1440, height: 900 }); await rp.waitForTimeout(200);
+      const back = await rp.evaluate(() => ({
+        vb: document.getElementById("hero-radar").getAttribute("viewBox"),
+        keyHidden: document.getElementById("hero-radar-key")?.hidden ?? true
+      }));
+      assert(back.vb === "0 0 432 320" && back.keyHidden, `#hero-radar: widening 375 -> 1440px redraws the named layout and hides the key (${back.vb})`);
+    }
+    await rctx.close();
+  }
 }
 
 section("JavaScript errors");

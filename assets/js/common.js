@@ -672,15 +672,54 @@ function indexVerdict(idx) {
    Canvas is wider than tall so the long domain labels on the left/right
    axes get a gutter and never clip against the viewBox edge. Geometry is
    derived from the radius so the plot stays balanced, and labels longer
-   than a threshold wrap onto two lines via <tspan>. */
+   than a threshold wrap onto two lines via <tspan>.
+
+   The SVG scales as a whole, so its 10-unit labels render at
+   10 × (rendered width / 432) px: 12.7px in the desktop card, but 6.2px
+   on a 375px phone and 5px at 320px — under the 11px floor (DESIGN.md).
+   Counter-scaling the names cannot fix that on its own: eight two-line
+   names at 11px need ~200px of gutter, which is the whole phone card.
+
+   So the chart has two layouts, chosen from the width it actually renders
+   at. Where the names clear 11px it is drawn exactly as before ("names").
+   Below that ("key") each axis carries its number, sized in viewBox units
+   so it renders at RADAR_KEY_PX whatever the scale, the gutter shrinks to
+   fit the numbers so the plot gets the room back, and a numbered list of
+   the domain names — ordinary HTML text at a type-scale size — appears
+   under the chart. The list is built once per chart and only shown or
+   hidden; a redraw rewrites the drawing, never the list.
+
+   A ResizeObserver redraws when the rendered width changes, so rotating a
+   phone or resizing a window moves between the two. */
+const RADAR_LABEL_UNITS = 10;    // name size in viewBox units (names layout)
+const RADAR_FLOOR_PX = 11;       // the readable-text floor the e2e guard enforces
+const RADAR_KEY_PX = 12.6;       // axis numbers in the key layout (= --fs-xs)
 function drawRadar(svg, domains, overlay) {
   if (!svg || !domains || !domains.length) return;
+  svg._radar = { domains, overlay };
+  if (!svg._radarRO && typeof ResizeObserver === "function") {
+    svg._radarRO = new ResizeObserver(() => {
+      const w = Math.round(svg.getBoundingClientRect().width);
+      if (w && w !== svg._radarW && svg._radar) drawRadar(svg, svg._radar.domains, svg._radar.overlay);
+    });
+    svg._radarRO.observe(svg);
+  }
+  const cw = svg.getBoundingClientRect().width;   // 0 while hidden: draw names; the observer redraws on show
+  svg._radarW = Math.round(cw);
   svg.innerHTML = "";
   const ns = "http://www.w3.org/2000/svg";
   const n = domains.length;
   const r = 120;                 // radar radius
-  const labelGap = 16;           // distance from outer ring to label anchor
-  const gutterX = 96, gutterY = 40; // room for wrapped side / top-bottom labels
+  const namesW = r * 2 + 96 * 2;
+  const keyed = cw > 0 && RADAR_LABEL_UNITS * cw / namesW < RADAR_FLOOR_PX;
+  /* Key layout: number size f (units) and gutter g depend on each other
+     through the scale cw / W, W = 2r + 2g, g = gap + 1.2f. Solving
+     f × cw / W = RADAR_KEY_PX for f gives the expression below. */
+  const keyGap = 10;
+  const keyF = keyed ? RADAR_KEY_PX * (2 * r + 2 * keyGap) / (cw - 2.4 * RADAR_KEY_PX) : 0;
+  const labelGap = keyed ? keyGap + keyF * 0.5 : 16; // distance from outer ring to label anchor
+  const gutterX = keyed ? keyGap + keyF * 1.2 : 96;  // room for wrapped side labels
+  const gutterY = keyed ? gutterX : 40;              // room for top-bottom labels
   const W = r * 2 + gutterX * 2;
   const H = r * 2 + gutterY * 2;
   const cx = W / 2, cy = H / 2;
@@ -726,7 +765,18 @@ function drawRadar(svg, domains, overlay) {
     svg.appendChild(line);
 
     const [lx, ly] = pt(i, r + labelGap);
-    const anchor = lx < cx - 5 ? "end" : lx > cx + 5 ? "start" : "middle";
+    const anchor = keyed ? "middle" : lx < cx - 5 ? "end" : lx > cx + 5 ? "start" : "middle";
+    if (keyed) {
+      const num = document.createElementNS(ns, "text");
+      num.setAttribute("x", lx); num.setAttribute("y", ly);
+      num.setAttribute("text-anchor", anchor);
+      num.setAttribute("dominant-baseline", "central");
+      num.setAttribute("font-size", keyF.toFixed(2)); num.setAttribute("font-weight", "700");
+      num.setAttribute("font-family", "DM Sans, sans-serif"); num.setAttribute("fill", "#6E625C");
+      num.textContent = String(i + 1);
+      svg.appendChild(num);
+      return;
+    }
     const lines = wrapLabel(d.name, 16);
     const tx = document.createElementNS(ns, "text");
     tx.setAttribute("x", lx);
@@ -771,6 +821,26 @@ function drawRadar(svg, domains, overlay) {
     dot.setAttribute("fill", d.pct < 45 ? "#C62828" : d.pct < 65 ? "#B87503" : "#1E7A4A");
     svg.appendChild(dot);
   });
+  radarKey(svg, domains, keyed);
+}
+
+/* The numbered list the key layout points at: built once, after the SVG,
+   then only shown, hidden or (if the domain names change) relabelled. */
+function radarKey(svg, domains, show) {
+  let key = svg._radarKey;
+  if (!key && !show) return;
+  if (!key) {
+    key = svg._radarKey = document.createElement("ol");
+    key.className = "radar-key";
+    if (svg.id) key.id = svg.id + "-key";
+    svg.insertAdjacentElement("afterend", key);
+  }
+  const names = domains.map(d => d.name);
+  if (key.dataset.names !== names.join("|")) {
+    key.dataset.names = names.join("|");
+    key.replaceChildren(...names.map(nm => { const li = document.createElement("li"); li.textContent = nm; return li; }));
+  }
+  key.hidden = !show;
 }
 
 /* Split a label into <=2 balanced lines if it exceeds maxChars, breaking
