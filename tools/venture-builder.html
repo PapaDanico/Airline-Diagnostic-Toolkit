@@ -237,10 +237,24 @@
               <p class="hint">Planning default 30%, not a sourced statutory rate. Confirm the rate and any incentives with a tax adviser.</p>
             </div>
           </div>
-          <div id="ts-out" aria-live="polite"></div>
-          <p class="muted" style="font-size:var(--fs-xs);margin-top:.8rem">
-            How it is built: every year uses the EBITDA margin from Step 4. Fixed CAPEX is spent and all funding is received at the start of year 1. Working capital is held at the plan's figure throughout. Senior debt is repaid at the level annual payment used for the DSCR, with interest on the opening balance. The subordinated loan is shown as interest-free and unrepaid within five years, and a grant is shown within equity, which is a simplification (a grant is often deferred income in audited accounts). Tax is paid in the year it arises. No tax is charged on a loss, and losses are carried forward without time limit against later profits; check the relief rules that actually apply.
-          </p>
+          <!-- The live region is this one sentence, not the tables: 1,450
+               characters re-announced on every keystroke is noise. Built
+               once; only its text is rewritten. -->
+          <p id="ts-summary" class="ts-summary" aria-live="polite"></p>
+          <div id="ts-out"></div>
+          <details class="ts-how">
+            <summary>How the statements are built</summary>
+            <ul>
+              <li>Every year uses the EBITDA margin from Step 4.</li>
+              <li>Fixed CAPEX is spent, and all funding is received, at the start of year 1.</li>
+              <li>Working capital is held at the plan's figure throughout.</li>
+              <li>Senior debt is repaid at the level annual payment used for the DSCR, with interest on the opening balance.</li>
+              <li>The subordinated loan is shown as interest-free and unrepaid within five years.</li>
+              <li>A grant is shown within equity. That is a simplification: in audited accounts a grant is often deferred income.</li>
+              <li>Tax is paid in the year it arises.</li>
+              <li>No tax is charged on a loss, and losses are carried forward without time limit against later profits. Relief rules differ: some limit how long a loss can be carried, or how much of a year's profit it can offset. Check the relief rules that actually apply.</li>
+            </ul>
+          </details>
         </div>
         </div>
 
