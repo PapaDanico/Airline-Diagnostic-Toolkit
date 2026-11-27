@@ -52,6 +52,7 @@ function decodeEntities(t) {
 const IGNORE = /ERR_CERT_AUTHORITY_INVALID|ERR_(NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION)|fonts\.googleapis|fonts\.gstatic/;
 
 const CANDIDATE_EXECS = [
+  "/opt/pw-browsers/chromium",   // stable link to whichever build this container ships
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
   "/opt/build/repo/.netlify/plugins/node_modules/@netlify/plugin-lighthouse/node_modules/puppeteer-core/.local-chromium/linux-1045629/chrome-linux/chrome"
 ];
@@ -1616,6 +1617,23 @@ server.close();
       `(${printable.length} printable tools)` +
       (missing.length ? "\n     - no summary: " + missing.join("\n     - no summary: ") : "")
   );
+}
+
+/* ---- internal files are not served ----
+   Netlify publishes the repository root, so every tracked file was
+   reachable on the live site: CLAUDE.md (internal working notes), docs/
+   (benchmarks, plans, reviews), tests/ and scripts/. Nothing public links
+   to them. _redirects blocks them with forced 404s ("404!" overrides a
+   file that exists); this fails if a rule goes missing. The local test
+   server does not apply _redirects, so the live check is made by hand
+   after each deploy. */
+{
+  const redirects = readFileSync(join(ROOT, "_redirects"), "utf8");
+  const MUST_BLOCK = ["/CLAUDE.md", "/README.md", "/docs/*", "/tests/*", "/scripts/*", "/.claude/*", "/.github/*"];
+  const missing = MUST_BLOCK.filter((path) => !new RegExp("^" + path.replace(/[.*]/g, (c) => "\\" + c) + "\\s+\\S+\\s+404!", "m").test(redirects));
+  problems += missing.length ? 1 : 0;
+  console.log(`\n${missing.length ? "❌" : "✅"} internal files are blocked from the live site` +
+    (missing.length ? "\n     - no forced 404 for: " + missing.join(", ") : ""));
 }
 
 /* ---- no client names in the shipped site ----

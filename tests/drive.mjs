@@ -92,6 +92,7 @@ const server = createServer(async (req, res) => {
 await new Promise((r) => server.listen(PORT, '127.0.0.1', r));
 
 const EXECS = [
+  '/opt/pw-browsers/chromium',   // stable link to whichever build this container ships
   '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
   '/opt/pw-browsers/chromium/chrome-linux/chrome',
   '/opt/pw-browsers/chromium'

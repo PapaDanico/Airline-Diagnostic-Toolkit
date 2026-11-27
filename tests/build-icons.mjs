@@ -56,6 +56,7 @@ if (!existsSync(MASTER)) {
 const b64 = readFileSync(MASTER).toString('base64');
 
 const CANDIDATE_EXECS = [
+  '/opt/pw-browsers/chromium',   // stable link to whichever build this container ships
   '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
   '/opt/pw-browsers/chromium'
 ];

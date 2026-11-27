@@ -214,6 +214,7 @@ const pages = [
    Playwright expects, but a local checkout often has a different build
    already on disk and no reason to download a second one. */
 const EXECS = [
+  '/opt/pw-browsers/chromium',   // stable link to whichever build this container ships
   '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
   '/opt/pw-browsers/chromium/chrome-linux/chrome',
   '/opt/pw-browsers/chromium'

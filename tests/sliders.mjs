@@ -70,6 +70,7 @@ const PAGES = [
    Chromium under /opt/pw-browsers, which is not the headless-shell build
    Playwright looks for by default. */
 const EXECS = [
+  "/opt/pw-browsers/chromium",   // stable link to whichever build this container ships
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
   "/opt/pw-browsers/chromium/chrome-linux/chrome",
   "/opt/pw-browsers/chromium"
