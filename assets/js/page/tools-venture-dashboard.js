@@ -93,7 +93,7 @@
 
     $("cp-host").innerHTML =
       `<div class="cp">${rows}</div>
-       <p class="muted" style="font-size:.8rem;margin:1.1rem 0 0;max-width:760px">
+       <p class="muted" style="font-size:.8rem;margin:1.1rem 0 0;max-width:min(760px,60ch)">
          Phase durations are apportioned from the sector's ${tl.lo}–${tl.hi} month band
          (${Object.entries(JKW.PHASE_SHARE).map(([k, v]) => `${JKV.phaseSpine.find(p => p.id === k).t} ${Math.round(v * 100)}%`).join(" · ")}).
          Document evaluation and on-site demonstration dominate because that is where applications actually sit.

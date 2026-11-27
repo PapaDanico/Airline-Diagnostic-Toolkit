@@ -63,7 +63,7 @@
       <div>
         <p class="eyebrow">Step 1</p>
         <h2 style="margin-bottom:.4rem">How much risk is tolerable?</h2>
-        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Risk is rated likelihood (1 to 5) times severity (1 to 5). The cut-offs below are a common 5×5 convention, not a regulatory limit: set the tolerability your own SMS and Accountable Manager have adopted.</p>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:min(660px,60ch)">Risk is rated likelihood (1 to 5) times severity (1 to 5). The cut-offs below are a common 5×5 convention, not a regulatory limit: set the tolerability your own SMS and Accountable Manager have adopted.</p>
         <div class="card" style="margin-top:1.2rem">
           <div class="grid g2" style="gap:12px">
             <div class="field"><label for="sf-acc">Acceptable up to a score of</label><input type="number" id="sf-acc" min="1" max="24" step="1" value="4"><div class="hint">At or below this, no action beyond monitoring.</div></div>
@@ -74,11 +74,11 @@
 
         <p class="eyebrow" style="margin-top:2.6rem">Step 2</p>
         <h2 style="margin-bottom:.4rem">The hazards and their barriers</h2>
-        <p class="muted" style="font-size:var(--fs-sm);max-width:660px">Each hazard has a top event, the thing that goes wrong. Preventive barriers stand between the threats and the top event. Recovery barriers stand between the top event and the consequences. A barrier counts as evidence only when its status is In place.</p>
+        <p class="muted" style="font-size:var(--fs-sm);max-width:min(660px,60ch)">Each hazard has a top event, the thing that goes wrong. Preventive barriers stand between the threats and the top event. Recovery barriers stand between the top event and the consequences. A barrier counts as evidence only when its status is In place.</p>
         <div class="flex between items-center" style="margin:1rem 0 .6rem;flex-wrap:wrap;gap:.6rem">
-          <div class="flex items-center" style="gap:.6rem;flex-wrap:wrap">
+          <div class="flex items-center" style="gap:.6rem;flex-wrap:wrap;min-width:0;max-width:100%">
             <label for="sf-lib" class="muted" style="font-size:var(--fs-sm)">Start from a common hazard</label>
-            <select id="sf-lib" aria-label="Hazard library"><option value="">Choose&hellip;</option></select>
+            <select id="sf-lib" class="field" style="width:auto;flex:1 1 12rem;min-width:0" aria-label="Hazard library"><option value="">Choose&hellip;</option></select>
             <button type="button" class="btn btn-ghost btn-sm" id="add-lib">Add it</button>
           </div>
           <div class="flex items-center" style="gap:.6rem;flex-wrap:wrap">

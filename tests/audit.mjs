@@ -1658,6 +1658,34 @@ server.close();
     (hits.length ? "\n     - " + hits.join("\n     - ") : ""));
 }
 
+/* ---- every shareable page carries a social preview ----
+   Twenty-five pages carried Open Graph and Twitter tags; seven did not,
+   among them the tools index and the about page, which are the two a
+   visitor is most likely to paste into a WhatsApp group. A link without
+   them unfurls as a bare URL. Pages marked noindex and the embed frame
+   are not meant to be shared and are exempt. */
+{
+  const pages = [...readdirSync(ROOT).filter((f) => f.endsWith(".html")),
+                 ...readdirSync(join(ROOT, "tools")).filter((f) => f.endsWith(".html")).map((f) => "tools/" + f)];
+  const NEED = ['property="og:title"', 'property="og:description"', 'property="og:url"',
+                'property="og:image"', 'name="twitter:card"', 'name="twitter:image"'];
+  const missing = [];
+  for (const p of pages) {
+    const html = readFileSync(join(ROOT, p), "utf8");
+    if (/noindex/.test(html) || p === "embed.html") continue;
+    const lack = NEED.filter((t) => !html.includes(t));
+    const url = (html.match(/property="og:url" content="([^"]+)"/) || [])[1];
+    // a shared link should unfurl to the page's own canonical address
+    const want = (html.match(/rel="canonical" href="([^"]+)"/) || [])[1] ||
+      "https://jkassociates.enterprises/" + (p === "index.html" ? "" : p);
+    if (url && url !== want) lack.push(`og:url is ${url}, not ${want}`);
+    if (lack.length) missing.push(`${p}: ${lack.join(", ")}`);
+  }
+  problems += missing.length ? 1 : 0;
+  console.log(`\n${missing.length ? "❌" : "✅"} every shareable page carries Open Graph and Twitter preview tags` +
+    (missing.length ? "\n     - " + missing.join("\n     - ") : ""));
+}
+
 /* ---- one footer, everywhere ----
    Seventeen hand-copied footers had drifted apart across thirty-two
    pages: tool pages linked eight of twenty tools, and the legal pages
