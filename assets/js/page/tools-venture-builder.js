@@ -1146,6 +1146,16 @@
 
   /* ---------- restore ---------- */
   FIELDS.forEach(id => { if (state[id] !== undefined) $(id).value = state[id]; });
+  /* ?juris= arrives from the licence financial-fitness page's "Test your
+     plan" links. An explicit, valid code beats the saved choice (the
+     visitor just asked for that country) and is saved with the plan, so
+     what is shown and what is stored agree; anything else is ignored and
+     the saved or default choice stands. Set before the first recompute,
+     so nothing is rebuilt (CLAUDE.md §6). */
+  const jurisUrl = (new URLSearchParams(location.search).get("juris") || "").toUpperCase();
+  if (Object.prototype.hasOwnProperty.call(ASL_RULES, jurisUrl)) {
+    $("asl-juris").value = jurisUrl; state["asl-juris"] = jurisUrl;
+  }
   const fromUrl = new URLSearchParams(location.search).get("sector");
   selectSector((fromUrl && JKV.sector(fromUrl)) ? fromUrl : (state.sector || "aoc"), false);
 })();

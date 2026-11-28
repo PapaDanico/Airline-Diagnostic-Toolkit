@@ -523,6 +523,81 @@ await page.fill("#d-rev", "10000000"); await page.fill("#d-margin", "20"); await
   await page.selectOption("#asl-juris", "KE"); await page.waitForTimeout(200);
 }
 
+/* The research behind the jurisdiction choice, published as its own page
+   so founders and investors searching for "air service licence financial
+   fitness" find it. The table is static HTML (crawlable), so it is a
+   second copy of ASL_RULES — and a second copy is how figures drift
+   (CLAUDE.md §7). The page's months and obligations horizons are therefore
+   checked against the Venture Builder's own table, read from its source.
+   Every "Test your plan" link must arrive with that country chosen; an
+   explicit ?juris= beats a saved choice, and a nonsense one is ignored. */
+section("Licence financial fitness page (East Africa)");
+{
+  const VB_SRC = readFileSync(resolve(ROOT, "assets/js/page/tools-venture-builder.js"), "utf8");
+  const RULES = {};
+  for (const m of VB_SRC.matchAll(/\b(KE|TZ|UG|RW|ET): \{ name: "([^"]+)", months: (null|\d+), oblig: (null|\d+)/g))
+    RULES[m[1]] = { name: m[2], months: m[3] === "null" ? "none" : m[3], oblig: m[4] === "null" ? "none" : m[4] };
+  assert(Object.keys(RULES).length === 5, `licence page: ASL_RULES read from the Venture Builder source (${Object.keys(RULES).length} of 5)`);
+
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto(base + "/licence-financial-fitness.html").catch(() => {}); await page.waitForTimeout(350);
+  const rows = await page.$$eval("#lff-table tbody tr", rs => rs.map(r => ({
+    juris: r.dataset.juris, months: r.dataset.months, oblig: r.dataset.oblig, text: r.innerText })));
+  assert(rows.length === 5, `licence page: the comparison table has five country rows (got ${rows.length})`);
+  const WANT = { KE: "3", TZ: "6", UG: "6", RW: "3", ET: "none" };
+  for (const [k, months] of Object.entries(WANT)) {
+    const r = rows.find(x => x.juris === k);
+    assert(r && r.months === months, `licence page: ${k} row states ${months} month(s) of costs without revenue (got ${r && r.months})`);
+    assert(r && RULES[k] && r.months === RULES[k].months && r.oblig === RULES[k].oblig && r.text.includes(RULES[k].name),
+      `licence page: ${k} row agrees with ASL_RULES (months ${RULES[k] && RULES[k].months}, obligations ${RULES[k] && RULES[k].oblig})`);
+  }
+  assert(await page.$eval(".table-scroll #lff-table", () => true).catch(() => false), "licence page: the table sits in a .table-scroll container");
+  const tryLinks = await page.$$eval("a[href*='venture-builder.html?juris=']", as => as.map(a => a.getAttribute("href")));
+  assert(tryLinks.length === 5 && new Set(tryLinks).size === 5, `licence page: one "Test your plan" link per country (got ${tryLinks.length})`);
+  assert(/planning aid, not legal advice/i.test(await page.$eval("main", e => e.innerText).catch(() => "")), "licence page: carries the planning-aid, not-legal-advice line");
+  assert(await page.$("#lff-enquiry input[type=hidden][name=tool]"), "licence page: the enquiry form names its tool");
+  assert(!(await page.$("main a[href^='mailto:']")), "licence page: converts by form, not by a mailto link");
+
+  for (const href of tryLinks) {
+    const k = (href.match(/juris=([A-Z]{2})/) || [])[1];
+    await page.goto(base + "/" + href); await page.waitForTimeout(400);
+    if ((await page.$eval('[data-sector="aoc"]', e => e.getAttribute("aria-pressed"))) !== "true") {
+      await page.click('[data-sector="aoc"]'); await page.waitForTimeout(250);
+    }
+    await page.fill("#d-rev", "10000000"); await page.fill("#d-margin", "20"); await page.waitForTimeout(250);
+    const v = await page.$eval("#asl-juris", e => e.value);
+    const fit = await page.$eval("#asl-fit", e => e.innerText).catch(() => "");
+    assert(v === k, `licence page → ${k}: the Venture Builder opens with ${k} chosen (got ${v})`);
+    assert(RULES[k] && fit.includes(RULES[k].name), `licence page → ${k}: the fitness panel names ${RULES[k] && RULES[k].name} - got "${fit.slice(0, 120)}"`);
+  }
+
+  await page.goto(base + "/tools/venture-builder.html"); await page.waitForTimeout(350);
+  await page.selectOption("#asl-juris", "RW"); await page.waitForTimeout(250);
+  await page.goto(base + "/tools/venture-builder.html?juris=ZZ"); await page.waitForTimeout(400);
+  assert((await page.$eval("#asl-juris", e => e.value)) === "RW", "venture builder: an invalid ?juris=ZZ is ignored and the saved choice stands");
+  await page.goto(base + "/tools/venture-builder.html?juris=TZ"); await page.waitForTimeout(400);
+  assert((await page.$eval("#asl-juris", e => e.value)) === "TZ", "venture builder: an explicit ?juris= overrides the saved choice");
+  const back = await page.$("#asl-juris-wrap ~ a[href*='licence-financial-fitness.html'], #asl-compare a[href*='licence-financial-fitness.html']");
+  assert(back, "venture builder: a static link to the five-jurisdiction comparison sits beside the licence test");
+  await page.fill("#d-rev", "11000000"); await page.waitForTimeout(250);
+  assert(back && await page.evaluate(el => el.isConnected, back), "venture builder: typing a figure does not rebuild the comparison link");
+  await page.selectOption("#asl-juris", "KE"); await page.waitForTimeout(250);
+  await page.goto(base + "/tools/venture-builder.html"); await page.waitForTimeout(350);
+  assert((await page.$eval("#asl-juris", e => e.value)) === "KE", "venture builder: with no ?juris= the saved choice (Kenya) is restored");
+
+  await page.goto(base + "/regulations.html"); await page.waitForTimeout(300);
+  assert(await page.$("main a[href='licence-financial-fitness.html']"), "regulations page: links to the licence financial-fitness comparison");
+
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.goto(base + "/licence-financial-fitness.html").catch(() => {}); await page.waitForTimeout(350);
+  assert((await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 0,
+    "licence page: no horizontal overflow at 375px");
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto(base + "/licence-financial-fitness.html").catch(() => {}); await page.waitForTimeout(300);
+  if (await page.$("#lff-enquiry")) await assertEnquiryFormSubmits(page, "#lff-enquiry", "licence financial-fitness page");
+  else assert(false, "licence financial-fitness page: has an enquiry form (#lff-enquiry)");
+}
+
 /* Three statements, years 1–5. Founders and lenders expect a P&L, a cash
    flow and a balance sheet; the tool stopped at EBITDA and DSCR. The
    statements are built from the plan's own inputs and must AGREE with
