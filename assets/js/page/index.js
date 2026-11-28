@@ -34,10 +34,12 @@ const BUILD_COPY = {
 };
 const TOOL_TOTAL = TOOL_MENU.reduce((n, g) => n + g.items.length, 0);
 document.querySelectorAll("[data-tool-count]").forEach(el => { el.textContent = TOOL_TOTAL; });
+document.querySelectorAll("[data-free-count]").forEach(el => { el.textContent = toolCounts().free; });
+document.querySelectorAll("[data-locked-count]").forEach(el => { el.textContent = toolCounts().locked; });
 document.getElementById("build-tools").innerHTML = TOOL_MENU[0].items.map(t => {
   const c = BUILD_COPY[t.file] || ["", ""];
   return `<a class="card" href="${t.file}" style="color:inherit;display:block" data-keep-partner>
-     <span class="ref">${c[0] ? c[0] + " · " : ""}Free</span>
+     <span class="ref">${c[0] ? c[0] + " · " : ""}${t.locked ? "Client toolkit" : "Free"}</span>
      <h3 style="font-size:1.15rem;margin:.35rem 0 .4rem">${t.label}</h3>
      ${c[1] ? `<p class="muted" style="font-size:.87rem;margin:0">${c[1]}</p>` : ""}
    </a>`;
@@ -77,6 +79,6 @@ ph.addEventListener("click", e => {
 /* toolbox spotlight */
 const ts = document.getElementById("toolbox-spotlight");
 JK.toolboxes.forEach(tb => ts.insertAdjacentHTML("beforeend",
-  `<div class="card"><span class="ref">Toolbox ${tb.box}${tb.locked ? "" : " · Free"}</span>
+  `<div class="card"><span class="ref">Toolbox ${tb.box}${tb.locked ? "" : tb.tools.some(t => t.client) ? " · Free and client toolkits" : " · Free"}</span>
     <h3 style="font-size:1.2rem">${tb.title}</h3>
     <p class="muted" style="font-size:.86rem">${tb.tools.map(t => t.ref + " " + t.n).join(" · ")}</p></div>`));

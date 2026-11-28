@@ -60,7 +60,7 @@ footer.
 ### Shared
 
 `index.html` (two-door landing) · `tools/index.html` (explorer, grouped by track) · `how-it-works.html` ·
-`tutorial.html` (step-by-step walkthrough, both tracks) · `faq.html` (40 questions, with FAQPage structured data) ·
+`tutorial.html` (step-by-step walkthrough, both tracks) · `faq.html` (44 questions, with FAQPage structured data) ·
 `glossary.html` (111 terms, searchable, cross-referenced) ·
 `regulations.html` (Kenya regulatory index — every instrument, its Legal Notice, source and verification status) ·
 `licence-financial-fitness.html` (air service licence financial-fitness test in five East African States, from `docs/EA_FINANCIAL_FITNESS_2026-11.md`) ·

@@ -485,7 +485,7 @@
           c.style.color = "inherit";
         }
         /* preview modal only makes sense for locked (paid-engagement) tools —
-           Toolbox A (A1-A5) is already free and one click away from the real
+           Toolbox A is open (free, or a client toolkit) and one click away from the real
            thing, so showing "Preview Sample Output" there is redundant and,
            worse, pops a generic "deployed during a JK engagement" modal
            that's simply false for a tool the visitor can use right now */
@@ -493,7 +493,7 @@
           ? `<button class="btn-preview-trigger" style="margin-top:0.6rem;background:rgba(74,127,165,.1);border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:0.3rem 0.65rem;font-size:0.78rem;font-weight:600;cursor:pointer">🔍 Preview Sample Output</button>`
           : "";
         c.innerHTML = `<span class="lockicon">${tb.locked ? "&#128274;" : "&#10003;"}</span>
-          <span class="ref">Toolbox ${tb.box} · ${t.ref}</span>
+          <span class="ref">Toolbox ${tb.box} · ${t.ref}${t.client ? " · Client toolkit" : ""}</span>
           <h4>${t.n}</h4><p>${t.d}</p>
           ${previewBtn}`;
 

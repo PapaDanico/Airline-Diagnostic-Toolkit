@@ -147,20 +147,23 @@ function keepPartnerParam(scope, p) {
    OPERATE (existing carrier). The grouping is the information
    architecture made visible — a visitor should never have to guess which
    half of the practice a tool belongs to. */
+/* `locked: true` marks a client toolkit: served only after the client
+   toolkit password, by netlify/edge-functions/toolkit-gate.mjs. The
+   audit fails if these flags differ from that function's own list. */
 const TOOL_MENU = [
   { group: "Build a venture", items: [
-    { file: "tools/venture-dashboard.html",       label: "Venture Control Room" },
+    { file: "tools/venture-dashboard.html",       label: "Venture Control Room", locked: true },
     { file: "tools/certification-navigator.html", label: "KCAA Certification Navigator" },
-    { file: "tools/venture-builder.html",         label: "Greenfield Venture Builder" },
-    { file: "tools/corporate-structure.html",     label: "Corporate Structure Designer" },
-    { file: "tools/organogram-planner.html",      label: "Organogram & Postholder Planner" },
-    { file: "tools/revenue-builder.html",         label: "Revenue Model Builder" },
-    { file: "tools/implementation-planner.html",  label: "Implementation & Programme Planner" },
-    { file: "tools/plan-consistency.html",        label: "Plan Consistency Check" },
-    { file: "tools/returns-solver.html",          label: "Returns & Reverse-Solve" },
-    { file: "tools/fleet-crew.html",              label: "Fleet & Crew Planner" },
-    { file: "tools/safety-map.html",              label: "Safety Assurance Map" },
-    { file: "tools/aoc-acquisition.html",         label: "AOC Acquisition Analyser" }
+    { file: "tools/venture-builder.html",         label: "Greenfield Venture Builder", locked: true },
+    { file: "tools/corporate-structure.html",     label: "Corporate Structure Designer", locked: true },
+    { file: "tools/organogram-planner.html",      label: "Organogram & Postholder Planner", locked: true },
+    { file: "tools/revenue-builder.html",         label: "Revenue Model Builder", locked: true },
+    { file: "tools/implementation-planner.html",  label: "Implementation & Programme Planner", locked: true },
+    { file: "tools/plan-consistency.html",        label: "Plan Consistency Check", locked: true },
+    { file: "tools/returns-solver.html",          label: "Returns & Reverse-Solve", locked: true },
+    { file: "tools/fleet-crew.html",              label: "Fleet & Crew Planner", locked: true },
+    { file: "tools/safety-map.html",              label: "Safety Assurance Map", locked: true },
+    { file: "tools/aoc-acquisition.html",         label: "AOC Acquisition Analyser", locked: true }
   ]},
   { group: "Operate an airline", items: [
     { file: "diagnostic.html",                    label: "Airline Health Scorecard" },
@@ -168,11 +171,21 @@ const TOOL_MENU = [
     { file: "tools/route-economics.html",         label: "Route Economics & Break-even" },
     { file: "tools/operating-model-canvas.html",  label: "Operating Model Canvas" },
     { file: "tools/fuel-optimizer.html",          label: "Fuel Contract Optimizer" },
-    { file: "tools/training-tna.html",            label: "Training Needs Analysis" },
-    { file: "tools/mro-readiness.html",           label: "MRO Readiness Assessment" },
+    { file: "tools/training-tna.html",            label: "Training Needs Analysis", locked: true },
+    { file: "tools/mro-readiness.html",           label: "MRO Readiness Assessment", locked: true },
     { file: "tools/data-request.html",            label: "48-Hour Data Request" }
   ]}
 ];
+
+/* Free vs client-toolkit counts, from the registry. The Kenya Aviation
+   Regulatory Index is free and sits on the tools index, but it is a
+   reference page rather than a menu tool, hence the one added here. */
+const FREE_REFERENCE_TOOLS = 1;
+function toolCounts() {
+  const all = TOOL_MENU.flatMap(g => g.items);
+  const locked = all.filter(t => t.locked).length;
+  return { locked, free: all.length - locked + FREE_REFERENCE_TOOLS, menu: all.length };
+}
 
 function buildNav() {
   const inTools = location.pathname.includes("/tools/");
@@ -208,8 +221,8 @@ function buildNav() {
     return `<div class="dd-head">${g.group}</div>${rows}`;
   }).join("");
   const topLabel = onExplorer
-    ? `<span class="nav-current" aria-current="page">Free Tools <svg class="dd-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>`
-    : `<a href="${explorerHref}"${inTools ? ' class="nav-section" aria-current="location"' : ""} data-keep-partner>Free Tools <svg class="dd-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>`;
+    ? `<span class="nav-current" aria-current="page">Tools <svg class="dd-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>`
+    : `<a href="${explorerHref}"${inTools ? ' class="nav-section" aria-current="location"' : ""} data-keep-partner>Tools <svg class="dd-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>`;
   out.push(`<div class="dropdown">${topLabel}<div class="dropdown-menu">${groups}
     <div class="dd-head">All</div><a href="${explorerHref}" data-keep-partner>Browse every tool →</a></div></div>`);
 
@@ -1505,7 +1518,7 @@ if (typeof window !== "undefined") {
        was headed "Twelve tools" and listed nine — the count was
        right and the list was three short, which is exactly the
        drift a derived figure cannot have. */
-    TOOL_MENU,
+    TOOL_MENU, toolCounts,
     toolStore, fmtMoney, fmtNum, fmtRatio, fmtDate, clampNum, escapeHtml, mountReveal,
     citeChip, citeChips, mountPrintHead, toolMailto, wireDisclosure,
     annualDebtService, lookThrough });

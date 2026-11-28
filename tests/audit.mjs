@@ -1790,6 +1790,65 @@ server.close();
     (gateIssues.length ? "\n     - " + gateIssues.join("\n     - ") : ""));
 }
 
+/* ---- the site no longer says everything is free ----
+   Until November 2026 every tool was free and the copy said so in
+   dozens of places. Thirteen are now client toolkits, so a sentence
+   saying "every tool is free" is a false statement to a buyer. This
+   fails on the phrasings that made the claim, on a locked page that
+   still calls itself free, and when the Terms, Privacy Notice and FAQ
+   do not describe the toolkits and the access cookie. */
+{
+  const claimIssues = [];
+  const { LOCKED_PAGES } = await import("../netlify/edge-functions/lib/gate.mjs");
+  const strip = (h) => decodeEntities(h.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ")
+    .replace(/<meta[^>]*content="([^"]*)"[^>]*>/g, " $1 ").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ");
+  const FALSE_CLAIMS = [
+    /free forever/i, /every tool[^.]{0,40}\bfree\b/i, /\bfree\b[^.]{0,40}every tool/i,
+    /all (?:the |our |\d+ |twenty )?tools[^.]{0,30}\bfree\b/i, /genuinely free/i, /really free/i,
+    /toolboxes a and v are free/i, /twelve free tools/i, /no paywall/i
+  ];
+  for (const f of htmlFiles()) {
+    const text = strip(readFileSync(join(ROOT, f), "utf8"));
+    for (const re of FALSE_CLAIMS) {
+      const m = text.match(re);
+      if (m) claimIssues.push(`${f}: "${m[0]}"`);
+    }
+  }
+  const JS_CLAIMS = [/free, no signup — /, /"free tools — no account/, /Toolbox A \(A1-A5\) is already free/];
+  for (const f of ["assets/js/page/about.js", "assets/js/page/company-profile.js", "assets/js/results.js"]) {
+    const js = readFileSync(join(ROOT, f), "utf8");
+    for (const re of JS_CLAIMS) if (re.test(js)) claimIssues.push(`${f}: still says ${re.source}`);
+  }
+  for (const p of LOCKED_PAGES) {
+    const html = readFileSync(join(ROOT, p.slice(1)), "utf8");
+    const desc = (html.match(/<meta name="description" content="([^"]*)"/) || [])[1] || "";
+    if (/\bfree\b/i.test(desc)) claimIssues.push(`${p}: meta description calls a client toolkit free`);
+    if (/·\s*Free\s*</.test(html)) claimIssues.push(`${p}: eyebrow labels a client toolkit "Free"`);
+  }
+  /* The nav and the home page build their tool lists from TOOL_MENU in
+     common.js; its locked flags must be the gate's list. */
+  const common = readFileSync(join(ROOT, "assets/js/common.js"), "utf8");
+  const menuLocked = [...common.matchAll(/\{ file: "([^"]+)",[^}]*locked: true/g)].map((m) => "/" + m[1]).sort();
+  if (JSON.stringify(menuLocked) !== JSON.stringify([...LOCKED_PAGES].sort())) {
+    claimIssues.push(`TOOL_MENU locked flags (${menuLocked.length}) differ from the gate's ${LOCKED_PAGES.length} locked pages`);
+  }
+  const terms = strip(readFileSync(join(ROOT, "terms.html"), "utf8"));
+  const privacy = strip(readFileSync(join(ROOT, "privacy.html"), "utf8"));
+  const faq = strip(readFileSync(join(ROOT, "faq.html"), "utf8"));
+  if (!/<h2[^>]*>[^<]*Client toolkits<\/h2>/.test(readFileSync(join(ROOT, "terms.html"), "utf8"))) claimIssues.push('terms.html has no "Client toolkits" section heading');
+  if (!/confidential/i.test(terms)) claimIssues.push("terms.html does not say the password is confidential");
+  if (!/28 November 2026/.test(terms)) claimIssues.push("terms.html last-updated date not 28 November 2026");
+  if (!privacy.includes("jk_toolkit") || !/30 days/.test(privacy)) claimIssues.push("privacy.html does not describe the jk_toolkit cookie and its 30 days");
+  if (!/28 November 2026/.test(privacy)) claimIssues.push("privacy.html last-updated date not 28 November 2026");
+  for (const q of ["What is free?", "What are the client toolkits?", "How do I get access?", "Why is there a password?"]) {
+    if (!faq.includes(q)) claimIssues.push(`faq.html lacks the question "${q}"`);
+  }
+  problems += claimIssues.length;
+  console.log(`\n${claimIssues.length ? "❌" : "✅"} the copy matches the client toolkit split: no "everything is free" claim, ` +
+    `Terms, Privacy and FAQ describe the toolkits` +
+    (claimIssues.length ? "\n     - " + claimIssues.join("\n     - ") : ""));
+}
+
 record("audit", { passed: problems === 0, issues: problems, pages: pages.length,
   headline: `${pages.length} pages audited for dead tokens, dead CSS, palette, design-value drift and deliverables` });
 console.log(`\n${problems ? "❌ " + problems + " issue(s)" : "✅ all pages clean"}`);

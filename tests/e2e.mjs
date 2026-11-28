@@ -1416,7 +1416,7 @@ await page.goto(base + "/about.html"); await page.waitForTimeout(450);
     h1: document.querySelectorAll("h1").length,
     text: document.querySelector(".about").textContent.replace(/\s+/g, " "),
     cover: [...document.querySelectorAll("#about-cover b")].map(b => Number(b.textContent.trim())),
-    open: JK.toolboxes.filter(b => !b.locked).reduce((n, b) => n + b.tools.length, 0),
+    open: JK.toolboxes.filter(b => !b.locked).reduce((n, b) => n + b.tools.filter(t => !t.client).length, 0),
     domains: JK.domains.length,
     sources: JK.benchmarkMeta.sources.length,
     phases: JK.phases.length,
@@ -3604,8 +3604,11 @@ section("Platform navigation, counts and tool-page UX");
   }));
   await page.goto(base + "/index.html"); await page.waitForTimeout(400);
   const R = await reg();
+  /* Thirteen tools became client toolkits, so the home stat counts the
+     free ones — still from the registry, via toolCounts(). */
   const stat = await page.evaluate(() => { const m = [...document.querySelectorAll(".metrics .m")].find(x => /free tools/i.test(x.textContent)); return m ? m.querySelector(".v").textContent.trim() : null; });
-  assert(stat === String(R.n), `home: the "Free tools" stat should be ${R.n} (the registry) — it says ${stat}`);
+  const freeN = await page.evaluate(() => toolCounts().free);
+  assert(stat === String(freeN) && freeN === 8, `home: the "Free tools" stat should be ${freeN} (the registry's free tools) — it says ${stat}`);
   const homeBuild = await page.$$eval("#build-tools a", (a) => a.map((x) => x.getAttribute("href")));
   const missBuild = R.build.filter((f) => !homeBuild.includes(f));
   assert(missBuild.length === 0, `home: build-track tools missing from the home grid: ${missBuild.join(", ")}`);
