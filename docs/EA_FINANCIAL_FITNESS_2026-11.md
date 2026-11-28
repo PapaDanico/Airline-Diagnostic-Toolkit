@@ -36,7 +36,7 @@ a provision, never as its text.
 
 | | Costs covered without revenue | Obligations met over | Other financial requirements | Instrument |
 |---|---|---|---|---|
-| **Kenya** | 3 months | 24 months | Two-year business plan; Fourth Schedule data; evidence of start-up funds (KCAA circulars AC-ATD003, AC-ATD08) | Civil Aviation (Licensing of Air Services) Regulations, 2018, L.N. 167/2018, reg. 19 |
+| **Kenya** | 3 months | 24 months | Two-year business plan; Fourth Schedule data; evidence of start-up funds (KCAA circulars AC-ATD003, AC-ATD08) | Civil Aviation (Licensing of Air Services) Regulations, 2025, L.N. 22/2026, reg. 19 (replacing L.N. 167/2018, same test) |
 | **Tanzania** | 6 months | 12 months | Feasibility study and first-year business plan (reg. 8(2)); five-year projections (First Schedule) | Civil Aviation (Licensing of Air Services) Regulations, 2006, G.N. 81/2006, reg. 8 |
 | **Uganda** | 6 months | 24 months | Evidence of ability to finance operations up to USD 0.5m (domestic), 1m (regional) or 2m (international); a performance bond (amount not published) | UCAA guidelines CAA/05/ASLA/59 (2014), under S.I. 2001 No. 72 (reg. 11(2)(f) "financial resources") |
 | **Rwanda** | 3 months | 24 months | Small carriers (aircraft under 10 t MTOW or fewer than 20 seats) are tested instead on net capital of at least RWF 50m; a guarantee or security (amount unstated); audited annual accounts | RCAR Part 37, 37.085 |
@@ -85,9 +85,11 @@ The rules live in one table in `assets/js/page/tools-venture-builder.js`
 
 ## Limits
 
-- **Kenya.** No amendment to the 2018 Regulations since gazettal was
-  found, but the 2022 consolidation and the 2024 draft replacement could
-  not be checked.
+- **Kenya.** Correction, 28 November 2026: the 2018 Regulations were
+  replaced by the 2025 Regulations (L.N. 22/2026), already recorded in the
+  toolkit's regulatory registry. Reg. 19 sets the same test, so no figure
+  changes; the citation does. Kenya Law blocks automated retrieval, so the
+  2025 text was not re-read for this note.
 - **Tanzania.** Reg. 8 sits in the Part on internal services; how it is
   applied to an international licence is to be confirmed with the TCAA.
   The provision of Cap. 80 that keeps the 2006 Regulations in force was
@@ -106,7 +108,7 @@ The rules live in one table in `assets/js/page/tools-venture-builder.js`
 
 Read 27 November 2026. Copies are held with the research working files.
 
-- Kenya: Civil Aviation (Licensing of Air Services) Regulations, 2018 (L.N. 167/2018), KCAA-hosted gazette print; KCAA circulars AC-ATD003 (2023) and AC-ATD08 (2025).
+- Kenya: Civil Aviation (Licensing of Air Services) Regulations, 2018 (L.N. 167/2018), KCAA-hosted gazette print, read in full; superseded by the 2025 Regulations (L.N. 22/2026, same reg. 19 test), recorded in the toolkit's regulatory registry (assets/js/data-ventures.js); KCAA circulars AC-ATD003 (2023) and AC-ATD08 (2025).
 - Tanzania: Civil Aviation (Licensing of Air Services) Regulations, 2006 (G.N. 81/2006), TCAA-hosted; TCAA Air Service Licence guidance page and application form.
 - Uganda: Civil Aviation (Licensing of Air Services) Regulations, 2001 (S.I. 2001 No. 72); UCAA guidelines CAA/05/ASLA/59 (June 2014) and the 2007 edition; Civil Aviation Authority Act, Cap. 354.
 - Rwanda: Rwanda Civil Aviation Regulations Part 37 (Ministerial Order 01/CAB.M/019 of 2019, compiled with RSR/01/2024), RCAA-hosted; RCAA form P37-001; Law 20/2018 and its 2024 amendment.

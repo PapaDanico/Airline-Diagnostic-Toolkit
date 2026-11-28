@@ -211,7 +211,7 @@
      the current text with the regulator before an application. */
   const ASL_RULES = {
     KE: { name: "Kenya", months: 3, oblig: 24, extra: "",
-          cite: "Civil Aviation (Licensing of Air Services) Regulations, 2018 (L.N. 167/2018), reg. 19" },
+          cite: "Civil Aviation (Licensing of Air Services) Regulations, 2025 (L.N. 22/2026), reg. 19" },
     TZ: { name: "Tanzania", months: 6, oblig: 12,
           extra: "Obligations must be met over a 12-month horizon here, not the 24 months the other States set. The test sits in the Part on internal air services; confirm with the TCAA how it is applied to an international licence.",
           cite: "Civil Aviation (Licensing of Air Services) Regulations, 2006 (G.N. 81/2006), reg. 8" },
