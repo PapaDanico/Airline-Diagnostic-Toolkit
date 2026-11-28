@@ -3978,8 +3978,8 @@ section("Revenue Builder: new streams");
    source — the segment card's own rate for that type, or the planning
    default a new card would arrive with — so changing the card changes the
    quote. Yield is derived from the same Year 1 figures the rail shows:
-   the Jabali sample flies 8 flight segments (one tail each) for
-   900+450+200+500+600+300+350+700 = 4,000 block hours, 500 per tail. */
+   the Jabali sample's 8 flight segments fly 900+450+200+500+600+300+350+700
+   = 4,000 block hours on a seven-aircraft fleet (segments share aircraft). */
 section("Revenue Builder: per-tail yield and itemised trip quote");
 {
   const num = async (sel, attr = "amount") => parseFloat(await page.$eval(sel, (e, a) => e.dataset[a], attr));
@@ -4035,11 +4035,29 @@ section("Revenue Builder: per-tail yield and itemised trip quote");
     page.once("dialog", (d) => d.accept().catch(() => {}));
     await page.click("#load-sample"); await page.waitForTimeout(300);
     assert((await page.$$("#seg-cards .card")).length === 13, "yield: the Jabali Air sample should still load thirteen streams");
-    const tails = await num("#y-tails", "value");
+    /* Segments are revenue streams, not airframes: the sample's jet card
+       flies the corporate Citation and four streams share the PC-12, so
+       it is a seven-tail fleet, and the divisor is the fleet entered. */
+    const hasFleet = !!(await page.$("#y-fleet"));
+    assert(hasFleet, "yield: the yield section should carry an 'Aircraft in the fleet' input");
     const railRev = await num("#r-rev", "value");
-    assert(tails === 8, `yield: the sample flies 8 tails (one per flight segment) - got ${tails}`);
-    assert(Math.abs(await num("#y-rev-tail", "value") - railRev / tails) < 1e-6, `yield: revenue per tail should be the rail's annual revenue ${railRev} / ${tails}`);
-    assert(await num("#y-hrs-tail", "value") === 500, `yield: block hours per tail should be 4,000 / 8 = 500 - got ${await num("#y-hrs-tail", "value")}`);
+    const perTail = async () => num("#y-rev-tail", "value");
+    if (hasFleet) {
+      assert(await page.$eval("#y-fleet", (e) => e.value) === "7" && await num("#y-tails", "value") === 7,
+        `yield: the Jabali sample should set a seven-aircraft fleet - got ${await page.$eval("#y-fleet", (e) => e.value)} / ${await num("#y-tails", "value")}`);
+      assert(Math.abs(await perTail() - railRev / 7) < 1e-6, `yield: revenue per tail should be the rail's Year 1 revenue ${railRev} / 7 - got ${await perTail()}`);
+      assert(Math.abs(await num("#y-hrs-tail", "value") - 4000 / 7) < 1e-9, `yield: block hours per tail should be 4,000 / 7 - got ${await num("#y-hrs-tail", "value")}`);
+      await page.fill("#y-fleet", ""); await page.click("#y-fleet"); await page.keyboard.type("5", { delay: 40 }); await page.waitForTimeout(150);
+      const ff = await page.evaluate(() => ({ id: document.activeElement && document.activeElement.id, v: document.getElementById("y-fleet").value }));
+      assert(ff.id === "y-fleet" && ff.v === "5", `yield: typing 5 into the fleet keeps focus and value - got focus ${ff.id}, value "${ff.v}"`);
+      assert(Math.abs(await perTail() - railRev / 5) < 1e-6, `yield: a five-aircraft fleet gives revenue per tail of ${railRev} / 5 - got ${await perTail()}`);
+      await page.reload(); await page.waitForTimeout(400);
+      assert(await page.$eval("#y-fleet", (e) => e.value) === "5" && Math.abs(await perTail() - railRev / 5) < 1e-6, "yield: the fleet size should persist across reload");
+      await page.fill("#y-fleet", ""); await page.waitForTimeout(150);
+      assert(await num("#y-tails", "value") === 8 && Math.abs(await perTail() - railRev / 8) < 1e-6,
+        `yield: an empty fleet falls back to one aircraft per flight segment (8) - got ${await num("#y-tails", "value")}`);
+      assert(/several segments often share an aircraft/i.test(await page.$eval("#yield", (e) => e.innerText)), "yield: the fleet default should say segments often share an aircraft");
+    }
     const perHr = await num("#y-rev-hr", "value"), flightRev = await num("#y-rev-hr", "flightRev");
     assert(perHr > 0 && Math.abs(perHr - flightRev / 4000) < 1e-6, `yield: flight revenue per block hour should be flight revenue / 4,000 h - got ${perHr}`);
     assert(/planning default/i.test(await page.$eval("#yield", (e) => e.innerText)), "yield: the utilisation band should be labelled a planning default");

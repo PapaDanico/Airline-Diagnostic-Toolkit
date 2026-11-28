@@ -157,9 +157,14 @@
         <div id="yield">
         <p class="eyebrow" style="margin-top:2.6rem">Step 4</p>
         <h2 id="yield-h" style="margin-bottom:.4rem">Per-tail yield</h2>
-        <p class="muted" style="max-width:min(640px,60ch)">The same Year 1 figures as the revenue summary, divided by the fleet. Each flight segment card is one tail; non-flight streams add revenue but no aircraft.</p>
+        <p class="muted" style="max-width:min(640px,60ch)">The same Year 1 figures as the revenue summary, divided by the aircraft in the fleet. Segments are revenue streams, not airframes: one aircraft can fly several of them.</p>
+        <div class="field" style="max-width:320px;margin-top:1rem">
+          <label for="y-fleet">Aircraft in the fleet</label>
+          <input type="number" id="y-fleet" min="1" step="1" inputmode="numeric">
+          <p class="hint">Defaults to one per flight segment until you enter your fleet size &mdash; several segments often share an aircraft.</p>
+        </div>
         <div class="kpis" style="margin-top:1rem">
-          <div class="kpi"><div class="kv tnum" id="y-tails" data-value="0">—</div><div class="kl">Tails modelled</div></div>
+          <div class="kpi"><div class="kv tnum" id="y-tails" data-value="0">—</div><div class="kl">Tails (fleet used)</div></div>
           <div class="kpi"><div class="kv tnum" id="y-rev-tail" data-value="0">—</div><div class="kl">Revenue per tail (all streams)</div></div>
           <div class="kpi"><div class="kv tnum" id="y-rev-hr" data-value="0" data-flight-rev="0">—</div><div class="kl">Flight revenue per block hour</div></div>
           <div class="kpi"><div class="kv tnum" id="y-hrs-tail" data-value="0">—</div><div class="kl">Block hours per tail</div></div>
@@ -167,7 +172,7 @@
         <div class="table-scroll" style="margin-top:1rem">
           <table class="dtable" id="yield-table">
             <thead><tr>
-              <th>Tail</th>
+              <th>Segment</th>
               <th class="num">Block hours</th>
               <th>Against planning band</th>
               <th class="num">Revenue</th>
@@ -176,7 +181,7 @@
             <tbody id="yield-body"></tbody>
           </table>
         </div>
-        <p class="hint muted" style="margin:.6rem 0 0;font-size:var(--fs-xs)">The utilisation band beside each tail is that segment's conservative-to-optimistic hours a year &mdash; a <b>planning default</b>, not a sourced benchmark. Figures carry any sensitivity adjustment set in Step 5.</p>
+        <p class="hint muted" style="margin:.6rem 0 0;font-size:var(--fs-xs)">Each row is a revenue segment, not an aircraft. The utilisation band beside it is that segment's conservative-to-optimistic hours a year &mdash; a <b>planning default</b>, not a sourced benchmark. Figures carry any sensitivity adjustment set in Step 5.</p>
         </div>
 
         <p class="eyebrow" style="margin-top:2.6rem">Step 5</p>

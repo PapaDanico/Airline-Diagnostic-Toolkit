@@ -546,12 +546,18 @@
      shows: total revenue is Year 1 of the same projection (proj[0]), and
      each tail's revenue is year1Revenue() for its segment under the same
      sensitivity, so this row cannot disagree with the summary above it.
-     A flight segment card carries one aircraft type and one aircraft
-     value, so it is modelled as one tail; non-flight streams earn
-     revenue without adding aircraft. */
+     Segments are revenue streams, not airframes: a jet card and a
+     corporate charter can fly the same Citation, and several streams can
+     share one PC-12. So the divisor is the fleet the operator enters
+     (state.fleet), and only while that is blank does it fall back to one
+     aircraft per flight segment, which the page says is a default. */
   function isFlight(seg) {
     const cfg = REVENUE_SEGMENTS[seg.type];
     return !!cfg && !cfg.kind;
+  }
+  function fleetSize(flightSegCount) {
+    const n = parseInt(state.fleet, 10);
+    return n >= 1 ? n : flightSegCount;
   }
   function fleetYield(segments, sa, proj) {
     const rows = segments.filter(isFlight).map(seg => {
@@ -563,7 +569,11 @@
         perHour: hours > 0 ? rev / hours : 0,
         status: hours < band.conservative ? "below" : hours > band.optimistic ? "above" : "within" };
     });
-    const tails = rows.length;
+    /* Tails are airframes, not revenue streams: several segments often
+       fly the same aircraft. The user's fleet size wins; blank falls back
+       to one per flight segment, and the page says so. */
+    const entered = parseInt(state.fleet, 10);
+    const tails = entered >= 1 ? entered : rows.length;
     const totalRev = (proj[0] || { rev: 0 }).rev;
     const flightRev = rows.reduce((a, r) => a + r.rev, 0);
     const flightHours = rows.reduce((a, r) => a + r.hours, 0);
@@ -591,7 +601,7 @@
       <td><span aria-hidden="true">${mark[r.status]}</span> ${word[r.status]} <span class="muted" style="font-size:var(--fs-xs)">(${r.band.conservative.toLocaleString("en-GB")}–${r.band.optimistic.toLocaleString("en-GB")} h, planning default)</span></td>
       <td class="num">${fmtMoney(r.rev)}</td>
       <td class="num">${r.hours > 0 ? fmtMoney(r.perHour) : "—"}</td>
-    </tr>`).join("") : `<tr><td colspan="5" class="muted">Add a flight segment above to see yield per tail.</td></tr>`;
+    </tr>`).join("") : `<tr><td colspan="5" class="muted">Add a flight segment above to see yield by segment.</td></tr>`;
   }
 
   /* Itemised trip quote. The controls are static HTML, built once; only
@@ -691,6 +701,16 @@
       saveState(state);
       renderQuote();
     }));
+    /* Fleet size: built once in HTML, never written back while typed in.
+       Blank (or anything under 1) falls back to one per flight segment. */
+    const fleetIn = $("y-fleet");
+    if (parseInt(state.fleet, 10) >= 1) fleetIn.value = String(parseInt(state.fleet, 10));
+    fleetIn.addEventListener("input", () => {
+      const n = parseInt(fleetIn.value, 10);
+      if (n >= 1) state.fleet = n; else delete state.fleet;
+      saveState(state);
+      recompute();
+    });
     $("quote-discuss").addEventListener("click", () => {
       const c = document.querySelector('#rev-enquiry [name="concern"]');
       if (c) c.value = "Pricing and yield";
@@ -833,7 +853,7 @@
       title: `Revenue model \u2014 ${state.segments.length} segment${state.segments.length !== 1 ? "s" : ""}`,
       verdict,
       findings: f,
-      basis: "Ten-year projection from the operator's own rates, utilisation and direct operating costs. Segment defaults are indicative planning estimates, not quotations or sourced benchmarks. Non-flight streams earn price x volume or a percentage of an entered base. Capital recovery requirement = programme total + (annual debt service \u00D7 10). Per-tail yield divides the same Year 1 revenue by the flight segments, one tail each. The trip quote prices at the segment card rate or its planning default; landing, navigation and crew charges are as entered, and it is a planning estimate, not a quote."
+      basis: "Ten-year projection from the operator's own rates, utilisation and direct operating costs. Segment defaults are indicative planning estimates, not quotations or sourced benchmarks. Non-flight streams earn price x volume or a percentage of an entered base. Capital recovery requirement = programme total + (annual debt service \u00D7 10). Per-tail yield divides the same Year 1 revenue and flight block hours by the fleet entered (one aircraft per flight segment until a fleet is entered). The trip quote prices at the segment card rate or its planning default; landing, navigation and crew charges are as entered, and it is a planning estimate, not a quote."
     });
   }
 
@@ -956,6 +976,7 @@
     ["fboHandling", {}],
     ["hangarage", {}]
   ];
+  const SAMPLE_FLEET = 7;
   $("load-sample").addEventListener("click", () => {
     if (state.segments.length && !confirm("Replace the segments on this page with the Jabali Air sample?")) return;
     state.segments = SAMPLE_PRESET.map(([t, o]) => {
@@ -963,6 +984,10 @@
       if (o.aircraft && !o.aircraftValue) seg.aircraftValue = AIRCRAFT_VALUES[o.aircraft] || 0;
       return seg;
     });
+    /* Eight flight streams on seven airframes: the jet card shares the
+       corporate Citation and four streams share the PC-12 fleet. */
+    state.fleet = SAMPLE_FLEET;
+    $("y-fleet").value = String(SAMPLE_FLEET);
     renderAll();
     $("seg-status").textContent = "Loaded the Jabali Air sample (a fictional operator): thirteen commercial streams. Planning estimates, not bookings.";
   });
