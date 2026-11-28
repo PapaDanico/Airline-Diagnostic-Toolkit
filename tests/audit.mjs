@@ -1636,7 +1636,7 @@ server.close();
    after each deploy. */
 {
   const redirects = readFileSync(join(ROOT, "_redirects"), "utf8");
-  const MUST_BLOCK = ["/CLAUDE.md", "/README.md", "/DESIGN.md", "/docs/*", "/tests/*", "/scripts/*", "/.claude/*", "/.github/*"];
+  const MUST_BLOCK = ["/CLAUDE.md", "/README.md", "/DESIGN.md", "/docs/*", "/tests/*", "/scripts/*", "/.claude/*", "/.github/*", "/netlify/*"];
   const missing = MUST_BLOCK.filter((path) => !new RegExp("^" + path.replace(/[.*]/g, (c) => "\\" + c) + "\\s+\\S+\\s+404!", "m").test(redirects));
   problems += missing.length ? 1 : 0;
   console.log(`\n${missing.length ? "❌" : "✅"} internal files are blocked from the live site` +
@@ -1711,6 +1711,73 @@ server.close();
   problems += footerIssue ? 1 : 0;
   console.log(`\n${footerIssue ? "❌" : "✅"} every page carries the generated footer` +
     (footerIssue ? "\n     - " + footerIssue.replace(/\n/g, "\n     - ") : ""));
+}
+
+/* ---- toolkit gate is wired ----
+   Thirteen tools are locked by a Netlify Edge Function
+   (netlify/edge-functions/toolkit-gate.mjs). An edge function with no
+   route deploys clean and never runs, and one bound to the wrong paths
+   locks the wrong thing — neither fails loudly. So the binding is
+   checked here against the one list in lib/gate.mjs: every locked page
+   in every spelling a static server might honour (extensionless,
+   trailing slash, case), every locked script, and POST /unlock, must
+   bind; no free page may. The gate's own unit tests run here too, so
+   CI and the deploy packager both execute them. None of this runs the
+   function: Netlify's edge is not reachable from this harness, and the
+   response itself is checked live after deploy. */
+{
+  const gateIssues = [];
+  const { LOCKED_PAGES, LOCKED_SCRIPTS } = await import("../netlify/edge-functions/lib/gate.mjs");
+  const fn = await import("../netlify/edge-functions/toolkit-gate.mjs").catch((e) => ({ loadError: e }));
+  const cfg = fn.config;
+  if (fn.loadError) gateIssues.push(`toolkit-gate.mjs does not load: ${fn.loadError.message}`);
+  else if (typeof fn.default !== "function") gateIssues.push("toolkit-gate.mjs has no default-export handler");
+  if (!cfg) gateIssues.push("toolkit-gate.mjs exports no config — an edge function with no route never runs");
+  else {
+    const res = [].concat(cfg.pattern || []).map((p) => new RegExp(p));
+    if (cfg.path) gateIssues.push("config.path is set alongside pattern; keep one binding");
+    const bound = (p) => res.some((r) => r.test(p));
+    const want = ["/unlock"];
+    for (const p of LOCKED_PAGES) {
+      const bare = p.replace(/\.html$/, "");
+      want.push(p, bare, bare + "/", p.toUpperCase(), bare.replace("/tools/", "/Tools/"), "/" + p);
+    }
+    for (const s of LOCKED_SCRIPTS) want.push(s, s.toUpperCase());
+    for (const p of want) if (!bound(p)) gateIssues.push(`${p} is locked but not bound to the edge function`);
+    const free = htmlFiles().filter((f) => !LOCKED_PAGES.includes("/" + f));
+    for (const f of free) {
+      for (const p of ["/" + f, "/" + f.replace(/(index)?\.html$/, "")]) {
+        if (bound(p)) gateIssues.push(`${p} is a free page but is bound to the gate`);
+      }
+    }
+    for (const s of ["/assets/js/common.js", "/assets/js/data.js", "/assets/js/data-ventures.js",
+      "/assets/js/page/tools-cask-calculator.js", "/assets/css/jk.css"]) {
+      if (bound(s)) gateIssues.push(`${s} is free but is bound to the gate`);
+    }
+    if (cfg.onError && cfg.onError !== "fail") gateIssues.push(`onError is "${cfg.onError}" — the gate must fail closed`);
+  }
+  try {
+    execFileSync(process.execPath, [join(ROOT, "tests", "gate.mjs")], { stdio: "pipe" });
+  } catch (e) {
+    gateIssues.push("gate unit tests fail:\n" + String(e.stdout || "").split("\n").filter((l) => /FAIL|Error/.test(l)).join("\n"));
+  }
+  /* The service worker caches every 200 it sees. A locked page or script
+     it cached for an unlocked visitor would be served from the cache
+     after the cookie expired, or to the next person on that device. */
+  const sw = readFileSync(join(ROOT, "sw.js"), "utf8");
+  const swList = (sw.match(/const LOCKED = \[([\s\S]*?)\];/) || [])[1];
+  if (!swList) gateIssues.push("sw.js has no LOCKED list — it would cache locked tools");
+  else {
+    const listed = new Set([...swList.matchAll(/'([^']+)'/g)].map((m) => m[1]));
+    for (const p of [...LOCKED_PAGES, ...LOCKED_SCRIPTS]) {
+      if (!listed.has(p)) gateIssues.push(`sw.js would cache ${p}`);
+    }
+    if (listed.size !== LOCKED_PAGES.length + LOCKED_SCRIPTS.length) gateIssues.push("sw.js LOCKED list differs from lib/gate.mjs");
+  }
+  problems += gateIssues.length;
+  console.log(`\n${gateIssues.length ? "❌" : "✅"} toolkit gate is wired: ${LOCKED_PAGES.length} pages and ${LOCKED_SCRIPTS.length} scripts bound, ` +
+    `no free page bound, unit tests green, service worker never caches them` +
+    (gateIssues.length ? "\n     - " + gateIssues.join("\n     - ") : ""));
 }
 
 record("audit", { passed: problems === 0, issues: problems, pages: pages.length,

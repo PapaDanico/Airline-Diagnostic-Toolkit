@@ -159,5 +159,70 @@ ok(plain.includes('href="/assets/css/jk.css"'), "uses the site stylesheet");
 ok(/type="password"/.test(plain) && /autocomplete="current-password"/.test(plain), "password input");
 ok(/<footer/.test(plain) && plain.includes('href="/privacy.html"') && plain.includes('href="/terms.html"'), "has a footer with Privacy and Terms");
 
+/* The handler, driven with a stand-in for Netlify's env and context.
+   This is not Netlify's runtime — that is checked live after deploy —
+   but it proves the wrapper fails closed and wires the logic as meant. */
+console.log("\nedge handler");
+const { default: handler, config } = await import("../netlify/edge-functions/toolkit-gate.mjs");
+const env = new Map();
+globalThis.Netlify = { env: { get: (k) => env.get(k) } };
+let reachedOrigin = 0;
+const ctx = { next: async () => { reachedOrigin++; return new Response("TOOL SOURCE", { status: 200 }); } };
+const errors = [];
+const realError = console.error;
+console.error = (...a) => errors.push(a.join(" "));
+const get = (path, cookie) => handler(new Request("https://site.example" + path, { headers: cookie ? { cookie } : {} }), ctx);
+const post = (fields) => handler(new Request("https://site.example/unlock", {
+  method: "POST", body: new URLSearchParams(fields),
+  headers: { "content-type": "application/x-www-form-urlencoded" }
+}), ctx);
+
+// missing environment: fail closed, log the name only
+let r = await get("/tools/venture-builder.html");
+ok(r.status === 401 && (await r.text()).includes("Client toolkit") && reachedOrigin === 0, "no env: locked page gets the unlock page, not the tool");
+ok(errors.some((e) => e === "toolkit gate: TOOLKIT_PASSWORD not set"), "no env: logs the variable name");
+env.set("TOOLKIT_PASSWORD", PW_A);
+errors.length = 0;
+r = await post({ password: PW_A, next: "/tools/venture-builder.html" });
+ok(r.status === 401 && !r.headers.get("set-cookie") && errors.some((e) => e === "toolkit gate: TOOLKIT_SECRET not set"),
+  "secret missing: even the right password does not unlock, and the name is logged");
+ok(!errors.some((e) => e.includes(PW_A)), "no log line carries the password");
+env.set("TOOLKIT_SECRET", SECRET);
+
+r = await get("/tools/venture-builder.html");
+const body = await r.text();
+ok(r.status === 401 && body.includes("Greenfield Venture Builder") && reachedOrigin === 0, "no cookie: 401 unlock page naming the tool");
+ok(r.headers.get("cache-control") === "no-store" && r.headers.get("x-robots-tag") === "noindex", "unlock page is no-store and noindex");
+ok(/script-src 'self'/.test(r.headers.get("content-security-policy") || ""), "unlock page carries the site CSP");
+r = await get("/tools/Venture-Builder");
+ok(r.status === 401 && reachedOrigin === 0, "no cookie: extensionless case variant is refused");
+r = await get("/assets/js/page/tools-venture-builder.js");
+ok(r.status === 401 && (await r.text()) === "" && reachedOrigin === 0, "no cookie: locked script gets 401 and no source");
+r = await get("/tools/cask%2Dcalculator.html");
+ok(r === undefined, "a free path routed by % passes through");
+r = await get("/tools/venture%2Dbuilder.html");
+ok(r.status === 401 && reachedOrigin === 0, "a percent-encoded locked path is refused");
+
+r = await post({ password: PW_B, next: "/tools/venture-builder.html" });
+ok(r.status === 401 && (await r.text()).includes("That password is not right.") && !r.headers.get("set-cookie"), "wrong password: 401 with the error, no cookie");
+r = await post({ password: PW_A, next: "https://evil.example" });
+ok(r.status === 303 && r.headers.get("location") === "/tools/", "right password, hostile next: 303 to /tools/");
+r = await post({ password: PW_A, next: "/tools/venture-builder.html" });
+const setCookie = r.headers.get("set-cookie") || "";
+ok(r.status === 303 && r.headers.get("location") === "/tools/venture-builder.html", "right password: 303 back to the tool");
+ok(/^jk_toolkit=\d+\.[0-9a-f]{64}; HttpOnly; Secure; SameSite=Lax; Path=\/; Max-Age=2592000$/.test(setCookie), "cookie is HttpOnly, Secure, SameSite=Lax, 30 days");
+const jar = setCookie.split(";")[0];
+r = await get("/tools/venture-builder.html", jar);
+ok(r.status === 200 && (await r.text()) === "TOOL SOURCE" && reachedOrigin === 1, "with the cookie: the tool is served");
+ok(/no-store/.test(r.headers.get("cache-control") || ""), "an unlocked tool is not cached");
+env.set("TOOLKIT_PASSWORD", PW_B);
+r = await get("/tools/venture-builder.html", jar);
+ok(r.status === 401 && reachedOrigin === 1, "after a password change the old cookie is refused");
+r = await handler(new Request("https://site.example/unlock"), ctx);
+ok(r.status === 303 && r.headers.get("location") === "/tools/", "GET /unlock goes to /tools/");
+ok(config && config.onError === "fail" && typeof config.pattern === "string", "config binds by pattern and fails closed");
+console.error = realError;
+delete globalThis.Netlify;
+
 console.log(`\n${fails.length ? "❌" : "✅"} gate: ${pass} passed, ${fails.length} failed`);
 process.exit(fails.length ? 1 : 0);
