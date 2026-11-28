@@ -34,7 +34,8 @@
    saved" is worth more than showing the right site and the wrong page.
    ============================================================ */
 
-const VERSION = 'jk-v1';
+/* v2: drops any locked tool a v1 cache picked up before the gate existed. */
+const VERSION = 'jk-v2';
 const CACHE = `${VERSION}-runtime`;
 
 /* The minimum that makes an offline visit coherent: somewhere to land,
@@ -47,6 +48,53 @@ const SHELL = [
   '/assets/css/jk.css',
   '/assets/img/jk-badge.png'
 ];
+
+/* Client toolkit pages and scripts are never cached. They are served
+   only to a visitor holding the access cookie (see
+   netlify/edge-functions/toolkit-gate.mjs); a cached copy would outlive
+   that cookie and be served offline to whoever next uses the device.
+   tests/audit.mjs checks this list against lib/gate.mjs. Locked tools
+   simply are not available offline. Matched case-insensitively and
+   with or without .html, as the gate matches them. */
+const LOCKED = [
+  '/tools/venture-dashboard.html',
+  '/tools/venture-builder.html',
+  '/tools/revenue-builder.html',
+  '/tools/corporate-structure.html',
+  '/tools/implementation-planner.html',
+  '/tools/aoc-acquisition.html',
+  '/tools/returns-solver.html',
+  '/tools/fleet-crew.html',
+  '/tools/plan-consistency.html',
+  '/tools/safety-map.html',
+  '/tools/organogram-planner.html',
+  '/tools/mro-readiness.html',
+  '/tools/training-tna.html',
+  '/assets/js/page/tools-venture-dashboard.js',
+  '/assets/js/page/tools-venture-builder.js',
+  '/assets/js/page/tools-revenue-builder.js',
+  '/assets/js/page/tools-corporate-structure.js',
+  '/assets/js/page/tools-implementation-planner.js',
+  '/assets/js/page/tools-aoc-acquisition.js',
+  '/assets/js/page/tools-returns-solver.js',
+  '/assets/js/page/tools-fleet-crew.js',
+  '/assets/js/page/tools-plan-consistency.js',
+  '/assets/js/page/tools-safety-map.js',
+  '/assets/js/page/tools-organogram-planner.js',
+  '/assets/js/page/tools-mro-readiness.js',
+  '/assets/js/page/tools-training-tna-1.js',
+  '/assets/js/page/tools-training-tna-2.js',
+  '/assets/js/data-acquisition.js',
+  '/assets/js/data-implementation.js',
+  '/assets/js/venture-file.js'
+];
+const LOCKED_SET = new Set(LOCKED);
+function isLockedPath(pathname) {
+  let p = pathname;
+  try { p = decodeURIComponent(p); } catch { return true; }
+  p = p.toLowerCase().replace(/\/{2,}/g, '/').replace(/\/+$/, '');
+  return LOCKED_SET.has(p) || LOCKED_SET.has(p + '.html') || p.includes('%');
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -99,7 +147,7 @@ async function networkFirst(request, isNavigation) {
     const fresh = await fetch(request);
     /* Only complete, same-origin successes. A 206 or an opaque error
        stored here would be served for the life of the cache. */
-    if (fresh && fresh.status === 200 && fresh.type === 'basic') {
+    if (fresh && fresh.status === 200 && fresh.type === 'basic' && !isLockedPath(url.pathname)) {
       cache.put(key, fresh.clone());
     }
     return fresh;

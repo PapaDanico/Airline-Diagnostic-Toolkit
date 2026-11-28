@@ -9,6 +9,7 @@
 /scripts/*              /404.html                          404!
 /.claude/*              /404.html                          404!
 /.github/*              /404.html                          404!
+/netlify/*              /404.html                          404!
 /certify                /tools/certification-navigator.html 301
 /venture                /tools/venture-builder.html        301
 /structure              /tools/corporate-structure.html    301

@@ -60,7 +60,7 @@ footer.
 ### Shared
 
 `index.html` (two-door landing) · `tools/index.html` (explorer, grouped by track) · `how-it-works.html` ·
-`tutorial.html` (step-by-step walkthrough, both tracks) · `faq.html` (40 questions, with FAQPage structured data) ·
+`tutorial.html` (step-by-step walkthrough, both tracks) · `faq.html` (44 questions, with FAQPage structured data) ·
 `glossary.html` (111 terms, searchable, cross-referenced) ·
 `regulations.html` (Kenya regulatory index — every instrument, its Legal Notice, source and verification status) ·
 `licence-financial-fitness.html` (air service licence financial-fitness test in five East African States, from `docs/EA_FINANCIAL_FITNESS_2026-11.md`) ·
@@ -230,6 +230,17 @@ default branch. If the commit you deployed is not on `main`, the next push to
 `main` replaces your deploy with whatever `main` holds — silently, and without
 anything failing. Land the branch, or know that you have not.
 
+### The client toolkit gate is an Edge Function
+
+Thirteen tools are locked by `netlify/edge-functions/toolkit-gate.mjs`, which
+needs `TOOLKIT_PASSWORD` and `TOOLKIT_SECRET` set in Netlify (scope: functions)
+and fails closed without them. An edge function is code, not a static file: a
+deploy that ships the files without it serves every locked tool openly, and
+nothing fails. The CLI deploy above bundles `netlify/edge-functions/`; whichever
+route you use, check after every deploy that
+`/tools/venture-builder.html` answers **401** without the cookie and that
+`/tools/cask-calculator.html` answers 200. The local suites cannot see the edge.
+
 ## Moving to a custom domain
 
 Canonical / Open Graph / Twitter URLs are absolute (crawlers need them). To repoint everything —
@@ -278,7 +289,7 @@ if they ever disagree, that disagreement is the bug.
 
 ## SEO
 
-`sitemap.xml` (35 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
+`sitemap.xml` (22 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
 JSON-LD on three pages: `Organization` + two `WebApplication` entries on the landing page, a
 `WebApplication` on the venture dashboard, and a `WebPage` on the sample report whose `mainEntity`
 is the scorecard. `tests/audit.mjs` asserts every block parses, that its numbers match the product,

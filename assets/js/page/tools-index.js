@@ -9,6 +9,13 @@ applyPartner(); mountChrome();
    drift when a tool is added: the page said "Twelve" with eighteen live. */
 const TOOL_TOTAL = TOOL_MENU.reduce((n, g) => n + g.items.length, 0);
 document.querySelectorAll("[data-tool-count]").forEach(el => { el.textContent = TOOL_TOTAL; });
+/* Free vs client-toolkit counts come from the cards themselves: a card
+   is a client toolkit when it carries the lock badge, which is also what
+   scripts/build-footer.mjs reads. The markup carries the same numbers. */
+const LOCKED_CARDS = document.querySelectorAll("main .toolcard2 .lock-badge").length;
+const FREE_CARDS = document.querySelectorAll("main .toolcard2").length - LOCKED_CARDS;
+document.querySelectorAll("[data-free-count]").forEach(el => { el.textContent = FREE_CARDS; });
+document.querySelectorAll("[data-locked-count]").forEach(el => { el.textContent = LOCKED_CARDS; });
 
 /* Filter chips. Static buttons, built once in the markup; a click only
    toggles `hidden` on cards and on a whole track when nothing in it matches,

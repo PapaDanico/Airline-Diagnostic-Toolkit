@@ -47,7 +47,8 @@ applyPartner(); mountChrome();
   const stats = [
     [String(sectors.length), "regulated sectors covered — every requirement cited to its instrument"],
     [String(phases.length), "certification phases mapped, per the Authority\u2019s published process"],
-    [String(toolCount), "free tools — no account, no signup, usable board-side today"],
+    [String(toolCount), "tools — " + groups.reduce((n, g) => n + g.items.filter((t) => t.locked).length, 0) +
+      " of them client toolkits, the rest free; no account, usable board-side today"],
     ["0", "data leaving the browser — every diagnostic runs and stays on this device"]
   ];
 
@@ -76,7 +77,7 @@ applyPartner(); mountChrome();
              <ul>${g.items
                .map(
                  (t) =>
-                   `<li><a href="${t.file}" data-keep-partner>${escapeHtml(t.label)}</a></li>`
+                   `<li><a href="${t.file}" data-keep-partner>${escapeHtml(t.label)}</a>${t.locked ? ' <span class="lock-badge" aria-label="client toolkit">Client</span>' : ""}</li>`
                )
                .join("")}</ul>
            </div>`

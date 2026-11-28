@@ -54,7 +54,8 @@ function toolGroups() {
       if (!name || !href || /^https?:/.test(href)) continue;
       // hrefs on the index are relative to tools/; normalise to the site root
       const file = href.startsWith("../") ? href.slice(3) : "tools/" + href;
-      tools.push({ name: name.trim(), file });
+      // a card carrying the lock badge is a client toolkit (locked at the edge)
+      tools.push({ name: name.trim(), file, locked: /class="lock-badge"/.test(card) });
     }
     groups.push({ title, tools });
   }
@@ -90,9 +91,10 @@ function footerFor(page) {
   const href = file => page === "404.html" ? "/" + file
     : inTools ? (file.startsWith("tools/") ? file.slice(6) : "../" + file)
     : file;
-  const item = ({ name, file }) => file === page
-    ? `        <p><span aria-current="page">${text(name)}</span></p>`
-    : `        <p><a href="${href(file)}" data-keep-partner>${text(name)}</a></p>`;
+  const badge = locked => locked ? ` <span class="lock-badge" aria-label="client toolkit">Client</span>` : "";
+  const item = ({ name, file, locked }) => file === page
+    ? `        <p><span aria-current="page">${text(name)}</span>${badge(locked)}</p>`
+    : `        <p><a href="${href(file)}" data-keep-partner>${text(name)}</a>${badge(locked)}</p>`;
   const [build, operate] = toolGroups();
   const allTools = page === "tools/index.html"
     ? `<span aria-current="page">All tools</span>`
@@ -104,7 +106,7 @@ function footerFor(page) {
       <div class="f-brand">
         <a class="brand" href="${href("index.html")}" data-keep-partner><span data-logo="light"></span><span>JK &amp; Associates</span></a>
         <p class="f-tag">End-to-end aviation advisory for African operators and investors. <em data-cobrand></em></p>
-        <p class="f-note">Free tools that run in your browser. Nothing you type leaves your device unless you press Send.</p>
+        <p class="f-note">Free diagnostics and client toolkits that run in your browser. Nothing you type leaves your device unless you press Send.</p>
       </div>
       <div class="f-list">
         <h2>${build.title}</h2>

@@ -157,4 +157,9 @@ Deploy it:
 
   or:  npx netlify-cli deploy --prod --dir . --site <site-id>
        (from a clean clone, never from a working directory)
+
+Then check the client toolkit gate (an Edge Function the local suites cannot see):
+  /tools/venture-builder.html must answer 401 without the cookie, and
+  /tools/cask-calculator.html 200. A deploy without the edge function
+  serves every locked tool openly. See README → Deployment.
 `);

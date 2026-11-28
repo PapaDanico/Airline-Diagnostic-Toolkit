@@ -704,6 +704,12 @@ input[type="range"] { min-height: 24px; }
    column spacing used to be inline styles copied into every page. */
 .footer .brand, .footer .brand span { color: var(--jk-white); }
 .footer .f-brand p { max-width: 320px; }
+/* Client toolkit marker — a locked tool (netlify/edge-functions/toolkit-gate.mjs).
+   Light by default (terra-deep on sand-lt, 8.29:1); inside the ink footer it
+   re-asserts its own ink as amber on ink (7.05:1), per the dark-band rule. */
+.lock-badge { display: inline-block; vertical-align: middle; font-family: var(--sans); font-weight: 700; font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase; line-height: 1.5; padding: 0 .55em; border-radius: 99px; background: var(--jk-sand-lt); color: var(--jk-terra-deep); border: 1px solid var(--jk-sand); }
+.toolcard2 .lock-badge { align-self: flex-start; }
+.footer .lock-badge { background: transparent; color: var(--jk-amber); border-color: var(--jk-amber); margin-left: .35em; }
 .footer .f-tag { margin-top: 1rem; }
 .footer .f-note { font-size: var(--fs-xs); line-height: 1.55; opacity: .85; }
 .footer .f-list p { margin-bottom: .32rem; }
