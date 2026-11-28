@@ -230,6 +230,17 @@ default branch. If the commit you deployed is not on `main`, the next push to
 `main` replaces your deploy with whatever `main` holds — silently, and without
 anything failing. Land the branch, or know that you have not.
 
+### The client toolkit gate is an Edge Function
+
+Thirteen tools are locked by `netlify/edge-functions/toolkit-gate.mjs`, which
+needs `TOOLKIT_PASSWORD` and `TOOLKIT_SECRET` set in Netlify (scope: functions)
+and fails closed without them. An edge function is code, not a static file: a
+deploy that ships the files without it serves every locked tool openly, and
+nothing fails. The CLI deploy above bundles `netlify/edge-functions/`; whichever
+route you use, check after every deploy that
+`/tools/venture-builder.html` answers **401** without the cookie and that
+`/tools/cask-calculator.html` answers 200. The local suites cannot see the edge.
+
 ## Moving to a custom domain
 
 Canonical / Open Graph / Twitter URLs are absolute (crawlers need them). To repoint everything —
