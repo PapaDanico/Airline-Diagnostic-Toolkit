@@ -3971,6 +3971,102 @@ section("Revenue Builder: new streams");
   await page.goto(base + "/tools/revenue-builder.html"); await page.evaluate(() => localStorage.clear());
 }
 
+/* Revenue Builder: per-tail yield and an itemised trip quote (benchmark
+   roadmap item 3). Charter calculators earn trust by showing each line,
+   not one number, so the quote is itemised and every line carries its raw
+   amount; the total must be exactly their sum. The hourly rate has one
+   source — the segment card's own rate for that type, or the planning
+   default a new card would arrive with — so changing the card changes the
+   quote. Yield is derived from the same Year 1 figures the rail shows:
+   the Jabali sample flies 8 flight segments (one tail each) for
+   900+450+200+500+600+300+350+700 = 4,000 block hours, 500 per tail. */
+section("Revenue Builder: per-tail yield and itemised trip quote");
+{
+  const num = async (sel, attr = "amount") => parseFloat(await page.$eval(sel, (e, a) => e.dataset[a], attr));
+  const lines = async () => page.$$eval("#quote-body [data-line]", (r) => r.map((x) => ({ line: x.dataset.line, amount: parseFloat(x.dataset.amount) })));
+  await page.goto(base + "/tools/revenue-builder.html"); await page.evaluate(() => localStorage.clear());
+  await page.goto(base + "/tools/revenue-builder.html"); await page.waitForTimeout(400);
+  const has = await page.$("#q-aircraft") && await page.$("#quote-body") && await page.$("#y-rev-tail");
+  assert(has, "quote: the Revenue Builder should carry an itemised trip quote and a per-tail yield row");
+  if (has) {
+    /* (b) one source: the quote's rate for a type is the rate on that type's card */
+    await page.selectOption("#seg-type", "executiveJet"); await page.click("#add-seg"); await page.waitForTimeout(150);
+    const cardRate = parseFloat(await page.$eval('#seg-cards [data-field="rate"]', (e) => e.value));
+    await page.selectOption("#q-aircraft", "executiveJet|Dassault Falcon 7X");
+    await page.fill("#q-block", "2.5"); await page.fill("#q-legs", "2"); await page.fill("#q-pos", "1.5");
+    await page.fill("#q-landing", "1200"); await page.fill("#q-nav", "350"); await page.fill("#q-nights", "1"); await page.fill("#q-crew", "600");
+    await page.waitForTimeout(150);
+    const flight = await num('#quote-body [data-line="flight"]');
+    assert(flight === 2 * 2.5 * cardRate, `quote: flight time should be 2 legs x 2.5 h x the card's ${cardRate}/h = ${5 * cardRate} - got ${flight}`);
+    assert(await num('#quote-body [data-line="positioning"]') === 1.5 * cardRate, "quote: positioning should be 1.5 h at the same hourly rate");
+    assert(await num('#quote-body [data-line="landing"]') === 2400 && await num('#quote-body [data-line="nav"]') === 700 && await num('#quote-body [data-line="crew"]') === 600,
+      "quote: per-leg charges x 2 legs and crew cost x 1 night should be itemised as entered");
+    /* (a) the lines sum to the total, exactly */
+    const ls = await lines();
+    const sum = ls.reduce((a, l) => a + l.amount, 0);
+    const total = await num("#quote-total");
+    assert(ls.length >= 5 && sum === total, `quote: line items should sum exactly to the total - ${ls.length} lines summing ${sum} vs total ${total}`);
+    assert(total === 6.5 * cardRate + 3700, `quote: total should be ${6.5 * cardRate + 3700} - got ${total}`);
+    await page.fill('#seg-cards [data-field="rate"]', String(cardRate + 500)); await page.waitForTimeout(150);
+    assert(await num('#quote-body [data-line="flight"]') === 5 * (cardRate + 500), "quote: editing the segment card's rate should re-price the quote (one rate source)");
+    assert(/planning estimate, not a quote/i.test(await page.$eval("#quote", (e) => e.innerText)), "quote: the table should say it is a planning estimate, not a quote");
+    assert(/planning default, not a quotation/i.test(await page.$eval("#quote", (e) => e.innerText)), "quote: unit costs should be labelled planning default, not a quotation");
+    /* (c) a different type re-prices from that type's own rate */
+    await page.selectOption("#seg-type", "safariCharter"); await page.click("#add-seg"); await page.waitForTimeout(150);
+    const safariRate = parseFloat(await page.$$eval('#seg-cards [data-field="rate"]', (e) => e[e.length - 1].value));
+    await page.selectOption("#q-aircraft", "safariCharter|Cessna C208 Caravan"); await page.waitForTimeout(150);
+    assert(await num('#quote-body [data-line="flight"]', "rate") === safariRate && await num('#quote-body [data-line="flight"]') === 5 * safariRate,
+      `quote: changing aircraft should update the rate line to the safari rate ${safariRate}/h`);
+    /* (d) typing a decimal keeps focus and every character */
+    await page.fill("#q-block", ""); await page.click("#q-block"); await page.keyboard.type("2.5", { delay: 40 }); await page.waitForTimeout(150);
+    const foc = await page.evaluate(() => ({ id: document.activeElement && document.activeElement.id, v: document.getElementById("q-block").value }));
+    assert(foc.id === "q-block" && foc.v === "2.5", `quote: typing 2.5 into block time keeps focus and value - got focus ${foc.id}, value "${foc.v}"`);
+    /* (e) inputs persist across reload */
+    await page.reload(); await page.waitForTimeout(400);
+    const kept = await page.evaluate(() => ["q-aircraft", "q-block", "q-legs", "q-pos", "q-landing", "q-nav", "q-nights", "q-crew"].map((id) => document.getElementById(id).value).join("|"));
+    assert(kept === "safariCharter|Cessna C208 Caravan|2.5|2|1.5|1200|350|1|600", `quote: inputs should persist across reload - got ${kept}`);
+    /* the assumption register prints the quote inputs; the quote table prints */
+    await page.emulateMedia({ media: "print" }); await page.waitForTimeout(250);
+    const pr = await page.evaluate(() => ({ reg: (document.querySelector(".print-assumptions") || {}).innerText || "", q: getComputedStyle(document.getElementById("quote-table")).display !== "none" }));
+    assert(/Sector block time/i.test(pr.reg) && /Landing/i.test(pr.reg), "quote: the printed assumption register should list the quote inputs");
+    assert(pr.q, "quote: the quote table should print in the pack");
+    await page.emulateMedia({ media: "screen" });
+    /* (h) the Jabali sample still loads; (f) per-tail yield ties to the rail */
+    page.once("dialog", (d) => d.accept().catch(() => {}));
+    await page.click("#load-sample"); await page.waitForTimeout(300);
+    assert((await page.$$("#seg-cards .card")).length === 13, "yield: the Jabali Air sample should still load thirteen streams");
+    const tails = await num("#y-tails", "value");
+    const railRev = await num("#r-rev", "value");
+    assert(tails === 8, `yield: the sample flies 8 tails (one per flight segment) - got ${tails}`);
+    assert(Math.abs(await num("#y-rev-tail", "value") - railRev / tails) < 1e-6, `yield: revenue per tail should be the rail's annual revenue ${railRev} / ${tails}`);
+    assert(await num("#y-hrs-tail", "value") === 500, `yield: block hours per tail should be 4,000 / 8 = 500 - got ${await num("#y-hrs-tail", "value")}`);
+    const perHr = await num("#y-rev-hr", "value"), flightRev = await num("#y-rev-hr", "flightRev");
+    assert(perHr > 0 && Math.abs(perHr - flightRev / 4000) < 1e-6, `yield: flight revenue per block hour should be flight revenue / 4,000 h - got ${perHr}`);
+    assert(/planning default/i.test(await page.$eval("#yield", (e) => e.innerText)), "yield: the utilisation band should be labelled a planning default");
+  }
+  /* (g) phone width: no sideways scroll, nothing under 11px */
+  const mctx = await browser.newContext({ viewport: { width: 375, height: 812 }, reducedMotion: "reduce" });
+  const mp = await mctx.newPage();
+  await mp.goto(base + "/tools/revenue-builder.html"); await mp.waitForTimeout(400);
+  await mp.click("#load-sample"); await mp.waitForTimeout(300);
+  assert((await mp.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 0, "revenue: no horizontal overflow at 375px with the sample and quote shown");
+  const small = await mp.evaluate(() => {
+    const out = []; const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
+    while ((n = tw.nextNode())) {
+      if ((n.textContent.match(/\p{L}/gu) || []).length < 3) continue;
+      const el = n.parentElement;
+      if (!el || el.closest('[aria-hidden="true"], [hidden], script, style, noscript, template')) continue;
+      const cs = getComputedStyle(el);
+      if (cs.display === "none" || cs.visibility === "hidden" || !el.getClientRects().length) continue;
+      if (parseFloat(cs.fontSize) < 11) out.push(n.textContent.trim().slice(0, 30));
+    }
+    return out;
+  });
+  assert(small.length === 0, `revenue @375px: no visible text under 11px${small.length ? " - " + small.slice(0, 4).join("; ") : ""}`);
+  await mctx.close();
+  await page.goto(base + "/tools/revenue-builder.html"); await page.evaluate(() => localStorage.clear());
+}
+
 section("Fuel tankering, MRO manpower and stage-adjusted CASK");
 {
   const txt = (id) => page.locator("#" + id).innerText();

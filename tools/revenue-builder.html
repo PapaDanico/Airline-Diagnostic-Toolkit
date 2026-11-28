@@ -154,7 +154,32 @@
           </table>
         </div>
 
+        <div id="yield">
         <p class="eyebrow" style="margin-top:2.6rem">Step 4</p>
+        <h2 id="yield-h" style="margin-bottom:.4rem">Per-tail yield</h2>
+        <p class="muted" style="max-width:min(640px,60ch)">The same Year 1 figures as the revenue summary, divided by the fleet. Each flight segment card is one tail; non-flight streams add revenue but no aircraft.</p>
+        <div class="kpis" style="margin-top:1rem">
+          <div class="kpi"><div class="kv tnum" id="y-tails" data-value="0">—</div><div class="kl">Tails modelled</div></div>
+          <div class="kpi"><div class="kv tnum" id="y-rev-tail" data-value="0">—</div><div class="kl">Revenue per tail (all streams)</div></div>
+          <div class="kpi"><div class="kv tnum" id="y-rev-hr" data-value="0" data-flight-rev="0">—</div><div class="kl">Flight revenue per block hour</div></div>
+          <div class="kpi"><div class="kv tnum" id="y-hrs-tail" data-value="0">—</div><div class="kl">Block hours per tail</div></div>
+        </div>
+        <div class="table-scroll" style="margin-top:1rem">
+          <table class="dtable" id="yield-table">
+            <thead><tr>
+              <th>Tail</th>
+              <th class="num">Block hours</th>
+              <th>Against planning band</th>
+              <th class="num">Revenue</th>
+              <th class="num">Revenue / block hour</th>
+            </tr></thead>
+            <tbody id="yield-body"></tbody>
+          </table>
+        </div>
+        <p class="hint muted" style="margin:.6rem 0 0;font-size:var(--fs-xs)">The utilisation band beside each tail is that segment's conservative-to-optimistic hours a year &mdash; a <b>planning default</b>, not a sourced benchmark. Figures carry any sensitivity adjustment set in Step 5.</p>
+        </div>
+
+        <p class="eyebrow" style="margin-top:2.6rem">Step 5</p>
         <h2 style="margin-bottom:.4rem">Sensitivity</h2>
         <p class="muted" style="max-width:min(640px,60ch)">Adjust rate, utilisation and DOC to see how contribution changes.</p>
         <div class="card card-flat" style="margin-top:1rem">
@@ -179,6 +204,54 @@
             <b>Contribution at risk: </b><span id="sens-at-risk" class="tnum">—</span>
           </div>
         </div>
+
+        <div id="quote">
+        <p class="eyebrow" style="margin-top:2.6rem">Step 6</p>
+        <h2 id="quote-h" style="margin-bottom:.4rem">Itemised trip quote</h2>
+        <p class="muted" style="max-width:min(640px,60ch)">What one charter would cost the buyer, line by line. The hourly rate is the one on that segment's card above, or the planning default a new card arrives with; sensitivity adjustments are not applied.</p>
+        <div class="card card-flat" style="margin-top:1rem">
+          <div class="field">
+            <label for="q-aircraft">Aircraft and segment</label>
+            <select id="q-aircraft"></select>
+            <p class="hint" id="q-rate-src" role="status"></p>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="q-block">Sector block time (hours per leg)</label>
+              <input type="number" id="q-block" min="0" step="0.1" value="2" inputmode="decimal"></div>
+            <div class="field"><label for="q-legs">Number of legs</label>
+              <input type="number" id="q-legs" min="0" step="1" value="2" inputmode="numeric"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="q-pos">Positioning (ferry) hours</label>
+              <input type="number" id="q-pos" min="0" step="0.1" value="0" inputmode="decimal">
+              <p class="hint">Billed at the same hourly rate. Enter 0 if the trip starts and ends at base.</p></div>
+            <div class="field"><label for="q-nights">Crew overnight nights</label>
+              <input type="number" id="q-nights" min="0" step="1" value="0" inputmode="numeric"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="q-landing">Landing, parking and handling per leg (USD)</label>
+              <input type="number" id="q-landing" min="0" step="50" value="0" inputmode="decimal">
+              <p class="hint">Planning default, not a quotation: left at 0 &mdash; enter your handling/landing quote.</p></div>
+            <div class="field"><label for="q-nav">Navigation and overflight per leg (USD)</label>
+              <input type="number" id="q-nav" min="0" step="50" value="0" inputmode="decimal">
+              <p class="hint">Planning default, not a quotation: left at 0 &mdash; enter the charges for your routing.</p></div>
+          </div>
+          <div class="field" style="max-width:320px">
+            <label for="q-crew">Crew overnight cost per night (USD, whole crew)</label>
+            <input type="number" id="q-crew" min="0" step="50" value="0" inputmode="decimal">
+            <p class="hint">Planning default, not a quotation: left at 0 &mdash; enter hotel and allowances.</p>
+          </div>
+        </div>
+        <div class="table-scroll" style="margin-top:1rem">
+          <table class="dtable" id="quote-table">
+            <thead><tr><th>Line</th><th>Basis</th><th class="num">Amount</th></tr></thead>
+            <tbody id="quote-body"></tbody>
+            <tfoot><tr><td colspan="2">Total</td><td class="num" id="quote-total" data-amount="0">—</td></tr></tfoot>
+          </table>
+        </div>
+        <p class="hint muted" style="margin:.6rem 0 0;font-size:var(--fs-xs)"><b>Planning estimate, not a quote.</b> No tax, margin or fuel surcharge is added: this tool does not model them, and the hourly rates are planning defaults until you replace them with your own. Confirm every charge with the handling agent and the authority before quoting a client.</p>
+        <p class="cta-alt no-print" style="margin-top:.6rem"><a href="#rev-enquiry" id="quote-discuss">Have JK check this quote and your pricing &rarr;</a></p>
+        </div>
       </div>
 
       <aside class="rail">
@@ -195,7 +268,7 @@
 
           <div style="margin-top:1.2rem;display:flex;flex-direction:column;gap:.5rem">
             <button class="btn btn-amber" id="btn-save-vf" style="justify-content:center">Save to Venture File</button>
-            <button class="btn btn-ghost-lt" id="btn-print" style="justify-content:center">Print Board Pack</button>
+            <button class="btn btn-ghost-lt" id="print" style="justify-content:center">Print Board Pack</button>
             <button class="btn btn-ghost-lt" id="btn-export-json" style="justify-content:center">Export JSON</button>
           </div>
           <div id="save-status" class="muted" style="font-size:var(--fs-xs);margin-top:.6rem"></div>
