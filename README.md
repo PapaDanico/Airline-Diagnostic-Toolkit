@@ -63,6 +63,7 @@ footer.
 `tutorial.html` (step-by-step walkthrough, both tracks) · `faq.html` (40 questions, with FAQPage structured data) ·
 `glossary.html` (111 terms, searchable, cross-referenced) ·
 `regulations.html` (Kenya regulatory index — every instrument, its Legal Notice, source and verification status) ·
+`licence-financial-fitness.html` (air service licence financial-fitness test in five East African States, from `docs/EA_FINANCIAL_FITNESS_2026-11.md`) ·
 `methodology.html` · `partners.html` · `embed.html` · `privacy.html` / `terms.html` · `404.html`
 
 ## Sectors covered (Build track)
@@ -277,7 +278,7 @@ if they ever disagree, that disagreement is the bug.
 
 ## SEO
 
-`sitemap.xml` (34 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
+`sitemap.xml` (35 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
 JSON-LD on three pages: `Organization` + two `WebApplication` entries on the landing page, a
 `WebApplication` on the venture dashboard, and a `WebPage` on the sample report whose `mainEntity`
 is the scorecard. `tests/audit.mjs` asserts every block parses, that its numbers match the product,

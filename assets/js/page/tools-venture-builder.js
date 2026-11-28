@@ -211,7 +211,7 @@
      the current text with the regulator before an application. */
   const ASL_RULES = {
     KE: { name: "Kenya", months: 3, oblig: 24, extra: "",
-          cite: "Civil Aviation (Licensing of Air Services) Regulations, 2018 (L.N. 167/2018), reg. 19" },
+          cite: "Civil Aviation (Licensing of Air Services) Regulations, 2025 (L.N. 22/2026), reg. 19" },
     TZ: { name: "Tanzania", months: 6, oblig: 12,
           extra: "Obligations must be met over a 12-month horizon here, not the 24 months the other States set. The test sits in the Part on internal air services; confirm with the TCAA how it is applied to an international licence.",
           cite: "Civil Aviation (Licensing of Air Services) Regulations, 2006 (G.N. 81/2006), reg. 8" },
@@ -1146,6 +1146,16 @@
 
   /* ---------- restore ---------- */
   FIELDS.forEach(id => { if (state[id] !== undefined) $(id).value = state[id]; });
+  /* ?juris= arrives from the licence financial-fitness page's "Test your
+     plan" links. An explicit, valid code beats the saved choice (the
+     visitor just asked for that country) and is saved with the plan, so
+     what is shown and what is stored agree; anything else is ignored and
+     the saved or default choice stands. Set before the first recompute,
+     so nothing is rebuilt (CLAUDE.md §6). */
+  const jurisUrl = (new URLSearchParams(location.search).get("juris") || "").toUpperCase();
+  if (Object.prototype.hasOwnProperty.call(ASL_RULES, jurisUrl)) {
+    $("asl-juris").value = jurisUrl; state["asl-juris"] = jurisUrl;
+  }
   const fromUrl = new URLSearchParams(location.search).get("sector");
   selectSector((fromUrl && JKV.sector(fromUrl)) ? fromUrl : (state.sector || "aoc"), false);
 })();
