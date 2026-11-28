@@ -258,6 +258,7 @@
   if (!Array.isArray(state.segments)) state.segments = [];
   if (!state.sens) state.sens = { rate: 0, util: 0, doc: 0 };
   if (!state.cst) state.cst = { programmeTotal: 0, annualDebtService: 0 };
+  if (!state.quote || typeof state.quote !== "object") state.quote = {};
 
   let _nextId = Date.now();
   function newId() { return "s" + (_nextId++).toString(36); }
@@ -525,6 +526,7 @@
     void sa;
 
     $("r-rev").textContent = fmtMoney(yr1.rev);
+    $("r-rev").dataset.value = String(yr1.rev);
     $("r-doc").textContent = fmtMoney(yr1.doc);
     $("r-contrib").textContent = fmtMoney(yr1.contrib);
     $("r-10yr").textContent = fmtMoney(tenYr);
@@ -538,6 +540,181 @@
       atRiskEl.textContent = fmtMoney(Math.abs(atRisk));
       atRiskEl.style.color = atRisk < 0 ? "var(--jk-red-dk)" : "var(--jk-green)";
     }
+  }
+
+  /* Per-tail yield. One formula, fed by the figures the rail already
+     shows: total revenue is Year 1 of the same projection (proj[0]), and
+     each tail's revenue is year1Revenue() for its segment under the same
+     sensitivity, so this row cannot disagree with the summary above it.
+     Segments are revenue streams, not airframes: a jet card and a
+     corporate charter can fly the same Citation, and several streams can
+     share one PC-12. So the divisor is the fleet the operator enters
+     (state.fleet), and only while that is blank does it fall back to one
+     aircraft per flight segment, which the page says is a default. */
+  function isFlight(seg) {
+    const cfg = REVENUE_SEGMENTS[seg.type];
+    return !!cfg && !cfg.kind;
+  }
+  function fleetSize(flightSegCount) {
+    const n = parseInt(state.fleet, 10);
+    return n >= 1 ? n : flightSegCount;
+  }
+  function fleetYield(segments, sa, proj) {
+    const rows = segments.filter(isFlight).map(seg => {
+      const cfg = REVENUE_SEGMENTS[seg.type];
+      const hours = (parseFloat(seg.hours) || 0) * sa.util;
+      const rev = year1Revenue(seg, sa).rev;
+      const band = cfg.utilBands;
+      return { seg, cfg, hours, rev, band,
+        perHour: hours > 0 ? rev / hours : 0,
+        status: hours < band.conservative ? "below" : hours > band.optimistic ? "above" : "within" };
+    });
+    /* Tails are airframes, not revenue streams: several segments often
+       fly the same aircraft. The user's fleet size wins; blank falls back
+       to one per flight segment, and the page says so. */
+    const entered = parseInt(state.fleet, 10);
+    const tails = entered >= 1 ? entered : rows.length;
+    const totalRev = (proj[0] || { rev: 0 }).rev;
+    const flightRev = rows.reduce((a, r) => a + r.rev, 0);
+    const flightHours = rows.reduce((a, r) => a + r.hours, 0);
+    return {
+      rows, tails, totalRev, flightRev, flightHours,
+      revPerTail: tails ? totalRev / tails : 0,
+      revPerHour: flightHours > 0 ? flightRev / flightHours : 0,
+      hoursPerTail: tails ? flightHours / tails : 0
+    };
+  }
+
+  function renderYield(proj, sa) {
+    const y = fleetYield(state.segments, sa, proj);
+    const put = (id, v, text) => { const el = $(id); el.dataset.value = String(v); el.textContent = text; };
+    put("y-tails", y.tails, y.tails ? String(y.tails) : "—");
+    put("y-rev-tail", y.revPerTail, y.tails ? fmtMoney(y.revPerTail) : "—");
+    put("y-rev-hr", y.revPerHour, y.flightHours > 0 ? fmtMoney(y.revPerHour) : "—");
+    $("y-rev-hr").dataset.flightRev = String(y.flightRev);
+    put("y-hrs-tail", y.hoursPerTail, y.tails ? Math.round(y.hoursPerTail).toLocaleString("en-GB") + " h" : "—");
+    const word = { below: "Below band", within: "Within band", above: "Above band" };
+    const mark = { below: "▼", within: "●", above: "▲" };
+    $("yield-body").innerHTML = y.rows.length ? y.rows.map(r => `<tr>
+      <td>${escapeHtml(r.seg.aircraft)}<br><span class="muted" style="font-size:var(--fs-xs)">${escapeHtml(r.cfg.label)}</span></td>
+      <td class="num">${Math.round(r.hours).toLocaleString("en-GB")}</td>
+      <td><span aria-hidden="true">${mark[r.status]}</span> ${word[r.status]} <span class="muted" style="font-size:var(--fs-xs)">(${r.band.conservative.toLocaleString("en-GB")}–${r.band.optimistic.toLocaleString("en-GB")} h, planning default)</span></td>
+      <td class="num">${fmtMoney(r.rev)}</td>
+      <td class="num">${r.hours > 0 ? fmtMoney(r.perHour) : "—"}</td>
+    </tr>`).join("") : `<tr><td colspan="5" class="muted">Add a flight segment above to see yield by segment.</td></tr>`;
+  }
+
+  /* Itemised trip quote. The controls are static HTML, built once; only
+     the table body, the total and the rate-source line are rewritten.
+     Its defaults are the values the fields were built with
+     (defaultValue), so the page, the saved state and the printed
+     assumption register share one set. Every charge that is not already
+     in this tool starts at 0: a landing or handling figure invented here
+     would print as if someone had quoted it. */
+  const QUOTE_FIELDS = ["q-block", "q-legs", "q-pos", "q-landing", "q-nav", "q-nights", "q-crew"];
+  const quoteKey = id => id.slice(2);
+  function quoteValue(id) {
+    const v = parseFloat(state.quote[quoteKey(id)]);
+    if (isFinite(v) && v >= 0) return v;
+    return parseFloat($(id).defaultValue) || 0;
+  }
+  /* The rate has one source: the card for that segment and aircraft, as
+     the operator entered it, or else the planning default a new card of
+     that type arrives with (makeSegment sets rate from rateBands.base). */
+  function quoteRate(key) {
+    const [type, aircraft] = String(key || "").split("|");
+    const cfg = REVENUE_SEGMENTS[type];
+    if (!cfg || cfg.kind || !cfg.aircraft.includes(aircraft)) return null;
+    const seg = state.segments.find(s => s.type === type && s.aircraft === aircraft);
+    if (seg) return { rate: parseFloat(seg.rate) || 0, cfg, aircraft, fromCard: true };
+    return { rate: cfg.rateBands.base, cfg, aircraft, fromCard: false };
+  }
+  function fmtUsd(v) { return "USD " + Math.round(v).toLocaleString("en-GB"); }
+  function quoteLines() {
+    const r = quoteRate($("q-aircraft").value);
+    if (!r) return { r: null, lines: [], total: 0 };
+    const block = quoteValue("q-block"), legs = quoteValue("q-legs"), pos = quoteValue("q-pos");
+    const landing = quoteValue("q-landing"), nav = quoteValue("q-nav");
+    const nights = quoteValue("q-nights"), crew = quoteValue("q-crew");
+    const rateTxt = `${fmtUsd(r.rate)}/h`;
+    const lines = [
+      { line: "flight", label: "Flight time", rate: r.rate,
+        basis: `${legs} leg${legs === 1 ? "" : "s"} × ${block} h × ${rateTxt}`, amount: legs * block * r.rate },
+      { line: "positioning", label: "Positioning (ferry)", rate: r.rate,
+        basis: `${pos} h × ${rateTxt}`, amount: pos * r.rate },
+      { line: "landing", label: "Landing, parking and handling",
+        basis: landing ? `${legs} × ${fmtUsd(landing)}` : "Enter your handling/landing quote", amount: legs * landing },
+      { line: "nav", label: "Navigation and overflight",
+        basis: nav ? `${legs} × ${fmtUsd(nav)}` : "Enter the charges for your routing", amount: legs * nav },
+      { line: "crew", label: "Crew overnight",
+        basis: crew ? `${nights} night${nights === 1 ? "" : "s"} × ${fmtUsd(crew)}` : "Enter hotel and allowances", amount: nights * crew }
+    ];
+    /* The total is the sum of the lines as shown, never a second formula. */
+    const total = lines.reduce((a, l) => a + l.amount, 0);
+    return { r, lines, total };
+  }
+
+  function renderQuote() {
+    const q = quoteLines();
+    const src = $("q-rate-src"), tot = $("quote-total");
+    if (!q.r) { src.textContent = ""; $("quote-body").innerHTML = ""; tot.dataset.amount = "0"; tot.textContent = "—"; return; }
+    src.textContent = q.r.fromCard
+      ? `Rate ${fmtUsd(q.r.rate)}/h, from your ${q.r.cfg.label} card.`
+      : `Rate ${fmtUsd(q.r.rate)}/h — the ${q.r.cfg.label} planning default, not a quotation. Add that segment above to use your own rate.`;
+    $("quote-body").innerHTML = q.lines.map(l => `<tr data-line="${l.line}" data-amount="${l.amount}"${l.rate !== undefined ? ` data-rate="${l.rate}"` : ""}>
+      <td>${escapeHtml(l.label)}</td>
+      <td${l.amount ? "" : ' class="muted"'}>${escapeHtml(l.basis)}</td>
+      <td class="num">${fmtUsd(l.amount)}</td>
+    </tr>`).join("");
+    tot.dataset.amount = String(q.total);
+    tot.textContent = fmtUsd(q.total);
+  }
+
+  function buildQuoteControls() {
+    const sel = $("q-aircraft");
+    Object.entries(REVENUE_SEGMENTS).forEach(([type, cfg]) => {
+      if (cfg.kind) return;
+      const g = document.createElement("optgroup");
+      g.label = cfg.label;
+      cfg.aircraft.forEach(a => {
+        const o = document.createElement("option");
+        o.value = type + "|" + a;
+        o.textContent = `${a} — ${cfg.label}`;
+        g.appendChild(o);
+      });
+      sel.appendChild(g);
+    });
+    if (quoteRate(state.quote.aircraft)) sel.value = state.quote.aircraft;
+    QUOTE_FIELDS.forEach(id => {
+      const v = parseFloat(state.quote[quoteKey(id)]);
+      if (isFinite(v) && v >= 0) $(id).value = String(v);
+    });
+    sel.addEventListener("change", () => { state.quote.aircraft = sel.value; saveState(state); renderQuote(); });
+    QUOTE_FIELDS.forEach(id => $(id).addEventListener("input", e => {
+      /* A half-typed "2." reads as empty: keep the last good figure and
+         never write back into the field, so nothing under the cursor is
+         rewritten. A cleared field falls back to its built default. */
+      const raw = e.target.value, v = parseFloat(raw);
+      if (raw === "" && !e.target.validity.badInput) delete state.quote[quoteKey(id)];
+      else if (isFinite(v) && v >= 0) state.quote[quoteKey(id)] = v;
+      else return;
+      saveState(state);
+      renderQuote();
+    }));
+    /* Fleet size: built once in HTML, never written back while typed in.
+       Blank (or anything under 1) falls back to one per flight segment. */
+    const fleetIn = $("y-fleet");
+    if (parseInt(state.fleet, 10) >= 1) fleetIn.value = String(parseInt(state.fleet, 10));
+    fleetIn.addEventListener("input", () => {
+      const n = parseInt(fleetIn.value, 10);
+      if (n >= 1) state.fleet = n; else delete state.fleet;
+      saveState(state);
+      recompute();
+    });
+    $("quote-discuss").addEventListener("click", () => {
+      const c = document.querySelector('#rev-enquiry [name="concern"]');
+      if (c) c.value = "Pricing and yield";
+    });
   }
 
   function renderSegCard(seg) {
@@ -676,7 +853,7 @@
       title: `Revenue model \u2014 ${state.segments.length} segment${state.segments.length !== 1 ? "s" : ""}`,
       verdict,
       findings: f,
-      basis: "Ten-year projection from the operator's own rates, utilisation and direct operating costs. Segment defaults are indicative planning estimates, not quotations or sourced benchmarks. Non-flight streams earn price x volume or a percentage of an entered base. Capital recovery requirement = programme total + (annual debt service \u00D7 10)."
+      basis: "Ten-year projection from the operator's own rates, utilisation and direct operating costs. Segment defaults are indicative planning estimates, not quotations or sourced benchmarks. Non-flight streams earn price x volume or a percentage of an entered base. Capital recovery requirement = programme total + (annual debt service \u00D7 10). Per-tail yield divides the same Year 1 revenue and flight block hours by the fleet entered (one aircraft per flight segment until a fleet is entered). The trip quote prices at the segment card rate or its planning default; landing, navigation and crew charges are as entered, and it is a planning estimate, not a quote."
     });
   }
 
@@ -690,6 +867,8 @@
     renderProjectionTable(proj);
     renderBreakEvenTable(state.segments);
     renderRail(proj, sa);
+    renderYield(proj, sa);
+    renderQuote();
     renderCapitalServiceTest(proj.length ? proj[proj.length - 1].cumulative : 0);
     renderPrintSummary(proj);
     saveState(state);
@@ -797,6 +976,7 @@
     ["fboHandling", {}],
     ["hangarage", {}]
   ];
+  const SAMPLE_FLEET = 7;
   $("load-sample").addEventListener("click", () => {
     if (state.segments.length && !confirm("Replace the segments on this page with the Jabali Air sample?")) return;
     state.segments = SAMPLE_PRESET.map(([t, o]) => {
@@ -804,6 +984,10 @@
       if (o.aircraft && !o.aircraftValue) seg.aircraftValue = AIRCRAFT_VALUES[o.aircraft] || 0;
       return seg;
     });
+    /* Eight flight streams on seven airframes: the jet card shares the
+       corporate Citation and four streams share the PC-12 fleet. */
+    state.fleet = SAMPLE_FLEET;
+    $("y-fleet").value = String(SAMPLE_FLEET);
     renderAll();
     $("seg-status").textContent = "Loaded the Jabali Air sample (a fictional operator): thirteen commercial streams. Planning estimates, not bookings.";
   });
@@ -863,7 +1047,9 @@
     URL.revokeObjectURL(url);
   });
 
-  $("btn-print").addEventListener("click", () => window.print());
+  /* id="print", like every other printable tool: it is how common.js
+     knows to append the printed assumption register to this page. */
+  $("print").addEventListener("click", () => window.print());
   $("import-fleet").addEventListener("click", importFleet);
 
   ["rate", "util", "doc"].forEach(k => {
@@ -874,6 +1060,7 @@
   });
 
   mountPrintHead("Revenue Model Builder");
+  buildQuoteControls();
   renderAll();
 
   const href = toolMailto("Revenue", "Revenue model", "I would like help building a bankable revenue model.");
