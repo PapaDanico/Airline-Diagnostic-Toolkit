@@ -244,8 +244,18 @@ server.close();
   );
   const onDisk = new Set(htmlFiles());
   const sitemapIssues = [];
+  /* Client toolkit pages answer a crawler with the 401 unlock page, so
+     listing them advertises thirteen dead ends. The list is the gate's
+     own, not a copy. */
+  const { LOCKED_PAGES } = await import("../netlify/edge-functions/lib/gate.mjs");
+  const LOCKED = new Set(LOCKED_PAGES.map((p) => p.slice(1)));
+  for (const f of LOCKED) {
+    if (listed.has(f)) sitemapIssues.push(`${f} is a client toolkit (locked) but is in the sitemap`);
+    if (!onDisk.has(f)) sitemapIssues.push(`locked page ${f} is not on disk`);
+  }
 
   for (const f of onDisk) {
+    if (LOCKED.has(f)) continue;
     if (NOT_INDEXED.has(f)) {
       if (listed.has(f)) sitemapIssues.push(`${f} is in the sitemap but marked NOT_INDEXED`);
     } else if (!listed.has(f)) {
@@ -262,7 +272,7 @@ server.close();
   problems += sitemapIssues.length;
   console.log(
     `\n${sitemapIssues.length ? '❌' : '✅'} sitemap.xml covers ${listed.size} of ${onDisk.size} pages ` +
-      `(${NOT_INDEXED.size} deliberately excluded)` +
+      `(${NOT_INDEXED.size} deliberately excluded, ${LOCKED.size} client toolkits locked)` +
       (sitemapIssues.length ? '\n     - ' + sitemapIssues.join('\n     - ') : '')
   );
 }

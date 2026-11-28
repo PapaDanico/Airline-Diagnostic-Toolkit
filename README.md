@@ -278,7 +278,7 @@ if they ever disagree, that disagreement is the bug.
 
 ## SEO
 
-`sitemap.xml` (35 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
+`sitemap.xml` (22 URLs), `robots.txt`, a branded `404.html`, per-page Open Graph/Twitter cards, and
 JSON-LD on three pages: `Organization` + two `WebApplication` entries on the landing page, a
 `WebApplication` on the venture dashboard, and a `WebPage` on the sample report whose `mainEntity`
 is the scorecard. `tests/audit.mjs` asserts every block parses, that its numbers match the product,

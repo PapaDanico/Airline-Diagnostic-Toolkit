@@ -4267,6 +4267,52 @@ section("No readable text below 11px");
   }
 }
 
+/* ---- client toolkits are marked as such ----
+   Thirteen tools are locked behind the client toolkit password at the
+   edge (netlify/edge-functions/toolkit-gate.mjs). Over file:// the gate
+   does not run, so the tools themselves are still tested above; what is
+   tested here is that the site tells the visitor which tools are free
+   and which are for clients, from the same list the gate enforces. */
+section("Client toolkit marking");
+{
+  const { LOCKED_PAGES } = await import("../netlify/edge-functions/lib/gate.mjs");
+  const lockedFiles = new Set(LOCKED_PAGES.map((p) => p.replace(/^\/tools\//, "")));
+  const tp = await browser.newPage({ reducedMotion: "reduce" });
+  await tp.goto(base + "/tools/index.html");
+  const cards = await tp.$$eval("main .toolcard2", (els) => els.map((c) => {
+    const a = c.querySelector("a.btn");
+    return { name: c.querySelector("h3")?.textContent.trim(), href: (a?.getAttribute("href") || "").replace(/^\.\.\//, "../"),
+      btn: a?.textContent.trim(), badge: !!c.querySelector(".lock-badge"), badgeText: c.querySelector(".lock-badge")?.textContent.trim() };
+  }));
+  const locked = cards.filter((c) => lockedFiles.has(c.href));
+  const free = cards.filter((c) => !lockedFiles.has(c.href));
+  assert(locked.length === 13 && locked.every((c) => c.badge && c.badgeText === "Client toolkit"),
+    `tools index: all 13 locked cards carry a "Client toolkit" badge (${locked.filter((c) => c.badge).length}/${locked.length})`);
+  assert(cards.filter((c) => c.badge).length === 13, `tools index: exactly 13 badges (${cards.filter((c) => c.badge).length})`);
+  assert(free.length === 8 && free.every((c) => !c.badge), `tools index: the 8 free cards carry no badge (${free.length} free, ${free.filter((c) => c.badge).length} badged)`);
+  assert(locked.every((c) => c.btn === "Unlock →"), `tools index: locked buttons read "Unlock →" (${[...new Set(locked.map((c) => c.btn))].join(" | ")})`);
+  assert(free.every((c) => c.btn !== "Unlock →"), "tools index: free buttons do not say Unlock");
+  const head = await tp.$eval("main .diag-head", (h) => h.textContent.replace(/\s+/g, " "));
+  assert(/\b8 free tools and 13 client toolkits\b/.test(head), `tools index header: "8 free tools and 13 client toolkits" (${head.slice(0, 160)})`);
+  assert(/Free tools · Client toolkits/.test(head) && !/Free forever/i.test(head), "tools index eyebrow: \"Free tools · Client toolkits\"");
+  await tp.goto(base + "/index.html");
+  const foot = await tp.$$eval("footer .f-list p", (ps) => ps.map((p) => ({
+    text: p.textContent.trim(), href: p.querySelector("a")?.getAttribute("href") || "", badge: p.querySelector(".lock-badge")?.textContent.trim() || "" })));
+  const fLocked = foot.filter((f) => lockedFiles.has(f.href.replace(/^tools\//, "")));
+  assert(foot.filter((f) => f.badge === "Client").length === 13 && fLocked.length === 13 && fLocked.every((f) => f.badge === "Client"),
+    `footer on index.html: the 13 locked tools carry a "Client" marker (${foot.filter((f) => f.badge === "Client").length})`);
+  const note = await tp.$eval("footer .f-note", (n) => n.textContent.trim());
+  assert(note === "Free diagnostics and client toolkits that run in your browser. Nothing you type leaves your device unless you press Send.",
+    `footer note no longer claims everything is free (${note})`);
+  const sm = readFileSync(resolve(ROOT, "sitemap.xml"), "utf8");
+  const inMap = LOCKED_PAGES.filter((p) => sm.includes(p.replace(/^\//, "") + "<"));
+  assert(inMap.length === 0, `sitemap lists no locked page (${inMap.join(", ") || "none"})`);
+  await tp.goto(base + "/licence-financial-fitness.html");
+  const lic = await tp.$eval("main", (m) => m.textContent.replace(/\s+/g, " "));
+  assert(lic.includes("The Venture Builder test is part of the JK & Associates client toolkit."), "licence page notes the Venture Builder test is a client toolkit");
+  await tp.close();
+}
+
 section("JavaScript errors");
 assert(errs.length === 0, `no uncaught page errors (${errs.length ? errs.join(" | ") : "none"})`);
 
